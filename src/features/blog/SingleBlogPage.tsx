@@ -2,7 +2,6 @@ import Link from "next/link";
 
 const heroBg = "/assets/figma-temp/SingleBlogPage/hero-bg.png";
 const heroBgOverlay = "/assets/figma-temp/SingleBlogPage/hero-bg-overlay.png";
-const heroVector = "/assets/figma-temp/SingleBlogPage/hero-vector.svg";
 const articleHeroImg = "/assets/figma-temp/SingleBlogPage/article-hero-img.png";
 const articleSectionImg = "/assets/figma-temp/SingleBlogPage/article-section-img.png";
 const blogCardImg1 = "/assets/figma-temp/SingleBlogPage/blog-card-img-1.png";
@@ -34,6 +33,7 @@ const DEMO_POST: BlogPost = {
   author: "Jane Li",
   category: "Architecture",
   heroImg: articleHeroImg,
+  sectionImg: articleSectionImg,
   intro:
     "In today's fast-paced work environment, efficiency is the key to success. Teams that manage their tasks effectively are more productive, deliver better results, and experience less stress. However, managing workflows manually, juggling multiple tools, and keeping track of project progress can be overwhelming. That's where TomoSaaS comes in.",
   sections: [
@@ -163,11 +163,6 @@ function HeroBanner() {
             "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
         }}
       />
-      <img
-        src={heroVector}
-        alt=""
-        className="absolute bottom-[-10%] left-0 w-full pointer-events-none"
-      />
       <div className="relative h-full flex flex-col items-center justify-center gap-3 px-6 text-center">
         <SectionTag label="Blog Post" />
         <h1
@@ -188,18 +183,47 @@ function HeroBanner() {
   );
 }
 
+/* ─── Section body — splits multi-para on \n\n with tighter inner gap ─── */
+function SectionBody({ text }: { text: string }) {
+  const paras = text.split("\n\n");
+  if (paras.length === 1) {
+    return (
+      <p
+        className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+        style={{ fontFamily: montserrat }}
+      >
+        {text}
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-[10px]">
+      {paras.map((para, i) => (
+        <p
+          key={i}
+          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+          style={{ fontFamily: montserrat }}
+        >
+          {para}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 /* ─── Article body ─── */
 function ArticleContent({ post }: { post: BlogPost }) {
+  const sectionImg = post.sectionImg ?? articleSectionImg;
+
   return (
     <article className="flex flex-col gap-12 lg:gap-[48px]">
-      {/* header: back + date + title */}
+      {/* header: back + date + title — w-[866px] per Figma */}
       <div className="flex flex-col gap-6 lg:gap-[24px] max-w-[866px]">
         <Link
           href="/blog"
           className="flex items-center gap-3 text-[16px] text-[#0d2138] tracking-[-0.16px] w-fit"
           style={{ fontFamily: montserrat }}
         >
-          {/* arrow left */}
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0">
             <path
               d="M19 12H5M5 12L12 19M5 12L12 5"
@@ -229,7 +253,7 @@ function ArticleContent({ post }: { post: BlogPost }) {
       </div>
 
       {/* introduction */}
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-[20px]">
         <h3
           className="text-[28px] font-medium text-[#0d2138] leading-[36px] tracking-[-0.28px]"
           style={{ fontFamily: poppins }}
@@ -244,64 +268,63 @@ function ArticleContent({ post }: { post: BlogPost }) {
         </p>
       </div>
 
-      {/* main hero image */}
+      {/* full-width hero image */}
       <div className="h-[400px] lg:h-[720px] rounded-[20px] overflow-hidden w-full">
         <img src={post.heroImg} alt="" className="w-full h-full object-cover" />
       </div>
 
-      {/* sections */}
+      {/* sections + section image + conclusion — gap-[40px] between all children */}
       <div className="flex flex-col gap-10 lg:gap-[40px]">
-        {post.sections.map((section, i) => (
-          <div key={i} className="flex flex-col gap-5">
-            <h3
-              className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-              style={{ fontFamily: poppins }}
-            >
-              {section.heading}
-            </h3>
-            {section.body.split("\n\n").map((para, j) => (
-              <p
-                key={j}
-                className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-                style={{ fontFamily: montserrat }}
-              >
-                {para}
-              </p>
-            ))}
-            {/* insert section image after first section */}
-            {i === 0 && post.sectionImg && (
-              <div className="h-[320px] lg:h-[512px] rounded-[20px] overflow-hidden w-full mt-5">
-                <img src={post.sectionImg} alt="" className="w-full h-full object-cover" />
-              </div>
-            )}
-          </div>
-        ))}
 
-        {/* section image (placed after section 1) */}
-        {!post.sectionImg && (
-          <div className="h-[320px] lg:h-[512px] rounded-[20px] overflow-hidden w-full">
-            <img src={articleSectionImg} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        {/* conclusion */}
-        <div className="flex flex-col gap-5">
+        {/* section 1 only */}
+        <div className="flex flex-col gap-[20px]">
           <h3
             className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
             style={{ fontFamily: poppins }}
           >
-            {post.conclusion.heading}
+            {post.sections[0].heading}
           </h3>
-          <div className="flex flex-col gap-[10px]">
-            {post.conclusion.body.map((para, i) => (
-              <p
-                key={i}
-                className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-                style={{ fontFamily: montserrat }}
+          <SectionBody text={post.sections[0].body} />
+        </div>
+
+        {/* section image between section 1 and section 2 per Figma */}
+        <div className="h-[320px] lg:h-[512px] rounded-[20px] overflow-hidden w-full">
+          <img src={sectionImg} alt="" className="w-full h-full object-cover" />
+        </div>
+
+        {/* sections 2-N + conclusion */}
+        <div className="flex flex-col gap-10 lg:gap-[40px]">
+          {post.sections.slice(1).map((section, i) => (
+            <div key={i} className="flex flex-col gap-[20px]">
+              <h3
+                className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
+                style={{ fontFamily: poppins }}
               >
-                {para}
-              </p>
-            ))}
+                {section.heading}
+              </h3>
+              <SectionBody text={section.body} />
+            </div>
+          ))}
+
+          {/* conclusion */}
+          <div className="flex flex-col gap-[20px]">
+            <h3
+              className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
+              style={{ fontFamily: poppins }}
+            >
+              {post.conclusion.heading}
+            </h3>
+            <div className="flex flex-col gap-[10px]">
+              {post.conclusion.body.map((para, i) => (
+                <p
+                  key={i}
+                  className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+                  style={{ fontFamily: montserrat }}
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
       </div>

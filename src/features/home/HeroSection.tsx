@@ -42,37 +42,35 @@ export function HeroSection() {
   const [activeTab, setActiveTab] = useState<"buy" | "rent">("buy");
 
   return (
-    <section className="relative w-full min-h-[600px] lg:min-h-[700px] overflow-hidden">
-      {/* Background Image */}
+    <section className="relative w-full min-h-[760px] overflow-hidden sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[1064px]">
       <div className="absolute inset-0">
         <img
           src={heroImg}
           alt="Luxury property"
-          className="w-full h-full object-cover object-bottom"
+          className="h-full w-full object-fill"
         />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(250,250,250,0.8)]" />
-        <div className="absolute inset-0 bg-[rgba(10,25,53,0.25)]" />
+        <div className="absolute inset-0 bg-[rgba(20,78,128,0.12)]" />
+        <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.62)] to-[rgba(255,255,255,0.9)]" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-[600px] lg:min-h-[700px] px-4 py-20">
-        {/* Title */}
-        <div className="text-center text-white max-w-[640px] mb-10">
+      <div className="relative z-10 flex min-h-[760px] flex-col items-center px-4 pt-[128px] pb-10 sm:min-h-[820px] sm:pt-[150px] lg:min-h-[960px] lg:pt-[174px] xl:min-h-[1064px]">
+        <div className="mx-auto max-w-[760px] text-center text-white">
           <h1
-            className="capitalize leading-tight mb-5"
+            className="mb-7 capitalize leading-[1.16]"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 500,
-              fontSize: "clamp(36px, 5vw, 64px)",
-              letterSpacing: "-0.02em",
+              fontSize: "clamp(42px, 4.15vw, 67px)",
+              letterSpacing: "0",
             }}
           >
-            Your gateway to prestige properties
+            Your Gateway To
+            <br />
+            Prestige Properties
           </h1>
           <p
-            className="leading-[24px] opacity-90"
-            style={{ fontFamily: "Poppins, sans-serif", fontSize: "clamp(14px, 2vw, 18px)" }}
+            className="leading-[1.45] opacity-95"
+            style={{ fontFamily: "Poppins, sans-serif", fontSize: "clamp(16px, 1.1vw, 21px)" }}
           >
             Uncover a world of unique homes and unforgettable experiences.
             <br className="hidden sm:block" />
@@ -80,16 +78,14 @@ export function HeroSection() {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="w-full max-w-[1100px] px-4">
-          {/* Tabs */}
-          <div className="flex">
+        <div className="mt-auto w-full max-w-[1370px] px-0 pb-6 sm:px-4 lg:pb-9">
+          <div className="flex pl-0 sm:pl-0">
             <button
               onClick={() => setActiveTab("buy")}
-              className={`px-10 py-[14px] text-[14px] font-medium rounded-tl-[12px] transition-all ${
+              className={`h-[60px] w-[145px] text-[16px] font-medium transition-all ${
                 activeTab === "buy"
-                  ? "bg-white text-[#00528f] border border-[#f2f2f2] border-b-0"
-                  : "bg-[rgba(0,0,0,0.4)] text-white"
+                  ? "bg-white text-[#00528f]"
+                  : "bg-[rgba(0,0,0,0.58)] text-white"
               }`}
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
@@ -97,10 +93,10 @@ export function HeroSection() {
             </button>
             <button
               onClick={() => setActiveTab("rent")}
-              className={`px-10 py-[14px] text-[14px] font-normal transition-all ${
+              className={`h-[60px] w-[145px] text-[16px] font-normal transition-all ${
                 activeTab === "rent"
-                  ? "bg-white text-[#00528f] border border-[#f2f2f2] border-b-0"
-                  : "bg-[rgba(0,0,0,0.4)] text-white"
+                  ? "bg-white text-[#00528f]"
+                  : "bg-[rgba(0,0,0,0.58)] text-white"
               }`}
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
@@ -108,22 +104,20 @@ export function HeroSection() {
             </button>
           </div>
 
-          {/* Search Panel */}
-          <div className="bg-white rounded-bl-[16px] rounded-br-[16px] rounded-tr-[16px] shadow-[0px_4px_32px_0px_rgba(0,0,0,0.04)] border border-[#e5e7eb]">
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4 p-6 lg:p-8">
-              {/* Location */}
-              <div className="flex flex-col gap-3 flex-1">
+          <div className="rounded-b-[16px] rounded-tr-[16px] border border-[#e8e8e8] bg-white shadow-[0px_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-col items-stretch gap-5 p-6 sm:p-8 lg:flex-row lg:items-end lg:gap-6 lg:px-[42px] lg:py-[40px]">
+              <div className="flex min-w-0 flex-1 flex-col gap-3">
                 <p
-                  className="text-[14px] font-medium text-[#0d2138]"
+                  className="text-[15px] font-medium text-[#0d2138]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
                   Location
                 </p>
-                <div className="flex items-center justify-between border border-[#e5e7eb] rounded-[52px] px-4 py-[14px] bg-white gap-3">
+                <div className="flex h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-5">
                   <div className="flex items-center gap-3 text-[#4a5565]">
                     <LocationIcon />
                     <span
-                      className="text-[14px]"
+                      className="text-[15px]"
                       style={{ fontFamily: "Poppins, sans-serif" }}
                     >
                       Lisbon, Portugal
@@ -133,19 +127,18 @@ export function HeroSection() {
                 </div>
               </div>
 
-              {/* Property Type */}
-              <div className="flex flex-col gap-3 flex-1">
+              <div className="flex min-w-0 flex-1 flex-col gap-3">
                 <p
-                  className="text-[14px] font-medium text-[#0d2138]"
+                  className="text-[15px] font-medium text-[#0d2138]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
                   Property Type
                 </p>
-                <div className="flex items-center justify-between border border-[#e5e5e5] rounded-[52px] px-4 py-[14px] bg-white gap-3">
+                <div className="flex h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-5">
                   <div className="flex items-center gap-3 text-[#4a5565]">
                     <BuildingIcon />
                     <span
-                      className="text-[14px]"
+                      className="text-[15px]"
                       style={{ fontFamily: "Poppins, sans-serif" }}
                     >
                       Apartment
@@ -155,19 +148,18 @@ export function HeroSection() {
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="flex flex-col gap-3 flex-1">
+              <div className="flex min-w-0 flex-1 flex-col gap-3">
                 <p
-                  className="text-[14px] font-medium text-[#0d2138]"
+                  className="text-[15px] font-medium text-[#0d2138]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
                   Price
                 </p>
-                <div className="flex items-center justify-between border border-[#e5e5e5] rounded-[52px] px-4 py-[14px] bg-white gap-3">
+                <div className="flex h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-5">
                   <div className="flex items-center gap-3 text-[#4a5565]">
                     <DollarIcon />
                     <span
-                      className="text-[14px]"
+                      className="text-[15px]"
                       style={{ fontFamily: "Poppins, sans-serif" }}
                     >
                       10,000 - 15,000
@@ -177,9 +169,8 @@ export function HeroSection() {
                 </div>
               </div>
 
-              {/* Search Button */}
               <button
-                className="flex-shrink-0 px-7 py-[14px] rounded-[48px] text-white text-[16px] font-medium transition-opacity hover:opacity-90"
+                className="h-[54px] flex-shrink-0 whitespace-nowrap rounded-[48px] px-8 text-[17px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px]"
                 style={{
                   fontFamily: "Poppins, sans-serif",
                   background: "linear-gradient(to bottom, #005ea4, #006fc2)",

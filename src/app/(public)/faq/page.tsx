@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { FAQ } from "@/features/home/FAQ";
+import { FAQPageContent } from "@/features/faq/FAQPage";
 
 export const metadata: Metadata = {
   title: "FAQ — Ulrich Propiedades",
+  description:
+    "Find answers to the most common questions about buying, selling, and renting property with Ulrich Propiedades.",
 };
 
 export default function FAQPage() {
-  return <FAQ />;
+  return <FAQPageContent />;
 }

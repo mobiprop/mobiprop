@@ -1,8 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
-export function middleware(_request: NextRequest) {
-  // TODO: add auth guard using Supabase session
-  return NextResponse.next();
+import { updateSession } from "@/lib/supabase/middleware";
+
+export async function middleware(request: NextRequest) {
+  return updateSession(request);
 }
 
 export const config = {

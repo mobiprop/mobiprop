@@ -1,12 +1,22 @@
-// Prisma client singleton
-// TODO: install @prisma/client and run `prisma generate` before using
+import "server-only";
 
-// import { PrismaClient } from "@prisma/client";
-//
-// const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-//
-// export const prisma = globalForPrisma.prisma ?? new PrismaClient();
-//
-// if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+import { PrismaPg } from "@prisma/adapter-pg";
 
-export {};
+import { env } from "@/lib/env";
+import { PrismaClient } from "@/generated/prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma?: PrismaClient;
+};
+
+const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter,
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}

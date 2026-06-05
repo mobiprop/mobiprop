@@ -1,0 +1,329 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+/* ─── assets ─── */
+const heroBg = "/assets/figma-temp/TermsConditions/hero-bg.png";
+const heroOverlay = "/assets/figma-temp/TermsConditions/hero-overlay.png";
+const consultationBg = "/assets/figma-temp/ContactPage/consultation-bg.png";
+
+const poppins = "Poppins, sans-serif";
+const montserrat = "Montserrat, sans-serif";
+
+/* ─── content data ─── */
+const sections = [
+  {
+    heading: "1. Acceptance of terms",
+    intro:
+      "By accessing Realist's website, submitting property information, contacting our agents, or using any tools (such as home valuations or neighborhood guides), you confirm that:",
+    list: {
+      type: "ol" as const,
+      items: [
+        "You are at least 18 years old.",
+        "You agree to comply with these Terms and Conditions.",
+        "You are using the website for lawful purposes only.",
+      ],
+    },
+    outro: "If you do not meet these conditions, you may not use our services.",
+  },
+  {
+    heading: "2. Services we provide",
+    intro: "Realist offers property-related resources including:",
+    list: {
+      type: "ul" as const,
+      items: [
+        "Residential and commercial property listings",
+        "Home valuation tools",
+        "Neighborhood information",
+        "Agent profiles and contact services",
+        "Property submission features",
+        "Guides, news, and blog content",
+      ],
+    },
+    outro:
+      "We may update, change, or discontinue parts of the platform at any time without prior notice.",
+  },
+  {
+    heading: "3. User responsibilities",
+    intro: "When using our website, you agree that:",
+    list: {
+      type: "ol" as const,
+      items: [
+        "All information you submit is accurate and truthful.",
+        "You will not upload false, misleading, or fraudulent property details.",
+        "You will not attempt to hack, disrupt, or misuse the website.",
+        "You will not impersonate an agent, homeowner, or another user.",
+      ],
+    },
+    outro: "Any misuse may result in restricted access or removal of submitted content.",
+  },
+  {
+    heading: "4. Property listings and accuracy",
+    intro:
+      "Realist strives to provide the most accurate and up-to-date information, but:",
+    list: {
+      type: "ul" as const,
+      items: [
+        "Property details may change without notice",
+        "Prices, availability, and features are not guaranteed",
+        "Images may be representative and not always exact",
+      ],
+    },
+    outro:
+      "We encourage users to verify information independently before making decisions.",
+  },
+  {
+    heading: "5. Agent contact and communication",
+    intro: "By contacting an agent through the website, you agree that:",
+    list: {
+      type: "ol" as const,
+      items: [
+        "Realist may forward your details to the appropriate agent.",
+        "Agents may contact you via email or phone.",
+        "You are requesting property-related assistance voluntarily.",
+      ],
+    },
+    outro: "We do not guarantee specific response times or outcomes.",
+  },
+  {
+    heading: "6. Intellectual property rights",
+    intro:
+      "Realist may link to outside resources or listing platforms. These external sites:",
+    list: {
+      type: "ul" as const,
+      items: [
+        "Are not controlled by Realist",
+        "Have their own privacy and legal policies",
+        "Are used at your own discretion",
+      ],
+    },
+    outro: "We are not responsible for any issues arising from third-party websites.",
+  },
+];
+
+/* ─── 1. Hero ─── */
+function HeroBanner() {
+  return (
+    <section className="relative h-[360px] lg:h-[408px] overflow-hidden">
+      <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={heroOverlay}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
+        }}
+      />
+      <div className="relative h-full flex flex-col items-center justify-center gap-[16px] px-6 text-center">
+        <h1
+          className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] max-w-[644px]"
+          style={{ fontFamily: poppins }}
+        >
+          Terms &amp; Conditions
+        </h1>
+        <p
+          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+          style={{ fontFamily: montserrat }}
+        >
+          Last updated: October 15, 2023
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ─── 2. Content ─── */
+function TermsContent() {
+  return (
+    <div className="max-w-[952px] mx-auto px-6 lg:px-0 py-[80px] flex flex-col gap-[48px]">
+
+      {/* numbered sections */}
+      {sections.map((s) => (
+        <div key={s.heading} className="flex flex-col gap-[20px]">
+          <h2
+            className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
+            style={{ fontFamily: poppins }}
+          >
+            {s.heading}
+          </h2>
+          <div
+            className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+            style={{ fontFamily: montserrat }}
+          >
+            <p className="mb-3">{s.intro}</p>
+            {s.list.type === "ol" ? (
+              <ol className="list-decimal ml-6 flex flex-col gap-1 mb-3">
+                {s.list.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ol>
+            ) : (
+              <ul className="list-disc ml-6 flex flex-col gap-1 mb-3">
+                {s.list.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+            <p>{s.outro}</p>
+          </div>
+        </div>
+      ))}
+
+      {/* 12. Contact information */}
+      <div className="flex flex-col gap-[20px]">
+        <h2
+          className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
+          style={{ fontFamily: poppins }}
+        >
+          12. Contact information
+        </h2>
+        <div
+          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+          style={{ fontFamily: montserrat }}
+        >
+          <p className="mb-3">
+            If you have questions about these Terms and Conditions, you can reach us at:
+          </p>
+          <p>
+            <span className="font-medium text-[#0d2138]">support@ulrich.com</span>
+            <br />
+            or via our{" "}
+            <Link
+              href="/contact"
+              className="font-medium text-[#0d2138] hover:underline"
+            >
+              Contact Us
+            </Link>{" "}
+            page.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── 3. Consultation Banner ─── */
+function ConsultationBanner() {
+  const [form, setForm] = useState({ name: "", email: "", topic: "", message: "" });
+
+  return (
+    <section className="relative h-[680px] lg:h-[784px] overflow-hidden">
+      <img src={consultationBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
+
+      <div className="relative z-10 h-full flex items-center justify-center px-6">
+        <div className="bg-white rounded-[20px] p-[20px] w-full max-w-[539px] flex flex-col gap-[28px]">
+          <h3
+            className="text-[32px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.33] lg:leading-[48px] tracking-[-0.36px]"
+            style={{ fontFamily: poppins }}
+          >
+            Schedule a free consultation
+          </h3>
+
+          <div className="flex flex-col gap-[12px]">
+            <div className="flex flex-col gap-[4px]">
+              <label
+                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                style={{ fontFamily: montserrat }}
+              >
+                Full Name
+              </label>
+              <input
+                type="text"
+                placeholder="eg. Albert Jones"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
+                style={{ fontFamily: montserrat }}
+              />
+            </div>
+            <div className="flex flex-col gap-[4px]">
+              <label
+                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                style={{ fontFamily: montserrat }}
+              >
+                Email address
+              </label>
+              <input
+                type="email"
+                placeholder="albert@email.com"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
+                style={{ fontFamily: montserrat }}
+              />
+            </div>
+            <div className="flex flex-col gap-[4px]">
+              <label
+                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                style={{ fontFamily: montserrat }}
+              >
+                Topic
+              </label>
+              <input
+                type="text"
+                placeholder="Consultation"
+                value={form.topic}
+                onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
+                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
+                style={{ fontFamily: montserrat }}
+              />
+            </div>
+            <div className="flex flex-col gap-[4px]">
+              <label
+                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                style={{ fontFamily: montserrat }}
+              >
+                Messages
+              </label>
+              <textarea
+                placeholder="Enter a message"
+                rows={4}
+                value={form.message}
+                onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#99a1af] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors resize-none"
+                style={{ fontFamily: montserrat }}
+              />
+            </div>
+          </div>
+
+          <button
+            className="w-full h-[46px] rounded-[48px] flex items-center justify-center gap-[12px] text-[16px] font-medium text-white leading-[24px] tracking-[-0.16px]"
+            style={{
+              fontFamily: montserrat,
+              background: "linear-gradient(to bottom, #005ea4, #006fc2)",
+              border: "1px solid #0088ff",
+            }}
+          >
+            Book a Free consultation
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+              <path
+                d="M4.16666 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── main export ─── */
+export function TermsPageContent() {
+  return (
+    <>
+      <HeroBanner />
+      <TermsContent />
+      <ConsultationBanner />
+    </>
+  );
+}

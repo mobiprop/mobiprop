@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
+import { ContactPageContent } from "@/features/contact/ContactPage";
 
 export const metadata: Metadata = {
   title: "Contact — Ulrich Propiedades",
+  description:
+    "Whether you're ready to buy, sell, or have questions about the market, the Ulrich team is here to guide you.",
 };
 
 export default function ContactPage() {
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <p className="text-gray-400 text-lg">Contact page — coming soon</p>
-    </div>
-  );
+  return <ContactPageContent />;
 }

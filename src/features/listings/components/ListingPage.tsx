@@ -18,6 +18,7 @@ const img9 = "/assets/figma-temp/ListingPage-1/cc77c8fdd826c9c8a44bc94bdee10fe20
 const sugg1 = "/assets/figma-temp/ListingPage-1/1a654807ddf806226b7d20555110e7f114b6a7a0.png";
 const sugg2 = "/assets/figma-temp/ListingPage-1/cb76315e81071a1b5226028546e26a5ecaa633be.png";
 const sugg3 = "/assets/figma-temp/ListingPage-1/9dfe0bd344321c122c9b9085d0ebd561176bf927.png";
+const mapImg = "/assets/figma-temp/ContactPage/map.png";
 
 /* ─── icon helpers ─── */
 function SquareArrowIcon() {
@@ -75,6 +76,23 @@ function ChevronDown({ color = "#6A7282" }: { color?: string }) {
   return (
     <svg width="12" height="7" viewBox="0 0 11.774 6.774" fill="none">
       <path d={svgPaths.p1485b700} stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.77" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M5 5L17 17" stroke="#0d2138" strokeLinecap="round" strokeWidth="1.6" />
+      <path d="M17 5L5 17" stroke="#0d2138" strokeLinecap="round" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function MapIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <path d={svgPaths.p277d2000} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" />
     </svg>
   );
 }
@@ -178,6 +196,139 @@ function PropertyCard({ item }: { item: typeof listings[0] }) {
   );
 }
 
+function PricePin({ label, className = "" }: { label: string; className?: string }) {
+  return (
+    <span
+      className={`absolute rounded-[8px] bg-[#4896b6] px-3 py-1.5 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(13,33,56,0.14)] ${className}`}
+      style={{ fontFamily: "Montserrat, sans-serif" }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ModalListingCard({ location }: { location: string }) {
+  return (
+    <div className="rounded-[12px] border border-[#d8dee8] bg-white px-4 py-4 shadow-[0_4px_18px_rgba(13,33,56,0.04)]">
+      <p
+        className="text-[16px] font-semibold leading-[22px] text-[#0d2138]"
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
+        Coastal Modern Residence
+      </p>
+      <p
+        className="mt-1 text-[13px] leading-[18px] text-[#6a7282]"
+        style={{ fontFamily: "Montserrat, sans-serif" }}
+      >
+        {location}
+      </p>
+      <p
+        className="mt-3 text-[17px] font-semibold leading-[24px] text-[#005ea4]"
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
+        $8,500,000
+      </p>
+      <p
+        className="mt-1 text-[13px] leading-[18px] text-[#6a7282]"
+        style={{ fontFamily: "Montserrat, sans-serif" }}
+      >
+        5 Beds · 4 Baths · 4,200 sqft
+      </p>
+    </div>
+  );
+}
+
+function PropertyMapModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2138]/60 px-4 py-8 backdrop-blur-[1px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="property-map-title"
+      onMouseDown={onClose}
+    >
+      <div
+        className="max-h-[calc(100vh-64px)] w-full max-w-[1030px] overflow-hidden rounded-[12px] bg-white shadow-[0_26px_80px_rgba(13,33,56,0.22)]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2
+              id="property-map-title"
+              className="text-[26px] font-semibold leading-[32px] text-[#0d2138]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              Property Map
+            </h2>
+            <button
+              className="flex h-8 items-center gap-2 rounded-[7px] bg-[#285f9c] px-3 text-[13px] text-white"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              <span className="h-2 w-2 rounded-full bg-white" />
+              Enable Drawing
+            </button>
+            <button
+              className="flex h-8 items-center gap-2 rounded-[7px] bg-[#4896b6] px-3 text-[13px] text-white"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              <span className="text-[18px] leading-none">×</span>
+              Clear Circles
+            </button>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close property map"
+            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f3f6f9]"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="grid gap-5 px-6 py-5 lg:grid-cols-[1fr_280px]">
+          <div className="min-w-0">
+            <div className="relative h-[500px] overflow-hidden rounded-[10px] bg-[#edf6ff]">
+              <img src={mapImg} alt="Map showing listing search area" className="h-full w-full object-cover" />
+              <div className="absolute left-[32%] top-[18%] h-[260px] w-[260px] rounded-full border-[4px] border-[#2f7fc8]/55 bg-[#5fb6ff]/35" />
+              <div className="absolute left-[44.5%] top-[38%] h-4 w-4 rounded-full border-[3px] border-white bg-[#1bbf86] shadow-[0_0_0_3px_rgba(27,191,134,0.2)]" />
+
+              <PricePin label="$40,000" className="left-[10%] top-[24%]" />
+              <PricePin label="$40,000" className="left-[41%] top-[19%] bg-[#285f9c]" />
+              <PricePin label="$40,000" className="left-[70%] top-[27%]" />
+              <PricePin label="$40,000" className="left-[42%] top-[31%]" />
+              <PricePin label="$40,000" className="left-[60%] top-[51%]" />
+              <PricePin label="$40,000" className="left-[43%] top-[61%] bg-[#285f9c]" />
+              <PricePin label="$40,000" className="left-[16%] top-[68%]" />
+              <PricePin label="$40,000" className="left-[60%] top-[73%]" />
+              <PricePin label="$40,000" className="left-[82%] top-[61%] bg-[#285f9c]" />
+              <PricePin label="$40,000" className="left-[73%] top-[82%]" />
+            </div>
+            <p
+              className="mt-3 text-[13px] leading-[20px] text-[#2b3038]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Enable drawing mode to search for listings by area
+            </p>
+          </div>
+
+          <aside className="flex min-w-0 flex-col">
+            <h3
+              className="mb-5 text-[17px] font-semibold leading-[24px] text-[#0d2138]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              3 Listings Found
+            </h3>
+            <div className="flex flex-col gap-3">
+              <ModalListingCard location="Lisbon, Portugal" />
+              <ModalListingCard location="Montecarlo, Monaco" />
+              <ModalListingCard location="Del Rio, Texas" />
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── pagination ─── */
 function getPageItems(current: number, total: number): (number | "…")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -263,6 +414,7 @@ function Pagination({ current, total, onChange }: { current: number; total: numb
 /* ─── main export ─── */
 export function ListingPageContent() {
   const [page, setPage] = useState(1);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   return (
     <>
@@ -411,12 +563,11 @@ export function ListingPageContent() {
               Lisbon: <span className="text-[#4896b6]">2,594</span> properties found
             </h2>
             <button
+              onClick={() => setIsMapOpen(true)}
               className="flex items-center gap-2 bg-[#0d2138] px-5 py-2.5 rounded-full text-[14px] text-white font-medium"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d={svgPaths.p277d2000} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" />
-              </svg>
+              <MapIcon />
               Map
             </button>
           </div>
@@ -463,6 +614,8 @@ export function ListingPageContent() {
          </div>
         </div>
       </section>
+
+      {isMapOpen ? <PropertyMapModal onClose={() => setIsMapOpen(false)} /> : null}
     </>
   );
 }
