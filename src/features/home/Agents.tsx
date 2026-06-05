@@ -1,0 +1,125 @@
+import svgPaths from "@/assets/svg-6s7nojygyu";
+
+const agentBg = "/assets/figma-temp/HomePageFinal/368a7ccf53b013661583890962f409acf4fd07be.png";
+const agent1 = "/assets/figma-temp/HomePageFinal/bc2175d4cc07410c7d9e368839d6db3709b487ac.png";
+const agent2 = "/assets/figma-temp/HomePageFinal/29175366aeda0cbf4b4b1d6eccad58d6fc382efc.png";
+const agent3 = "/assets/figma-temp/HomePageFinal/1e01acfd38e4ddc854191280c2e5b70867aa9bdf.png";
+
+function InstagramIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
+      <path d={svgPaths.p24f75100} fill="#232323" />
+    </svg>
+  );
+}
+
+function LinkedinIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
+      <path d={svgPaths.p27b2a380} fill="#232323" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="14" height="15" viewBox="0 0 13.7548 15.0095" fill="none">
+      <path d={svgPaths.p478ee00} fill="#232323" />
+    </svg>
+  );
+}
+
+const agents = [
+  { name: "Albert Flores", role: "Property Consultant Orlando, Tampa", photo: agent1 },
+  { name: "Marvin McKinney", role: "Property Consultant Orlando, Tampa", photo: agent2 },
+  { name: "Theresa Webb", role: "Property Consultant Orlando, Tampa", photo: agent3 },
+];
+
+function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Photo */}
+      <div className="relative h-[300px] lg:h-[372px] rounded-[20px] overflow-hidden">
+        <img
+          src={agentBg}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <img
+          src={agent.photo}
+          alt={agent.name}
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
+      </div>
+      {/* Info */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p
+            className="text-[20px] lg:text-[22px] font-medium text-[#0d2138] leading-[28px]"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {agent.name}
+          </p>
+          <p
+            className="text-[13px] text-[#2b3038] mt-1 max-w-[160px]"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            {agent.role}
+          </p>
+        </div>
+        <div className="flex gap-2 flex-shrink-0">
+          {[<InstagramIcon />, <LinkedinIcon />, <XIcon />].map((Icon, i) => (
+            <button
+              key={i}
+              className="bg-white border border-[#d1d5dc] rounded-[8px] p-2 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              {Icon}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Agents() {
+  return (
+    <section className="bg-white py-16 lg:py-20">
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-4 mb-12">
+          <div className="flex items-center gap-2">
+            <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
+            <span
+              className="text-[16px] font-medium text-[#6a7282]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Agents
+            </span>
+          </div>
+          <h2
+            className="text-[32px] lg:text-[44px] font-semibold text-[#232323] text-center leading-tight max-w-[500px]"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Meet The Experts Who Make It Happen.
+          </h2>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {agents.map((a) => (
+            <AgentCard key={a.name} agent={a} />
+          ))}
+        </div>
+
+        {/* Pagination dots */}
+        <div className="flex justify-center gap-1.5 mt-8">
+          <div className="w-5 h-2 bg-[#1e4f86] rounded-full" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="w-2 h-2 bg-[#6a7282] opacity-25 rounded-full" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
