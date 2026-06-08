@@ -5,6 +5,24 @@ const expertiseImg = "/assets/figma-temp/AboutUs/588e2ac07e8ad705ffa6608997ace8d
 const aboutImg1 = "/assets/figma-temp/AboutUs/8137495f6ced8731d50e90db7307a71887d9405e.png";
 const aboutImg2 = "/assets/figma-temp/AboutUs/5e9224a430ef2b5ac63582faee420b32e47f98c2.png";
 
+const galleryRows = [
+  [
+    "/assets/figma-temp/AboutUs/gallery-prop1.png",
+    "/assets/figma-temp/AboutUs/gallery-prop2.png",
+    "/assets/figma-temp/AboutUs/gallery-prop3.png",
+  ],
+  [
+    "/assets/figma-temp/AboutUs/gallery-prop5.png",
+    "/assets/figma-temp/AboutUs/gallery-prop7.png",
+    "/assets/figma-temp/AboutUs/gallery-prop8.png",
+  ],
+  [
+    "/assets/figma-temp/AboutUs/gallery-prop1.png",
+    "/assets/figma-temp/AboutUs/gallery-prop2.png",
+    "/assets/figma-temp/AboutUs/gallery-prop3.png",
+  ],
+];
+
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
@@ -125,6 +143,47 @@ export function AboutUsContent() {
           </div>
           <div className="w-full rounded-[20px] overflow-hidden h-[300px] lg:h-[560px]">
             <img src={teamImg} alt="Our team" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Our Gallery ── */}
+      <section className="bg-white">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-16 lg:py-20 flex flex-col gap-10 lg:gap-12">
+          <div className="flex flex-col gap-2 max-w-[631px]">
+            <SectionTag label="Our Gallery" />
+            <h2
+              className="text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.2] lg:leading-[56px] tracking-[-0.44px]"
+              style={{ fontFamily: poppins }}
+            >
+              Property Moments Captured Beautifully
+            </h2>
+            <p
+              className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px] max-w-[501px]"
+              style={{ fontFamily: montserrat }}
+            >
+              Explore high quality images reflecting comfort design, location, &amp; everyday living experience,
+            </p>
+          </div>
+
+          {/* image grid with top/bottom fade */}
+          <div className="relative">
+            <div className="flex flex-col gap-6">
+              {galleryRows.map((row, r) => (
+                <div key={r} className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                  {row.map((src, c) => (
+                    <div
+                      key={`${r}-${c}`}
+                      className="h-[260px] lg:h-[420px] rounded-[20px] overflow-hidden"
+                    >
+                      <img src={src} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-white to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-white to-transparent" />
           </div>
         </div>
       </section>

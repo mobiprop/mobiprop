@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import svgPaths from "./svgPaths";
+import { FiltersModal } from "./FiltersModal";
 
 const heroImg = "/assets/figma-temp/ListingPage-1/7c381d7793bef2f0501fb33eaa3df52bea0aa4ef.png";
 const cloudsImg = "/assets/figma-temp/ListingPage-1/224a1a87c6d1fc7b05e65142626032911210d860.png";
@@ -415,6 +416,7 @@ function Pagination({ current, total, onChange }: { current: number; total: numb
 export function ListingPageContent() {
   const [page, setPage] = useState(1);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   return (
     <>
@@ -530,7 +532,8 @@ export function ListingPageContent() {
             {/* Buttons */}
             <div className="flex items-center gap-[15px] flex-shrink-0">
               <button
-                className="bg-white border border-[#e5e7eb] rounded-[60px] px-5 py-3 text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap"
+                onClick={() => setIsFiltersOpen(true)}
+                className="bg-white border border-[#e5e7eb] rounded-[60px] px-5 py-3 text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 More Filters
@@ -616,6 +619,7 @@ export function ListingPageContent() {
       </section>
 
       {isMapOpen ? <PropertyMapModal onClose={() => setIsMapOpen(false)} /> : null}
+      {isFiltersOpen ? <FiltersModal onClose={() => setIsFiltersOpen(false)} /> : null}
     </>
   );
 }

@@ -16,5 +16,8 @@ export const ROUTES = {
   verifyOtp: "/verify-otp",
   resetPassword: "/reset-password",
   profile: "/profile",
-  dashboard: "/dashboard/listings",
+  // Staff / CRM
+  dashboard: "/dashboard",
+  dashboardLogin: "/dashboard-login",
+  acceptInvite: "/accept-invite",
 } as const;

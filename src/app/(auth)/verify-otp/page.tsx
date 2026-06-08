@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { OtpPageContent } from "@/features/auth/OtpPage";
 
-export const metadata: Metadata = { title: "Verify OTP — Ulrich Propiedades" };
+export const metadata: Metadata = {
+  title: "OTP Verification — Ulrich Propiedades",
+  description: "Enter your one-time verification code.",
+};
 
 export default function VerifyOtpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-400 text-lg">Verify OTP — coming soon</p>
-    </div>
+    <Suspense fallback={null}>
+      <OtpPageContent backHref="/register" />
+    </Suspense>
   );
 }
