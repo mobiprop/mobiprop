@@ -75,7 +75,7 @@ export function Blog() {
 
               {/* Meta */}
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-3 text-[13px] text-[#2b3038]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <div className="flex items-center gap-3 text-[14px] text-[#2b3038]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   <span>{post.date}</span>
                   <div className="w-1 h-1 rounded-full bg-[#2b3038]" />
                   <span>{post.author}</span>

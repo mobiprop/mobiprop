@@ -35,7 +35,7 @@ export function FeaturedSpots() {
     <section className="bg-white py-16 lg:py-20">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
         {/* Header */}
-        <div className="flex flex-col items-center gap-6 mb-10">
+        <div className="flex flex-col items-center gap-4 mb-10">
           <div className="flex items-center gap-2">
             <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
             <span
@@ -89,13 +89,13 @@ export function FeaturedSpots() {
               <div className="flex items-start justify-between">
                 <div>
                   <p
-                    className="text-[22px] font-medium text-[#0d2138] leading-[28px]"
+                    className="text-[24px] font-medium text-[#0d2138] leading-[28px]"
                     style={{ fontFamily: "Poppins, sans-serif" }}
                   >
                     {spot.name}
                   </p>
                   <p
-                    className="text-[15px] text-[#2b3038]"
+                    className="text-[16px] text-[#2b3038]"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {spot.type}
@@ -123,13 +123,13 @@ export function FeaturedSpots() {
               <div className="flex items-start justify-between">
                 <div>
                   <p
-                    className="text-[22px] font-medium text-[#0d2138] leading-[28px]"
+                    className="text-[24px] font-medium text-[#0d2138] leading-[28px]"
                     style={{ fontFamily: "Poppins, sans-serif" }}
                   >
                     {spot.name}
                   </p>
                   <p
-                    className="text-[15px] text-[#2b3038]"
+                    className="text-[16px] text-[#2b3038]"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {spot.type}

@@ -149,13 +149,13 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
         {/* Badges */}
         <div className="absolute top-4 left-4 flex gap-1">
           <span
-            className="bg-white opacity-90 px-3 py-1 rounded-[36px] text-[13px] text-[#0d2138]"
+            className="bg-white opacity-90 px-3 py-1 rounded-[36px] text-[14px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {property.type}
           </span>
           <span
-            className="bg-white opacity-90 px-3 py-1 rounded-[36px] text-[13px] text-[#0d2138]"
+            className="bg-white opacity-90 px-3 py-1 rounded-[36px] text-[14px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {property.category}
@@ -188,7 +188,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
         <div className="flex items-start justify-between pb-[10px] border-b border-[#e5e7eb]">
           <div className="flex flex-col gap-[2px]">
             <span
-              className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[32px] truncate max-w-[220px]"
+              className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[32px] truncate max-w-[270px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
               {property.name}
@@ -196,7 +196,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
             <div className="flex items-center gap-1 text-[#0d2138]">
               <MarkerIcon />
               <span
-                className="text-[13px] truncate max-w-[180px]"
+                className="text-[14px] truncate max-w-[170px]"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 {property.location}
@@ -204,7 +204,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
             </div>
           </div>
           <span
-            className="text-[17px] font-semibold text-[#2b3038] text-right whitespace-nowrap ml-2"
+            className="text-[18px] font-semibold text-[#2b3038] text-right whitespace-nowrap ml-2"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {property.price}
@@ -253,7 +253,7 @@ export function FeaturedListings() {
     <section className="bg-white py-16 lg:py-20">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
         {/* Header */}
-        <div className="flex flex-col items-center gap-6 mb-10">
+        <div className="flex flex-col items-center gap-4 mb-10">
           {/* Badge */}
           <div className="flex items-center gap-2">
             <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
@@ -287,7 +287,7 @@ export function FeaturedListings() {
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-7 py-2 rounded-[36px] text-[15px] font-medium transition-all ${
+                className={`px-7 py-2 rounded-[36px] text-[16px] font-medium transition-all ${
                   activeFilter === f
                     ? "bg-[#1e4f86] text-white"
                     : "bg-white border border-[#e5e7eb] text-[#2b3038] hover:bg-gray-50"

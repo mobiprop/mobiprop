@@ -35,7 +35,7 @@ export function Testimonial() {
                 </span>
               </div>
               <p
-                className="text-[17px] text-[#6a7282] leading-[26px]"
+                className="text-[18px] text-[#6a7282] leading-[26px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
                 Here's what clients say about our work. True impressions, built
@@ -63,7 +63,7 @@ export function Testimonial() {
             <div className="flex flex-col gap-5">
               <QuoteIcon />
               <blockquote
-                className="text-[22px] lg:text-[26px] font-medium text-[#232323] leading-[36px]"
+                className="text-[22px] lg:text-[28px] font-medium text-[#232323] leading-[36px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
                 From day one, they understood the vision we had — creating a
@@ -83,7 +83,7 @@ export function Testimonial() {
               </div>
               <div>
                 <p
-                  className="text-[19px] font-medium text-[#0d2138] leading-[32px]"
+                  className="text-[20px] font-medium text-[#0d2138] leading-[32px]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
                   Jay Prakash

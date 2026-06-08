@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const faqImg = "/assets/figma-temp/HomePageFinal/f54a8f7bd052bfee2a5f38db9c8d1e6da8b75990.png";
+const faqImg = "/assets/figma-temp/AboutUs/about-14.png";
 
 const faqs = [
   {
@@ -32,7 +32,7 @@ function PlusIcon({ open }: { open: boolean }) {
     <div className="w-[46px] h-[46px] bg-white rounded-full flex-shrink-0 flex items-center justify-center transition-transform">
       <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
         {/* Vertical line */}
-        <rect x="7.75" y="0" width="1.994" height="17" rx="1" fill="#0d2138" />
+        <rect x="7.75" y="0" width="1.994" height="17" rx="1" fill="#0d2138" style={{ transform: open ? "rotate(45deg)" : "rotate(0deg)", transformOrigin: "50% 50%", transition: "transform 0.2s" }}/>
         {/* Horizontal line */}
         <rect
           x="0"
@@ -41,7 +41,7 @@ function PlusIcon({ open }: { open: boolean }) {
           height="1.994"
           rx="1"
           fill="#0d2138"
-          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transformOrigin: "50% 50%", transition: "transform 0.2s" }}
+          style={{ transform: open ? "rotate(50deg)" : "rotate(0deg)", transformOrigin: "50% 50%", transition: "transform 0.2s" }}
         />
       </svg>
     </div>
@@ -111,7 +111,7 @@ export function FAQ() {
                   onClick={() => setOpenIdx(openIdx === i ? -1 : i)}
                 >
                   <span
-                    className="text-[20px] lg:text-[22px] font-medium text-[#0d2138] leading-[28px]"
+                    className="text-[20px] lg:text-[24px] font-medium text-[#0d2138] leading-[28px]"
                     style={{ fontFamily: "Poppins, sans-serif" }}
                   >
                     {faq.q}

@@ -98,14 +98,14 @@ export function WhyUs() {
               <div className="flex items-center gap-2.5">
                 <div className="w-[7px] h-[7px] rounded-full border border-[#0088ff] bg-white" />
                 <span
-                  className="text-white text-[15px]"
+                  className="text-white text-[16px]"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   Ulrich's best agency
                 </span>
               </div>
               <p
-                className="text-white text-[26px] font-medium leading-[36px]"
+                className="text-white text-[28px] font-medium leading-[36px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
                 2K+ clients choose Ulrich
@@ -114,7 +114,7 @@ export function WhyUs() {
             {/* Bottom text */}
             <div className="absolute bottom-6 left-6 right-6">
               <p
-                className="text-white text-[15px] leading-[24px] opacity-90"
+                className="text-white text-[16px] leading-[24px] opacity-90"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 Choosing us matters — experience and clear guidance shape every
@@ -149,7 +149,7 @@ export function WhyUs() {
                   <div className="flex-shrink-0">{stat.icon}</div>
                 </div>
                 <p
-                  className="text-[15px] text-[#2b3038] leading-[24px]"
+                  className="text-[16px] text-[#2b3038] leading-[24px]"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   {stat.desc}

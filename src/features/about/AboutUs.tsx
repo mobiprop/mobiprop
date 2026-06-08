@@ -1,9 +1,9 @@
 const heroBg = "/assets/figma-temp/AboutUs/7c381d7793bef2f0501fb33eaa3df52bea0aa4ef.png";
 const clouds = "/assets/figma-temp/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
-const teamImg = "/assets/figma-temp/AboutUs/b899c84aa4076fb26befc9d304f327cf0d73e9c4.png";
-const expertiseImg = "/assets/figma-temp/AboutUs/588e2ac07e8ad705ffa6608997ace8d55b9a9849.png";
-const aboutImg1 = "/assets/figma-temp/AboutUs/8137495f6ced8731d50e90db7307a71887d9405e.png";
-const aboutImg2 = "/assets/figma-temp/AboutUs/5e9224a430ef2b5ac63582faee420b32e47f98c2.png";
+const teamImg = "/assets/figma-temp/AboutUs/about-1.png";
+const expertiseImg = "/assets/figma-temp/AboutUs/about-11.png";
+const aboutImg1 = "/assets/figma-temp/AboutUs/about-12.png";
+const aboutImg2 = "/assets/figma-temp/AboutUs/about-13.png";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
