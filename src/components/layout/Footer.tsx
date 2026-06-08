@@ -1,7 +1,7 @@
 import Link from "next/link";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const footerBg = "/assets/figma-temp/HomePageFinal/image-bg.png";
+const footerBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/footerbackground.png";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -61,7 +61,7 @@ export function Footer() {
   <img
     src={footerBg}
     alt=""
-    className="w-full h-full object-contain object-top opacity-100"
+    className="w-full h-full object-center object-top opacity-100"
   />
 </div>
 

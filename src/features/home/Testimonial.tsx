@@ -1,6 +1,6 @@
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const testimonialPerson = "/assets/figma-temp/HomePageFinal/3511dcc011e9bf8e359aba3bca89e5d4da4860f3.png";
+const testimonialPerson = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/jay.png";
 
 function QuoteIcon() {
   return (

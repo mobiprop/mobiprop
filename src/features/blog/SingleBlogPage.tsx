@@ -2,11 +2,11 @@ import Link from "next/link";
 
 const heroBg = "/assets/figma-temp/SingleBlogPage/hero-bg.png";
 const heroBgOverlay = "/assets/figma-temp/SingleBlogPage/hero-bg-overlay.png";
-const articleHeroImg = "/assets/figma-temp/SingleBlogPage/article-hero-img.png";
-const articleSectionImg = "/assets/figma-temp/SingleBlogPage/article-section-img.png";
-const blogCardImg1 = "/assets/figma-temp/SingleBlogPage/blog-card-img-1.png";
-const blogCardImg2 = "/assets/figma-temp/SingleBlogPage/blog-card-img-2.png";
-const blogCardImg3 = "/assets/figma-temp/SingleBlogPage/blog-card-img-3.png";
+const articleHeroImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleBlogPage/article-hero-img.png";
+const articleSectionImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleBlogPage/article-section-img.png";
+const blogCardImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/blogimg1.png";
+const blogCardImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/worker.png";
+const blogCardImg3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/woodenfloor.png";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";

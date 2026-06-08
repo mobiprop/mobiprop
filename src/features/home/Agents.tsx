@@ -1,9 +1,9 @@
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const agentBg = "/assets/figma-temp/HomePageFinal/368a7ccf53b013661583890962f409acf4fd07be.png";
-const agent1 = "/assets/figma-temp/AboutUs/about-15.png";
-const agent2 = "/assets/figma-temp/AboutUs/about-16.png";
-const agent3 = "/assets/figma-temp/AboutUs/about-17.png";
+const agent1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-15.png";
+const agent2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-16.png";
+const agent3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-17.png";
 
 function InstagramIcon() {
   return (

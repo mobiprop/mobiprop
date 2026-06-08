@@ -3,7 +3,7 @@
 import { useState } from "react";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const heroImg = "/assets/figma-temp/HomePageFinal/b16aec12c6fc13cb05f740947b6c50018c37afae.png";
+const heroImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.png";
 
 function LocationIcon() {
   return (

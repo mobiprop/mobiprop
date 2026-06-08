@@ -1,6 +1,6 @@
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const personImg = "/assets/figma-temp/HomePageFinal/52439694b925847cdb3a8bd6477dbbb282a49e81.png";
+const personImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whyexpert.png";
 
 const stats = [
   {

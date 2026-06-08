@@ -4,10 +4,10 @@ import { useState } from "react";
 import { FAQ } from "@/features/home/FAQ";
 
 /* ─── assets ─── */
-const heroBg = "/assets/figma-temp/ContactPage/hero-bg.png";
-const heroOverlay = "/assets/figma-temp/ContactPage/hero-overlay.png";
-const mapImg = "/assets/figma-temp/ContactPage/map.png";
-const consultationBg = "/assets/figma-temp/ContactPage/consultation-bg.png";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
+const mapImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
+const consultationBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.png";
 const iconPhone = "/assets/figma-temp/ContactPage/icon-phone.png";
 const iconEmail = "/assets/figma-temp/ContactPage/icon-email.png";
 const iconAddress = "/assets/figma-temp/ContactPage/icon-address.png";

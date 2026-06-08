@@ -1,6 +1,6 @@
-const saleImg = "/assets/figma-temp/HomePageFinal/62b50ef3e3f67ed4177e1250466caedbe6eadd73.png";
-const rentImg = "/assets/figma-temp/HomePageFinal/cbf69b2d981b9c83b2b765f466f970433e393ed1.png";
-const valuationImg = "/assets/figma-temp/HomePageFinal/Valuation.png";
+const saleImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whatweoffer1.png";
+const rentImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/rentals.png";
+const valuationImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/Valuation.png";
 
 const services = [
   {

@@ -1,25 +1,25 @@
-const heroBg = "/assets/figma-temp/AboutUs/7c381d7793bef2f0501fb33eaa3df52bea0aa4ef.png";
-const clouds = "/assets/figma-temp/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
-const teamImg = "/assets/figma-temp/AboutUs/about-1.png";
-const expertiseImg = "/assets/figma-temp/AboutUs/about-11.png";
-const aboutImg1 = "/assets/figma-temp/AboutUs/about-12.png";
-const aboutImg2 = "/assets/figma-temp/AboutUs/about-13.png";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const clouds = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
+const teamImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-1.png";
+const expertiseImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-11.png";
+const aboutImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-12.png";
+const aboutImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-13.png";
 
 const galleryRows = [
   [
-    "/assets/figma-temp/AboutUs/gallery-prop1.png",
-    "/assets/figma-temp/AboutUs/gallery-prop2.png",
-    "/assets/figma-temp/AboutUs/gallery-prop3.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop1.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop2.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop3.png",
   ],
   [
-    "/assets/figma-temp/AboutUs/gallery-prop5.png",
-    "/assets/figma-temp/AboutUs/gallery-prop7.png",
-    "/assets/figma-temp/AboutUs/gallery-prop8.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop5.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop7.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop8.png",
   ],
   [
-    "/assets/figma-temp/AboutUs/gallery-prop1.png",
-    "/assets/figma-temp/AboutUs/gallery-prop2.png",
-    "/assets/figma-temp/AboutUs/gallery-prop3.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop1.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop2.png",
+    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop3.png",
   ],
 ];
 

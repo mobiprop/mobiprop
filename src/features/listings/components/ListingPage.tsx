@@ -5,21 +5,21 @@ import Link from "next/link";
 import svgPaths from "./svgPaths";
 import { FiltersModal } from "./FiltersModal";
 
-const heroImg = "/assets/figma-temp/ListingPage-1/7c381d7793bef2f0501fb33eaa3df52bea0aa4ef.png";
-const cloudsImg = "/assets/figma-temp/ListingPage-1/224a1a87c6d1fc7b05e65142626032911210d860.png";
-const img1 = "assets/figma-temp/ListingPage-1/listing-1.png";
-const img2 = "assets/figma-temp/ListingPage-1/listing-2.png";
-const img3 = "assets/figma-temp/ListingPage-1/listing-3.png";
-const img4 = "assets/figma-temp/ListingPage-1/listing-4.png";
-const img5 = "assets/figma-temp/ListingPage-1/listing-5.png";
-const img6 = "assets/figma-temp/ListingPage-1/listing-6.png";
-const img7 = "assets/figma-temp/ListingPage-1/listing-7.png";
-const img8 = "assets/figma-temp/ListingPage-1/listing-8.png";
-const img9 = "assets/figma-temp/ListingPage-1/listing-9.png";
-const sugg1 = "assets/figma-temp/ListingPage-1/listing-10.png";
-const sugg2 = "assets/figma-temp/ListingPage-1/listing-11.png";
-const sugg3 = "assets/figma-temp/ListingPage-1/listing-12.png";
-const mapImg = "/assets/figma-temp/ContactPage/map.png";
+const heroImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const cloudsImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
+const img1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
+const img2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-2.png";
+const img3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-3.png";
+const img4 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-4.png";
+const img5 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-5.png";
+const img6 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-6.png";
+const img7 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-7.png";
+const img8 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-8.png";
+const img9 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-9.png";
+const sugg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-10.png";
+const sugg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-11.png";
+const sugg3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-12.png";
+const mapImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
 
 /* ─── icon helpers ─── */
 function SquareArrowIcon() {

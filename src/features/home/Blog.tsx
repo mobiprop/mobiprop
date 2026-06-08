@@ -1,6 +1,6 @@
-const blog1 = "/assets/figma-temp/HomePageFinal/7c82e56c163d6893884fa4c288282f579864c318.png";
-const blog2 = "/assets/figma-temp/HomePageFinal/0beaacc973efa4b7f5e6e3f2de99d91d8b09a059.png";
-const blog3 = "/assets/figma-temp/HomePageFinal/bb08db275c087bf33642542868d841ab9b84f80f.png";
+const blog1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/blogimg1.png";
+const blog2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/worker.png";
+const blog3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/woodenfloor.png";
 
 const posts = [
   {

@@ -3,13 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const heroBg = "/assets/figma-temp/BlogPage/hero-bg.png";
-const heroBgOverlay = "/assets/figma-temp/BlogPage/hero-bg-overlay.png";
-const featuredBlogImg = "/assets/figma-temp/BlogPage/featured-blog-img.png";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const heroBgOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
+const featuredBlogImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/BlogPage/featured-blog-img.png";
 const arrowRightWhite = "/assets/figma-temp/BlogPage/arrow-right-white.svg";
-const blogCardImg = "/assets/figma-temp/BlogPage/blog-card-img.png";
-const blogCardImg1 = "/assets/figma-temp/BlogPage/blog-card-img.png";
-const blogCardImg2 = "/assets/figma-temp/BlogPage/blog-card-img.png";
+const blogCardImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/blogimg1.png";
+const blogCardImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/worker.png";
+const blogCardImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/woodenfloor.png";
+
+// One image per column: col 1 -> blogCardImg, col 2 -> worker, col 3 -> woodenfloor
+const columnImages = [blogCardImg, blogCardImg1, blogCardImg2];
 
 const paginationArrowLeft = "/assets/figma-temp/BlogPage/pagination-arrow-left.svg";
 const paginationArrowRight = "/assets/figma-temp/BlogPage/pagination-arrow-right.svg";
@@ -61,8 +64,7 @@ const BLOG_POSTS: BlogPost[] = Array.from({ length: 9 }, (_, i) => ({
     "How location shapes property value over the long term",
     "Designing for wellness — the new standard in home building",
   ][i],
-  img: blogCardImg,
- 
+  img: columnImages[i % 3],
 }));
 
 const TOTAL_PAGES = 16;

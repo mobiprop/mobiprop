@@ -3,13 +3,13 @@
 import { useState } from "react";
 import svgPaths from "./singleListingSvgPaths";
 
-const mainImg = "/assets/figma-temp/SingleListingPage/3df686bce4ab0cb035b83bfa5037349820a9349e.png";
-const sideImg1 = "/assets/figma-temp/SingleListingPage/9f2ca971b9775dad42514c85278182bc7ce0a318.png";
-const sideImg2 = "/assets/figma-temp/SingleListingPage/44a83d93b39fd47ab18e78115b9a8369ceb4b262.png";
-const sideImg3 = "/assets/figma-temp/SingleListingPage/f5ff9d7c17bd4dfa82a5ddd8d8b4aa6a4c01102b.png";
-const agentImg = "/assets/figma-temp/SingleListingPage/27500dba5ce30da45a1f6b62e331ffea53fb2b67.png";
-const videoImg = "/assets/figma-temp/SingleListingPage/75a235ee9f6179ffa3579856ff5a393341c34587.png";
-const mapImg = "/assets/figma-temp/SingleListingPage/3a8b8a7d2dac090ff0ac2aaf5760732acab67c7f.png";
+const mainImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.png";
+const sideImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-2.png";
+const sideImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-3.png";
+const sideImg3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-4.png";
+const agentImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/emily.png";
+const videoImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/vid-yy.png";
+const mapImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
 const footerBgImg = "/assets/figma-temp/SingleListingPage/3fba757107af3080a480784b8edf8f9a8a4c4646.png";
 
 const amenities = [

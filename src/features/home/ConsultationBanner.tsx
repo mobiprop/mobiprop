@@ -3,7 +3,7 @@
 import { useState } from "react";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const bgImg = "/assets/figma-temp/HomePageFinal/cb7ca71ec12dba4c13d5075e1dc7d971c20017a2.png";
+const bgImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.png";
 
 function ArrowRight() {
   return (

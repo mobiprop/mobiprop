@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 
 /* ─── assets ─── */
-const heroBg = "/assets/figma-temp/UserProfile/hero-bg.png";
-const heroOverlay = "/assets/figma-temp/UserProfile/hero-overlay.png";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
 const avatarImg = "/assets/figma-temp/UserProfile/avatar.png";
 const modalAvatarImg = "/assets/figma-temp/UserProfile/modal-avatar.png";
 const iconEmail = "/assets/figma-temp/UserProfile/icon-email.png";

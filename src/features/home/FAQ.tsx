@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const faqImg = "/assets/figma-temp/AboutUs/about-14.png";
+const faqImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-14.png";
 
 const faqs = [
   {

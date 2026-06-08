@@ -3,11 +3,11 @@
 import { useState } from "react";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const img1 = "/assets/figma-temp/HomePageFinal/dcc05a749552e2a7577223017513e56bc8c309b2.png";
-const img2 = "/assets/figma-temp/HomePageFinal/b73f86da4c051c85dd9e865428ccafa6deaf96c2.png";
-const img3 = "/assets/figma-temp/HomePageFinal/8137495f6ced8731d50e90db7307a71887d9405e.png";
-const img4 = "/assets/figma-temp/HomePageFinal/f814dcfd6a900cdbe36f821086bb87d044eb6c8f.png";
-const img5 = "/assets/figma-temp/HomePageFinal/7a6edb51386312fadf91e51d520cf90bbf263746.png";
+const img1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/matrilande.png";
+const img2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/mayling.png";
+const img3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/aryes.png";
+const img4 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/pilar.png";
+const img5 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/vihana.png";
 
 function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
   return (

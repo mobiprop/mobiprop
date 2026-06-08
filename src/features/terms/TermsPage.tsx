@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 
 /* ─── assets ─── */
-const heroBg = "/assets/figma-temp/TermsConditions/hero-bg.png";
-const heroOverlay = "/assets/figma-temp/TermsConditions/hero-overlay.png";
-const consultationBg = "/assets/figma-temp/ContactPage/consultation-bg.png";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
+const consultationBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.png";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";

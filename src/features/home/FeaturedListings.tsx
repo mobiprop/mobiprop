@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const img1 = "/assets/figma-temp/HomePageFinal/86a765c8069553ebf60e60f32ad44c8911a8dc43.png";
-const img2 = "/assets/figma-temp/HomePageFinal/f186df3ffecd1693fc361700e857c2ed57a551fd.png";
-const img3 = "/assets/figma-temp/HomePageFinal/5093201b514c15b859f33d9514c53dff534ca77b.png";
+const img1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.png";
+const img2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting2.png";
+const img3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting3.png";
 
 function HeartIcon() {
   return (
