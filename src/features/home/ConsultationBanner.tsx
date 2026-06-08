@@ -39,7 +39,7 @@ export function ConsultationBanner() {
       <div className="relative z-10 flex justify-center px-4">
         <div className="bg-white rounded-[20px] p-8 lg:p-10 w-full max-w-[540px] shadow-xl">
           <h2
-            className="text-[28px] lg:text-[32px] font-medium text-[#0d2138] leading-[1.3] mb-7"
+            className="text-[28px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.3] mb-7"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             Schedule a free consultation
@@ -123,7 +123,7 @@ export function ConsultationBanner() {
 
           {/* Submit */}
           <button
-            className="mt-6 w-full flex items-center justify-center gap-3 py-[14px] rounded-[48px] text-white text-[15px] font-medium transition-opacity hover:opacity-90"
+            className="mt-6 w-full flex items-center justify-center gap-3 py-[14px] rounded-[48px] text-white text-[16px] font-medium transition-opacity hover:opacity-90"
             style={{
               fontFamily: "Montserrat, sans-serif",
               background: "linear-gradient(to bottom, #005ea4, #006fc2)",

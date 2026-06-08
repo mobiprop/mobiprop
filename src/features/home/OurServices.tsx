@@ -1,6 +1,6 @@
 const saleImg = "/assets/figma-temp/HomePageFinal/62b50ef3e3f67ed4177e1250466caedbe6eadd73.png";
 const rentImg = "/assets/figma-temp/HomePageFinal/cbf69b2d981b9c83b2b765f466f970433e393ed1.png";
-const valuationImg = "/assets/figma-temp/HomePageFinal/fd8922f41e7e274cd12ce592b50c346d6017220c.png";
+const valuationImg = "/assets/figma-temp/HomePageFinal/Valuation.png";
 
 const services = [
   {
@@ -81,7 +81,7 @@ export function OurServices() {
                   {s.title}
                 </h3>
                 <p
-                  className="text-[15px] font-medium text-[rgba(255,255,255,0.85)] leading-[24px]"
+                  className="text-[16px] font-medium text-[rgba(255,255,255,0.85)] leading-[24px]"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   {s.desc}

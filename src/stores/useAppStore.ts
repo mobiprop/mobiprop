@@ -1,4 +1,4 @@
-// Global app store — placeholder
+// Global app store — placeholder  
 // TODO: implement with Zustand
 
 // import { create } from "zustand";

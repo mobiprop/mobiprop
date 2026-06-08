@@ -8,6 +8,9 @@ const heroBgOverlay = "/assets/figma-temp/BlogPage/hero-bg-overlay.png";
 const featuredBlogImg = "/assets/figma-temp/BlogPage/featured-blog-img.png";
 const arrowRightWhite = "/assets/figma-temp/BlogPage/arrow-right-white.svg";
 const blogCardImg = "/assets/figma-temp/BlogPage/blog-card-img.png";
+const blogCardImg1 = "/assets/figma-temp/BlogPage/blog-card-img.png";
+const blogCardImg2 = "/assets/figma-temp/BlogPage/blog-card-img.png";
+
 const paginationArrowLeft = "/assets/figma-temp/BlogPage/pagination-arrow-left.svg";
 const paginationArrowRight = "/assets/figma-temp/BlogPage/pagination-arrow-right.svg";
 const paginationArrowDown = "/assets/figma-temp/BlogPage/pagination-arrow-down.svg";
@@ -59,6 +62,7 @@ const BLOG_POSTS: BlogPost[] = Array.from({ length: 9 }, (_, i) => ({
     "Designing for wellness — the new standard in home building",
   ][i],
   img: blogCardImg,
+ 
 }));
 
 const TOTAL_PAGES = 16;
@@ -82,7 +86,7 @@ function SectionTag({ label }: { label: string }) {
 function FeaturedBlog() {
   return (
     <div className="relative w-full h-[420px] lg:h-[539px] rounded-[20px] overflow-hidden">
-      <img src={featuredBlogImg} alt="Featured blog" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={featuredBlogImg} alt="Featured blog" className="absolute object-top inset-0 w-full h-full object-cover" />
       {/* dark gradient overlay */}
       <div
         className="absolute inset-0"

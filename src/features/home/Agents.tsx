@@ -1,9 +1,9 @@
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const agentBg = "/assets/figma-temp/HomePageFinal/368a7ccf53b013661583890962f409acf4fd07be.png";
-const agent1 = "/assets/figma-temp/HomePageFinal/bc2175d4cc07410c7d9e368839d6db3709b487ac.png";
-const agent2 = "/assets/figma-temp/HomePageFinal/29175366aeda0cbf4b4b1d6eccad58d6fc382efc.png";
-const agent3 = "/assets/figma-temp/HomePageFinal/1e01acfd38e4ddc854191280c2e5b70867aa9bdf.png";
+const agent1 = "/assets/figma-temp/AboutUs/about-15.png";
+const agent2 = "/assets/figma-temp/AboutUs/about-16.png";
+const agent3 = "/assets/figma-temp/AboutUs/about-17.png";
 
 function InstagramIcon() {
   return (
@@ -40,28 +40,24 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
     <div className="flex flex-col gap-4">
       {/* Photo */}
       <div className="relative h-[300px] lg:h-[372px] rounded-[20px] overflow-hidden">
-        <img
-          src={agentBg}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+      
         <img
           src={agent.photo}
           alt={agent.name}
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
       </div>
       {/* Info */}
       <div className="flex items-start justify-between">
         <div>
           <p
-            className="text-[20px] lg:text-[22px] font-medium text-[#0d2138] leading-[28px]"
+            className="text-[20px] lg:text-[24px] font-medium text-[#0d2138] leading-[28px]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {agent.name}
           </p>
           <p
-            className="text-[13px] text-[#2b3038] mt-1 max-w-[160px]"
+            className="text-[14px] text-[#2b3038] mt-1 max-w-[160px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {agent.role}

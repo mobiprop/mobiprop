@@ -7,18 +7,18 @@ import { FiltersModal } from "./FiltersModal";
 
 const heroImg = "/assets/figma-temp/ListingPage-1/7c381d7793bef2f0501fb33eaa3df52bea0aa4ef.png";
 const cloudsImg = "/assets/figma-temp/ListingPage-1/224a1a87c6d1fc7b05e65142626032911210d860.png";
-const img1 = "/assets/figma-temp/ListingPage-1/86a765c8069553ebf60e60f32ad44c8911a8dc43.png";
-const img2 = "/assets/figma-temp/ListingPage-1/f186df3ffecd1693fc361700e857c2ed57a551fd.png";
-const img3 = "/assets/figma-temp/ListingPage-1/5093201b514c15b859f33d9514c53dff534ca77b.png";
-const img4 = "/assets/figma-temp/ListingPage-1/8137495f6ced8731d50e90db7307a71887d9405e.png";
-const img5 = "/assets/figma-temp/ListingPage-1/f814dcfd6a900cdbe36f821086bb87d044eb6c8f.png";
-const img6 = "/assets/figma-temp/ListingPage-1/f6d91b83cd3d072f2207f452eb3e3da230b02175.png";
-const img7 = "/assets/figma-temp/ListingPage-1/7a6edb51386312fadf91e51d520cf90bbf263746.png";
-const img8 = "/assets/figma-temp/ListingPage-1/3e748476c00023b7c5ae784cce06d0ab67546993.png";
-const img9 = "/assets/figma-temp/ListingPage-1/cc77c8fdd826c9c8a44bc94bdee10fe20974f06a.png";
-const sugg1 = "/assets/figma-temp/ListingPage-1/1a654807ddf806226b7d20555110e7f114b6a7a0.png";
-const sugg2 = "/assets/figma-temp/ListingPage-1/cb76315e81071a1b5226028546e26a5ecaa633be.png";
-const sugg3 = "/assets/figma-temp/ListingPage-1/9dfe0bd344321c122c9b9085d0ebd561176bf927.png";
+const img1 = "assets/figma-temp/ListingPage-1/listing-1.png";
+const img2 = "assets/figma-temp/ListingPage-1/listing-2.png";
+const img3 = "assets/figma-temp/ListingPage-1/listing-3.png";
+const img4 = "assets/figma-temp/ListingPage-1/listing-4.png";
+const img5 = "assets/figma-temp/ListingPage-1/listing-5.png";
+const img6 = "assets/figma-temp/ListingPage-1/listing-6.png";
+const img7 = "assets/figma-temp/ListingPage-1/listing-7.png";
+const img8 = "assets/figma-temp/ListingPage-1/listing-8.png";
+const img9 = "assets/figma-temp/ListingPage-1/listing-9.png";
+const sugg1 = "assets/figma-temp/ListingPage-1/listing-10.png";
+const sugg2 = "assets/figma-temp/ListingPage-1/listing-11.png";
+const sugg3 = "assets/figma-temp/ListingPage-1/listing-12.png";
 const mapImg = "/assets/figma-temp/ContactPage/map.png";
 
 /* ─── icon helpers ─── */
