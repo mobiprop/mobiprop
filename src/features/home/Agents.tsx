@@ -81,41 +81,45 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
 export function Agents() {
   return (
     <section className="bg-white py-16 lg:py-20">
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-16">
-        {/* Header */}
-        <div className="flex flex-col items-center gap-4 mb-12">
-          <div className="flex items-center gap-2">
-            <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
-            <span
-              className="text-[16px] font-medium text-[#6a7282]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Agents
-            </span>
-          </div>
-          <h2
-            className="text-[32px] lg:text-[44px] font-semibold text-[#232323] text-center leading-tight max-w-[500px]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            Meet The Experts Who Make It Happen.
-          </h2>
-        </div>
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
+  {/* Header */}
+  <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12">
+    <div className="flex items-center gap-2">
+      <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
+      <span
+        className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
+        style={{ fontFamily: "Montserrat, sans-serif" }}
+      >
+        Agents
+      </span>
+    </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {agents.map((a) => (
-            <AgentCard key={a.name} agent={a} />
-          ))}
-        </div>
+    <h2
+      className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] text-center leading-[36px] sm:leading-[42px] lg:leading-tight max-w-[500px]"
+      style={{ fontFamily: "Poppins, sans-serif" }}
+    >
+      Meet The Experts Who Make It Happen.
+    </h2>
+  </div>
 
-        {/* Pagination dots */}
-        <div className="flex justify-center gap-1.5 mt-8">
-          <div className="w-5 h-2 bg-[#1e4f86] rounded-full" />
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="w-2 h-2 bg-[#6a7282] opacity-25 rounded-full" />
-          ))}
-        </div>
-      </div>
+  {/* Grid */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+    {agents.map((a) => (
+      <AgentCard key={a.name} agent={a} />
+    ))}
+  </div>
+
+  {/* Pagination dots */}
+  <div className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8">
+    <div className="w-5 h-2 bg-[#1e4f86] rounded-full" />
+    {[1, 2, 3].map((i) => (
+      <div
+        key={i}
+        className="w-2 h-2 bg-[#6a7282] opacity-25 rounded-full"
+      />
+    ))}
+  </div>
+</div>
     </section>
   );
 }

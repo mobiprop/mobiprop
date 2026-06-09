@@ -341,98 +341,131 @@ function ConsultationBannerSection() {
   };
 
   return (
-    <section className="relative w-full py-20 overflow-hidden">
-      <div className="absolute inset-0">
-        <img src={consultationBg} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
-      </div>
-      <div className="relative z-10 flex justify-center px-4">
-        <div className="bg-white rounded-[20px] p-8 lg:p-10 w-full max-w-[540px] shadow-xl">
-          <h2
-            className="text-[28px] lg:text-[36px] font-medium text-[#0d2138] leading-tight mb-7"
-            style={{ fontFamily: poppins }}
+   <section className="relative w-full py-12 sm:py-16 lg:py-20 overflow-hidden">
+  <div className="absolute inset-0">
+    <img
+      src={consultationBg}
+      alt=""
+      className="w-full h-full object-cover"
+    />
+    <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
+  </div>
+
+  <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto flex justify-center">
+    <div className="bg-white rounded-[18px] sm:rounded-[20px] p-5 sm:p-8 lg:p-10 w-full max-w-[540px] shadow-xl">
+      <h2
+        className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-tight mb-5 sm:mb-7"
+        style={{ fontFamily: poppins }}
+      >
+        Schedule a free consultation
+      </h2>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1.5">
+          <label
+            className="text-[14px] font-medium text-[#0d2138]"
+            style={{ fontFamily: montserrat }}
           >
-            Schedule a free consultation
-          </h2>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[14px] font-medium text-[#0d2138]" style={{ fontFamily: montserrat }}>
-                Full Name
-              </label>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="eg. Albert Jones"
-                className="border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[14px] font-medium text-[#0d2138]" style={{ fontFamily: montserrat }}>
-                Email address
-              </label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="albert@email.com"
-                className="border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[14px] font-medium text-[#0d2138]" style={{ fontFamily: montserrat }}>
-                Topic
-              </label>
-              <input
-                name="topic"
-                value={form.topic}
-                onChange={handleChange}
-                placeholder="Consultation"
-                className="border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[14px] font-medium text-[#0d2138]" style={{ fontFamily: montserrat }}>
-                Messages
-              </label>
-              <textarea
-                name="message"
-                value={form.message}
-                onChange={handleChange}
-                placeholder="Enter a message"
-                rows={4}
-                className="border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#99a1af] outline-none focus:border-[#1e4f86] transition-colors resize-none"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-          </div>
-          <button
-            type="button"
-            className="mt-6 w-full flex items-center justify-center gap-3 py-[14px] rounded-[48px] text-white text-[15px] font-medium hover:opacity-90 transition-opacity"
-            style={{
-              fontFamily: montserrat,
-              background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-              border: "1px solid #0088ff",
-            }}
+            Full Name
+          </label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="eg. Albert Jones"
+            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+            style={{ fontFamily: montserrat }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            className="text-[14px] font-medium text-[#0d2138]"
+            style={{ fontFamily: montserrat }}
           >
-            Book a Free consultation
-            <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
-              <path
-                d="M1 7h16M10 1l6 6-6 6"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+            Email address
+          </label>
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="albert@email.com"
+            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+            style={{ fontFamily: montserrat }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            className="text-[14px] font-medium text-[#0d2138]"
+            style={{ fontFamily: montserrat }}
+          >
+            Topic
+          </label>
+          <input
+            name="topic"
+            value={form.topic}
+            onChange={handleChange}
+            placeholder="Consultation"
+            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+            style={{ fontFamily: montserrat }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            className="text-[14px] font-medium text-[#0d2138]"
+            style={{ fontFamily: montserrat }}
+          >
+            Messages
+          </label>
+          <textarea
+            name="message"
+            value={form.message}
+            onChange={handleChange}
+            placeholder="Enter a message"
+            rows={4}
+            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#99a1af] outline-none focus:border-[#1e4f86] transition-colors resize-none"
+            style={{ fontFamily: montserrat }}
+          />
         </div>
       </div>
-    </section>
+
+      <button
+        type="button"
+        className="relative mt-5 sm:mt-6 w-full overflow-hidden flex items-center justify-center gap-3 py-[14px] rounded-[48px] text-white text-[14px] sm:text-[15px] font-medium hover:opacity-90 transition-opacity tracking-[-0.01em]"
+        style={{
+          fontFamily: montserrat,
+          background: "linear-gradient(to bottom, #005ea4, #006fc2)",
+          border: "1px solid #0088ff",
+        }}
+      >
+        <span
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: "url('/assets/figma-temp/BlogPage/btn-img.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+
+        <span className="relative z-10 flex items-center justify-center gap-3">
+          Book a Free consultation
+          <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+            <path
+              d="M1 7h16M10 1l6 6-6 6"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</section>
   );
 }
 
