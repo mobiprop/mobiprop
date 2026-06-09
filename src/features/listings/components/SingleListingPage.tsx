@@ -3,24 +3,56 @@
 import { useState } from "react";
 import svgPaths from "./singleListingSvgPaths";
 
-const mainImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.png";
-const sideImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-2.png";
-const sideImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-3.png";
-const sideImg3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-4.png";
-const agentImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/emily.png";
-const videoImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/vid-yy.png";
-const mapImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
-const footerBgImg = "/assets/figma-temp/SingleListingPage/3fba757107af3080a480784b8edf8f9a8a4c4646.png";
+const mainImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.png";
+const sideImg1 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-2.png";
+const sideImg2 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-3.png";
+const sideImg3 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-4.png";
+const agentImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/emily.png";
+const videoImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/vid-yy.png";
+const mapImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
+const footerBgImg =
+  "/assets/figma-temp/SingleListingPage/3fba757107af3080a480784b8edf8f9a8a4c4646.png";
 
 const amenities = [
   {
     label: "Parking",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d={svgPaths.p1d98b900} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p36e7a000} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M9 17H15" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p29835400} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p1d98b900}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p36e7a000}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M9 17H15"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p29835400}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -28,10 +60,34 @@ const amenities = [
     label: "Garden",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d={svgPaths.p360d1bb0} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M7.0002 16V22" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M13.0002 19V22" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p15de6d20} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p360d1bb0}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M7.0002 16V22"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M13.0002 19V22"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p15de6d20}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -39,9 +95,27 @@ const amenities = [
     label: "Pool",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d={svgPaths.p23954e80} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p7d13a80} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p1597c000} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p23954e80}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p7d13a80}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p1597c000}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -49,9 +123,27 @@ const amenities = [
     label: "Gym",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d={svgPaths.p16cc3700} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p2165cae0} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p37d02340} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p16cc3700}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p2165cae0}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p37d02340}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -59,9 +151,27 @@ const amenities = [
     label: "Balcony",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M18 9L12 3L6 9" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M12 3V17" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M4.9998 21H18.9998" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d="M18 9L12 3L6 9"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M12 3V17"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M4.9998 21H18.9998"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -69,11 +179,41 @@ const amenities = [
     label: "Elevator",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M14.4 14.4L9.6 9.6" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p3f75e300} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M21.5 21.5L20.1 20.1" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p39715080} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p3f4a1500} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d="M14.4 14.4L9.6 9.6"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p3f75e300}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M21.5 21.5L20.1 20.1"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p39715080}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p3f4a1500}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -81,7 +221,13 @@ const amenities = [
     label: "Security",
     icon: (
       <svg width="25" height="25" viewBox="0 0 25 25" fill="none">
-        <path d={svgPaths.p2b59380} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p2b59380}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -89,11 +235,41 @@ const amenities = [
     label: "Furnished",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d={svgPaths.p10c26880} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.pbc36600} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M4.0002 18V20" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M19.9998 18V20" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d="M12 4.00005V13" stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p10c26880}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.pbc36600}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M4.0002 18V20"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M19.9998 18V20"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M12 4.00005V13"
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -101,10 +277,34 @@ const amenities = [
     label: "Pet Friendly",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d={svgPaths.p3835b200} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p2f030500} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.p2c5da200} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
-        <path d={svgPaths.pfabe780} stroke="#1E4F86" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        <path
+          d={svgPaths.p3835b200}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p2f030500}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.p2c5da200}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d={svgPaths.pfabe780}
+          stroke="#1E4F86"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
       </svg>
     ),
   },
@@ -217,7 +417,13 @@ export function SingleListingPageContent() {
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-5">
         <p
           className="text-[#0d2138]"
-          style={{ fontFamily: "Poppins, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.24px", lineHeight: "28px" }}
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: "-0.24px",
+            lineHeight: "28px",
+          }}
         >
           Property details
         </p>
@@ -227,8 +433,15 @@ export function SingleListingPageContent() {
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 pb-8">
         <div className="flex gap-6 items-start">
           {/* Main Image */}
-          <div className="relative flex-1 rounded-[20px] overflow-hidden" style={{ height: 536 }}>
-            <img src={mainImg} alt="Coastal Modern Residence" className="w-full h-full object-cover" />
+          <div
+            className="relative flex-1 rounded-[20px] overflow-hidden"
+            style={{ height: 536 }}
+          >
+            <img
+              src={mainImg}
+              alt="Coastal Modern Residence"
+              className="w-full h-full object-cover"
+            />
             {/* Badges */}
             <div className="absolute top-4 left-4 flex gap-1">
               {["For Rent", "Apartment", "2026"].map((tag) => (
@@ -246,16 +459,34 @@ export function SingleListingPageContent() {
           {/* Side Images */}
           <div className="flex flex-col gap-4 w-[342px] shrink-0">
             <div className="rounded-[12px] overflow-hidden h-[168px]">
-              <img src={sideImg1} alt="Property view 1" className="w-full h-full object-cover" />
+              <img
+                src={sideImg1}
+                alt="Property view 1"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="rounded-[12px] overflow-hidden h-[168px]">
-              <img src={sideImg2} alt="Property view 2" className="w-full h-full object-cover" />
+              <img
+                src={sideImg2}
+                alt="Property view 2"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="relative rounded-[12px] overflow-hidden h-[168px]">
-              <img src={sideImg3} alt="Property view 3" className="w-full h-full object-cover" />
+              <img
+                src={sideImg3}
+                alt="Property view 3"
+                className="w-full h-full object-cover"
+              />
               <div className="absolute bottom-3 right-3 bg-white rounded-[50px] px-4 py-2 flex items-center gap-1">
-                <span className="text-[#232323] text-[14px]" style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}>
-                  Show all images  (4)
+                <span
+                  className="text-[#232323] text-[14px]"
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 500,
+                  }}
+                >
+                  Show all images (4)
                 </span>
               </div>
             </div>
@@ -268,15 +499,45 @@ export function SingleListingPageContent() {
           <div className="flex flex-col gap-1">
             <h1
               className="text-[#232323]"
-              style={{ fontFamily: "Poppins, sans-serif", fontSize: 32, fontWeight: 500, letterSpacing: "-0.32px", lineHeight: "44px" }}
+              style={{
+                fontFamily: "Poppins, sans-serif",
+                fontSize: 32,
+                fontWeight: 500,
+                letterSpacing: "-0.32px",
+                lineHeight: "44px",
+              }}
             >
               Coastal Modern Residence
             </h1>
-            <div className="flex items-center gap-2 text-[rgba(0,0,0,0.62)] text-[16px]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+            <div
+              className="flex items-center gap-2 text-[rgba(0,0,0,0.62)] text-[16px]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d={svgPaths.p23b22400} stroke="black" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.7" strokeWidth="1.125" />
-                <path d="M9 6.75V12.375" stroke="black" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.7" strokeWidth="1.125" />
-                <path d={svgPaths.p2e9ace80} stroke="black" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.7" strokeWidth="1.125" />
+                <path
+                  d={svgPaths.p23b22400}
+                  stroke="black"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeOpacity="0.7"
+                  strokeWidth="1.125"
+                />
+                <path
+                  d="M9 6.75V12.375"
+                  stroke="black"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeOpacity="0.7"
+                  strokeWidth="1.125"
+                />
+                <path
+                  d={svgPaths.p2e9ace80}
+                  stroke="black"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeOpacity="0.7"
+                  strokeWidth="1.125"
+                />
               </svg>
               <span>Bayshore Gardens, Tampa, FL</span>
             </div>
@@ -287,18 +548,48 @@ export function SingleListingPageContent() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-[#1e4f86]" />
-                <span className="text-[#1e4f86] text-[16px]" style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 600 }}>Sale</span>
+                <span
+                  className="text-[#1e4f86] text-[16px]"
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 600,
+                  }}
+                >
+                  Sale
+                </span>
               </div>
-              <span className="text-[#1e4f86] text-[24px]" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 600, letterSpacing: "-0.24px" }}>
+              <span
+                className="text-[#1e4f86] text-[24px]"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 600,
+                  letterSpacing: "-0.24px",
+                }}
+              >
                 $749,000
               </span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-[#4896b6]" />
-                <span className="text-[#4896b6] text-[16px]" style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 600 }}>Rent</span>
+                <span
+                  className="text-[#4896b6] text-[16px]"
+                  style={{
+                    fontFamily: "Montserrat, sans-serif",
+                    fontWeight: 600,
+                  }}
+                >
+                  Rent
+                </span>
               </div>
-              <span className="text-[#4896b6] text-[24px]" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 600, letterSpacing: "-0.24px" }}>
+              <span
+                className="text-[#4896b6] text-[24px]"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 600,
+                  letterSpacing: "-0.24px",
+                }}
+              >
                 $548,000
               </span>
             </div>
@@ -307,53 +598,111 @@ export function SingleListingPageContent() {
 
         {/* Share Bar */}
         <div className="mt-6 pb-6 border-b border-[#e5e7eb] flex items-center gap-4">
-          <span className="text-[#2b3038] text-[16px]" style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}>Share:</span>
+          <span
+            className="text-[#2b3038] text-[16px]"
+            style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}
+          >
+            Share:
+          </span>
           {/* Social Icons */}
           <div className="flex items-center gap-3">
             {/* Facebook */}
-            <div className="w-6 h-6 overflow-clip relative cursor-pointer">
-              <svg viewBox="0 0 20 19.9268" fill="none" className="absolute inset-0 w-full h-full">
-                <path d={svgPaths.p5001e80} fill="#0866FF" />
-              </svg>
-            </div>
+          <button className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden">
+  <svg viewBox="0 0 24 24" className="w-6 h-6 relative top-[2px]" fill="none">
+    <path
+      d="M13.6 22V13.4H16.5L17 10H13.6V7.8C13.6 6.8 13.9 6.1 15.3 6.1H17.1V3.1C16.8 3.1 15.7 3 14.5 3C11.9 3 10.1 4.6 10.1 7.5V10H7.2V13.4H10.1V22H13.6Z"
+      fill="white"
+    />
+  </svg>
+</button>
             {/* Twitter/X */}
             <div className="w-6 h-6 overflow-clip relative cursor-pointer">
-              <svg viewBox="0 0 20 18" fill="none" className="absolute inset-0 w-full h-full">
-                <path d={svgPaths.p7cd5f00} fill="black" />
+              <svg viewBox="0 0 20 18" className="w-6 h-6">
+                <path d={svgPaths.p7cd5f00} fill="#000000" />
               </svg>
             </div>
             {/* Instagram */}
-            <div className="w-6 h-6 rounded-[4px] cursor-pointer overflow-clip relative"
-              style={{ background: "radial-gradient(circle at 30% 110%, #ffcc00, #ff4500 40%, #ff0066 70%, #820bff 100%)" }}>
-              <svg viewBox="0 0 16 16" fill="none" className="absolute inset-[12.5%] w-[75%] h-[75%]">
-                <path d={svgPaths.p208a2600} fill="white" />
-              </svg>
-            </div>
+             <button
+  className="w-6 h-6 rounded-[6px] flex items-center justify-center overflow-hidden cursor-pointer"
+  style={{
+    background:
+      "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
+  }}
+>
+  <svg viewBox="0 0 24 24" className="w-[30px] h-[30px]" fill="none">
+    <rect x="5" y="5" width="14" height="14" rx="4" stroke="white" strokeWidth="2" />
+    <circle cx="12" cy="12" r="3.2" stroke="white" strokeWidth="2" />
+    <circle cx="16.6" cy="7.4" r="1.1" fill="white" />
+  </svg>
+</button>
             {/* LinkedIn */}
             <div className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px]">
-              <svg viewBox="0 0 20 20" fill="none" className="absolute inset-0 w-full h-full">
-                <path d={svgPaths.p25763d00} fill="#0B65C2" clipRule="evenodd" fillRule="evenodd" />
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                className="absolute inset-0 w-full h-full"
+              >
+                <path
+                  d={svgPaths.p25763d00}
+                  fill="#0B65C2"
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                />
               </svg>
-              <svg viewBox="0 0 14 14" fill="none" className="absolute inset-[20.83%] w-[58.34%] h-[58.34%]">
-                <path d={svgPaths.p270e9700} fill="white" clipRule="evenodd" fillRule="evenodd" />
+              <svg
+                viewBox="0 0 14 14"
+                fill="none"
+                className="absolute inset-[20.83%] w-[58.34%] h-[58.34%]"
+              >
+                <path
+                  d={svgPaths.p270e9700}
+                  fill="white"
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                />
               </svg>
             </div>
             {/* WhatsApp */}
-            <div className="w-6 h-6 relative cursor-pointer">
-              <svg viewBox="0 0 22 22" fill="none" className="absolute inset-[4.17%] w-[91.66%] h-[91.66%]">
-                <path d={svgPaths.p9487800} fill="white" />
+            <div className="w-8 h-8 relative cursor-pointer">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-[30px] h-[30px]"
+                fill="white"
+              >
+                <path d="M19.1 4.9A9.8 9.8 0 0 0 3.7 16.7L2.4 21.5l4.9-1.3A9.8 9.8 0 0 0 19.1 4.9Zm-7.1 14a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3a8 8 0 1 1 6.7 3.6Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.6.1c-.2.3-.7.8-.8 1-.2.2-.3.2-.6.1-.2-.1-1-.4-2-1.2-.7-.7-1.2-1.5-1.4-1.7-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.2-.3-.3-.5-.4Z" />
               </svg>
-              <svg viewBox="0 0 18.2089 18.1286" fill="none" className="absolute inset-[11.84%] w-[76.29%] h-[75.53%]">
+              <svg
+                viewBox="0 0 18.2089 18.1286"
+                fill="none"
+                className="absolute inset-[11.84%] w-[76.29%] h-[75.53%]"
+              >
                 <path d={svgPaths.p36a91e00} fill="url(#wa_grad)" />
                 <defs>
-                  <linearGradient id="wa_grad" x1="8.919" x2="9.011" y1="1.088" y2="16.58" gradientUnits="userSpaceOnUse">
+                  <linearGradient
+                    id="wa_grad"
+                    x1="8.919"
+                    x2="9.011"
+                    y1="1.088"
+                    y2="16.58"
+                    gradientUnits="userSpaceOnUse"
+                  >
                     <stop stopColor="#57D163" />
                     <stop offset="1" stopColor="#23B33A" />
                   </linearGradient>
                 </defs>
               </svg>
-              <svg viewBox="0 0 11.1241 10.271" fill="none" className="absolute w-[46.35%] h-[42.79%]" style={{ inset: "28.61% 26.65% 28.59% 27%" }}>
-                <path d={svgPaths.p3bc74772} fill="white" clipRule="evenodd" fillRule="evenodd" />
+              <svg
+                viewBox="0 0 11.1241 10.271"
+                fill="none"
+                className="absolute w-[46.35%] h-[42.79%]"
+                style={{ inset: "28.61% 26.65% 28.59% 27%" }}
+              >
+                <path
+                  d={svgPaths.p3bc74772}
+                  fill="white"
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                />
               </svg>
             </div>
           </div>
@@ -364,8 +713,18 @@ export function SingleListingPageContent() {
             className="flex items-center gap-2 px-3 py-1.5 rounded-[32px] border border-[#d1d5dc] text-[#2b3038] text-[14px] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            <svg width="14" height="14" viewBox="0 0 14.2581 14.2447" fill="none">
-              <path d={svgPaths.p3d13b600} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14.2581 14.2447"
+              fill="none"
+            >
+              <path
+                d={svgPaths.p3d13b600}
+                stroke="#2B3038"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             {copied ? "Copied!" : "Copy Link"}
           </button>
@@ -374,23 +733,65 @@ export function SingleListingPageContent() {
 
       {/* Description */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2 className="text-[#0d2138] mb-6" style={{ fontFamily: "Poppins, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.24px", lineHeight: "28px" }}>
+        <h2
+          className="text-[#0d2138] mb-6"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: "-0.24px",
+            lineHeight: "28px",
+          }}
+        >
           Description
         </h2>
-        <p className="text-[#0d2138] text-[16px] mb-4" style={{ fontFamily: "Montserrat, sans-serif", lineHeight: "24px", letterSpacing: "-0.16px" }}>
-          A bright coastal-inspired home offering modern interiors, spacious living areas, and elegant finishes throughout. Ideal for buyers seeking comfort, style, and a well-located property close to Tampa's best amenities and attractions.
+        <p
+          className="text-[#0d2138] text-[16px] mb-4"
+          style={{
+            fontFamily: "Montserrat, sans-serif",
+            lineHeight: "24px",
+            letterSpacing: "-0.16px",
+          }}
+        >
+          A bright coastal-inspired home offering modern interiors, spacious
+          living areas, and elegant finishes throughout. Ideal for buyers
+          seeking comfort, style, and a well-located property close to Tampa's
+          best amenities and attractions.
         </p>
         <div className="flex items-start gap-4 mt-4">
-          <div className="w-px bg-[#d4d4d4] self-stretch" style={{ minHeight: 60 }} />
-          <p className="text-[#2b3038] text-[16px] italic" style={{ fontFamily: "Inter, sans-serif", lineHeight: "28.8px", letterSpacing: "-0.48px" }}>
-            This Beverly Hills villa redefines <strong>modern elegance and exclusivity</strong>. Featuring expansive interiors, outdoor entertainment areas, and breathtaking city views, it is "crafted for those who seek the ultimate luxury lifestyle in Los Angeles."
+          <div
+            className="w-px bg-[#d4d4d4] self-stretch"
+            style={{ minHeight: 60 }}
+          />
+          <p
+            className="text-[#2b3038] text-[16px] italic"
+            style={{
+              fontFamily: "Inter, sans-serif",
+              lineHeight: "28.8px",
+              letterSpacing: "-0.48px",
+            }}
+          >
+            This Beverly Hills villa redefines{" "}
+            <strong>modern elegance and exclusivity</strong>. Featuring
+            expansive interiors, outdoor entertainment areas, and breathtaking
+            city views, it is "crafted for those who seek the ultimate luxury
+            lifestyle in Los Angeles."
           </p>
         </div>
       </div>
 
       {/* Property Details Stats */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2 className="text-[#0d2138] mb-6" style={{ fontFamily: "Poppins, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.24px", lineHeight: "28px" }}>
+        <h2
+          className="text-[#0d2138] mb-6"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: "-0.24px",
+            lineHeight: "28px",
+          }}
+        >
           Property details
         </h2>
         <div className="bg-[#f8fafc] rounded-[20px] p-8">
@@ -398,10 +799,26 @@ export function SingleListingPageContent() {
             {stats.map((stat, i) => (
               <div key={stat.label} className="flex items-center gap-0">
                 <div className="flex flex-col items-center gap-3 min-w-[80px] px-4">
-                  <div className="flex items-center justify-center h-8">{stat.icon}</div>
+                  <div className="flex items-center justify-center h-8">
+                    {stat.icon}
+                  </div>
                   <div className="text-center">
-                    <p className="text-[#2b3038] text-[16px]" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500, letterSpacing: "-0.18px" }}>{stat.label}</p>
-                    <p className="text-[#2b3038] opacity-70 text-[15px]" style={{ fontFamily: "Montserrat, sans-serif" }}>{stat.value}</p>
+                    <p
+                      className="text-[#2b3038] text-[16px]"
+                      style={{
+                        fontFamily: "Poppins, sans-serif",
+                        fontWeight: 500,
+                        letterSpacing: "-0.18px",
+                      }}
+                    >
+                      {stat.label}
+                    </p>
+                    <p
+                      className="text-[#2b3038] opacity-70 text-[15px]"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      {stat.value}
+                    </p>
                   </div>
                 </div>
                 {i < stats.length - 1 && (
@@ -415,7 +832,16 @@ export function SingleListingPageContent() {
 
       {/* Features & Amenities */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2 className="text-[#0d2138] mb-6" style={{ fontFamily: "Poppins, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.24px", lineHeight: "28px" }}>
+        <h2
+          className="text-[#0d2138] mb-6"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: "-0.24px",
+            lineHeight: "28px",
+          }}
+        >
           Features & Amenities
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -425,7 +851,14 @@ export function SingleListingPageContent() {
               className="bg-white border border-[#e5e7eb] rounded-[12px] flex items-center gap-3 px-5 py-3 h-[50px]"
             >
               {item.icon}
-              <span className="text-[#2b3038] text-[18px]" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500, letterSpacing: "-0.18px" }}>
+              <span
+                className="text-[#2b3038] text-[18px]"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: "-0.18px",
+                }}
+              >
                 {item.label}
               </span>
             </div>
@@ -435,18 +868,52 @@ export function SingleListingPageContent() {
 
       {/* Video Preview */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2 className="text-[#0d2138] mb-6" style={{ fontFamily: "Poppins, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.24px", lineHeight: "28px" }}>
+        <h2
+          className="text-[#0d2138] mb-6"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: "-0.24px",
+            lineHeight: "28px",
+          }}
+        >
           Video Preview
         </h2>
-        <div className="relative rounded-[20px] overflow-hidden bg-[#bfbfbf]" style={{ height: 566 }}>
-          <img src={videoImg} alt="Video preview" className="w-full h-full object-cover" />
+        <div
+          className="relative rounded-[20px] overflow-hidden bg-[#bfbfbf]"
+          style={{ height: 566 }}
+        >
+          <img
+            src={videoImg}
+            alt="Video preview"
+            className="w-full h-full object-cover"
+          />
           {/* YouTube Play Button */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative" style={{ width: 127, height: 127 }}>
-              <svg viewBox="0 0 111.425 79.5892" fill="none" className="absolute" style={{ inset: "18.75% 6.25%", width: "87.5%", height: "62.5%" }}>
+              <svg
+                viewBox="0 0 111.425 79.5892"
+                fill="none"
+                className="absolute"
+                style={{
+                  inset: "18.75% 6.25%",
+                  width: "87.5%",
+                  height: "62.5%",
+                }}
+              >
                 <path d={svgPaths.p3b152600} fill="#FC0D1B" />
               </svg>
-              <svg viewBox="0 0 31.8357 31.8357" fill="none" className="absolute" style={{ inset: "37.5% 34.38% 37.5% 40.62%", width: "25.62%", height: "25%" }}>
+              <svg
+                viewBox="0 0 31.8357 31.8357"
+                fill="none"
+                className="absolute"
+                style={{
+                  inset: "37.5% 34.38% 37.5% 40.62%",
+                  width: "25.62%",
+                  height: "25%",
+                }}
+              >
                 <path d={svgPaths.p277c6500} fill="white" />
               </svg>
             </div>
@@ -456,42 +923,127 @@ export function SingleListingPageContent() {
 
       {/* On the Map */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2 className="text-[#0d2138] mb-6" style={{ fontFamily: "Poppins, sans-serif", fontSize: 24, fontWeight: 500, letterSpacing: "-0.24px", lineHeight: "28px" }}>
+        <h2
+          className="text-[#0d2138] mb-6"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: "-0.24px",
+            lineHeight: "28px",
+          }}
+        >
           On the Map
         </h2>
-        <div className="relative rounded-[20px] overflow-hidden" style={{ height: 536 }}>
-          <img src={mapImg} alt="Map" className="w-full h-full object-cover rounded-[20px]" />
+        <div
+          className="relative rounded-[20px] overflow-hidden"
+          style={{ height: 536 }}
+        >
+          <img
+            src={mapImg}
+            alt="Map"
+            className="w-full h-full object-cover rounded-[20px]"
+          />
           {/* Location Card */}
           <div className="absolute top-5 left-5 bg-white rounded-[10px] p-3 w-[213px]">
-            <p className="text-[#232323] text-[14px] mb-1" style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500, letterSpacing: "-0.14px" }}>Buenos Aires, Argentina</p>
-            <p className="text-[#5f5f5f] text-[12px] mb-2" style={{ fontFamily: "Poppins, sans-serif", letterSpacing: "-0.12px" }}>Av. Santa Fe 1234, BA, Argentina</p>
+            <p
+              className="text-[#232323] text-[14px] mb-1"
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                fontWeight: 500,
+                letterSpacing: "-0.14px",
+              }}
+            >
+              Buenos Aires, Argentina
+            </p>
+            <p
+              className="text-[#5f5f5f] text-[12px] mb-2"
+              style={{
+                fontFamily: "Poppins, sans-serif",
+                letterSpacing: "-0.12px",
+              }}
+            >
+              Av. Santa Fe 1234, BA, Argentina
+            </p>
             <div className="flex items-center gap-1">
-              <span className="text-[#232323] text-[14px]" style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}>5.0</span>
+              <span
+                className="text-[#232323] text-[14px]"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontWeight: 500,
+                }}
+              >
+                5.0
+              </span>
               {[...Array(5)].map((_, i) => (
-                <svg key={i} width="16" height="16" viewBox="0 0 13.3351 12.6675" fill="none">
+                <svg
+                  key={i}
+                  width="16"
+                  height="16"
+                  viewBox="0 0 13.3351 12.6675"
+                  fill="none"
+                >
                   <path d={svgPaths.p3684cf00} fill="#F5A405" />
                 </svg>
               ))}
-              <span className="text-[#4896b6] text-[12px] ml-1" style={{ fontFamily: "Poppins, sans-serif" }}>6,546</span>
+              <span
+                className="text-[#4896b6] text-[12px] ml-1"
+                style={{ fontFamily: "Poppins, sans-serif" }}
+              >
+                6,546
+              </span>
             </div>
           </div>
           {/* Map Controls */}
           <div className="absolute right-6 bottom-6 flex flex-col gap-3">
             <button className="bg-white rounded-full shadow-lg p-3 flex items-center justify-center">
-              <svg width="17" height="17" viewBox="0 0 16.9302 16.9302" fill="none">
-                <path d={svgPaths.p3d32ae80} stroke="#232323" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.81395" />
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 16.9302 16.9302"
+                fill="none"
+              >
+                <path
+                  d={svgPaths.p3d32ae80}
+                  stroke="#232323"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.81395"
+                />
               </svg>
             </button>
             <div className="bg-white rounded-full shadow-lg flex flex-col items-center">
               <button className="p-3 flex items-center justify-center">
-                <svg width="12" height="12" viewBox="0 0 12.3953 12.3953" fill="none">
-                  <path d={svgPaths.p305e76c0} stroke="#232323" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.81395" />
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12.3953 12.3953"
+                  fill="none"
+                >
+                  <path
+                    d={svgPaths.p305e76c0}
+                    stroke="#232323"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.81395"
+                  />
                 </svg>
               </button>
               <div className="w-10 h-px bg-white" />
               <button className="p-3 flex items-center justify-center">
-                <svg width="12" height="2" viewBox="0 0 12.3953 1.81395" fill="none">
-                  <path d="M0.906977 0.906977H11.4884" stroke="#232323" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.81395" />
+                <svg
+                  width="12"
+                  height="2"
+                  viewBox="0 0 12.3953 1.81395"
+                  fill="none"
+                >
+                  <path
+                    d="M0.906977 0.906977H11.4884"
+                    stroke="#232323"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.81395"
+                  />
                 </svg>
               </button>
             </div>
@@ -501,29 +1053,68 @@ export function SingleListingPageContent() {
 
       {/* Agent Contact Banner */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <div className="bg-[#112b4a] rounded-[36px] relative overflow-hidden" style={{ minHeight: 320 }}>
+        <div
+          className="bg-[#112b4a] rounded-[36px] relative overflow-hidden"
+          style={{ minHeight: 320 }}
+        >
           {/* Background image */}
           <div className="absolute inset-0">
-            <img src={footerBgImg} alt="" className="w-full h-full object-cover opacity-10" />
+            <img
+              src={footerBgImg}
+              alt=""
+              className="w-full h-full object-cover opacity-10"
+            />
           </div>
 
           <div className="relative z-10 flex flex-col lg:flex-row items-center lg:items-stretch gap-8 p-10 lg:p-16">
             {/* Left: Agent */}
             <div className="flex flex-col items-start gap-5 lg:w-[280px]">
-              <div className="rounded-full overflow-hidden" style={{ width: 80, height: 80 }}>
-                <img src={agentImg} alt="Emily Carter" className="w-full h-full object-cover" />
+              <div
+                className="rounded-full overflow-hidden"
+                style={{ width: 80, height: 80 }}
+              >
+                <img
+                  src={agentImg}
+                  alt="Emily Carter"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
-                <p className="text-white text-[24px] mb-1" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500, letterSpacing: "-0.24px" }}>Emily Carter</p>
-                <p className="text-white text-[16px] opacity-80" style={{ fontFamily: "Montserrat, sans-serif" }}>Listing Agent</p>
+                <p
+                  className="text-white text-[24px] mb-1"
+                  style={{
+                    fontFamily: "Poppins, sans-serif",
+                    fontWeight: 500,
+                    letterSpacing: "-0.24px",
+                  }}
+                >
+                  Emily Carter
+                </p>
+                <p
+                  className="text-white text-[16px] opacity-80"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  Listing Agent
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 {[...Array(5)].map((_, i) => (
-                  <svg key={i} width="22" height="22" viewBox="0 0 18.9649 18.2953" fill="none">
+                  <svg
+                    key={i}
+                    width="22"
+                    height="22"
+                    viewBox="0 0 18.9649 18.2953"
+                    fill="none"
+                  >
                     <path d={svgPaths.p236f5cd0} fill="#FFB86A" />
                   </svg>
                 ))}
-                <span className="text-[#f8fafc] text-[16px] ml-1" style={{ fontFamily: "Montserrat, sans-serif" }}>5 stars</span>
+                <span
+                  className="text-[#f8fafc] text-[16px] ml-1"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  5 stars
+                </span>
               </div>
             </div>
 
@@ -532,11 +1123,28 @@ export function SingleListingPageContent() {
 
             {/* Middle: CTA text */}
             <div className="flex flex-col gap-4 flex-1">
-              <h2 className="text-white" style={{ fontFamily: "Poppins, sans-serif", fontSize: 36, fontWeight: 600, letterSpacing: "-0.36px", lineHeight: "48px" }}>
+              <h2
+                className="text-white"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontSize: 36,
+                  fontWeight: 600,
+                  letterSpacing: "-0.36px",
+                  lineHeight: "48px",
+                }}
+              >
                 Ready to see this property
               </h2>
-              <p className="text-white text-[16px] opacity-80" style={{ fontFamily: "Montserrat, sans-serif", lineHeight: "24px", letterSpacing: "-0.16px" }}>
-                Book a Private tour or send a message directly to Emily.<br />
+              <p
+                className="text-white text-[16px] opacity-80"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  lineHeight: "24px",
+                  letterSpacing: "-0.16px",
+                }}
+              >
+                Book a Private tour or send a message directly to Emily.
+                <br />
                 No commitment needed
               </p>
             </div>
