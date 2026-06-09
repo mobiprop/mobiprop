@@ -3,13 +3,24 @@
 import { useState } from "react";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const heroImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.png";
+const heroImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.png";
 
 function LocationIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 11.6667 14.3333" fill="none">
-      <path d={svgPaths.p1fff3000} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={svgPaths.p1a179d80} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={svgPaths.p1fff3000}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d={svgPaths.p1a179d80}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -17,7 +28,12 @@ function LocationIcon() {
 function BuildingIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 14.3333 13" fill="none">
-      <path d={svgPaths.p3c430c00} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={svgPaths.p3c430c00}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -25,7 +41,12 @@ function BuildingIcon() {
 function DollarIcon() {
   return (
     <svg width="14" height="16" viewBox="0 0 9 14.3333" fill="none">
-      <path d={svgPaths.p16a08f00} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={svgPaths.p16a08f00}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -33,7 +54,12 @@ function DollarIcon() {
 function ChevronDown() {
   return (
     <svg width="12" height="8" viewBox="0 0 11 6" fill="none">
-      <path d="M0.5 0.5L5.5 5.5L10.5 0.5" stroke="black" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M0.5 0.5L5.5 5.5L10.5 0.5"
+        stroke="black"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -56,11 +82,10 @@ export function HeroSection() {
       <div className="relative z-10 flex min-h-[760px] flex-col items-center px-4 pt-[128px] pb-10 sm:min-h-[820px] sm:pt-[150px] lg:min-h-[960px] lg:pt-[174px] xl:min-h-[1064px]">
         <div className="mx-auto max-w-[760px] text-center text-white">
           <h1
-            className="mb-7 capitalize leading-[74px]"
+            className="mb-5 md:mb-7 capitalize text-[33px] sm:text-[45px] md:text-[clamp(42px,4.15vw,64px)] leading-[46px] sm:leading-[56px] md:leading-[74px]"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 500,
-              fontSize: "clamp(42px, 4.15vw, 64px)",
               letterSpacing: "0",
             }}
           >
@@ -70,7 +95,10 @@ export function HeroSection() {
           </h1>
           <p
             className="leading-[1.45] opacity-95"
-            style={{ fontFamily: "Poppins, sans-serif", fontSize: "clamp(16px, 1.1vw, 18px)" }}
+            style={{
+              fontFamily: "Poppins, sans-serif",
+              fontSize: "clamp(16px, 1.1vw, 18px)",
+            }}
           >
             Uncover a world of unique homes and unforgettable experiences.
             <br className="hidden sm:block" />
@@ -78,27 +106,34 @@ export function HeroSection() {
           </p>
         </div>
 
-        <div className="mt-auto w-full max-w-[1370px] px-0 pb-6 sm:px-4 lg:pb-9">
+        <div className="mt-[40px] md:mt-auto w-full max-w-[1370px] px-0 pb-6 sm:px-4 lg:pb-9">
           <div className="flex pl-0 sm:pl-0">
             <button
               onClick={() => setActiveTab("buy")}
-              className={`h-[60px] w-[145px] text-[14px] font-medium transition-all ${
+              className={`h-[60px] w-[145px] text-[14px] font-medium transition-all border-t border-l border-r rounded-tl-2xl ${
                 activeTab === "buy"
-                  ? "bg-white text-[#00528f]"
-                  : "bg-[rgba(0,0,0,0.58)] text-white"
+                  ? "bg-white text-[#00528f] border-[#e8e8e8]"
+                  : "bg-[rgba(0,0,0,0.58)] text-white border-[#d5d5d552]"
               }`}
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                letterSpacing: "-0.01em",
+              }}
             >
               Buy
             </button>
+
             <button
               onClick={() => setActiveTab("rent")}
-              className={`h-[60px] w-[145px] text-[14px] font-normal transition-all ${
+              className={`h-[60px] w-[145px] text-[14px] font-normal transition-all border-t border-r ${
                 activeTab === "rent"
-                  ? "bg-white text-[#00528f]"
-                  : "bg-[rgba(0,0,0,0.58)] text-white"
+                  ? "bg-white text-[#00528f] border-[#e8e8e8]"
+                  : "bg-[rgba(0,0,0,0.58)] text-white border-[#d5d5d552]"
               }`}
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={{
+                fontFamily: "Montserrat, sans-serif",
+                letterSpacing: "-0.01em",
+              }}
             >
               Rent
             </button>
@@ -170,14 +205,24 @@ export function HeroSection() {
               </div>
 
               <button
-                className="h-[54px] flex-shrink-0 whitespace-nowrap rounded-[48px] px-8 text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px]"
+                className="relative h-[54px] flex-shrink-0 overflow-hidden whitespace-nowrap rounded-[48px] px-8 text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px]"
                 style={{
                   fontFamily: "Poppins, sans-serif",
                   background: "linear-gradient(to bottom, #005ea4, #006fc2)",
                   border: "1px solid #0088ff",
                 }}
               >
-                Search Properties
+                <span
+                  className="absolute inset-0 opacity-25"
+                  style={{
+                    backgroundImage:
+                      "url('/assets/figma-temp/BlogPage/btn-img.png')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+
+                <span className="relative z-10">Search Properties</span>
               </button>
             </div>
           </div>
