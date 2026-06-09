@@ -5,7 +5,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { canAccessDashboard } from "@/lib/permissions";
+import { canAccessDashboard, hasPermission, type Permission } from "@/lib/permissions";
 import type { Profile } from "@/generated/prisma/client";
 
 /**
@@ -35,15 +35,22 @@ export async function getCurrentProfile(): Promise<Profile | null> {
  *  - unauthenticated / no profile → staff login
  *  - CLIENT role → public account area
  *  - inactive / suspended staff → staff login with an error flag
+ *  - staff lacking `permission` (when given) → dashboard home
  * Returns the Profile when access is allowed.
+ *
+ * Pass `permission` on sub-pages so a role without it (e.g. an AGENT opening
+ * /dashboard/agents directly) is blocked, not just hidden from the sidebar.
  */
-export async function requireDashboardAccess(): Promise<Profile> {
+export async function requireDashboardAccess(
+  permission?: Permission,
+): Promise<Profile> {
   const profile = await getCurrentProfile();
 
   if (!profile) redirect("/dashboard-login");
   // CLIENT users belong in the public account area (currently /profile).
   if (!canAccessDashboard(profile.role)) redirect("/profile");
   if (profile.status !== "ACTIVE") redirect("/dashboard-login?error=inactive");
+  if (permission && !hasPermission(profile.role, permission)) redirect("/dashboard");
 
   return profile;
 }

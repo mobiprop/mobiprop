@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 
+import { logoutAction } from "@/features/auth/actions";
+
 /* ─── assets ─── */
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
 const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
@@ -415,16 +417,33 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
                   Premium Member · Joined March 2022
                 </p>
 
-                {/* Edit Profile button */}
-                <button
-                  onClick={onEditClick}
-                  className="absolute right-0 top-0 flex items-center gap-[8px] h-[44px] px-[16px] border border-[#d1d5dc] rounded-[12px] bg-white hover:bg-[#f8fafc] transition-colors"
-                >
-                  <img src={iconEdit} alt="" className="w-[16px] h-[16px]" />
-                  <span className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
-                    Edit Profile
-                  </span>
-                </button>
+                {/* Edit Profile + Logout buttons */}
+                <div className="absolute right-0 top-0 flex items-center gap-[8px]">
+                  <button
+                    onClick={onEditClick}
+                    className="flex items-center gap-[8px] h-[44px] px-[16px] border border-[#d1d5dc] rounded-[12px] bg-white hover:bg-[#f8fafc] transition-colors"
+                  >
+                    <img src={iconEdit} alt="" className="w-[16px] h-[16px]" />
+                    <span className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
+                      Edit Profile
+                    </span>
+                  </button>
+                  <form action={logoutAction}>
+                    <button
+                      type="submit"
+                      className="flex items-center gap-[8px] h-[44px] px-[16px] border border-[#fca5a5] rounded-[12px] bg-white hover:bg-[#fff5f5] transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      <span className="text-[14px] font-medium text-[#e7000b] leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
+                        Log Out
+                      </span>
+                    </button>
+                  </form>
+                </div>
               </div>
 
               {/* info tiles */}

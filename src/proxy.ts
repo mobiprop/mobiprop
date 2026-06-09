@@ -3,6 +3,19 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { env } from "@/lib/env";
 
+// Entry auth screens an already-signed-in user should never see again.
+// Deliberately EXCLUDES:
+//  - /new-password & /reset-success — reached *with* a recovery session (the
+//    user is authenticated at that point; blocking them breaks password reset).
+//  - /accept-invite & /auth/callback — their own flows establish the session.
+const AUTH_ENTRY_PAGES = new Set([
+  "/login",
+  "/register",
+  "/dashboard-login",
+  "/reset-password",
+  "/verify-otp",
+]);
+
 // Next.js 16 renamed the `middleware` convention to `proxy`. This runs before
 // routes render and handles session refresh + auth-presence guarding.
 //
@@ -42,25 +55,45 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isDashboard =
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const isStaffAuthPage = pathname === "/dashboard-login";
-  const isClientAuthPage = pathname === "/login" || pathname === "/register";
+  const isAccount =
+    pathname === "/profile" ||
+    pathname.startsWith("/profile/") ||
+    pathname.startsWith("/account");
+  const isAuthEntryPage = AUTH_ENTRY_PAGES.has(pathname);
+
+  // Never redirect server action POST calls — the React client must receive the
+  // action response directly, not a redirect. 307 would replay the POST on the
+  // new URL and break the response contract ("unexpected response" error).
+  const isServerAction = request.headers.has("Next-Action");
+  if (isServerAction) return response;
 
   // Unauthenticated visitor trying to reach the CRM → staff login.
+  // 303 forces a GET so any prior POST (e.g. form submit) is not replayed.
   if (isDashboard && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard-login";
     url.search = "";
     url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { status: 303 });
   }
 
-  // Already-authenticated user landing on an auth page → send them inward.
-  // (Role-correct destination is finalized by the layout guards.)
-  if (user && (isStaffAuthPage || isClientAuthPage)) {
+  // Unauthenticated visitor trying to reach the client account area → login.
+  if (isAccount && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = isStaffAuthPage ? "/dashboard" : "/profile";
+    url.pathname = "/login";
     url.search = "";
-    return NextResponse.redirect(url);
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url, { status: 303 });
+  }
+
+  // Already-authenticated user landing on an entry auth page → send them to the
+  // dashboard. requireDashboardAccess() handles role-level routing from there
+  // (CLIENT gets bounced to /profile by the dashboard layout).
+  if (user && isAuthEntryPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    url.search = "";
+    return NextResponse.redirect(url, { status: 303 });
   }
 
   return response;

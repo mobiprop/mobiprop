@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -40,7 +40,7 @@ function MetricCardView({ card }: { card: MetricCard }) {
   const chartData = card.sparkline.map((v, i) => ({ i, v }));
   return (
     <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[16px] p-[18px]">
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2">
         <span
           className="size-9 rounded-[10px] flex items-center justify-center"
           style={{ backgroundColor: card.iconBg }}
@@ -48,17 +48,15 @@ function MetricCardView({ card }: { card: MetricCard }) {
           <span className="size-3 rounded-[3px]" style={{ backgroundColor: card.iconColor }} />
         </span>
         <div className="w-[72px] h-9">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 4, bottom: 0, left: 0, right: 0 }}>
-              <defs>
-                <linearGradient id={`spark-${card.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={isUp ? "#00c950" : "#fb2c36"} stopOpacity={0.25} />
-                  <stop offset="100%" stopColor={isUp ? "#00c950" : "#fb2c36"} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="v" stroke={isUp ? "#00c950" : "#fb2c36"} strokeWidth={1.5} fill={`url(#spark-${card.key})`} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AreaChart width={72} height={36} data={chartData} margin={{ top: 4, bottom: 0, left: 0, right: 0 }}>
+            <defs>
+              <linearGradient id={`spark-${card.key}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={isUp ? "#00c950" : "#fb2c36"} stopOpacity={0.25} />
+                <stop offset="100%" stopColor={isUp ? "#00c950" : "#fb2c36"} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area type="monotone" dataKey="v" stroke={isUp ? "#00c950" : "#fb2c36"} strokeWidth={1.5} fill={`url(#spark-${card.key})`} />
+          </AreaChart>
         </div>
       </div>
       <p className="text-[14px] font-medium text-[#6a7282] mb-1" style={mont}>{card.label}</p>
@@ -105,10 +103,16 @@ const CHART_TABS = ["Mensual", "Semanal", "Diario"] as const;
 export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProps) {
   const metrics = getMetricsForRole(role);
   const [chartTab, setChartTab] = useState<(typeof CHART_TABS)[number]>("Mensual");
+  const [mounted, setMounted] = useState(false);
   const canAddListing = role !== "CLIENT";
 
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   return (
-    <div className="px-6 py-6 max-w-[1240px] mx-auto flex flex-col gap-6">
+    <div className="px-8 py-5 flex flex-col gap-5">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -176,7 +180,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
             </div>
           </div>
           <div className="h-[260px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            {mounted && <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={REVENUE_CHART} margin={{ top: 10, right: 10, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-revenue" x1="0" y1="0" x2="0" y2="1">
@@ -195,7 +199,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 <Area type="monotone" dataKey="revenue" stroke="#ff7093" strokeWidth={2} fill="url(#grad-revenue)" />
                 <Area type="monotone" dataKey="opportunities" stroke="#fe9a00" strokeWidth={2} fill="url(#grad-opps)" />
               </AreaChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer>}
           </div>
         </div>
 

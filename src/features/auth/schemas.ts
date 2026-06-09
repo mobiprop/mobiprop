@@ -35,6 +35,12 @@ export const updatePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const createAgentInvitationSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+  // Staff roles only — a CLIENT can never be created via invitation.
+  role: z.enum(["ADMIN", "MANAGER", "AGENT"]),
+});
+
 export const acceptInvitationSchema = z
   .object({
     token: z.string().min(10, "Invalid invitation link"),

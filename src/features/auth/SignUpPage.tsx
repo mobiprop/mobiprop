@@ -126,7 +126,7 @@ export function SignUpPageContent() {
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
         {/* Logo */}
         <div className="shrink-0 px-10 lg:px-15">
-          <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} className="object-contain" />
+          <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} style={{ height: "auto" }} />
         </div>
 
         {/* Form — centred vertically and horizontally in remaining space */}
@@ -312,6 +312,7 @@ export function SignUpPageContent() {
           src="/assets/figma-temp/SignUp/hero-bg.png"
           alt="White Mediterranean architecture"
           fill
+          sizes="735px"
           className="object-cover"
           priority
         />

@@ -104,7 +104,7 @@ export function NewPasswordPageContent() {
       {banner && <AuthBanner type={banner.type} title={banner.title} message={banner.message} />}
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
         <div className="shrink-0 px-10">
-          <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} className="object-contain" />
+          <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} style={{ height: "auto" }} />
         </div>
 
         <div className="flex flex-1 items-center justify-center px-6">

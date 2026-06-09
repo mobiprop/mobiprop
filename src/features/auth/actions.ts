@@ -2,6 +2,8 @@
 
 import type { ZodError } from "zod";
 
+import { redirect } from "next/navigation";
+
 import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
@@ -64,9 +66,22 @@ export async function signInWithPassword(input: unknown): Promise<AuthActionResu
   if (!parsed.success) return { error: firstIssueMessage(parsed.error) };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) return { error: "Incorrect email or password" };
+
+  // Staff accounts must use the dashboard login page, not the public portal.
+  const profile = data.user
+    ? await prisma.profile.findUnique({ where: { id: data.user.id }, select: { role: true } })
+    : null;
+
+  if (profile && profile.role !== "CLIENT") {
+    await supabase.auth.signOut();
+    return {
+      error: "Staff accounts must sign in at the dashboard login page.",
+    };
+  }
+
   return {};
 }
 
@@ -79,7 +94,8 @@ export async function sendMagicLink(input: unknown): Promise<AuthActionResult> {
     email: parsed.data.email,
     options: {
       shouldCreateUser: false,
-      emailRedirectTo: `${APP_URL}/`,
+      // /auth/callback exchanges the code, ensures a profile, and redirects by role.
+      emailRedirectTo: `${APP_URL}/auth/callback`,
     },
   });
 
@@ -118,7 +134,9 @@ export async function requestPasswordReset(input: unknown): Promise<AuthActionRe
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${APP_URL}/new-password`,
+    // Route through the callback so the recovery session is established (code
+    // exchange) before landing on the password form.
+    redirectTo: `${APP_URL}/auth/callback?next=/new-password`,
   });
 
   if (error) return { error: error.message };
@@ -153,4 +171,10 @@ export async function getPostLoginRedirect(): Promise<string> {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+}
+
+export async function logoutAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
 }

@@ -1,9 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+import { signOut } from "@/features/auth/actions";
+import type { NavUser } from "@/lib/nav-user";
+
+function initialsOf(name: string) {
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+const poppins = { fontFamily: "Poppins, sans-serif" };
+
+function ProfileMenu({ user }: { user: NavUser }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  async function handleLogout() {
+    await signOut();
+    setOpen(false);
+    router.push("/");
+    router.refresh();
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 bg-white border border-[#e5e7eb] rounded-[36px] pl-1.5 pr-3 py-1.5 hover:bg-gray-50 transition-colors"
+      >
+        <span className="size-8 rounded-full bg-[#1f5b97] text-white flex items-center justify-center text-[12px] font-semibold" style={poppins}>
+          {initialsOf(user.name)}
+        </span>
+        <span className="max-w-[120px] truncate text-[14px] font-medium text-[#0d2138]" style={poppins}>
+          {user.name}
+        </span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+          <path d="M4 6l4 4 4-4" stroke="#6a7282" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-[220px] bg-white border border-[#e5e7eb] rounded-[14px] shadow-[0px_16px_40px_-8px_rgba(88,92,95,0.16)] py-2 z-50">
+          <div className="px-4 py-2 border-b border-[#f3f4f6]">
+            <p className="text-[14px] font-medium text-[#0d2138] truncate" style={poppins}>{user.name}</p>
+            <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.email}</p>
+          </div>
+          <Link href="/profile" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
+            My Profile
+          </Link>
+          {user.canAccessDashboard && (
+            <Link href="/dashboard" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
+              Dashboard
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2.5 text-[14px] text-[#e7000b] hover:bg-[#fef2f2] transition-colors"
+            style={poppins}
+          >
+            Log Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Logo() {
   return (
@@ -14,7 +95,8 @@ function Logo() {
         width={59}
         height={40}
         priority
-        className="h-9 w-auto object-contain"
+        className="h-9 object-contain"
+        style={{ width: "auto" }}
       />
     </Link>
   );
@@ -28,11 +110,14 @@ const navLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-export function Navbar() {
+export function Navbar({ initialUser = null }: { initialUser?: NavUser | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const user = initialUser;
 
   return (
     <header className="sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]">
@@ -62,21 +147,27 @@ export function Navbar() {
 
     {/* Desktop Buttons */}
     <div className="hidden md:flex items-center gap-2">
-      <Link
-        href="/login"
-        className="bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
-        style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-        Log In
-      </Link>
+      {user ? (
+        <ProfileMenu user={user} />
+      ) : (
+        <>
+          <Link
+            href="/login"
+            className="bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Log In
+          </Link>
 
-      <Link
-        href="/signup"
-        className="bg-[#1E4F86] border border-[#1f5b97] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
-        style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-        Sign up
-      </Link>
+          <Link
+            href="/register"
+            className="bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Sign up
+          </Link>
+        </>
+      )}
     </div>
 
     {/* Mobile Hamburger */}
@@ -130,25 +221,60 @@ export function Navbar() {
         ))}
       </nav>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <Link
-          href="/login"
-          onClick={() => setMenuOpen(false)}
-          className="text-center bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          Log In
-        </Link>
+      {user ? (
+        <div className="mt-5 flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
+          <div className="flex items-center gap-3 px-4 py-2">
+            <span className="size-9 rounded-full bg-[#1f5b97] text-white flex items-center justify-center text-[13px] font-semibold" style={poppins}>
+              {initialsOf(user.name)}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[14px] font-medium text-[#0d2138] truncate" style={poppins}>{user.name}</p>
+              <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.email}</p>
+            </div>
+          </div>
+          <Link href="/profile" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>
+            My Profile
+          </Link>
+          {user.canAccessDashboard && (
+            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>
+              Dashboard
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut();
+              setMenuOpen(false);
+              router.push("/");
+              router.refresh();
+            }}
+            className="text-left rounded-xl px-4 py-3 text-[15px] font-medium text-[#e7000b] hover:bg-[#fef2f2] transition-colors"
+            style={poppins}
+          >
+            Log Out
+          </button>
+        </div>
+      ) : (
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Link
+            href="/login"
+            onClick={() => setMenuOpen(false)}
+            className="text-center bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Log In
+          </Link>
 
-        <Link
-          href="/signup"
-          onClick={() => setMenuOpen(false)}
-          className="text-center bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          Sign up
-        </Link>
-      </div>
+          <Link
+            href="/register"
+            onClick={() => setMenuOpen(false)}
+            className="text-center bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Sign up
+          </Link>
+        </div>
+      )}
     </div>
   )}
 </header>

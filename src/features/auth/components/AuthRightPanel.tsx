@@ -36,6 +36,7 @@ export function AuthRightPanel({ variant = "client" }: AuthRightPanelProps) {
         src="/assets/figma-temp/SignUp/hero-bg.png"
         alt="White Mediterranean architecture"
         fill
+        sizes="735px"
         className="object-cover"
         priority
       />
