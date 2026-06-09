@@ -36,7 +36,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]">
-  <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 h-[70px] flex items-center justify-between">
+  <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between">
     {/* Logo */}
     <div className="flex-shrink-0">
       <Logo />
@@ -72,7 +72,7 @@ export function Navbar() {
 
       <Link
         href="/signup"
-        className="bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
+        className="bg-[#1E4F86] border border-[#1f5b97] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
         Sign up

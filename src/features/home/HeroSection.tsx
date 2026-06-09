@@ -82,7 +82,7 @@ export function HeroSection() {
       <div className="relative z-10 flex min-h-[760px] flex-col items-center px-4 pt-[128px] pb-10 sm:min-h-[820px] sm:pt-[150px] lg:min-h-[960px] lg:pt-[174px] xl:min-h-[1064px]">
         <div className="mx-auto max-w-[760px] text-center text-white">
           <h1
-            className="mb-5 md:mb-7 capitalize text-[33px] sm:text-[45px] md:text-[clamp(42px,4.15vw,64px)] leading-[46px] sm:leading-[56px] md:leading-[74px]"
+            className="mb-5 md:mb-7 capitalize text-[33px] sm:text-[45px] md:text-[clamp(42px,4.15vw,64px)] leading-[40px] sm:leading-[56px] md:leading-[74px]"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 500,
