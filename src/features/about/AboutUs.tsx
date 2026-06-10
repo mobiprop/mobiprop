@@ -1,10 +1,17 @@
-const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
-const clouds = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
-const teamImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-1.png";
-const expertiseImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-11.png";
-const aboutImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-12.png";
-const aboutImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-13.png";
-
+const heroBg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const clouds =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
+const teamImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-1.png";
+const expertiseImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-11.png";
+const aboutImg1 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-12.png";
+const aboutImg2 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-13.png";
+const ExpertiseMassageIcon =
+  "/assets/figma-temp/BlogPage/Expertise-massage.svg";
 const galleryRows = [
   [
     "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-prop1.png",
@@ -43,16 +50,12 @@ function SectionTag({ label }: { label: string }) {
 
 function CardIcon() {
   return (
-    <div className="w-14 h-14 rounded-[14px] bg-[#f3f4f6] flex items-center justify-center shrink-0">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M4 19V7a2 2 0 0 1 2-2h7l3 3h0M4 19h16V10a2 2 0 0 0-2-2H9"
-          stroke="#1E4F86"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-[12px] sm:rounded-[14px] bg-[#f3f4f6] flex items-center justify-center shrink-0">
+      <img
+        src={ExpertiseMassageIcon}
+        alt=""
+        className="w-[20px] h-[20px] sm:w-[26px] sm:h-[26px] object-contain"
+      />
     </div>
   );
 }
@@ -96,7 +99,11 @@ export function AboutUsContent() {
       {/* ── Hero ── */}
       <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
         <div className="absolute inset-0 overflow-hidden">
-          <img src={heroBg} alt="" className="absolute w-full h-[110%] -top-[10%] object-cover" />
+          <img
+            src={heroBg}
+            alt=""
+            className="absolute w-full h-[110%] -top-[10%] object-cover"
+          />
         </div>
         <div
           className="absolute inset-0"
@@ -106,129 +113,167 @@ export function AboutUsContent() {
           }}
         />
         <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
-          <img src={clouds} alt="" className="absolute w-full h-full object-cover" />
+          <img
+            src={clouds}
+            alt=""
+            className="absolute w-full h-full object-cover"
+          />
         </div>
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)" }}
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
+          }}
         />
-        <div className="relative h-full flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
           <SectionTag label="About Us" />
+
           <h1
-            className="text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] max-w-[624px]"
+            className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
             style={{ fontFamily: poppins }}
           >
             Where Global Property Meets Local Expertise
           </h1>
+
           <p
-            className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px] max-w-[560px]"
+            className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
             style={{ fontFamily: montserrat }}
           >
-            Discover a wide range of properties, from cozy apartments to luxurious estates, tailored to suit every need and budget.
+            Discover a wide range of properties, from cozy apartments to
+            luxurious estates, tailored to suit every need and budget.
           </p>
         </div>
       </section>
 
       {/* ── Our Story ── */}
       <section className="bg-white">
-        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-16 lg:py-20 flex flex-col items-center gap-10 lg:gap-12">
+        <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
           <div className="flex flex-col items-center gap-2 text-center">
             <SectionTag label="Our Story" />
+
             <h2
-              className="text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.2] lg:leading-[56px] tracking-[-0.44px] max-w-[629px]"
+              className="text-[23px] sm:text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.2] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[629px]"
               style={{ fontFamily: poppins }}
             >
               Finding a Property Should be Exciting, not Overwhelming.
             </h2>
           </div>
-          <div className="w-full rounded-[20px] overflow-hidden h-[300px] lg:h-[560px]">
-            <img src={teamImg} alt="Our team" className="w-full h-full object-cover" />
+
+          <div className="w-full rounded-[16px] sm:rounded-[20px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[656px]">
+            <img
+              src={teamImg}
+              alt="Our team"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </section>
 
       {/* ── Our Gallery ── */}
       <section className="bg-white">
-        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-16 lg:py-20 flex flex-col gap-10 lg:gap-12">
+        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
           <div className="flex flex-col gap-2 max-w-[631px]">
             <SectionTag label="Our Gallery" />
+
             <h2
-              className="text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.2] lg:leading-[56px] tracking-[-0.44px]"
+              className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px]"
               style={{ fontFamily: poppins }}
             >
               Property Moments Captured Beautifully
             </h2>
+
             <p
-              className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px] max-w-[501px]"
+              className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px] max-w-[501px]"
               style={{ fontFamily: montserrat }}
             >
-              Explore high quality images reflecting comfort design, location, &amp; everyday living experience,
+              Explore high quality images reflecting comfort design, location,
+              &amp; everyday living experience.
             </p>
           </div>
 
           {/* image grid with top/bottom fade */}
           <div className="relative">
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 sm:gap-6">
               {galleryRows.map((row, r) => (
-                <div key={r} className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                <div
+                  key={r}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                >
                   {row.map((src, c) => (
                     <div
                       key={`${r}-${c}`}
-                      className="h-[260px] lg:h-[420px] rounded-[20px] overflow-hidden"
+                      className="h-[220px] sm:h-[280px] lg:h-[420px] rounded-[16px] sm:rounded-[20px] overflow-hidden"
                     >
-                      <img src={src} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={src}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   ))}
                 </div>
               ))}
             </div>
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-white to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-white to-transparent" />
+
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[70px] sm:h-[100px] lg:h-[120px] bg-gradient-to-b from-white to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70px] sm:h-[100px] lg:h-[120px] bg-gradient-to-t from-white to-transparent" />
           </div>
         </div>
       </section>
 
       {/* ── Our Expertise ── */}
       <section className="bg-white">
-        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-16 lg:py-20 flex flex-col lg:flex-row gap-6 items-start">
+        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col lg:flex-row gap-8 lg:gap-6 items-start">
           {/* Left: heading + subtext + image */}
-          <div className="flex flex-col gap-10 lg:w-1/2">
+          <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 lg:w-1/2">
             <div className="flex flex-col gap-2">
               <SectionTag label="Our Expertise" />
+
               <h2
-                className="text-[28px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.2] lg:leading-[56px] tracking-[-0.44px] max-w-[540px]"
+                className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px] max-w-[540px]"
                 style={{ fontFamily: poppins }}
               >
                 Driven by Experience, All About Excellence
               </h2>
+
               <p
-                className="text-[16px] text-[#2b3038] leading-[25.6px] max-w-[597px]"
+                className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[25.6px] max-w-[597px]"
                 style={{ fontFamily: montserrat }}
               >
-                Ulrich brings clarity and confidence to every step of your home-buying journey — combining market insight, design sensibility, and trusted service.
+                Ulrich brings clarity and confidence to every step of your
+                home-buying journey — combining market insight, design
+                sensibility, and trusted service.
               </p>
             </div>
-            <div className="rounded-[16px] overflow-hidden h-[260px] lg:h-[406px]">
-              <img src={expertiseImg} alt="Our expertise" className="w-full h-full object-cover" />
+
+            <div className="rounded-[16px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[406px] w-full">
+              <img
+                src={expertiseImg}
+                alt="Our expertise"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
 
           {/* Right: cards */}
-          <div className="flex flex-col gap-5 lg:w-1/2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-4 sm:gap-5 lg:w-1/2 w-full">
             {expertiseCards.map((card) => (
               <div
                 key={card.title}
-                className="bg-white border border-[#d1d5dc] rounded-[16px] p-[30px] flex flex-col gap-4"
+                className="bg-white border border-[#d1d5dc] rounded-[16px] p-5 sm:p-6 lg:p-[30px] flex flex-col gap-3 sm:gap-4"
               >
                 <CardIcon />
+
                 <h3
-                  className="text-[22px] lg:text-[28px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[36px] tracking-[-0.28px]"
+                  className="text-[20px] sm:text-[22px] lg:text-[28px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[36px] tracking-[-0.22px] lg:tracking-[-0.28px]"
                   style={{ fontFamily: poppins }}
                 >
                   {card.title}
                 </h3>
+
                 <p
-                  className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+                  className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
                   style={{ fontFamily: montserrat }}
                 >
                   {card.desc}
@@ -241,60 +286,97 @@ export function AboutUsContent() {
 
       {/* ── About Ulrich + Stats ── */}
       <section className="bg-white">
-        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-16 lg:py-20 flex flex-col gap-10 lg:gap-12">
+        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
           {/* Text block */}
-          <div className="flex flex-col gap-4 max-w-[1196px]">
+          <div className="flex flex-col gap-3 sm:gap-4 max-w-[1196px]">
             <SectionTag label="About Us" />
-            <div className="flex flex-col gap-6">
+
+            <div className="flex flex-col gap-5 sm:gap-6">
               <h2
-                className="text-[28px] lg:text-[36px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[48px] tracking-[-0.36px] max-w-[761px]"
+                className="text-[26px] sm:text-[30px] lg:text-[36px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[48px] tracking-[-0.3px] lg:tracking-[-0.36px] max-w-[761px]"
                 style={{ fontFamily: poppins }}
               >
-                At Ulrich, every home begins with a promise — a place where modern design meets lasting comfort.
+                At Ulrich, every home begins with a promise — a place where
+                modern design meets lasting comfort.
               </h2>
-              <div className="flex flex-col gap-6">
-                <p className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
-                  Built on trust and guided by integrity, Ulrich was founded to redefine how people experience real estate. We believe that a home should be more than just a property — it should reflect a lifestyle of quality, simplicity, and peace of mind. Through a thoughtful and transparent approach, our team ensures that every client finds a home that truly fits their needs and aspirations.
+
+              <div className="flex flex-col gap-4 sm:gap-6">
+                <p
+                  className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
+                  style={{ fontFamily: montserrat }}
+                >
+                  Built on trust and guided by integrity, Ulrich was founded to
+                  redefine how people experience real estate. We believe that a
+                  home should be more than just a property — it should reflect a
+                  lifestyle of quality, simplicity, and peace of mind. Through a
+                  thoughtful and transparent approach, our team ensures that
+                  every client finds a home that truly fits their needs and
+                  aspirations.
                 </p>
-                <p className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
-                  Our commitment goes beyond transactions. We focus on craftsmanship, design, and service that stand the test of time — values that shape every decision we make. At Ulrich, we don't just sell homes; we create experiences built on trust, guided by professionalism, and inspired by modern living.
+
+                <p
+                  className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
+                  style={{ fontFamily: montserrat }}
+                >
+                  Our commitment goes beyond transactions. We focus on
+                  craftsmanship, design, and service that stand the test of time
+                  — values that shape every decision we make. At Ulrich, we
+                  don't just sell homes; we create experiences built on trust,
+                  guided by professionalism, and inspired by modern living.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Images + stats */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6 sm:gap-8">
             {/* two images */}
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="flex-1 h-[240px] lg:h-[291px] rounded-[16px] overflow-hidden">
-                <img src={aboutImg1} alt="Our story" className="w-full h-full object-cover" />
+            <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              <div className="h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[16px] overflow-hidden">
+                <img
+                  src={aboutImg1}
+                  alt="Our story"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="flex-1 h-[240px] lg:h-[291px] rounded-[12px] overflow-hidden">
-                <img src={aboutImg2} alt="Our story" className="w-full h-full object-cover" />
+
+              <div className="h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[12px] overflow-hidden">
+                <img
+                  src={aboutImg2}
+                  alt="Our story"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
             {/* stats with dividers */}
-            <div className="flex flex-col sm:flex-row">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-0">
               {stats.map((s, i) => (
                 <div
                   key={s.label}
-                  className={`flex-1 flex flex-col gap-4 ${
-                    i > 0 ? "sm:pl-10 sm:border-l sm:border-[#d1d5dc] pt-6 sm:pt-0" : "sm:pr-10"
+                  className={`flex flex-col gap-3 sm:gap-4 ${
+                    i > 0 ? "sm:pl-6 lg:pl-10" : "sm:pr-6 lg:pr-10"
                   }`}
                 >
                   <div
-                    className="text-[40px] lg:text-[44px] font-medium text-[#0d2138] leading-[1.1] lg:leading-[56px]"
+                    className="text-[24px] sm:text-[38px] lg:text-[44px] font-medium text-[#0d2138] leading-[1.15] lg:leading-[56px]"
                     style={{ fontFamily: poppins }}
                   >
                     {s.value}
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <div className="text-[18px] font-semibold text-[#2b3038] leading-[26px] tracking-[-0.18px]" style={{ fontFamily: poppins }}>
+
+                  <div className="flex flex-col gap-2 sm:gap-3">
+                    <div
+                      className="text-[16px] sm:text-[18px] font-semibold text-[#2b3038] leading-[24px] sm:leading-[26px] tracking-[-0.16px] sm:tracking-[-0.18px]"
+                      style={{ fontFamily: poppins }}
+                    >
                       {s.label}
                     </div>
-                    <p className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
+
+                    <p
+                      className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
+                      style={{ fontFamily: montserrat }}
+                    >
                       {s.desc}
                     </p>
                   </div>

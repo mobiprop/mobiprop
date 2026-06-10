@@ -98,7 +98,7 @@ export function Agents() {
     </div>
 
     <h2
-      className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] text-center leading-[36px] sm:leading-[42px] lg:leading-tight max-w-[500px]"
+      className="text-[26px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] text-center leading-[36px] sm:leading-[42px] lg:leading-tight max-w-[500px]"
       style={{ fontFamily: "Poppins, sans-serif" }}
     >
       Meet The Experts Who Make It Happen.
