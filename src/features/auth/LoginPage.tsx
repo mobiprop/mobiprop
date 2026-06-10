@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthBanner } from "./components/AuthBanner";
@@ -87,8 +87,24 @@ function MicrosoftLogo() {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+// Flags set by server-side flows (auth callback, layout guards) that land the
+// user back here with context about why.
+const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
+  account_not_active: {
+    title: "Account not active",
+    message: "Your account is inactive or suspended. Please contact support.",
+  },
+  auth_callback_error: {
+    title: "Sign-in link problem",
+    message: "That sign-in link is invalid or has expired. Please try again.",
+  },
+};
+
 export function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlError = URL_ERROR_BANNERS[searchParams.get("error") ?? ""];
+
   const [mode, setMode] = useState<"password" | "magic-link">("password");
   const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
@@ -96,7 +112,9 @@ export function LoginPageContent() {
   const [password, setPassword] = useState("");
   const [hasError, setHasError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [banner, setBanner] = useState<{ type: "error" | "success"; title: string; message: string } | null>(null);
+  const [banner, setBanner] = useState<{ type: "error" | "success"; title: string; message: string } | null>(
+    urlError ? { type: "error", ...urlError } : null,
+  );
 
   const flashBanner = (banner: { type: "error" | "success"; title: string; message: string }) => {
     setBanner(banner);
