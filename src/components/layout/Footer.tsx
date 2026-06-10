@@ -104,7 +104,7 @@ export function Footer() {
         />
       </div>
 
-      <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto pt-[56px] sm:pt-[72px] lg:pt-[92px] pb-[32px] sm:pb-[40px]">
+      <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto pt-[56px] sm:pt-[72px] lg:pt-[92px] pb-[32px] sm:pb-[40px]">
   {/* Top content row */}
   <div className="flex flex-col lg:flex-row gap-10 sm:gap-12 lg:gap-[80px] xl:gap-[120px] pb-10 sm:pb-[56px] border-b border-[rgba(255,255,255,0.16)]">
     {/* Newsletter */}

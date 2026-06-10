@@ -351,7 +351,7 @@ function ConsultationBannerSection() {
     <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
   </div>
 
-  <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto flex justify-center">
+  <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto flex justify-center">
     <div className="bg-white rounded-[18px] sm:rounded-[20px] p-5 sm:p-8 lg:p-10 w-full max-w-[540px] shadow-xl">
       <h2
         className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-tight mb-5 sm:mb-7"
