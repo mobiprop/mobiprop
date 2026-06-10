@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthBanner } from "./components/AuthBanner";
+import { AuthLogo } from "./components/AuthLogo";
 import { acceptAgentInvitation } from "./staff-actions";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -134,9 +134,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
     return (
       <div className="min-h-screen bg-[#f9fafb] flex w-full">
         <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
-          <div className="shrink-0 px-10">
-            <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} style={{ height: "auto" }} />
-          </div>
+          <AuthLogo />
           <div className="flex flex-1 items-center justify-center px-6">
             <div className="w-full max-w-[475px] text-center">
               <h1 className="text-[28px] leading-[36px] text-[#0d0d12] mb-3" style={{ ...poppins, fontWeight: 600 }}>
@@ -161,9 +159,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
       {banner && <AuthBanner type={banner.type} title={banner.title} message={banner.message} />}
 
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
-        <div className="shrink-0 px-10">
-          <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} style={{ height: "auto" }} />
-        </div>
+        <AuthLogo />
 
         <div className="flex flex-1 items-center justify-center px-6">
           <div className="w-full max-w-[475px]">

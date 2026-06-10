@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signUpWithPassword } from "./actions";
 import { AuthBanner } from "./components/AuthBanner";
+import { AuthLogo } from "./components/AuthLogo";
 
 // ── Inline SVG Icons ──────────────────────────────────────────────────────────
 
@@ -125,9 +126,7 @@ export function SignUpPageContent() {
       {/* ── Left panel ─────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
         {/* Logo */}
-        <div className="shrink-0 px-10 lg:px-15">
-          <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} style={{ height: "auto" }} />
-        </div>
+        <AuthLogo className="shrink-0 px-10 lg:px-15" />
 
         {/* Form — centred vertically and horizontally in remaining space */}
         <div className="flex flex-1 items-center justify-center px-6">
