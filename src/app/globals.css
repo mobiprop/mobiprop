@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: "Poppins", Arial, Helvetica, sans-serif;
 }
+.home-img img {
+    width: 70%;
+    position: relative;
+    top: 85px;
+    left: -70px;
+}

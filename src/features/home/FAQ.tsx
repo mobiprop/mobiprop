@@ -73,7 +73,7 @@ export function FAQ() {
   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
     <div className="flex flex-col lg:flex-row gap-10 lg:gap-[187px]">
       {/* Left column */}
-      <div className="lg:w-[399px] lg:min-h-[492px] flex-shrink-0 flex flex-col justify-between">
+      <div className="lg:w-[399px] lg:min-h-[492px] flex !flex-col lg:flex-row gap-10 lg:gap-[187px]">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-[5px] h-[5px] rounded-full bg-[#4896b6]" />

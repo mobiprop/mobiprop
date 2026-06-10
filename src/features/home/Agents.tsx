@@ -40,13 +40,14 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
     <div className="flex flex-col gap-4">
       {/* Photo */}
       <div className="relative h-[300px] lg:h-[372px] rounded-[20px] overflow-hidden">
-      
         <img
           src={agent.photo}
           alt={agent.name}
+          draggable={false}
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
       </div>
+
       {/* Info */}
       <div className="flex items-start justify-between">
         <div>
@@ -56,6 +57,7 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
           >
             {agent.name}
           </p>
+
           <p
             className="text-[14px] text-[#2b3038] mt-1 max-w-[160px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -63,6 +65,7 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
             {agent.role}
           </p>
         </div>
+
         <div className="flex gap-2 flex-shrink-0">
           {[<InstagramIcon />, <LinkedinIcon />, <XIcon />].map((Icon, i) => (
             <button
