@@ -11,7 +11,7 @@ type AddAgentModalProps = {
   onClose: () => void;
 };
 
-const ROLES = ["Agent", "Manager", "Admin"] as const;
+const ROLES = ["Agent", "Manager"] as const;
 
 type InviteSuccess = { inviteUrl: string; emailSent: boolean; email: string };
 
@@ -45,11 +45,14 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
     setError(null);
     setSubmitting(true);
 
-    // Only email + role are persisted on the invitation; the invitee provides
-    // their name/password when accepting. Other fields are not stored yet.
     const result = await createAgentInvitation({
       email: email.trim(),
       role: role.toUpperCase(),
+      firstName: firstName.trim() || undefined,
+      lastName: lastName.trim() || undefined,
+      phone: phone.trim() || undefined,
+      location: location.trim() || undefined,
+      notes: notes.trim() || undefined,
     });
 
     setSubmitting(false);

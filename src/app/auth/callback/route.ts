@@ -10,10 +10,10 @@ import { canAccessDashboard } from "@/lib/permissions";
 // Supabase email links land here. We establish the session (PKCE `code`
 // exchange, or the `token_hash` + `type` verification flow), make sure an
 // application Profile exists, then redirect by role:
-//   ADMIN/MANAGER/AGENT → /dashboard,  CLIENT → /profile.
+//   ADMIN/MANAGER/AGENT → /dashboard,  USER → /profile.
 //
 // This is the PUBLIC auth flow only: a missing profile is auto-created as
-// CLIENT. Staff are never created here — they onboard via invitation
+// USER. Staff are never created here — they onboard via invitation
 // (see acceptAgentInvitation) and a callback can never grant a staff role.
 
 /** Only allow same-origin relative redirects (e.g. password-reset → /new-password). */
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return errorRedirect(origin, "auth_callback_error");
 
-  // 3. Ensure a Profile exists. Public flow only ever creates a CLIENT.
+  // 3. Ensure a Profile exists. Public flow only ever creates a USER.
   const fullName =
     typeof user.user_metadata?.full_name === "string"
       ? user.user_metadata.full_name

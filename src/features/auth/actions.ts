@@ -75,7 +75,7 @@ export async function signInWithPassword(input: unknown): Promise<AuthActionResu
     ? await prisma.profile.findUnique({ where: { id: data.user.id }, select: { role: true } })
     : null;
 
-  if (profile && profile.role !== "CLIENT") {
+  if (profile && profile.role !== "USER") {
     await supabase.auth.signOut();
     return {
       error: "Staff accounts must sign in at the dashboard login page.",
@@ -163,7 +163,7 @@ export async function getPostLoginRedirect(): Promise<string> {
   if (!user) return "/login";
 
   const profile = await prisma.profile.findUnique({ where: { id: user.id } });
-  if (profile && profile.role !== "CLIENT") return "/dashboard";
+  if (profile && profile.role !== "USER") return "/dashboard";
 
   return "/profile";
 }

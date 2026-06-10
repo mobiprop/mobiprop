@@ -19,7 +19,7 @@ const AUTH_ENTRY_PAGES = new Set([
 // Next.js 16 renamed the `middleware` convention to `proxy`. This runs before
 // routes render and handles session refresh + auth-presence guarding.
 //
-// Defense-in-depth note: role-level enforcement (e.g. blocking a CLIENT from the
+// Defense-in-depth note: role-level enforcement (e.g. blocking a USER from the
 // dashboard) lives in the dashboard server layout via `requireDashboardAccess()`,
 // since the user's role lives in the database and we avoid DB calls in the proxy.
 export async function proxy(request: NextRequest) {
@@ -88,7 +88,7 @@ export async function proxy(request: NextRequest) {
 
   // Already-authenticated user landing on an entry auth page → send them to the
   // dashboard. requireDashboardAccess() handles role-level routing from there
-  // (CLIENT gets bounced to /profile by the dashboard layout).
+  // (USER gets bounced to /profile by the dashboard layout).
   if (user && isAuthEntryPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";

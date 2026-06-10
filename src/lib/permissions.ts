@@ -127,11 +127,21 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "notifications:view",
     "settings:view",
   ],
-  CLIENT: ["notifications:view"],
+  USER: ["notifications:view"],
 };
 
 export function hasPermission(role: Role, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}
+
+export function isAdmin(role: Role): boolean {
+  return role === UserRole.ADMIN;
+}
+
+export function isStaffRole(role: Role): boolean {
+  return (
+    role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.AGENT
+  );
 }
 
 const DASHBOARD_ROLES: Role[] = [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT];

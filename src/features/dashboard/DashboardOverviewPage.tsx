@@ -104,7 +104,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
   const metrics = getMetricsForRole(role);
   const [chartTab, setChartTab] = useState<(typeof CHART_TABS)[number]>("Mensual");
   const [mounted, setMounted] = useState(false);
-  const canAddListing = role !== "CLIENT";
+  const canAddListing = role !== "USER";
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));

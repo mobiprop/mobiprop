@@ -16,7 +16,7 @@ enum UserRole {
   ADMIN
   MANAGER
   AGENT
-  CLIENT
+  USER
 }
 
 enum UserStatus {
@@ -25,11 +25,11 @@ enum UserStatus {
   SUSPENDED
 }
 
-enum AgentInvitationStatus {
+enum InvitationStatus {
   PENDING
   ACCEPTED
   EXPIRED
-  CANCELLED
+  REVOKED
 }
 
 // Mirrors auth.users — id matches the Supabase Auth user id (no FK across schemas).
@@ -38,7 +38,7 @@ model Profile {
   email     String     @unique
   fullName  String?    @map("full_name")
   phone     String?
-  role      UserRole   @default(CLIENT)
+  role      UserRole   @default(USER)
   status    UserStatus @default(ACTIVE)
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
@@ -48,17 +48,26 @@ model Profile {
 
 // Invitation-based onboarding for staff users (Admin/Manager/Agent).
 // Created by an existing staff member; the invited person completes
-// registration via /accept-invite?token=... and the role is fixed by the invite.
+// registration via /invite/[token] and the role is fixed by the invite.
 model AgentInvitation {
-  id          String                @id @default(cuid())
+  id          String            @id @default(cuid())
   email       String
   role        UserRole
-  tokenHash   String                @unique @map("token_hash")
-  invitedById String                @map("invited_by_id") @db.Uuid
-  expiresAt   DateTime              @map("expires_at")
-  acceptedAt  DateTime?             @map("accepted_at")
-  status      AgentInvitationStatus @default(PENDING)
-  createdAt   DateTime              @default(now()) @map("created_at")
+  tokenHash   String            @unique @map("token_hash")
+  invitedById String?           @map("invited_by_id") @db.Uuid
+  expiresAt   DateTime          @map("expires_at")
+  acceptedAt  DateTime?         @map("accepted_at")
+  status      InvitationStatus  @default(PENDING)
+  firstName   String?           @map("first_name")
+  lastName    String?           @map("last_name")
+  phone       String?
+  location    String?
+  notes       String?
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
 
+  @@index([email], map: "agent_invitations_email_idx")
+  @@index([status], map: "agent_invitations_status_idx")
+  @@index([expiresAt], map: "agent_invitations_expires_at_idx")
   @@map("agent_invitations")
 }

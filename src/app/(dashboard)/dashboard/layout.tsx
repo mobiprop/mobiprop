@@ -4,7 +4,7 @@ import { requireDashboardAccess } from "@/lib/auth";
 import { DashboardShell } from "@/features/dashboard/components/DashboardShell";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  // Server-side guard: redirects unauthenticated / CLIENT / inactive users.
+  // Server-side guard: redirects unauthenticated / USER / inactive users.
   const profile = await requireDashboardAccess();
 
   return (

@@ -33,7 +33,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 /**
  * Guard for dashboard server layouts/pages. Redirects:
  *  - unauthenticated / no profile → staff login
- *  - CLIENT role → public account area
+ *  - USER role → public account area
  *  - inactive / suspended staff → staff login with an error flag
  *  - staff lacking `permission` (when given) → dashboard home
  * Returns the Profile when access is allowed.
@@ -47,7 +47,7 @@ export async function requireDashboardAccess(
   const profile = await getCurrentProfile();
 
   if (!profile) redirect("/dashboard-login");
-  // CLIENT users belong in the public account area (currently /profile).
+  // USER-role accounts belong in the public account area (currently /profile).
   if (!canAccessDashboard(profile.role)) redirect("/profile");
   if (profile.status !== "ACTIVE") redirect("/dashboard-login?error=inactive");
   if (permission && !hasPermission(profile.role, permission)) redirect("/dashboard");
