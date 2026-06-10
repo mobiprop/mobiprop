@@ -20,6 +20,26 @@ function initialsOf(name: string) {
 
 const poppins = { fontFamily: "Poppins, sans-serif" };
 
+function Avatar({ user, size }: { user: NavUser; size: "sm" | "md" }) {
+  const sizeClass = size === "sm" ? "size-8 text-[12px]" : "size-9 text-[13px]";
+
+  if (user.avatarUrl) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.name}
+        className={`${sizeClass} rounded-full object-cover shrink-0`}
+      />
+    );
+  }
+
+  return (
+    <span className={`${sizeClass} rounded-full bg-[#1f5b97] text-white flex items-center justify-center font-semibold shrink-0`} style={poppins}>
+      {initialsOf(user.name)}
+    </span>
+  );
+}
+
 function ProfileMenu({ user }: { user: NavUser }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -47,9 +67,7 @@ function ProfileMenu({ user }: { user: NavUser }) {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 bg-white border border-[#e5e7eb] rounded-[36px] pl-1.5 pr-3 py-1.5 hover:bg-gray-50 transition-colors"
       >
-        <span className="size-8 rounded-full bg-[#1f5b97] text-white flex items-center justify-center text-[12px] font-semibold" style={poppins}>
-          {initialsOf(user.name)}
-        </span>
+        <Avatar user={user} size="sm" />
         <span className="max-w-[120px] truncate text-[14px] font-medium text-[#0d2138]" style={poppins}>
           {user.name}
         </span>
@@ -63,6 +81,9 @@ function ProfileMenu({ user }: { user: NavUser }) {
           <div className="px-4 py-2 border-b border-[#f3f4f6]">
             <p className="text-[14px] font-medium text-[#0d2138] truncate" style={poppins}>{user.name}</p>
             <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.email}</p>
+            {user.phone && (
+              <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.phone}</p>
+            )}
           </div>
           <Link href="/profile" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
             My Profile
@@ -224,12 +245,13 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       {user ? (
         <div className="mt-5 flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
           <div className="flex items-center gap-3 px-4 py-2">
-            <span className="size-9 rounded-full bg-[#1f5b97] text-white flex items-center justify-center text-[13px] font-semibold" style={poppins}>
-              {initialsOf(user.name)}
-            </span>
+            <Avatar user={user} size="md" />
             <div className="min-w-0">
               <p className="text-[14px] font-medium text-[#0d2138] truncate" style={poppins}>{user.name}</p>
               <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.email}</p>
+              {user.phone && (
+                <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.phone}</p>
+              )}
             </div>
           </div>
           <Link href="/profile" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>

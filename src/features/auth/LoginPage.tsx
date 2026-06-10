@@ -280,7 +280,7 @@ export function LoginPageContent() {
               {/* Bottom link */}
               <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#00010f] text-center" style={{ ...mont, fontWeight: 400 }}>
                 Don&apos;t have an account?{" "}
-                <Link href="/register" className="font-medium text-[#8b5cf6] hover:underline" style={mont}>Create one</Link>
+                <Link href="/register" className="text-[16px] tracking-[-0.16px] font-medium text-[#1e4f86] hover:underline self-center" style={mont}>Create one</Link>
               </p>
             </div>
           </div>

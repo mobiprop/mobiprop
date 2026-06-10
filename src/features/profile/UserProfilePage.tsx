@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { logoutAction } from "@/features/auth/actions";
+import { EditProfileModal } from "./EditProfileModal";
+import type { Profile } from "@/generated/prisma/client";
 
 /* ─── assets ─── */
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
 const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
-const avatarImg = "/assets/figma-temp/UserProfile/avatar.png";
-const modalAvatarImg = "/assets/figma-temp/UserProfile/modal-avatar.png";
 const iconEmail = "/assets/figma-temp/UserProfile/icon-email.png";
 const iconPhone = "/assets/figma-temp/UserProfile/icon-phone.png";
 const iconMap = "/assets/figma-temp/UserProfile/icon-map.png";
@@ -34,295 +35,22 @@ const propPhotos = [
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
-/* ─── Inline SVG icons (Figma small asset downloads were blank) ─── */
-function IconClose() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M18 6L6 18M6 6l12 12" stroke="#0d2138" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+function initialsOf(name: string) {
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
+/* ─── Inline SVG icons (Figma small asset downloads were blank) ─── */
 function IconUpload() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M2.667 11.333v1.334A1.333 1.333 0 0 0 4 14h8a1.333 1.333 0 0 0 1.333-1.333v-1.334M10.667 5.333 8 2.667 5.333 5.333M8 2.667v8" stroke="#0d2138" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  );
-}
-
-function IconChevronDown() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M5 7.5l5 5 5-5" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconAccount({ active }: { active: boolean }) {
-  const c = active ? "#0d2138" : "#6a7282";
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="6.5" r="3" stroke={c} strokeWidth="1.25" />
-      <path d="M3.5 17c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6" stroke={c} strokeWidth="1.25" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconBell({ active }: { active: boolean }) {
-  const c = active ? "#0d2138" : "#6a7282";
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M10 2.5A5 5 0 0 0 5 7.5v2.917L3.75 12.5h12.5L15 10.417V7.5A5 5 0 0 0 10 2.5Z" stroke={c} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8.75 15a1.25 1.25 0 0 0 2.5 0" stroke={c} strokeWidth="1.25" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconLock({ active }: { active: boolean }) {
-  const c = active ? "#0d2138" : "#6a7282";
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="3.75" y="9.167" width="12.5" height="9.166" rx="1.5" stroke={c} strokeWidth="1.25" />
-      <path d="M6.667 9.167V6.25a3.333 3.333 0 0 1 6.666 0v2.917" stroke={c} strokeWidth="1.25" strokeLinecap="round" />
-      <circle cx="10" cy="13.75" r="1" fill={c} />
-    </svg>
-  );
-}
-
-function IconGlobe({ active }: { active: boolean }) {
-  const c = active ? "#0d2138" : "#6a7282";
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="7.5" stroke={c} strokeWidth="1.25" />
-      <path d="M10 2.5c-2.5 2.917-2.5 12.083 0 15M10 2.5c2.5 2.917 2.5 12.083 0 15M2.5 10h15" stroke={c} strokeWidth="1.25" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/* ─── Edit Profile Modal ─── */
-type SettingsTab = "Account" | "Notifications" | "Security" | "Language";
-
-function EditProfileModal({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("Account");
-  const [description, setDescription] = useState("");
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
-
-  const sidebarItems: { label: SettingsTab; icon: (active: boolean) => React.ReactNode }[] = [
-    { label: "Account",       icon: (a) => <IconAccount active={a} /> },
-    { label: "Notifications", icon: (a) => <IconBell active={a} /> },
-    { label: "Security",      icon: (a) => <IconLock active={a} /> },
-    { label: "Language",      icon: (a) => <IconGlobe active={a} /> },
-  ];
-
-  return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6"
-      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
-    >
-      <div className="bg-white border border-[#e5e7eb] rounded-[20px] w-full max-w-[760px] max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="flex flex-col gap-[24px] p-[31px]">
-
-          {/* ── Header ── */}
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col gap-[8px]">
-              <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
-                Edit Profile
-              </p>
-              <p className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
-                Update your profile information and preferences
-              </p>
-            </div>
-            <button onClick={onClose} className="shrink-0 mt-1 hover:opacity-60 transition-opacity" aria-label="Close">
-              <IconClose />
-            </button>
-          </div>
-
-          {/* ── Body: sidebar + content ── */}
-          <div className="flex items-start gap-[16px]">
-
-            {/* Settings sidebar */}
-            <div className="shrink-0 w-[200px] bg-white border border-[#e5e7eb] rounded-[12px] p-[14px] flex flex-col gap-[8px]">
-              <div className="px-[8px] pb-[4px] pt-[6px]">
-                <p className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                  Settings Menu
-                </p>
-              </div>
-              {sidebarItems.map(({ label, icon }) => {
-                const isActive = label === activeTab;
-                return (
-                  <button
-                    key={label}
-                    onClick={() => setActiveTab(label)}
-                    className={`flex items-center gap-[8px] w-full p-[8px] rounded-[8px] text-left transition-colors ${
-                      isActive ? "bg-[#f8fafc] border border-[#e5e7eb]" : "bg-white hover:bg-[#f9fafb]"
-                    }`}
-                  >
-                    <span className="shrink-0">{icon(isActive)}</span>
-                    <span
-                      className={`text-[14px] leading-[20px] tracking-[-0.14px] ${isActive ? "font-medium text-[#0d2138]" : "text-[#6a7282]"}`}
-                      style={{ fontFamily: montserrat }}
-                    >
-                      {label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Account content panel */}
-            <div className="flex-1 min-w-0 flex flex-col gap-[16px]">
-
-              {/* section heading */}
-              <div className="flex flex-col gap-[12px]">
-                <div className="flex flex-col gap-[6px]">
-                  <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
-                    Account
-                  </p>
-                  <p className="text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
-                    Real-time information and activities of your property.
-                  </p>
-                </div>
-                <div className="h-px bg-[#f0f0f0] w-full" />
-              </div>
-
-              {/* avatar upload */}
-              <div className="flex flex-col gap-[8px]">
-                <div className="flex items-center gap-[16px]">
-                  <div className="border-2 border-[#e2e8f0] rounded-[14px] w-[72px] h-[72px] overflow-hidden shrink-0 p-[2px]">
-                    <img src={modalAvatarImg} alt="Profile" className="w-full h-full object-cover rounded-[10px]" />
-                  </div>
-                  <div className="flex flex-col gap-[8px]">
-                    <button className="flex items-center gap-[8px] h-[36px] px-[12px] bg-white border border-[#e5e7eb] rounded-[8px] whitespace-nowrap">
-                      <IconUpload />
-                      <span className="text-[14px] text-[#0d2138] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                        Upload New Photo
-                      </span>
-                    </button>
-                    <button className="flex items-center h-[28px] px-[12px] rounded-[8px]">
-                      <span className="text-[14px] text-[#e7000b] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                        Remove Photo
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                <p className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                  Recommended: Square image, at least 400x400px
-                </p>
-              </div>
-
-              {/* form fields */}
-              <div className="flex flex-col gap-[16px]">
-                <div className="grid grid-cols-2 gap-[16px]">
-                  <FormField label="First Name*" placeholder="Enter your first name" />
-                  <FormField label="Last Name*" placeholder="Enter your first name" />
-                </div>
-                <div className="grid grid-cols-2 gap-[16px]">
-                  <FormField label="Email" placeholder="Enter your email" />
-                  <FormField label="Contact Number" placeholder="Enter your number" />
-                </div>
-                <div className="grid grid-cols-2 gap-[16px]">
-                  <SelectField label="Country Name" placeholder="Select Country" />
-                  <FormField label="City" placeholder="Enter your city name" />
-                </div>
-                <div className="grid grid-cols-2 gap-[16px]">
-                  <SelectField label="Time Zone" placeholder="Asia/Jakarta (GMT+7)" />
-                  <FormField label="Address" placeholder="Enter your address" />
-                </div>
-
-                {/* Description textarea */}
-                <div className="flex flex-col gap-[4px]">
-                  <label className="text-[14px] font-medium text-[#0d2138] leading-[18px]" style={{ fontFamily: montserrat }}>
-                    Description
-                  </label>
-                  <div className="relative">
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value.slice(0, 250))}
-                      placeholder="Typing....."
-                      rows={5}
-                      className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] pt-[10px] pb-[28px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors resize-none shadow-[0px_1px_1px_rgba(21,28,36,0.05)]"
-                      style={{ fontFamily: montserrat }}
-                    />
-                    <span className="absolute bottom-[8px] right-[11px] text-[12px] text-[#6a7282] leading-[16px]" style={{ fontFamily: poppins }}>
-                      {description.length}/250
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* action buttons */}
-              <div className="flex items-center gap-[8px] justify-end pt-[4px]">
-                <button
-                  onClick={onClose}
-                  className="flex items-center justify-center h-[38px] px-[20px] bg-white border border-[#e5e7eb] rounded-[78px]"
-                >
-                  <span className="text-[14px] text-[#5f5f5f] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                    Cancel
-                  </span>
-                </button>
-                <button
-                  className="relative flex items-center justify-center h-[38px] px-[32px] rounded-[48px] overflow-hidden"
-                  style={{ background: "linear-gradient(to bottom, #005ea4, #006fc2)", border: "1px solid #0088ff" }}
-                >
-                  <span className="relative text-[14px] font-medium text-white leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
-                    Save Changes
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Reusable form field ─── */
-function FormField({ label, placeholder }: { label: string; placeholder: string }) {
-  return (
-    <div className="flex flex-col gap-[4px]">
-      <label
-        className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
-        style={{ fontFamily: montserrat }}
-      >
-        {label}
-      </label>
-      <input
-        type="text"
-        placeholder={placeholder}
-        className="h-[38px] border border-[#e5e7eb] rounded-[8px] px-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors bg-white"
-        style={{ fontFamily: montserrat }}
-      />
-    </div>
-  );
-}
-
-function SelectField({ label, placeholder }: { label: string; placeholder: string }) {
-  return (
-    <div className="flex flex-col gap-[4px]">
-      <label className="text-[14px] font-medium text-[#0d2138] leading-[18px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-        {label}
-      </label>
-      <div className="h-[38px] border border-[#e5e7eb] rounded-[8px] bg-white flex items-center px-[12px] justify-between cursor-pointer">
-        <span className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] truncate" style={{ fontFamily: montserrat }}>
-          {placeholder}
-        </span>
-        <IconChevronDown />
-      </div>
-    </div>
   );
 }
 
@@ -384,7 +112,11 @@ function PropertyCard({ photo, tag1 = "Sale", tag2 = "Apartment" }: { photo: str
 }
 
 /* ─── Hero / Profile Card ─── */
-function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
+function ProfileHero({ profile, onEditClick }: { profile: Profile; onEditClick: () => void }) {
+  const displayName = profile.fullName?.trim() || profile.email;
+  const joinedLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(profile.createdAt);
+  const locationLabel = [profile.city, profile.country].filter(Boolean).join(", ");
+
   return (
     <section className="relative overflow-hidden" style={{ minHeight: 488 }}>
       <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
@@ -398,12 +130,27 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
         <div className="flex gap-[40px] lg:gap-[60px] items-start">
           {/* avatar card */}
           <div className="shrink-0 bg-white rounded-[16px] overflow-hidden w-[244px] h-[243px] relative">
-            <img
-              src={avatarImg}
-              alt="Matias Ulrich"
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ left: "-31px", top: "-93px", width: "306px", height: "458px", maxWidth: "none" }}
-            />
+            {profile.avatarUrl ? (
+              <img
+                src={profile.avatarUrl}
+                alt={displayName}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={onEditClick}
+                className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3 bg-[#f8fafc] hover:bg-[#f1f5f9] transition-colors"
+              >
+                <span className="size-16 rounded-full bg-[#1f5b97] text-white flex items-center justify-center text-[24px] font-semibold" style={{ fontFamily: poppins }}>
+                  {initialsOf(displayName)}
+                </span>
+                <span className="flex items-center gap-1.5 text-[14px] font-medium text-[#1e4f86]" style={{ fontFamily: montserrat }}>
+                  <IconUpload />
+                  Add Photo
+                </span>
+              </button>
+            )}
           </div>
 
           {/* info */}
@@ -411,10 +158,10 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
             <div className="flex flex-col gap-[28px]">
               <div className="relative flex flex-col gap-[8px]">
                 <p className="text-[40px] font-semibold text-[#0d2138] leading-[52px] tracking-[-0.4px]" style={{ fontFamily: poppins }}>
-                  Matias Ulrich
+                  {displayName}
                 </p>
                 <p className="text-[18px] text-[#6a7282] leading-[26px] tracking-[-0.18px]" style={{ fontFamily: poppins }}>
-                  Premium Member · Joined March 2022
+                  Premium Member · Joined {joinedLabel}
                 </p>
 
                 {/* Edit Profile + Logout buttons */}
@@ -428,21 +175,6 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
                       Edit Profile
                     </span>
                   </button>
-                  <form action={logoutAction}>
-                    <button
-                      type="submit"
-                      className="flex items-center gap-[8px] h-[44px] px-[16px] border border-[#fca5a5] rounded-[12px] bg-white hover:bg-[#fff5f5] transition-colors"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e7000b" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
-                      </svg>
-                      <span className="text-[14px] font-medium text-[#e7000b] leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
-                        Log Out
-                      </span>
-                    </button>
-                  </form>
                 </div>
               </div>
 
@@ -452,9 +184,9 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
                   <div className="bg-[rgba(72,150,182,0.16)] rounded-[10px] w-[40px] h-[40px] flex items-center justify-center shrink-0">
                     <img src={iconEmail} alt="" className="w-[20px] h-[20px]" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>Email</span>
-                    <span className="text-[16px] font-semibold text-[#0d2138] leading-[24px] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>matias.ulrich@email.com</span>
+                    <span className="text-[16px] font-semibold text-[#0d2138] leading-[24px] tracking-[-0.16px] truncate" style={{ fontFamily: montserrat }}>{profile.email}</span>
                   </div>
                 </div>
 
@@ -462,9 +194,15 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
                   <div className="bg-[rgba(72,150,182,0.16)] rounded-[10px] w-[40px] h-[40px] flex items-center justify-center shrink-0">
                     <img src={iconPhone} alt="" className="w-[20px] h-[20px]" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>Phone</span>
-                    <span className="text-[16px] font-semibold text-[#0d2138] leading-[24px] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>+1 (555) 123-4567</span>
+                    {profile.phone ? (
+                      <span className="text-[16px] font-semibold text-[#0d2138] leading-[24px] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>{profile.phone}</span>
+                    ) : (
+                      <button type="button" onClick={onEditClick} className="text-left text-[14px] font-medium text-[#1e4f86] leading-[24px] tracking-[-0.14px] hover:underline whitespace-nowrap" style={{ fontFamily: montserrat }}>
+                        Add phone number
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -474,7 +212,13 @@ function ProfileHero({ onEditClick }: { onEditClick: () => void }) {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>Location</span>
-                    <span className="text-[16px] font-semibold text-[#0d2138] leading-[24px] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>San Francisco, CA</span>
+                    {locationLabel ? (
+                      <span className="text-[16px] font-semibold text-[#0d2138] leading-[24px] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>{locationLabel}</span>
+                    ) : (
+                      <button type="button" onClick={onEditClick} className="text-left text-[14px] font-medium text-[#1e4f86] leading-[24px] tracking-[-0.14px] hover:underline whitespace-nowrap" style={{ fontFamily: montserrat }}>
+                        Add location
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -566,15 +310,24 @@ function RecentlyViewed() {
 }
 
 /* ─── main export ─── */
-export function UserProfilePageContent() {
+export function UserProfilePageContent({ profile: initialProfile }: { profile: Profile }) {
+  const router = useRouter();
+  const [profile, setProfile] = useState(initialProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const handleSaved = (updated: Profile) => {
+    setProfile(updated);
+    router.refresh();
+  };
 
   return (
     <>
-      <ProfileHero onEditClick={() => setIsEditOpen(true)} />
+      <ProfileHero profile={profile} onEditClick={() => setIsEditOpen(true)} />
       <SavedPropertiesSection />
       <RecentlyViewed />
-      {isEditOpen && <EditProfileModal onClose={() => setIsEditOpen(false)} />}
+      {isEditOpen && (
+        <EditProfileModal profile={profile} onClose={() => setIsEditOpen(false)} onSaved={handleSaved} />
+      )}
     </>
   );
 }

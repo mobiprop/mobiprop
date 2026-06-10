@@ -34,14 +34,22 @@ enum InvitationStatus {
 
 // Mirrors auth.users — id matches the Supabase Auth user id (no FK across schemas).
 model Profile {
-  id        String     @id @db.Uuid
-  email     String     @unique
-  fullName  String?    @map("full_name")
-  phone     String?
-  role      UserRole   @default(USER)
-  status    UserStatus @default(ACTIVE)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  id          String     @id @db.Uuid
+  email       String     @unique
+  fullName    String?    @map("full_name")
+  phone       String?
+  avatarUrl   String?    @map("avatar_url")
+  country     String?
+  city        String?
+  timezone    String?
+  address     String?
+  description String?
+  // Notification / security / locale settings edited from the profile modal.
+  preferences Json?
+  role        UserRole   @default(USER)
+  status      UserStatus @default(ACTIVE)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
 
   @@map("profiles")
 }

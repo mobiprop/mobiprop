@@ -7,6 +7,8 @@ import type { Role } from "@/lib/permissions";
 export type NavUser = {
   name: string;
   email: string;
+  phone: string | null;
+  avatarUrl: string | null;
   role: Role;
   canAccessDashboard: boolean;
 };
@@ -22,6 +24,8 @@ export async function getNavUser(): Promise<NavUser | null> {
   return {
     name: profile.fullName?.trim() || profile.email,
     email: profile.email,
+    phone: profile.phone,
+    avatarUrl: profile.avatarUrl,
     role: profile.role,
     canAccessDashboard: canAccessDashboard(profile.role),
   };
