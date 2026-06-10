@@ -395,6 +395,7 @@ const stats = [
   {
     label: "Property ID",
     value: "PHF-3128-RN",
+    copy: true,
     icon: (
       <svg width="28" height="24" viewBox="0 0 27.625 23.375" fill="none">
         <path d={svgPaths.p1ec08e00} fill="#0D2138" />
@@ -414,7 +415,7 @@ export function SingleListingPageContent() {
   return (
     <div className="w-full bg-white">
       {/* Breadcrumb */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-5">
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-5">
         <p
           className="text-[#0d2138]"
           style={{
@@ -430,24 +431,22 @@ export function SingleListingPageContent() {
       </div>
 
       {/* Photo Gallery */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 pb-8">
-        <div className="flex gap-6 items-start">
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
           {/* Main Image */}
-          <div
-            className="relative flex-1 rounded-[20px] overflow-hidden"
-            style={{ height: 536 }}
-          >
+          <div className="relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
             <img
               src={mainImg}
               alt="Coastal Modern Residence"
               className="w-full h-full object-cover"
             />
+
             {/* Badges */}
-            <div className="absolute top-4 left-4 flex gap-1">
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-wrap gap-1.5">
               {["For Rent", "Apartment", "2026"].map((tag) => (
                 <span
                   key={tag}
-                  className="bg-white bg-opacity-90 px-3 py-1 rounded-[36px] text-[#0d2138] text-[14px]"
+                  className="bg-white/90 px-2.5 sm:px-3 py-1 rounded-[36px] text-[#0d2138] text-[11px] sm:text-[14px]"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   {tag}
@@ -457,36 +456,39 @@ export function SingleListingPageContent() {
           </div>
 
           {/* Side Images */}
-          <div className="flex flex-col gap-4 w-[342px] shrink-0">
-            <div className="rounded-[12px] overflow-hidden h-[168px]">
+          <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2 sm:gap-4 w-full lg:w-[342px] lg:shrink-0">
+            <div className="rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]">
               <img
                 src={sideImg1}
                 alt="Property view 1"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="rounded-[12px] overflow-hidden h-[168px]">
+
+            <div className="rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]">
               <img
                 src={sideImg2}
                 alt="Property view 2"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="relative rounded-[12px] overflow-hidden h-[168px]">
+
+            <div className="relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]">
               <img
                 src={sideImg3}
                 alt="Property view 3"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-3 right-3 bg-white rounded-[50px] px-4 py-2 flex items-center gap-1">
+
+              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-white rounded-[50px] px-2.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1">
                 <span
-                  className="text-[#232323] text-[14px]"
+                  className="text-[#232323] text-[10px] sm:text-[13px] lg:text-[14px] whitespace-nowrap"
                   style={{
                     fontFamily: "Montserrat, sans-serif",
                     fontWeight: 500,
                   }}
                 >
-                  Show all images (4)
+                  Show all
                 </span>
               </div>
             </div>
@@ -494,26 +496,29 @@ export function SingleListingPageContent() {
         </div>
 
         {/* Property Info Row */}
-        <div className="mt-10 flex items-start justify-between">
+        <div className="mt-6 sm:mt-8 lg:mt-10 flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
           {/* Title & Location */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2 max-w-full md:max-w-[520px]">
             <h1
-              className="text-[#232323]"
+              className="text-[#232323] text-[22px] sm:text-[28px] lg:text-[32px] leading-[32px] sm:leading-[38px] lg:leading-[44px]"
               style={{
                 fontFamily: "Poppins, sans-serif",
-                fontSize: 32,
                 fontWeight: 500,
                 letterSpacing: "-0.32px",
-                lineHeight: "44px",
               }}
             >
               Coastal Modern Residence
             </h1>
+
             <div
-              className="flex items-center gap-2 text-[rgba(0,0,0,0.62)] text-[16px]"
+              className="flex items-start sm:items-center gap-2 text-[rgba(0,0,0,0.62)] text-[13px] sm:text-[15px] lg:text-[16px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <svg
+                className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] shrink-0 mt-[2px] sm:mt-0"
+                viewBox="0 0 18 18"
+                fill="none"
+              >
                 <path
                   d={svgPaths.p23b22400}
                   stroke="black"
@@ -539,17 +544,20 @@ export function SingleListingPageContent() {
                   strokeWidth="1.125"
                 />
               </svg>
-              <span>Bayshore Gardens, Tampa, FL</span>
+
+              <span className="leading-[20px]">
+                Bayshore Gardens, Tampa, FL
+              </span>
             </div>
           </div>
 
           {/* Prices */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row md:flex-col gap-3 sm:gap-6 md:gap-2">
+            <div className="flex items-center justify-between sm:justify-start gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-2 h-2 rounded-full bg-[#1e4f86]" />
                 <span
-                  className="text-[#1e4f86] text-[16px]"
+                  className="text-[#1e4f86] text-[14px] sm:text-[16px]"
                   style={{
                     fontFamily: "Montserrat, sans-serif",
                     fontWeight: 600,
@@ -558,8 +566,9 @@ export function SingleListingPageContent() {
                   Sale
                 </span>
               </div>
+
               <span
-                className="text-[#1e4f86] text-[24px]"
+                className="text-[#1e4f86] text-[20px] sm:text-[22px] lg:text-[24px]"
                 style={{
                   fontFamily: "Poppins, sans-serif",
                   fontWeight: 600,
@@ -569,11 +578,12 @@ export function SingleListingPageContent() {
                 $749,000
               </span>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
+
+            <div className="flex items-center justify-between sm:justify-start gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-2 h-2 rounded-full bg-[#4896b6]" />
                 <span
-                  className="text-[#4896b6] text-[16px]"
+                  className="text-[#4896b6] text-[14px] sm:text-[16px]"
                   style={{
                     fontFamily: "Montserrat, sans-serif",
                     fontWeight: 600,
@@ -582,8 +592,9 @@ export function SingleListingPageContent() {
                   Rent
                 </span>
               </div>
+
               <span
-                className="text-[#4896b6] text-[24px]"
+                className="text-[#4896b6] text-[20px] sm:text-[22px] lg:text-[24px]"
                 style={{
                   fontFamily: "Poppins, sans-serif",
                   fontWeight: 600,
@@ -597,46 +608,73 @@ export function SingleListingPageContent() {
         </div>
 
         {/* Share Bar */}
-        <div className="mt-6 pb-6 border-b border-[#e5e7eb] flex items-center gap-4">
+        {/* Share Bar */}
+        <div className="mt-5 sm:mt-6 pb-6 border-b border-[#e5e7eb] flex flex-wrap items-center gap-3 sm:gap-4">
           <span
-            className="text-[#2b3038] text-[16px]"
+            className="text-[#2b3038] text-[14px] sm:text-[16px]"
             style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}
           >
             Share:
           </span>
+
           {/* Social Icons */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Facebook */}
-          <button className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden">
-  <svg viewBox="0 0 24 24" className="w-6 h-6 relative top-[2px]" fill="none">
-    <path
-      d="M13.6 22V13.4H16.5L17 10H13.6V7.8C13.6 6.8 13.9 6.1 15.3 6.1H17.1V3.1C16.8 3.1 15.7 3 14.5 3C11.9 3 10.1 4.6 10.1 7.5V10H7.2V13.4H10.1V22H13.6Z"
-      fill="white"
-    />
-  </svg>
-</button>
+            <button className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden shrink-0">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 relative top-[2px]"
+                fill="none"
+              >
+                <path
+                  d="M13.6 22V13.4H16.5L17 10H13.6V7.8C13.6 6.8 13.9 6.1 15.3 6.1H17.1V3.1C16.8 3.1 15.7 3 14.5 3C11.9 3 10.1 4.6 10.1 7.5V10H7.2V13.4H10.1V22H13.6Z"
+                  fill="white"
+                />
+              </svg>
+            </button>
+
             {/* Twitter/X */}
-            <div className="w-6 h-6 overflow-clip relative cursor-pointer">
+            <div className="w-6 h-6 overflow-clip relative cursor-pointer shrink-0">
               <svg viewBox="0 0 20 18" className="w-6 h-6">
                 <path d={svgPaths.p7cd5f00} fill="#000000" />
               </svg>
             </div>
+
             {/* Instagram */}
-             <button
-  className="w-6 h-6 rounded-[6px] flex items-center justify-center overflow-hidden cursor-pointer"
-  style={{
-    background:
-      "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
-  }}
->
-  <svg viewBox="0 0 24 24" className="w-[30px] h-[30px]" fill="none">
-    <rect x="5" y="5" width="14" height="14" rx="4" stroke="white" strokeWidth="2" />
-    <circle cx="12" cy="12" r="3.2" stroke="white" strokeWidth="2" />
-    <circle cx="16.6" cy="7.4" r="1.1" fill="white" />
-  </svg>
-</button>
+            <button
+              className="w-6 h-6 rounded-[6px] flex items-center justify-center overflow-hidden cursor-pointer shrink-0"
+              style={{
+                background:
+                  "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="w-[30px] h-[30px]"
+                fill="none"
+              >
+                <rect
+                  x="5"
+                  y="5"
+                  width="14"
+                  height="14"
+                  rx="4"
+                  stroke="white"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3.2"
+                  stroke="white"
+                  strokeWidth="2"
+                />
+                <circle cx="16.6" cy="7.4" r="1.1" fill="white" />
+              </svg>
+            </button>
+
             {/* LinkedIn */}
-            <div className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px]">
+            <div className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px] shrink-0">
               <svg
                 viewBox="0 0 20 20"
                 fill="none"
@@ -649,6 +687,7 @@ export function SingleListingPageContent() {
                   fillRule="evenodd"
                 />
               </svg>
+
               <svg
                 viewBox="0 0 14 14"
                 fill="none"
@@ -662,8 +701,9 @@ export function SingleListingPageContent() {
                 />
               </svg>
             </div>
+
             {/* WhatsApp */}
-            <div className="w-8 h-8 relative cursor-pointer">
+            <div className="w-8 h-8 relative cursor-pointer shrink-0">
               <svg
                 viewBox="0 0 24 24"
                 className="w-[30px] h-[30px]"
@@ -671,6 +711,7 @@ export function SingleListingPageContent() {
               >
                 <path d="M19.1 4.9A9.8 9.8 0 0 0 3.7 16.7L2.4 21.5l4.9-1.3A9.8 9.8 0 0 0 19.1 4.9Zm-7.1 14a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3a8 8 0 1 1 6.7 3.6Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.6.1c-.2.3-.7.8-.8 1-.2.2-.3.2-.6.1-.2-.1-1-.4-2-1.2-.7-.7-1.2-1.5-1.4-1.7-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.2-.3-.3-.5-.4Z" />
               </svg>
+
               <svg
                 viewBox="0 0 18.2089 18.1286"
                 fill="none"
@@ -691,6 +732,7 @@ export function SingleListingPageContent() {
                   </linearGradient>
                 </defs>
               </svg>
+
               <svg
                 viewBox="0 0 11.1241 10.271"
                 fill="none"
@@ -710,7 +752,7 @@ export function SingleListingPageContent() {
           {/* Copy Link */}
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-[32px] border border-[#d1d5dc] text-[#2b3038] text-[14px] hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-[32px] border border-[#d1d5dc] text-[#2b3038] text-[13px] sm:text-[14px] hover:bg-gray-50 transition-colors shrink-0"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             <svg
@@ -732,24 +774,23 @@ export function SingleListingPageContent() {
       </div>
 
       {/* Description */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
+
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
         <h2
-          className="text-[#0d2138] mb-6"
+          className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
           style={{
             fontFamily: "Poppins, sans-serif",
-            fontSize: 24,
             fontWeight: 500,
             letterSpacing: "-0.24px",
-            lineHeight: "28px",
           }}
         >
           Description
         </h2>
+
         <p
-          className="text-[#0d2138] text-[16px] mb-4"
+          className="text-[#0d2138] text-[14px] sm:text-[15px] md:text-[16px] mb-4 leading-[22px] sm:leading-[24px]"
           style={{
             fontFamily: "Montserrat, sans-serif",
-            lineHeight: "24px",
             letterSpacing: "-0.16px",
           }}
         >
@@ -758,17 +799,15 @@ export function SingleListingPageContent() {
           seeking comfort, style, and a well-located property close to Tampa's
           best amenities and attractions.
         </p>
-        <div className="flex items-start gap-4 mt-4">
-          <div
-            className="w-px bg-[#d4d4d4] self-stretch"
-            style={{ minHeight: 60 }}
-          />
+
+        <div className="flex items-start gap-3 sm:gap-4 mt-5 sm:mt-4">
+          <div className="w-px bg-[#d4d4d4] self-stretch min-h-[100px] sm:min-h-[60px]" />
+
           <p
-            className="text-[#2b3038] text-[16px] italic"
+            className="text-[#2b3038] text-[14px] sm:text-[15px] md:text-[16px] italic leading-[24px] sm:leading-[27px] md:leading-[28.8px]"
             style={{
               fontFamily: "Inter, sans-serif",
-              lineHeight: "28.8px",
-              letterSpacing: "-0.48px",
+              letterSpacing: "-0.32px",
             }}
           >
             This Beverly Hills villa redefines{" "}
@@ -780,31 +819,33 @@ export function SingleListingPageContent() {
         </div>
       </div>
 
-      {/* Property Details Stats */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
+      {/* Property Details Stats heading */}
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto pt-3 sm:pt-4">
         <h2
-          className="text-[#0d2138] mb-6"
+          className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
           style={{
             fontFamily: "Poppins, sans-serif",
-            fontSize: 24,
             fontWeight: 500,
             letterSpacing: "-0.24px",
-            lineHeight: "28px",
           }}
         >
           Property details
         </h2>
-        <div className="bg-[#f8fafc] rounded-[20px] p-8">
-          <div className="flex flex-wrap gap-y-8 gap-x-4">
-            {stats.map((stat, i) => (
-              <div key={stat.label} className="flex items-center gap-0">
-                <div className="flex flex-col items-center gap-3 min-w-[80px] px-4">
-                  <div className="flex items-center justify-center h-8">
-                    {stat.icon}
-                  </div>
-                  <div className="text-center">
+      </div>
+      {/* Property Details Stats */}
+      <div className="bg-[#F8FAFC] ">
+        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-4">
+          <div className="bg-[#f8fafc] rounded-[4px] px-0 py-[28px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-[30px]">
+              {stats.map((stat, i) => (
+                <div key={stat.label} className="relative min-h-[78px] px-0">
+                  <div className="flex flex-col items-start text-left">
+                    <div className="mb-[8px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[22px] [&>svg]:w-[22px] [&>svg]:stroke-[1.8]">
+                      {stat.icon}
+                    </div>
+
                     <p
-                      className="text-[#2b3038] text-[16px]"
+                      className="text-[#2b3038] text-[14px] sm:text-[15px] leading-[18px]"
                       style={{
                         fontFamily: "Poppins, sans-serif",
                         fontWeight: 500,
@@ -813,46 +854,98 @@ export function SingleListingPageContent() {
                     >
                       {stat.label}
                     </p>
+
                     <p
-                      className="text-[#2b3038] opacity-70 text-[15px]"
-                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                      className="mt-[3px] flex items-center gap-[4px] text-[#2b3038]/60 text-[12px] sm:text-[13px] leading-[18px]"
+                      style={{
+                        fontFamily: "Montserrat, sans-serif",
+                        fontWeight: 400,
+                      }}
                     >
                       {stat.value}
+
+                      {stat.copy && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigator.clipboard.writeText(stat.value)
+                          }
+                          className="inline-flex h-[12px] w-[12px] items-center justify-center text-[#0D2138]"
+                          aria-label="Copy property ID"
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <rect
+                              x="9"
+                              y="9"
+                              width="11"
+                              height="11"
+                              rx="1.5"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            />
+                            <path
+                              d="M5 15H4.5C3.67 15 3 14.33 3 13.5V4.5C3 3.67 3.67 3 4.5 3H13.5C14.33 3 15 3.67 15 4.5V5"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </button>
+                      )}
                     </p>
                   </div>
+
+                  {/* Desktop separator */}
+                  {i % 6 !== 5 && i !== stats.length - 1 && (
+                    <span className="hidden lg:block absolute left-[60%] top-1/2 h-[78px] w-px -translate-y-1/2 bg-[#e5e7eb]" />
+                  )}
+
+                  {/* Tablet separator */}
+                  {(i + 1) % 3 !== 0 && (
+                    <span className="hidden sm:block lg:hidden absolute left-[60%] top-1/2 h-[78px] w-px -translate-y-1/2 bg-[#e5e7eb]" />
+                  )}
+
+                  {/* Mobile separator */}
+                  {(i + 1) % 2 !== 0 && (
+                    <span className="block sm:hidden absolute left-[60%] top-1/2 h-[78px] w-px -translate-y-1/2 bg-[#e5e7eb]" />
+                  )}
                 </div>
-                {i < stats.length - 1 && (
-                  <div className="w-px bg-[#e5e7eb] h-[95px] hidden lg:block" />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Features & Amenities */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-16">
         <h2
-          className="text-[#0d2138] mb-6"
+          className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
           style={{
             fontFamily: "Poppins, sans-serif",
-            fontSize: 24,
             fontWeight: 500,
             letterSpacing: "-0.24px",
-            lineHeight: "28px",
           }}
         >
           Features & Amenities
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {amenities.map((item) => (
             <div
               key={item.label}
-              className="bg-white border border-[#e5e7eb] rounded-[12px] flex items-center gap-3 px-5 py-3 h-[50px]"
+              className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[48px] sm:min-h-[50px]"
             >
-              {item.icon}
+              <div className="shrink-0 flex items-center justify-center [&>svg]:w-[18px] [&>svg]:h-[18px] sm:[&>svg]:w-[20px] sm:[&>svg]:h-[20px]">
+                {item.icon}
+              </div>
+
               <span
-                className="text-[#2b3038] text-[18px]"
+                className="text-[#2b3038] text-[15px] sm:text-[16px] lg:text-[18px] leading-[20px] sm:leading-[22px]"
                 style={{
                   fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
@@ -867,310 +960,308 @@ export function SingleListingPageContent() {
       </div>
 
       {/* Video Preview */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2
-          className="text-[#0d2138] mb-6"
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+  <h2
+    className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+    style={{
+      fontFamily: "Poppins, sans-serif",
+      fontWeight: 500,
+      letterSpacing: "-0.24px",
+    }}
+  >
+    Video Preview
+  </h2>
+
+  <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden bg-[#bfbfbf] h-[220px] sm:h-[360px] md:h-[460px] lg:h-[566px]">
+    <img
+      src={videoImg}
+      alt="Video preview"
+      className="w-full h-full object-cover"
+    />
+
+    {/* YouTube Play Button */}
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="relative w-[72px] h-[72px] sm:w-[96px] sm:h-[96px] lg:w-[127px] lg:h-[127px]">
+        <svg
+          viewBox="0 0 111.425 79.5892"
+          fill="none"
+          className="absolute"
           style={{
-            fontFamily: "Poppins, sans-serif",
-            fontSize: 24,
-            fontWeight: 500,
-            letterSpacing: "-0.24px",
-            lineHeight: "28px",
+            inset: "18.75% 6.25%",
+            width: "87.5%",
+            height: "62.5%",
           }}
         >
-          Video Preview
-        </h2>
-        <div
-          className="relative rounded-[20px] overflow-hidden bg-[#bfbfbf]"
-          style={{ height: 566 }}
+          <path d={svgPaths.p3b152600} fill="#FC0D1B" />
+        </svg>
+
+        <svg
+          viewBox="0 0 31.8357 31.8357"
+          fill="none"
+          className="absolute"
+          style={{
+            inset: "37.5% 34.38% 37.5% 40.62%",
+            width: "25.62%",
+            height: "25%",
+          }}
         >
-          <img
-            src={videoImg}
-            alt="Video preview"
-            className="w-full h-full object-cover"
-          />
-          {/* YouTube Play Button */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative" style={{ width: 127, height: 127 }}>
-              <svg
-                viewBox="0 0 111.425 79.5892"
-                fill="none"
-                className="absolute"
-                style={{
-                  inset: "18.75% 6.25%",
-                  width: "87.5%",
-                  height: "62.5%",
-                }}
-              >
-                <path d={svgPaths.p3b152600} fill="#FC0D1B" />
-              </svg>
-              <svg
-                viewBox="0 0 31.8357 31.8357"
-                fill="none"
-                className="absolute"
-                style={{
-                  inset: "37.5% 34.38% 37.5% 40.62%",
-                  width: "25.62%",
-                  height: "25%",
-                }}
-              >
-                <path d={svgPaths.p277c6500} fill="white" />
-              </svg>
-            </div>
-          </div>
-        </div>
+          <path d={svgPaths.p277c6500} fill="white" />
+        </svg>
       </div>
+    </div>
+  </div>
+</div>
 
       {/* On the Map */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <h2
-          className="text-[#0d2138] mb-6"
+      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+  <h2
+    className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+    style={{
+      fontFamily: "Poppins, sans-serif",
+      fontWeight: 500,
+      letterSpacing: "-0.24px",
+    }}
+  >
+    On the Map
+  </h2>
+
+  <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px]">
+    <img
+      src={mapImg}
+      alt="Map"
+      className="w-full h-full object-cover rounded-[14px] sm:rounded-[20px]"
+    />
+
+    {/* Location Card */}
+    <div className="absolute top-3 left-3 sm:top-5 sm:left-5 bg-white rounded-[10px] p-2.5 sm:p-3 w-[190px] sm:w-[213px] max-w-[calc(100%-24px)]">
+      <p
+        className="text-[#232323] text-[12px] sm:text-[14px] mb-1 leading-[18px]"
+        style={{
+          fontFamily: "Montserrat, sans-serif",
+          fontWeight: 500,
+          letterSpacing: "-0.14px",
+        }}
+      >
+        Buenos Aires, Argentina
+      </p>
+
+      <p
+        className="text-[#5f5f5f] text-[11px] sm:text-[12px] mb-2 leading-[16px]"
+        style={{
+          fontFamily: "Poppins, sans-serif",
+          letterSpacing: "-0.12px",
+        }}
+      >
+        Av. Santa Fe 1234, BA, Argentina
+      </p>
+
+      <div className="flex items-center gap-1 flex-wrap">
+        <span
+          className="text-[#232323] text-[12px] sm:text-[14px]"
           style={{
-            fontFamily: "Poppins, sans-serif",
-            fontSize: 24,
+            fontFamily: "Montserrat, sans-serif",
             fontWeight: 500,
-            letterSpacing: "-0.24px",
-            lineHeight: "28px",
           }}
         >
-          On the Map
-        </h2>
-        <div
-          className="relative rounded-[20px] overflow-hidden"
-          style={{ height: 536 }}
+          5.0
+        </span>
+
+        {[...Array(5)].map((_, i) => (
+          <svg
+            key={i}
+            className="w-[13px] h-[13px] sm:w-4 sm:h-4 shrink-0"
+            viewBox="0 0 13.3351 12.6675"
+            fill="none"
+          >
+            <path d={svgPaths.p3684cf00} fill="#F5A405" />
+          </svg>
+        ))}
+
+        <span
+          className="text-[#4896b6] text-[11px] sm:text-[12px] ml-1"
+          style={{ fontFamily: "Poppins, sans-serif" }}
         >
-          <img
-            src={mapImg}
-            alt="Map"
-            className="w-full h-full object-cover rounded-[20px]"
-          />
-          {/* Location Card */}
-          <div className="absolute top-5 left-5 bg-white rounded-[10px] p-3 w-[213px]">
-            <p
-              className="text-[#232323] text-[14px] mb-1"
-              style={{
-                fontFamily: "Montserrat, sans-serif",
-                fontWeight: 500,
-                letterSpacing: "-0.14px",
-              }}
-            >
-              Buenos Aires, Argentina
-            </p>
-            <p
-              className="text-[#5f5f5f] text-[12px] mb-2"
-              style={{
-                fontFamily: "Poppins, sans-serif",
-                letterSpacing: "-0.12px",
-              }}
-            >
-              Av. Santa Fe 1234, BA, Argentina
-            </p>
-            <div className="flex items-center gap-1">
-              <span
-                className="text-[#232323] text-[14px]"
-                style={{
-                  fontFamily: "Montserrat, sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                5.0
-              </span>
-              {[...Array(5)].map((_, i) => (
-                <svg
-                  key={i}
-                  width="16"
-                  height="16"
-                  viewBox="0 0 13.3351 12.6675"
-                  fill="none"
-                >
-                  <path d={svgPaths.p3684cf00} fill="#F5A405" />
-                </svg>
-              ))}
-              <span
-                className="text-[#4896b6] text-[12px] ml-1"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                6,546
-              </span>
-            </div>
-          </div>
-          {/* Map Controls */}
-          <div className="absolute right-6 bottom-6 flex flex-col gap-3">
-            <button className="bg-white rounded-full shadow-lg p-3 flex items-center justify-center">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 16.9302 16.9302"
-                fill="none"
-              >
-                <path
-                  d={svgPaths.p3d32ae80}
-                  stroke="#232323"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.81395"
-                />
-              </svg>
-            </button>
-            <div className="bg-white rounded-full shadow-lg flex flex-col items-center">
-              <button className="p-3 flex items-center justify-center">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12.3953 12.3953"
-                  fill="none"
-                >
-                  <path
-                    d={svgPaths.p305e76c0}
-                    stroke="#232323"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.81395"
-                  />
-                </svg>
-              </button>
-              <div className="w-10 h-px bg-white" />
-              <button className="p-3 flex items-center justify-center">
-                <svg
-                  width="12"
-                  height="2"
-                  viewBox="0 0 12.3953 1.81395"
-                  fill="none"
-                >
-                  <path
-                    d="M0.906977 0.906977H11.4884"
-                    stroke="#232323"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.81395"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+          6,546
+        </span>
       </div>
+    </div>
+
+    {/* Map Controls */}
+    <div className="absolute right-3 bottom-3 sm:right-6 sm:bottom-6 flex flex-col gap-2 sm:gap-3">
+      <button className="bg-white rounded-full shadow-lg p-2.5 sm:p-3 flex items-center justify-center">
+        <svg
+          className="w-[15px] h-[15px] sm:w-[17px] sm:h-[17px]"
+          viewBox="0 0 16.9302 16.9302"
+          fill="none"
+        >
+          <path
+            d={svgPaths.p3d32ae80}
+            stroke="#232323"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.81395"
+          />
+        </svg>
+      </button>
+
+      <div className="bg-white rounded-full shadow-lg flex flex-col items-center overflow-hidden">
+        <button className="p-2.5 sm:p-3 flex items-center justify-center">
+          <svg
+            className="w-[11px] h-[11px] sm:w-3 sm:h-3"
+            viewBox="0 0 12.3953 12.3953"
+            fill="none"
+          >
+            <path
+              d={svgPaths.p305e76c0}
+              stroke="#232323"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.81395"
+            />
+          </svg>
+        </button>
+
+        <div className="w-8 sm:w-10 h-px bg-[#e5e7eb]" />
+
+        <button className="p-2.5 sm:p-3 flex items-center justify-center">
+          <svg
+            className="w-[11px] h-[2px] sm:w-3 sm:h-[2px]"
+            viewBox="0 0 12.3953 1.81395"
+            fill="none"
+          >
+            <path
+              d="M0.906977 0.906977H11.4884"
+              stroke="#232323"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.81395"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Agent Contact Banner */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
-        <div
-          className="bg-[#112b4a] rounded-[36px] relative overflow-hidden"
-          style={{ minHeight: 320 }}
-        >
-          {/* Background image */}
-          <div className="absolute inset-0">
-            <img
-              src={footerBgImg}
-              alt=""
-              className="w-full h-full object-cover opacity-10"
-            />
-          </div>
+      <div className="w-[calc(100%-38px)] max-w-[1196px] mx-auto py-8 sm:py-12 lg:py-16">
+  <div className="bg-[#112b4a] rounded-[22px] sm:rounded-[28px] lg:rounded-[36px] relative overflow-hidden min-h-[auto] lg:min-h-[320px]">
+    {/* Background image */}
+    <div className="absolute inset-0">
+      <img
+        src={footerBgImg}
+        alt=""
+        className="w-full h-full object-cover opacity-10"
+      />
+    </div>
 
-          <div className="relative z-10 flex flex-col lg:flex-row items-center lg:items-stretch gap-8 p-10 lg:p-16">
-            {/* Left: Agent */}
-            <div className="flex flex-col items-start gap-5 lg:w-[280px]">
-              <div
-                className="rounded-full overflow-hidden"
-                style={{ width: 80, height: 80 }}
-              >
-                <img
-                  src={agentImg}
-                  alt="Emily Carter"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <p
-                  className="text-white text-[24px] mb-1"
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    letterSpacing: "-0.24px",
-                  }}
-                >
-                  Emily Carter
-                </p>
-                <p
-                  className="text-white text-[16px] opacity-80"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  Listing Agent
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    width="22"
-                    height="22"
-                    viewBox="0 0 18.9649 18.2953"
-                    fill="none"
-                  >
-                    <path d={svgPaths.p236f5cd0} fill="#FFB86A" />
-                  </svg>
-                ))}
-                <span
-                  className="text-[#f8fafc] text-[16px] ml-1"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  5 stars
-                </span>
-              </div>
-            </div>
+    <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-stretch gap-7 lg:gap-8 p-5 sm:p-8 lg:p-16">
+      {/* Left: Agent */}
+      <div className="flex flex-col items-start gap-4 sm:gap-5 lg:w-[280px]">
+        <div className="rounded-full overflow-hidden w-[64px] h-[64px] sm:w-[80px] sm:h-[80px] shrink-0">
+          <img
+            src={agentImg}
+            alt="Emily Carter"
+            className="w-full h-full object-cover"
+          />
+        </div>
 
-            {/* Divider */}
-            <div className="hidden lg:block w-px bg-[#2B3038] self-stretch" />
+        <div>
+          <p
+            className="text-white text-[20px] sm:text-[24px] mb-1 leading-[28px] sm:leading-[32px]"
+            style={{
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: 500,
+              letterSpacing: "-0.24px",
+            }}
+          >
+            Emily Carter
+          </p>
 
-            {/* Middle: CTA text */}
-            <div className="flex flex-col gap-4 flex-1">
-              <h2
-                className="text-white"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  fontSize: 36,
-                  fontWeight: 600,
-                  letterSpacing: "-0.36px",
-                  lineHeight: "48px",
-                }}
-              >
-                Ready to see this property
-              </h2>
-              <p
-                className="text-white text-[16px] opacity-80"
-                style={{
-                  fontFamily: "Montserrat, sans-serif",
-                  lineHeight: "24px",
-                  letterSpacing: "-0.16px",
-                }}
-              >
-                Book a Private tour or send a message directly to Emily.
-                <br />
-                No commitment needed
-              </p>
-            </div>
+          <p
+            className="text-white text-[14px] sm:text-[16px] opacity-80"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            Listing Agent
+          </p>
+        </div>
 
-            {/* Right: Buttons */}
-            <div className="flex flex-col gap-5 lg:w-[257px] justify-center">
-              <button
-                className="rounded-[48px] px-8 py-4 text-white text-[16px] transition-opacity hover:opacity-90"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-                  border: "1px solid #0088ff",
-                }}
-              >
-                Schedule a Visit
-              </button>
-              <button
-                className="rounded-[48px] px-8 py-4 text-white text-[16px] border border-[#b9c8d9] hover:bg-white/10 transition-colors"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                Send Inquiry
-              </button>
-            </div>
-          </div>
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          {[...Array(5)].map((_, i) => (
+            <svg
+              key={i}
+              className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] shrink-0"
+              viewBox="0 0 18.9649 18.2953"
+              fill="none"
+            >
+              <path d={svgPaths.p236f5cd0} fill="#FFB86A" />
+            </svg>
+          ))}
+
+          <span
+            className="text-[#f8fafc] text-[14px] sm:text-[16px] ml-1"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            5 stars
+          </span>
         </div>
       </div>
+
+      {/* Divider */}
+      <div className="hidden lg:block w-px bg-[#2B3038] self-stretch" />
+
+      {/* Mobile Divider */}
+      <div className="block lg:hidden w-full h-px bg-white/15" />
+
+      {/* Middle: CTA text */}
+      <div className="flex flex-col gap-3 sm:gap-4 flex-1">
+        <h2
+          className="text-white text-[26px] sm:text-[30px] lg:text-[36px] leading-[34px] sm:leading-[40px] lg:leading-[48px]"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            fontWeight: 600,
+            letterSpacing: "-0.36px",
+          }}
+        >
+          Ready to see this property
+        </h2>
+
+        <p
+          className="text-white text-[14px] sm:text-[16px] opacity-80 leading-[22px] sm:leading-[24px]"
+          style={{
+            fontFamily: "Montserrat, sans-serif",
+            letterSpacing: "-0.16px",
+          }}
+        >
+          Book a Private tour or send a message directly to Emily.
+          <br className="hidden sm:block" />
+          No commitment needed
+        </p>
+      </div>
+
+      {/* Right: Buttons */}
+      <div className="flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 lg:gap-5 w-full lg:w-[257px] justify-center">
+        <button
+          className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] transition-opacity hover:opacity-90"
+          style={{
+            fontFamily: "Poppins, sans-serif",
+            background: "linear-gradient(to bottom, #005ea4, #006fc2)",
+            border: "1px solid #0088ff",
+          }}
+        >
+          Schedule a Visit
+        </button>
+
+        <button
+          className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] border border-[#b9c8d9] hover:bg-white/10 transition-colors"
+          style={{ fontFamily: "Poppins, sans-serif" }}
+        >
+          Send Inquiry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Footer spacer */}
       <div className="h-8" />

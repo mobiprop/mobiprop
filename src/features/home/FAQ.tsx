@@ -70,7 +70,7 @@ export function FAQ() {
 
   return (
     <section className="bg-[#f8fafc] py-12 sm:py-16 lg:py-20">
-  <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
+  <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
     <div className="flex flex-col lg:flex-row gap-10 lg:gap-[187px]">
       {/* Left column */}
       <div className="lg:w-[399px] lg:min-h-[492px] flex !flex-col lg:flex-row gap-10 lg:gap-[187px]">
