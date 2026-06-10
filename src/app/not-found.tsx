@@ -1,12 +1,18 @@
-export default function NotFound() {
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { getNavUser } from "@/lib/nav-user";
+import { NotFoundPage } from "@/features/not-found/NotFoundPage";
+
+export default async function NotFound() {
+  const navUser = await getNavUser();
+
   return (
-    <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-      <h1 className="text-4xl font-semibold text-[#0d2138]" style={{ fontFamily: "Poppins, sans-serif" }}>
-        404
-      </h1>
-      <p className="text-[#6a7282]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-        Page not found
-      </p>
+    <div className="flex min-h-screen flex-col bg-[#fafafa]">
+      <Navbar initialUser={navUser} />
+      <main className="flex-1">
+        <NotFoundPage />
+      </main>
+      <Footer />
     </div>
   );
 }
