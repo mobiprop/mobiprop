@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Dashboard — Ulrich Propiedades" };
+import { requireDashboardAccess } from "@/lib/auth";
+import { ListingsPage } from "@/features/dashboard/ListingsPage";
 
-export default function DashboardListingsPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-400 text-lg">Dashboard / Listings — coming soon</p>
-    </div>
-  );
+export const metadata: Metadata = { title: "Listings — Ulrich Propiedades" };
+
+export default async function DashboardListingsPage() {
+  const profile = await requireDashboardAccess("listings:view");
+  return <ListingsPage role={profile.role} />;
 }
