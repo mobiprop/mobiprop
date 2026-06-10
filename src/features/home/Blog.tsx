@@ -32,7 +32,7 @@ const posts = [
 export function Blog() {
   return (
     <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
   {/* Header */}
   <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12">
     <div className="flex items-center gap-2">

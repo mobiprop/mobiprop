@@ -142,7 +142,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   return (
     <header className="sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]">
-  <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between">
+  <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between">
     {/* Logo */}
     <div className="flex-shrink-0">
       <Logo />

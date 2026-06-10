@@ -947,7 +947,7 @@ return (
 </div>
 {/* ── Listings Grid ── */}
 <section className="bg-white py-8 sm:py-10 lg:py-14">
-   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
+   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
       {/* Results header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8">
          <h2
@@ -981,7 +981,7 @@ return (
 {/* ── You Might Also Like ── */}
 <section className="bg-white pt-4 pb-16 lg:pb-20">
    <div className="might">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
          {/* Section heading */}
          <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center">
             <h2

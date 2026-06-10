@@ -20,7 +20,7 @@ function QuoteIcon() {
 export function Testimonial() {
   return (
     <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
   <div className="relative overflow-hidden flex flex-col lg:flex-row gap-8 sm:gap-10 lg:gap-[120px] xl:gap-[200px] justify-between">
   {/* Background Logo Watermark - 3 Images */}
   <div
