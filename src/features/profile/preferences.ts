@@ -14,6 +14,16 @@ export type NotificationPreferences = {
   pushPriceAlerts: boolean;
 };
 
+/** Staff-facing toggles edited from /dashboard/settings → Notifications. */
+export type DashboardNotificationPreferences = {
+  emailEnabled: boolean;
+  newMessages: boolean;
+  newLeads: boolean;
+  contractUpdates: boolean;
+  weeklyReports: boolean;
+  marketingUpdates: boolean;
+};
+
 export type SecurityPreferences = {
   twoFactorEnabled: boolean;
   loginAlerts: boolean;
@@ -29,6 +39,7 @@ export type LocalePreferences = {
 
 export type ProfilePreferences = {
   notifications: NotificationPreferences;
+  dashboardNotifications: DashboardNotificationPreferences;
   security: SecurityPreferences;
   locale: LocalePreferences;
 };
@@ -42,6 +53,14 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
     pushNewListings: false,
     pushMessages: true,
     pushPriceAlerts: true,
+  },
+  dashboardNotifications: {
+    emailEnabled: true,
+    newMessages: true,
+    newLeads: true,
+    contractUpdates: true,
+    weeklyReports: false,
+    marketingUpdates: false,
   },
   security: {
     twoFactorEnabled: false,
@@ -60,12 +79,17 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
 export function resolvePreferences(profile: Pick<Profile, "preferences">): ProfilePreferences {
   const stored = (profile.preferences ?? {}) as Partial<{
     notifications: Partial<NotificationPreferences>;
+    dashboardNotifications: Partial<DashboardNotificationPreferences>;
     security: Partial<SecurityPreferences>;
     locale: Partial<LocalePreferences>;
   }>;
 
   return {
     notifications: { ...DEFAULT_PREFERENCES.notifications, ...stored.notifications },
+    dashboardNotifications: {
+      ...DEFAULT_PREFERENCES.dashboardNotifications,
+      ...stored.dashboardNotifications,
+    },
     security: { ...DEFAULT_PREFERENCES.security, ...stored.security },
     locale: { ...DEFAULT_PREFERENCES.locale, ...stored.locale },
   };

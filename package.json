@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:client": "bash scripts/deploy-client.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
