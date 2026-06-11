@@ -1,55 +1,61 @@
-// Shared types + mock data for the dashboard Listings page (list & grid views).
+// Display helpers for the dashboard Listings page (list & grid views).
+// Real data comes from /api/dashboard/listings as DashboardListingDto.
 
-export type ListingType = "Apartment" | "House" | "Commercial" | "Land";
-export type ListingStatus = "Active" | "Paused" | "Rented" | "Sold";
-export type OperationType = "Sale" | "Rent" | "Both";
+import type {
+  PropertyOperationType,
+  PropertyStatus,
+  PropertyType,
+} from "@/generated/prisma/enums";
+import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 
-export type Listing = {
-  id: number;
-  listingId: string;
-  name: string;
-  location: string;
-  image: string;
-  type: ListingType;
-  price: string;
-  bedrooms: number;
-  bathrooms: number;
-  area: number;
-  operation: OperationType;
-  status: ListingStatus;
-  views: number;
-  featured: boolean;
+export const TYPE_LABELS: Record<PropertyType, string> = {
+  APARTMENT: "Apartment",
+  HOUSE: "House",
+  COMMERCIAL_OFFICE: "Commercial Office",
+  LOT: "Lot",
+  TOWNHOUSE: "Townhouse",
 };
 
-// Property photos that already ship in /public (reused from the landing/profile pages).
-const PROP_IMAGES = [
-  "/assets/figma-temp/UserProfile/prop-0.png",
-  "/assets/figma-temp/UserProfile/prop-1.png",
-  "/assets/figma-temp/UserProfile/prop-2.png",
-  "/assets/figma-temp/UserProfile/prop-3.png",
-  "/assets/figma-temp/UserProfile/prop-4.png",
-  "/assets/figma-temp/UserProfile/prop-5.png",
-];
-
-export const TYPE_BADGE: Record<ListingType, { bg: string; text: string }> = {
-  Apartment:  { bg: "#fef3c6", text: "#bb4d00" },
-  House:      { bg: "#dff2fe", text: "#0069a8" },
-  Commercial: { bg: "#dcfce7", text: "#008236" },
-  Land:       { bg: "#ede9fe", text: "#6d28d9" },
+export const STATUS_LABELS: Record<PropertyStatus, string> = {
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+  PAUSED: "Paused",
+  RENTED: "Rented",
+  SOLD: "Sold",
+  DRAFT: "Draft",
 };
 
-export const STATUS_BADGE: Record<ListingStatus, { bg: string; text: string }> = {
-  Active: { bg: "#dcfce7", text: "#008236" },
-  Paused: { bg: "#fef3c6", text: "#e17100" },
-  Rented: { bg: "#dff2fe", text: "#0069a8" },
-  Sold:   { bg: "#fee2e2", text: "#e7000b" },
+export const OPERATION_LABELS: Record<PropertyOperationType, string> = {
+  SALE: "Sale",
+  RENT: "Rent",
+  SALE_AND_RENT: "Both",
 };
 
-export const MOCK_LISTINGS: Listing[] = [
-  { id: 1, listingId: "LST-0001", name: "Modern Downtown Apartment", location: "Buenos Aires, Argentina", image: PROP_IMAGES[0], type: "Apartment",  price: "$450,000", bedrooms: 3, bathrooms: 2, area: 1200, operation: "Sale", status: "Rented", views: 342, featured: true  },
-  { id: 2, listingId: "LST-0002", name: "Modern Downtown Apartment", location: "Buenos Aires, Argentina", image: PROP_IMAGES[1], type: "House",      price: "$450,000", bedrooms: 3, bathrooms: 2, area: 1200, operation: "Rent", status: "Paused", views: 342, featured: false },
-  { id: 3, listingId: "LST-0003", name: "Modern Downtown Apartment", location: "Buenos Aires, Argentina", image: PROP_IMAGES[2], type: "Apartment",  price: "$450,000", bedrooms: 3, bathrooms: 2, area: 1200, operation: "Both", status: "Active", views: 342, featured: true  },
-  { id: 4, listingId: "LST-0004", name: "Modern Downtown Apartment", location: "Buenos Aires, Argentina", image: PROP_IMAGES[3], type: "House",      price: "$450,000", bedrooms: 3, bathrooms: 2, area: 1200, operation: "Sale", status: "Sold",   views: 342, featured: false },
-  { id: 5, listingId: "LST-0005", name: "Modern Downtown Apartment", location: "Buenos Aires, Argentina", image: PROP_IMAGES[4], type: "Apartment",  price: "$450,000", bedrooms: 3, bathrooms: 2, area: 1200, operation: "Both", status: "Active", views: 342, featured: false },
-  { id: 6, listingId: "LST-0006", name: "Modern Downtown Apartment", location: "Buenos Aires, Argentina", image: PROP_IMAGES[5], type: "Commercial", price: "$450,000", bedrooms: 3, bathrooms: 2, area: 1200, operation: "Rent", status: "Paused", views: 342, featured: false },
-];
+export const TYPE_BADGE: Record<PropertyType, { bg: string; text: string }> = {
+  APARTMENT:         { bg: "#fef3c6", text: "#bb4d00" },
+  HOUSE:             { bg: "#dff2fe", text: "#0069a8" },
+  COMMERCIAL_OFFICE: { bg: "#dcfce7", text: "#008236" },
+  LOT:               { bg: "#ede9fe", text: "#6d28d9" },
+  TOWNHOUSE:         { bg: "#fce7f3", text: "#a3004c" },
+};
+
+export const STATUS_BADGE: Record<PropertyStatus, { bg: string; text: string }> = {
+  ACTIVE:   { bg: "#dcfce7", text: "#008236" },
+  INACTIVE: { bg: "#f3f4f6", text: "#4a5565" },
+  PAUSED:   { bg: "#fef3c6", text: "#e17100" },
+  RENTED:   { bg: "#dff2fe", text: "#0069a8" },
+  SOLD:     { bg: "#fee2e2", text: "#e7000b" },
+  DRAFT:    { bg: "#ede9fe", text: "#6d28d9" },
+};
+
+export const FALLBACK_LISTING_IMAGE = "/assets/figma-temp/UserProfile/prop-0.png";
+
+const priceFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+/** "$450,000" / "$1,200/mo" / "$450,000 · $1,200/mo" depending on operation. */
+export function formatListingPrice(listing: DashboardListingDto): string {
+  const sale = listing.salePrice !== null ? `$${priceFormat.format(listing.salePrice)}` : null;
+  const rent = listing.rentPrice !== null ? `$${priceFormat.format(listing.rentPrice)}/mo` : null;
+  if (sale && rent) return `${sale} · ${rent}`;
+  return sale ?? rent ?? "—";
+}

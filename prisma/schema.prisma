@@ -118,3 +118,127 @@ model Notification {
   @@index([createdAt], map: "notifications_created_at_idx")
   @@map("notifications")
 }
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  COMMERCIAL_OFFICE
+  LOT
+  TOWNHOUSE
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  PAUSED
+  RENTED
+  SOLD
+  DRAFT
+}
+
+enum PropertyOperationType {
+  SALE
+  RENT
+  SALE_AND_RENT
+}
+
+// Core listing record, managed from the dashboard (staff only) and read by the
+// public site. Tables are RLS deny-all: every read/write goes through server
+// code, which scopes AGENT access to created/assigned listings.
+model Property {
+  id              String                @id @default(cuid())
+  listingId       String                @unique @map("listing_id")
+  slug            String                @unique
+  title           String
+  description     String
+  type            PropertyType
+  status          PropertyStatus        @default(ACTIVE)
+  operationType   PropertyOperationType @map("operation_type")
+  salePrice       Decimal?              @map("sale_price") @db.Decimal(14, 2)
+  rentPrice       Decimal?              @map("rent_price") @db.Decimal(14, 2)
+  location        String
+  fullAddress     String                @map("full_address")
+  city            String?
+  province        String?
+  country         String?
+  postalCode      String?               @map("postal_code")
+  // Filled by Google Maps geocoding once credentials are available.
+  latitude        Decimal?              @db.Decimal(9, 6)
+  longitude       Decimal?              @db.Decimal(9, 6)
+  bedrooms        Int?
+  bathrooms       Int?
+  toilets         Int?
+  areaSqft        Int?                  @map("area_sqft")
+  lotSizeSqft     Int?                  @map("lot_size_sqft")
+  parkingSpaces   Int?                  @map("parking_spaces")
+  yearBuilt       Int?                  @map("year_built")
+  floors          Int?
+  isFeatured      Boolean               @default(false) @map("is_featured")
+  viewsCount      Int                   @default(0) @map("views_count")
+  assignedAgentId String?               @map("assigned_agent_id") @db.Uuid
+  ownerContactId  String?               @map("owner_contact_id")
+  createdById     String?               @map("created_by_id") @db.Uuid
+  updatedById     String?               @map("updated_by_id") @db.Uuid
+  publishedAt     DateTime?             @map("published_at")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  images    PropertyImage[]
+  amenities PropertyAmenity[]
+
+  @@index([status], map: "properties_status_idx")
+  @@index([type], map: "properties_type_idx")
+  @@index([isFeatured], map: "properties_is_featured_idx")
+  @@index([assignedAgentId], map: "properties_assigned_agent_idx")
+  @@index([createdById], map: "properties_created_by_idx")
+  @@map("properties")
+}
+
+// One row per stored image; never rely on Storage URLs alone. Optimized to
+// WebP at max 2048px before upload (originals are kept only as a fallback
+// when optimization fails).
+model PropertyImage {
+  id               String   @id @default(cuid())
+  propertyId       String   @map("property_id")
+  url              String
+  storagePath      String   @map("storage_path")
+  originalFileName String?  @map("original_file_name")
+  mimeType         String?  @map("mime_type")
+  sizeBytes        Int?     @map("size_bytes")
+  width            Int?
+  height           Int?
+  format           String?
+  altText          String?  @map("alt_text")
+  sortOrder        Int      @default(0) @map("sort_order")
+  isCover          Boolean  @default(false) @map("is_cover")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId], map: "property_images_property_idx")
+  @@map("property_images")
+}
+
+// Canonical amenity catalog (seeded in the migration); listings link via the
+// join table so amenity filters stay queryable.
+model Amenity {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  label     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  properties PropertyAmenity[]
+
+  @@map("amenities")
+}
+
+model PropertyAmenity {
+  propertyId String @map("property_id")
+  amenityId  String @map("amenity_id")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, amenityId])
+  @@map("property_amenities")
+}
