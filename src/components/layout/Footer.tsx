@@ -180,7 +180,7 @@ export function Footer() {
       </div>
 
       {/* Visit Our Office */}
-      <div className="flex flex-col gap-6 sm:gap-[28px] lg:w-[260px]">
+      <div className="flex flex-col gap-6 sm:gap-[28px] lg:w-[305px]">
         {/* Address */}
         <div className="flex flex-col gap-4 sm:gap-[24px]">
           <SectionHeading>Visit Our Office</SectionHeading>
