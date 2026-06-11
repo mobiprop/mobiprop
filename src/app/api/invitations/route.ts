@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createAgentInvitation } from "@/features/auth/staff-actions";
+import { createAgentInvitation, listInvitations } from "@/features/auth/staff-actions";
 
 export const runtime = "nodejs";
 
@@ -17,4 +17,18 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ success: true, inviteUrl: result.inviteUrl });
+}
+
+/**
+ * Admin-only: list all invitations (safe DTO — no tokenHash/notes). Authorization
+ * is enforced inside listInvitations via requirePermission("invitations:view").
+ */
+export async function GET() {
+  const result = await listInvitations();
+
+  if (!result.ok) {
+    return NextResponse.json({ success: false, error: result.error }, { status: 403 });
+  }
+
+  return NextResponse.json({ success: true, invitations: result.invitations });
 }

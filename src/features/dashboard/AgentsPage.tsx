@@ -13,6 +13,7 @@ import {
   Filter,
   Check,
   X,
+  Mail,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -108,6 +109,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "All">("All");
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
+  const canViewInvitations = hasPermission(role, "invitations:view");
 
   const filtered = MOCK_AGENTS.filter((a) => {
     const matchesSearch =
@@ -127,17 +129,29 @@ export function AgentsPage({ role }: AgentsPageProps) {
           <h1 className="text-[20px] font-medium text-[#0d2138]" style={poppins}>Agents</h1>
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage your team of property agents</p>
         </div>
-        {canInvite && (
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
-            style={mont}
-          >
-            <Plus size={16} />
-            Add Agent
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {canViewInvitations && (
+            <Link
+              href="/dashboard/agents/invitations"
+              className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] text-[#1e4f86] rounded-[10px] text-[14px] font-medium hover:bg-[#f8fafc] transition-colors"
+              style={mont}
+            >
+              <Mail size={16} />
+              Invitations
+            </Link>
+          )}
+          {canInvite && (
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
+              style={mont}
+            >
+              <Plus size={16} />
+              Add Agent
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stat cards */}

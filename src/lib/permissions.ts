@@ -16,6 +16,13 @@ export type Permission =
   | "agents:update"
   | "agents:deactivate"
   | "agents:invite"
+  // Invitation management (list/resend/revoke) is ADMIN-only in phase 1.
+  // Future option (needs client sign-off): grant MANAGER "agents:invite" to let
+  // managers invite AGENTs — createAgentInvitation already restricts non-ADMIN
+  // inviters to the AGENT role, so enabling it is just adding the permission.
+  | "invitations:view"
+  | "invitations:resend"
+  | "invitations:revoke"
   | "contacts:view"
   | "contacts:create"
   | "contacts:update"
@@ -55,6 +62,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "agents:update",
     "agents:deactivate",
     "agents:invite",
+    "invitations:view",
+    "invitations:resend",
+    "invitations:revoke",
     "contacts:view",
     "contacts:create",
     "contacts:update",

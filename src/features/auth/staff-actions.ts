@@ -5,13 +5,15 @@ import type { ZodError } from "zod";
 import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { sendAgentInvitationEmail } from "@/lib/email";
+import { logActivity } from "@/lib/activity-log";
+import { notifyAdmins } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { canAccessDashboard } from "@/lib/permissions";
+import { canAccessDashboard, isAdmin } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
 import { generateInviteToken, hashInviteToken } from "@/lib/security/token";
 import { acceptInvitationApiSchema, createInvitationSchema } from "@/schemas/invitation.schema";
-import type { UserRole } from "@/generated/prisma/enums";
+import type { InvitationStatus, UserRole } from "@/generated/prisma/enums";
 
 import { acceptInvitationSchema, loginWithPasswordSchema } from "./schemas";
 
@@ -91,6 +93,12 @@ export async function createAgentInvitation(
 
   const { email, role, firstName, lastName, phone, location, notes } = parsed.data;
 
+  // Defense-in-depth for the optional future where MANAGER gets agents:invite:
+  // a non-ADMIN inviter may only ever invite AGENTs, never MANAGERs (or above).
+  if (!isAdmin(inviter.role) && role !== "AGENT") {
+    return { ok: false, error: "You can only invite agents." };
+  }
+
   // Reject if the email already belongs to an account.
   const existingProfile = await prisma.profile.findUnique({ where: { email } });
   if (existingProfile) {
@@ -108,7 +116,7 @@ export async function createAgentInvitation(
     Date.now() + INVITATION_TTL_DAYS * 24 * 60 * 60 * 1000,
   );
 
-  await prisma.agentInvitation.create({
+  const invitation = await prisma.agentInvitation.create({
     data: {
       email,
       role: role as UserRole,
@@ -123,6 +131,24 @@ export async function createAgentInvitation(
       notes,
     },
   });
+
+  await logActivity({
+    actorId: inviter.id,
+    action: "INVITATION_CREATED",
+    entityType: "AGENT_INVITATION",
+    entityId: invitation.id,
+    newValues: { email, role, expiresAt: expiresAt.toISOString() },
+  });
+  await notifyAdmins(
+    {
+      type: "INVITATION_CREATED",
+      title: role === "MANAGER" ? "Manager Invited" : "New Agent Invited",
+      body: `${inviter.fullName ?? inviter.email} invited ${email} to join as ${role.charAt(0) + role.slice(1).toLowerCase()}.`,
+      entityType: "AGENT_INVITATION",
+      entityId: invitation.id,
+    },
+    inviter.id,
+  );
 
   const inviteUrl = `${APP_URL}/invite/${rawToken}`;
   const emailResult = await sendAgentInvitationEmail({
@@ -264,11 +290,57 @@ export async function acceptAgentInvitation(input: unknown): Promise<StaffAuthRe
     data: { status: "ACCEPTED", acceptedAt: new Date() },
   });
 
+  await recordInvitationAccepted({
+    invitationId: invitation.id,
+    email: invitation.email,
+    role: invitation.role,
+    profileId: created.user.id,
+    fullName,
+  });
+
   // Sign the new user straight into a session.
   const supabase = await createClient();
   await supabase.auth.signInWithPassword({ email: invitation.email, password });
 
   return { ok: true };
+}
+
+/**
+ * Shared audit/notify tail for both accept flows: records the invitation
+ * acceptance + staff profile creation and tells the admins.
+ */
+async function recordInvitationAccepted(params: {
+  invitationId: string;
+  email: string;
+  role: UserRole;
+  profileId: string;
+  fullName: string;
+}): Promise<void> {
+  const { invitationId, email, role, profileId, fullName } = params;
+  const roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
+
+  await logActivity({
+    actorId: profileId,
+    action: "INVITATION_ACCEPTED",
+    entityType: "AGENT_INVITATION",
+    entityId: invitationId,
+    oldValues: { status: "PENDING" },
+    newValues: { status: "ACCEPTED", email },
+  });
+  await logActivity({
+    actorId: profileId,
+    action: "PROFILE_CREATED",
+    entityType: "PROFILE",
+    entityId: profileId,
+    newValues: { email, role, status: "ACTIVE" },
+  });
+  await notifyAdmins({
+    type: "INVITATION_ACCEPTED",
+    title: "Invitation Accepted",
+    body: `${fullName || email} accepted their invitation and joined as ${roleLabel}.`,
+    entityType: "AGENT_INVITATION",
+    entityId: invitationId,
+  });
 }
 
 export type AcceptInvitationApiResult =
@@ -340,9 +412,193 @@ export async function acceptInvitationApi(input: unknown): Promise<AcceptInvitat
     data: { status: "ACCEPTED", acceptedAt: new Date() },
   });
 
+  await recordInvitationAccepted({
+    invitationId: invitation.id,
+    email: invitation.email,
+    role: invitation.role,
+    profileId: created.user.id,
+    fullName,
+  });
+
   // Sign the new user straight into a session.
   const supabase = await createClient();
   await supabase.auth.signInWithPassword({ email: invitation.email, password });
+
+  return { ok: true };
+}
+
+// ── Invitation management (ADMIN-only in phase 1) ─────────────────────────────
+
+export type InvitationListItem = {
+  id: string;
+  email: string;
+  role: UserRole;
+  status: InvitationStatus;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  location: string | null;
+  invitedBy: { name: string | null; email: string } | null;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt: string | null;
+};
+
+export type ListInvitationsResult =
+  | { ok: true; invitations: InvitationListItem[] }
+  | { ok: false; error: string };
+
+/**
+ * All invitations, newest first, for the dashboard list. Safe DTO only —
+ * tokenHash and internal notes never leave the server. Timed-out PENDING rows
+ * are flipped to EXPIRED first so the list always shows the effective status.
+ */
+export async function listInvitations(): Promise<ListInvitationsResult> {
+  const authz = await requirePermission("invitations:view");
+  if (!authz.ok) return { ok: false, error: authz.error };
+
+  await prisma.agentInvitation.updateMany({
+    where: { status: "PENDING", expiresAt: { lt: new Date() } },
+    data: { status: "EXPIRED" },
+  });
+
+  const invitations = await prisma.agentInvitation.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+
+  const inviterIds = [
+    ...new Set(invitations.map((i) => i.invitedById).filter((id): id is string => !!id)),
+  ];
+  const inviters = await prisma.profile.findMany({
+    where: { id: { in: inviterIds } },
+    select: { id: true, fullName: true, email: true },
+  });
+  const inviterById = new Map(inviters.map((p) => [p.id, p]));
+
+  return {
+    ok: true,
+    invitations: invitations.map((inv) => {
+      const inviter = inv.invitedById ? inviterById.get(inv.invitedById) : undefined;
+      return {
+        id: inv.id,
+        email: inv.email,
+        role: inv.role,
+        status: inv.status,
+        firstName: inv.firstName,
+        lastName: inv.lastName,
+        phone: inv.phone,
+        location: inv.location,
+        invitedBy: inviter ? { name: inviter.fullName, email: inviter.email } : null,
+        createdAt: inv.createdAt.toISOString(),
+        expiresAt: inv.expiresAt.toISOString(),
+        acceptedAt: inv.acceptedAt?.toISOString() ?? null,
+      };
+    }),
+  };
+}
+
+export type ResendInvitationResult =
+  | { ok: true; inviteUrl: string; emailSent: boolean }
+  | { ok: false; error: string };
+
+/**
+ * Re-issue a PENDING or EXPIRED invitation: rotates the token (the old link
+ * stops working), resets the 7-day expiry, and re-sends the email. The new
+ * invite URL is returned to the caller for copying — never stored.
+ */
+export async function resendInvitation(invitationId: string): Promise<ResendInvitationResult> {
+  if (!invitationId || typeof invitationId !== "string") {
+    return { ok: false, error: "Invalid invitation." };
+  }
+
+  const authz = await requirePermission("invitations:resend");
+  if (!authz.ok) return { ok: false, error: authz.error };
+
+  const invitation = await prisma.agentInvitation.findUnique({ where: { id: invitationId } });
+  if (!invitation) return { ok: false, error: "Invitation not found." };
+  if (invitation.status !== "PENDING" && invitation.status !== "EXPIRED") {
+    return { ok: false, error: "Only pending or expired invitations can be resent." };
+  }
+
+  // The email may have signed up through another path since the invite was sent.
+  const existingProfile = await prisma.profile.findUnique({
+    where: { email: invitation.email },
+  });
+  if (existingProfile) {
+    return { ok: false, error: "An account with this email already exists." };
+  }
+
+  const rawToken = generateInviteToken();
+  const expiresAt = new Date(Date.now() + INVITATION_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+  await prisma.agentInvitation.update({
+    where: { id: invitation.id },
+    data: { tokenHash: hashInviteToken(rawToken), expiresAt, status: "PENDING" },
+  });
+
+  await logActivity({
+    actorId: authz.profile.id,
+    action: "INVITATION_RESENT",
+    entityType: "AGENT_INVITATION",
+    entityId: invitation.id,
+    oldValues: { status: invitation.status, expiresAt: invitation.expiresAt.toISOString() },
+    newValues: { status: "PENDING", expiresAt: expiresAt.toISOString() },
+  });
+
+  const inviteUrl = `${APP_URL}/invite/${rawToken}`;
+  const emailResult = await sendAgentInvitationEmail({
+    to: invitation.email,
+    inviteUrl,
+    role: invitation.role,
+    expiresInDays: INVITATION_TTL_DAYS,
+  });
+
+  return { ok: true, inviteUrl, emailSent: emailResult.sent };
+}
+
+export type RevokeInvitationResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Revoke a PENDING invitation so its link can never be used. Terminal: a
+ * revoked invitation stays revoked (create a fresh invite instead).
+ */
+export async function revokeInvitation(invitationId: string): Promise<RevokeInvitationResult> {
+  if (!invitationId || typeof invitationId !== "string") {
+    return { ok: false, error: "Invalid invitation." };
+  }
+
+  const authz = await requirePermission("invitations:revoke");
+  if (!authz.ok) return { ok: false, error: authz.error };
+
+  const invitation = await prisma.agentInvitation.findUnique({ where: { id: invitationId } });
+  if (!invitation) return { ok: false, error: "Invitation not found." };
+  if (invitation.status !== "PENDING") {
+    return { ok: false, error: "Only pending invitations can be revoked." };
+  }
+
+  await prisma.agentInvitation.update({
+    where: { id: invitation.id },
+    data: { status: "REVOKED" },
+  });
+
+  await logActivity({
+    actorId: authz.profile.id,
+    action: "INVITATION_REVOKED",
+    entityType: "AGENT_INVITATION",
+    entityId: invitation.id,
+    oldValues: { status: "PENDING" },
+    newValues: { status: "REVOKED" },
+  });
+  await notifyAdmins(
+    {
+      type: "INVITATION_REVOKED",
+      title: "Invitation Revoked",
+      body: `The invitation for ${invitation.email} was revoked by ${authz.profile.fullName ?? authz.profile.email}.`,
+      entityType: "AGENT_INVITATION",
+      entityId: invitation.id,
+    },
+    authz.profile.id,
+  );
 
   return { ok: true };
 }
