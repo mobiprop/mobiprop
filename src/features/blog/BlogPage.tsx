@@ -208,10 +208,10 @@ function Pagination({
       : [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full">
+    <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6 w-full">
       {/* left */}
       <span
-        className="sm:w-[200px] shrink-0 text-[16px] text-[#2b3038] tracking-[-0.16px] whitespace-nowrap"
+        className="lg:w-[200px] shrink-0 text-center xl:text-left text-[16px] text-[#2b3038] tracking-[-0.16px] whitespace-nowrap"
         style={{ fontFamily: montserrat }}
       >
         Page {currentPage} of {totalPages}
@@ -265,7 +265,7 @@ function Pagination({
 </div>
 
       {/* right */}
-      <div className="sm:w-[200px] shrink-0 flex sm:justify-end">
+      <div className="lg:w-[200px] shrink-0 flex justify-center xl:justify-end">
         <div
           className="flex items-center gap-1 bg-white border border-[#e6e6e6] rounded-lg pl-3 pr-1.5 py-1.5 cursor-pointer"
           style={{ boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)" }}

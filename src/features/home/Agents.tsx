@@ -121,15 +121,12 @@ export function Agents() {
     dots: true,
     arrows: false,
     infinite: true,
-
-    speed: 3000,
+    speed: 900,
     cssEase: "ease-in-out",
-
     slidesToShow: 3,
     slidesToScroll: 1,
-
     autoplay: true,
-    autoplaySpeed: 2800,
+    autoplaySpeed: 5000,
     pauseOnHover: true,
     swipeToSlide: true,
 

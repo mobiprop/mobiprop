@@ -98,81 +98,110 @@ function SearchIcon() {
 /* ─── 1. Hero ─── */
 function HeroBanner() {
   return (
-    <section className="relative h-[360px] lg:h-[408px] overflow-hidden">
-      <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <img
-        src={heroOverlay}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-        }}
-      />
-      <div className="relative h-full flex flex-col items-center justify-center gap-[28px] px-6 text-center">
-        {/* title + subtitle */}
-        <div className="flex flex-col gap-[20px] items-center w-full max-w-[672px]">
-          <h1
-            className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] w-full"
-            style={{ fontFamily: poppins }}
-          >
-            Frequently Asked Questions
-          </h1>
-          <p
-            className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-            style={{ fontFamily: montserrat }}
-          >
-            Build stronger customer relationships, make more sales and save time. Tendly makes it
-            easy to build the exact CRM your business needs
-          </p>
-        </div>
+    <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
+  <div className="absolute inset-0 overflow-hidden">
+    <img
+      src={heroBg}
+      alt=""
+      className="absolute w-full h-[110%] -top-[10%] object-cover"
+    />
+  </div>
 
-        {/* search + popular */}
-        <div className="flex flex-col gap-[20px] items-center w-[420px] max-w-full">
-          {/* search bar */}
-          <div className="bg-white border border-[#dfe1e7] rounded-[1000px] flex items-center gap-2 px-[16px] py-[12px] w-full">
-            <SearchIcon />
-            <input
-              type="text"
-              placeholder="Search"
-              className="flex-1 min-w-0 text-[16px] text-[#737373] leading-[1.6] outline-none bg-transparent"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            />
-            {/* Cmd+K chips */}
-            <div className="flex items-center gap-[4px] shrink-0">
-              <div className="bg-[#eceff3] rounded-[12px] flex items-center justify-center w-[20px] h-[20px]">
-                <span className="text-[10px] text-[#666d80]" style={{ fontFamily: montserrat }}>⌘</span>
-              </div>
-              <div className="bg-[#eceff3] rounded-[12px] flex items-center justify-center w-[20px] h-[20px]">
-                <span className="text-[10px] text-[#666d80]" style={{ fontFamily: montserrat }}>K</span>
-              </div>
-            </div>
-          </div>
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
+    }}
+  />
 
-          {/* popular questions */}
-          <div className="flex items-center gap-[8px] flex-wrap justify-center">
+  <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
+    <img
+      src={heroOverlay}
+      alt=""
+      className="absolute w-full h-full object-cover"
+    />
+  </div>
+
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
+    }}
+  />
+
+  <div className="relative h-full flex flex-col items-center justify-center gap-5 sm:gap-6 px-4 sm:px-6 text-center">
+    <div className="flex flex-col gap-3 sm:gap-5 items-center w-full max-w-[672px]">
+      <h1
+        className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
+        style={{ fontFamily: poppins }}
+      >
+        Frequently Asked Questions
+      </h1>
+
+      <p
+        className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
+        style={{ fontFamily: montserrat }}
+      >
+        Build stronger customer relationships, make more sales and save time.
+        Tendly makes it easy to build the exact CRM your business needs.
+      </p>
+    </div>
+
+    <div className="flex flex-col gap-4 sm:gap-5 items-center w-full max-w-[420px]">
+      <div className="bg-white border border-[#dfe1e7] rounded-[1000px] flex items-center gap-2 px-4 py-3 w-full">
+        <SearchIcon />
+
+        <input
+          type="text"
+          placeholder="Search"
+          className="flex-1 min-w-0 text-[14px] sm:text-[16px] text-[#737373] leading-[1.6] outline-none bg-transparent"
+          style={{ fontFamily: "Inter, sans-serif" }}
+        />
+
+        <div className="hidden sm:flex items-center gap-1 shrink-0">
+          <div className="bg-[#eceff3] rounded-[12px] flex items-center justify-center w-5 h-5">
             <span
-              className="text-[14px] font-medium text-[#666d80] leading-[20px] tracking-[-0.14px] whitespace-nowrap"
+              className="text-[10px] text-[#666d80]"
               style={{ fontFamily: montserrat }}
             >
-              Popular questions:
+              ⌘
             </span>
-            {["Importing", "Billing", "Integrations"].map((tag) => (
-              <span
-                key={tag}
-                className="bg-[#f9fafb] border border-[#e5e7eb] rounded-[1000px] px-[8px] py-[2px] text-[12px] text-[#666d80] tracking-[-0.12px] whitespace-nowrap cursor-pointer hover:bg-[#f0f2f5] transition-colors"
-                style={{ fontFamily: poppins }}
-              >
-                {tag}
-              </span>
-            ))}
+          </div>
+
+          <div className="bg-[#eceff3] rounded-[12px] flex items-center justify-center w-5 h-5">
+            <span
+              className="text-[10px] text-[#666d80]"
+              style={{ fontFamily: montserrat }}
+            >
+              K
+            </span>
           </div>
         </div>
       </div>
-    </section>
+
+      <div className="flex items-center gap-2 flex-wrap justify-center">
+        <span
+          className="text-[14px] font-medium text-[#666d80] leading-5 tracking-[-0.14px] whitespace-nowrap"
+          style={{ fontFamily: montserrat }}
+        >
+          Popular questions:
+        </span>
+
+        {["Importing", "Billing", "Integrations"].map((tag) => (
+          <span
+            key={tag}
+            className="bg-[#f9fafb] border border-[#e5e7eb] rounded-[1000px] px-2 py-[2px] text-[12px] text-[#666d80] tracking-[-0.12px] whitespace-nowrap cursor-pointer hover:bg-[#f0f2f5] transition-colors"
+            style={{ fontFamily: poppins }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
   );
 }
 
@@ -191,95 +220,102 @@ function FAQContent() {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 lg:px-[76px] py-[80px]">
-      <div className="flex flex-col lg:flex-row gap-[48px] items-start">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[76px] py-10 sm:py-14 lg:py-[80px]">
+  <div className="flex flex-col lg:flex-row gap-8 lg:gap-[70px] items-start">
+    {/* ── Categories sidebar ── */}
+    <div className="flex flex-col gap-4 lg:gap-[20px] shrink-0 lg:w-[250px] w-full">
+      <p
+        className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-[#0d0d12] leading-6 lg:leading-[32px] tracking-[-0.16px] lg:tracking-[-0.2px]"
+        style={{ fontFamily: poppins }}
+      >
+        Categories
+      </p>
 
-        {/* ── Categories sidebar ── */}
-        <div className="flex flex-col gap-[20px] shrink-0 lg:w-[250px] w-full">
-          <p
-            className="text-[20px] font-medium text-[#0d0d12] leading-[32px] tracking-[-0.2px]"
-            style={{ fontFamily: poppins }}
-          >
-            Categories
-          </p>
-          <div className="flex flex-col">
-            {categories.map((cat) => {
-              const isActive = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className="flex items-center h-[40px] px-[16px] py-[4px] w-full text-left transition-colors"
-                  style={{
-                    borderLeft: `1px solid ${isActive ? "#1e4f86" : "#dfe1e7"}`,
-                  }}
-                >
-                  <span
-                    className="text-[16px] leading-[24px] tracking-[-0.16px]"
-                    style={{
-                      fontFamily: isActive ? montserrat : montserrat,
-                      fontWeight: isActive ? 500 : 400,
-                      color: isActive ? "#1e4f86" : "#666d80",
-                    }}
-                  >
-                    {cat}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <div className="flex flex-col border-l border-[#dfe1e7]">
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat;
 
-        {/* ── FAQ accordion ── */}
-        <div className="flex flex-col gap-[20px] flex-1 min-w-0">
-          <p
-            className="text-[20px] font-medium text-[#0d0d12] leading-[32px] tracking-[-0.2px]"
-            style={{ fontFamily: poppins }}
-          >
-            General Information
-          </p>
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className="relative flex items-center w-full text-left pl-[22px] sm:pl-[26px] py-[8px] sm:py-[10px] lg:py-[6px]"
+            >
+              {isActive && (
+                <span className="absolute left-[-1px] top-0 h-full w-[2px] bg-[#1e4f86]" />
+              )}
 
-          <div className="flex flex-col gap-[16px]">
-            {faqs.map((faq, i) => {
-              const isOpen = openIndexes.has(i);
-              return (
-                <div
-                  key={i}
-                  className="bg-white border border-[#dfe1e7] rounded-[12px] overflow-hidden"
-                  style={{
-                    boxShadow:
-                      "0px 1px 3px 0px rgba(13,13,18,0.05), 0px 1px 2px 0px rgba(13,13,18,0.04)",
-                  }}
-                >
-                  <button
-                    onClick={() => toggle(i)}
-                    className="flex items-center justify-between w-full p-[24px] text-left"
-                  >
-                    <span
-                      className="flex-1 min-w-0 text-[18px] lg:text-[20px] font-medium text-[#0d0d12] leading-[32px] tracking-[-0.2px] pr-4"
-                      style={{ fontFamily: poppins }}
-                    >
-                      {faq.q}
-                    </span>
-                    {isOpen ? <MinusIcon /> : <PlusIcon />}
-                  </button>
-                  {isOpen && (
-                    <div className="px-[24px] pb-[24px]">
-                      <p
-                        className="text-[16px] text-[#666d80] leading-[24px] tracking-[-0.16px]"
-                        style={{ fontFamily: montserrat }}
-                      >
-                        {faq.a}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+              <span
+                className="text-[14px] sm:text-[14px] lg:text-[16px] leading-[26px] sm:leading-[32px] lg:leading-[38px] tracking-[-0.16px] sm:tracking-[-0.2px] lg:tracking-[-0.24px]"
+                style={{
+                  fontFamily: montserrat,
+                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? "#1e4f86" : "#666d80",
+                }}
+              >
+                {cat}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
+
+    {/* ── FAQ accordion ── */}
+    <div className="flex flex-col gap-4 lg:gap-[20px] flex-1 min-w-0 w-full">
+      <p
+        className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-[#0d0d12] leading-6 lg:leading-[32px] tracking-[-0.16px] lg:tracking-[-0.2px]"
+        style={{ fontFamily: poppins }}
+      >
+        General Information
+      </p>
+
+      <div className="flex flex-col gap-3 lg:gap-[16px]">
+        {faqs.map((faq, i) => {
+          const isOpen = openIndexes.has(i);
+
+          return (
+            <div
+              key={i}
+              className="bg-white border border-[#dfe1e7] rounded-[10px] lg:rounded-[12px] overflow-hidden"
+              style={{
+                boxShadow:
+                  "0px 1px 3px 0px rgba(13,13,18,0.05), 0px 1px 2px 0px rgba(13,13,18,0.04)",
+              }}
+            >
+              <button
+                onClick={() => toggle(i)}
+                className="flex items-start sm:items-center justify-between gap-3 w-full px-4 py-4 lg:p-[24px] text-left"
+              >
+                <span
+                  className="flex-1 min-w-0 text-[15px] sm:text-[16px] lg:text-[20px] font-medium text-[#0d0d12] leading-[22px] sm:leading-6 lg:leading-[32px] tracking-[-0.15px] sm:tracking-[-0.16px] lg:tracking-[-0.2px]"
+                  style={{ fontFamily: poppins }}
+                >
+                  {faq.q}
+                </span>
+
+                <span className="mt-[2px] sm:mt-0 shrink-0 text-[#1e4f86]">
+                  {isOpen ? <MinusIcon /> : <PlusIcon />}
+                </span>
+              </button>
+
+              {isOpen && (
+                <div className="px-4 lg:px-[24px] pb-4 lg:pb-[24px]">
+                  <p
+                    className="text-[13px] sm:text-[14px] lg:text-[16px] text-[#666d80] leading-5 sm:leading-[22px] lg:leading-[24px] tracking-[-0.13px] sm:tracking-[-0.14px] lg:tracking-[-0.16px]"
+                    style={{ fontFamily: montserrat }}
+                  >
+                    {faq.a}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+</div>
   );
 }
 
@@ -295,7 +331,7 @@ function ConsultationBanner() {
       <div className="relative z-10 h-full flex items-center justify-center px-6">
         <div className="bg-white rounded-[20px] p-[20px] w-full max-w-[539px] flex flex-col gap-[28px]">
           <h3
-            className="text-[32px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.33] lg:leading-[48px] tracking-[-0.36px]"
+            className="text-[24px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.22] lg:leading-[48px] tracking-[-0.36px]"
             style={{ fontFamily: poppins }}
           >
             Schedule a free consultation
