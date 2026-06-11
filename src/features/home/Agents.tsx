@@ -1,9 +1,16 @@
-import svgPaths from "@/assets/svg-6s7nojygyu";
+"use client";
 
-const agentBg = "/assets/figma-temp/HomePageFinal/368a7ccf53b013661583890962f409acf4fd07be.png";
-const agent1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-15.png";
-const agent2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-16.png";
-const agent3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-17.png";
+import svgPaths from "@/assets/svg-6s7nojygyu";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+const agent1 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-15.png";
+const agent2 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-16.png";
+const agent3 =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-17.png";
 
 function InstagramIcon() {
   return (
@@ -30,9 +37,36 @@ function XIcon() {
 }
 
 const agents = [
-  { name: "Albert Flores", role: "Property Consultant Orlando, Tampa", photo: agent1 },
-  { name: "Marvin McKinney", role: "Property Consultant Orlando, Tampa", photo: agent2 },
-  { name: "Theresa Webb", role: "Property Consultant Orlando, Tampa", photo: agent3 },
+  {
+    name: "Albert Flores",
+    role: "Property Consultant Orlando, Tampa",
+    photo: agent1,
+  },
+  {
+    name: "Marvin McKinney",
+    role: "Property Consultant Orlando, Tampa",
+    photo: agent2,
+  },
+  {
+    name: "Theresa Webb",
+    role: "Property Consultant Orlando, Tampa",
+    photo: agent3,
+  },
+  {
+    name: "Albert Flores",
+    role: "Property Consultant Orlando, Tampa",
+    photo: agent1,
+  },
+  {
+    name: "Marvin McKinney",
+    role: "Property Consultant Orlando, Tampa",
+    photo: agent2,
+  },
+  {
+    name: "Theresa Webb",
+    role: "Property Consultant Orlando, Tampa",
+    photo: agent3,
+  },
 ];
 
 function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
@@ -70,6 +104,7 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
           {[<InstagramIcon />, <LinkedinIcon />, <XIcon />].map((Icon, i) => (
             <button
               key={i}
+              type="button"
               className="bg-white border border-[#d1d5dc] rounded-[8px] p-2 flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
               {Icon}
@@ -82,47 +117,99 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
 }
 
 export function Agents() {
+  const settings = {
+    dots: true,
+    arrows: false,
+    infinite: true,
+
+    speed: 3000,
+    cssEase: "ease-in-out",
+
+    slidesToShow: 3,
+    slidesToScroll: 1,
+
+    autoplay: true,
+    autoplaySpeed: 2800,
+    pauseOnHover: true,
+    swipeToSlide: true,
+
+    appendDots: (dots: React.ReactNode) => (
+      <div>
+        <ul className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8">
+          {dots}
+        </ul>
+      </div>
+    ),
+
+    customPaging: () => (
+      <div className="agent-custom-dot w-2 h-2 bg-[#6a7282] opacity-25 rounded-full transition-all duration-300 cursor-pointer" />
+    ),
+
+    responsive: [
+      {
+        breakpoint: 1280,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 1,
+          speed: 1000,
+        },
+      },
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          speed: 1000,
+        },
+      },
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          speed: 1000,
+        },
+      },
+    ],
+  };
+
   return (
     <section className="bg-white py-16 lg:py-20">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
-  {/* Header */}
-  <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12">
-    <div className="flex items-center gap-2">
-      <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
-      <span
-        className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
-        style={{ fontFamily: "Montserrat, sans-serif" }}
-      >
-        Agents
-      </span>
-    </div>
+        {/* Header */}
+        <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12">
+          <div className="flex items-center gap-2">
+            <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
+            <span
+              className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Agents
+            </span>
+          </div>
 
-    <h2
-      className="text-[26px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] text-center leading-[36px] sm:leading-[42px] lg:leading-tight max-w-[500px]"
-      style={{ fontFamily: "Poppins, sans-serif" }}
-    >
-      Meet The Experts Who Make It Happen.
-    </h2>
-  </div>
+          <h2
+            className="text-[26px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] text-center leading-[36px] sm:leading-[42px] lg:leading-tight max-w-[500px]"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Meet The Experts Who Make It Happen.
+          </h2>
+        </div>
 
-  {/* Grid */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
-    {agents.map((a) => (
-      <AgentCard key={a.name} agent={a} />
-    ))}
-  </div>
-
-  {/* Pagination dots */}
-  <div className="flex justify-center items-center gap-1.5 mt-6 sm:mt-8">
-    <div className="w-5 h-2 bg-[#1e4f86] rounded-full" />
-    {[1, 2, 3].map((i) => (
-      <div
-        key={i}
-        className="w-2 h-2 bg-[#6a7282] opacity-25 rounded-full"
-      />
-    ))}
-  </div>
-</div>
+        {/* Slick Slider */}
+        <div className="agents-slider -mx-2 sm:-mx-3 cursor-pointer">
+          <Slider {...settings}>
+            {agents.map((agent, index) => (
+              <div
+                key={`${agent.name}-${index}`}
+                className="px-2 sm:px-3 cursor-pointer"
+              >
+                <AgentCard agent={agent} />
+              </div>
+            ))}
+          </Slider>
+        </div>
+      </div>
     </section>
   );
 }

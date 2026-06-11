@@ -87,84 +87,106 @@ function SectionTag({ label }: { label: string }) {
 /* ─── Featured blog card ─── */
 function FeaturedBlog() {
   return (
-    <div className="relative w-full h-[420px] lg:h-[539px] rounded-[20px] overflow-hidden">
-      <img src={featuredBlogImg} alt="Featured blog" className="absolute object-top inset-0 w-full h-full object-cover" />
-      {/* dark gradient overlay */}
-      <div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0) 41%, rgba(0,0,0,0.95) 100%)" }}
-      />
-      <div className="absolute inset-0 flex flex-col justify-between p-6 lg:p-10">
-        {/* badge */}
-        <span
-          className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[14px] text-[#0d2138] tracking-[-0.14px]"
-          style={{ fontFamily: montserrat }}
-        >
-          Architecture
-        </span>
+   <div className="relative w-full h-[360px] sm:h-[420px] lg:h-[539px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
+  <img
+    src={featuredBlogImg}
+    alt="Featured blog"
+    className="absolute inset-0 w-full h-full object-cover object-top"
+  />
 
-        {/* bottom row */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div className="flex flex-col gap-5 max-w-[695px]">
-            <h2
-              className="text-[26px] lg:text-[36px] font-semibold text-white leading-[1.25] lg:leading-[48px] tracking-[-0.36px]"
-              style={{ fontFamily: poppins }}
-            >
-              The Future of Sustainable Architecture: Trends to Watch in 2025
-            </h2>
-            <button className="flex items-center gap-2 cursor-pointer">
-              <span className="text-[16px] font-medium text-white tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
-                Read More
-              </span>
-              <img src={arrowRightWhite} alt="" className="w-6 h-6" />
-            </button>
-          </div>
+  {/* dark gradient overlay */}
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.95) 100%)",
+    }}
+  />
+
+  <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 lg:p-10">
+    {/* badge */}
+    <span
+      className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
+      style={{ fontFamily: montserrat }}
+    >
+      Architecture
+    </span>
+
+    {/* bottom row */}
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4">
+      <div className="flex flex-col gap-4 sm:gap-5 max-w-[695px]">
+        <h2
+          className="text-[22px] sm:text-[26px] lg:text-[36px] font-semibold text-white leading-[1.25] lg:leading-[48px] tracking-[-0.36px]"
+          style={{ fontFamily: poppins }}
+        >
+          The Future of Sustainable Architecture: Trends to Watch in 2025
+        </h2>
+
+        <button className="flex items-center gap-3 sm:gap-[24px] cursor-pointer w-fit">
           <span
-            className="text-[16px] font-medium text-[#f9fafb] tracking-[-0.16px] whitespace-nowrap"
+            className="text-[14px] sm:text-[16px] font-medium text-white tracking-[-0.16px]"
             style={{ fontFamily: montserrat }}
           >
-            March 5, 2026
+            Read More
           </span>
-        </div>
+          <img src={arrowRightWhite} alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
       </div>
+
+      <span
+        className="text-[14px] sm:text-[16px] font-medium text-[#f9fafb] tracking-[-0.16px] whitespace-nowrap"
+        style={{ fontFamily: montserrat }}
+      >
+        March 5, 2026
+      </span>
     </div>
+  </div>
+</div>
   );
 }
 
 /* ─── Blog card ─── */
 function BlogCard({ post }: { post: BlogPost }) {
   return (
-    <Link href={`/blog/${post.slug}`} className="flex flex-col gap-5 cursor-pointer group">
-      {/* image */}
-      <div className="relative h-[296px] rounded-[20px] overflow-hidden">
-        <img
-          src={post.img}
-          alt={post.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-        <span
-          className="absolute top-4 left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[14px] text-[#0d2138] tracking-[-0.14px]"
-          style={{ fontFamily: montserrat }}
-        >
-          {post.category}
-        </span>
-      </div>
+   <Link
+  href={`/blog/${post.slug}`}
+  className="flex flex-col gap-4 sm:gap-5 cursor-pointer group"
+>
+  {/* image */}
+  <div className="relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
+    <img
+      src={post.img}
+      alt={post.title}
+      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+    />
 
-      {/* meta + title */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center text-[14px] text-[#2b3038] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-          <span className="whitespace-nowrap">{post.date}</span>
-          <span className="w-[5px] h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
-          <span className="whitespace-nowrap">{post.author}</span>
-        </div>
-        <h3
-          className="text-[20px] font-medium text-[#0d2138] leading-[32px] tracking-[-0.2px] line-clamp-2"
-          style={{ fontFamily: poppins }}
-        >
-          {post.title}
-        </h3>
-      </div>
-    </Link>
+    <span
+      className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
+      style={{ fontFamily: montserrat }}
+    >
+      {post.category}
+    </span>
+  </div>
+
+  {/* meta + title */}
+  <div className="flex flex-col gap-2">
+    <div
+      className="flex items-center flex-wrap gap-y-1 text-[12px] sm:text-[14px] text-[#2b3038] tracking-[-0.14px]"
+      style={{ fontFamily: montserrat }}
+    >
+      <span className="whitespace-nowrap">{post.date}</span>
+      <span className="w-[4px] h-[4px] sm:w-[5px] sm:h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
+      <span className="whitespace-nowrap">{post.author}</span>
+    </div>
+
+    <h3
+      className="text-[18px] sm:text-[20px] font-medium text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.2px] line-clamp-2"
+      style={{ fontFamily: poppins }}
+    >
+      {post.title}
+    </h3>
+  </div>
+</Link>
   );
 }
 
@@ -197,50 +219,50 @@ function Pagination({
 
       {/* center */}
       <div className="flex-1 flex items-center justify-center gap-2">
-        <button
-          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          aria-label="Previous page"
-          className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 disabled:opacity-40"
-        >
-          <img src={paginationArrowLeft} alt="" className="w-5 h-5" />
-        </button>
+  <button
+    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+    disabled={currentPage === 1}
+    aria-label="Previous page"
+    className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    <img src={paginationArrowLeft} alt="" className="w-5 h-5" />
+  </button>
 
-        {pages.map((p, i) =>
-          p === "..." ? (
-            <span
-              key={`e-${i}`}
-              className="w-8 h-8 flex items-center justify-center text-[14px] text-[#6a7282]"
-              style={{ fontFamily: montserrat }}
-            >
-              ...
-            </span>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onPageChange(p)}
-              className="w-8 h-8 rounded-[6px] border border-[#e6e6e6] flex items-center justify-center text-[16px] tracking-[-0.16px] transition-colors"
-              style={{
-                fontFamily: montserrat,
-                backgroundColor: currentPage === p ? "#fafafa" : "#ffffff",
-                color: currentPage === p ? "#0d2138" : "#2b3038",
-                boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)",
-              }}
-            >
-              {p}
-            </button>
-          )
-        )}
+  {pages.map((p, i) =>
+    p === "..." ? (
+      <span
+        key={`e-${i}`}
+        className="w-8 h-8 flex items-center justify-center text-[14px] text-[#6a7282]"
+        style={{ fontFamily: montserrat }}
+      >
+        ...
+      </span>
+    ) : (
+      <button
+        key={p}
+        onClick={() => onPageChange(p)}
+        className="w-8 h-8 rounded-[6px] border border-[#e6e6e6] flex items-center justify-center text-[16px] tracking-[-0.16px] transition-colors cursor-pointer"
+        style={{
+          fontFamily: montserrat,
+          backgroundColor: currentPage === p ? "#fafafa" : "#ffffff",
+          color: currentPage === p ? "#0d2138" : "#2b3038",
+          boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)",
+        }}
+      >
+        {p}
+      </button>
+    )
+  )}
 
-        <button
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
-          aria-label="Next page"
-          className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 disabled:opacity-40"
-        >
-          <img src={paginationArrowRight} alt="" className="w-5 h-5" />
-        </button>
-      </div>
+  <button
+    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+    disabled={currentPage === totalPages}
+    aria-label="Next page"
+    className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    <img src={paginationArrowRight} alt="" className="w-5 h-5" />
+  </button>
+</div>
 
       {/* right */}
       <div className="sm:w-[200px] shrink-0 flex sm:justify-end">
@@ -279,16 +301,16 @@ export function BlogPageContent() {
           className="absolute inset-0"
           style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)" }}
         />
-        <div className="relative h-full flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
           <SectionTag label="Blog Page" />
           <h1
-            className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] max-w-[644px]"
+            className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
             style={{ fontFamily: poppins }}
           >
             Insights for the Modern Property Market
           </h1>
           <p
-            className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px] max-w-[560px]"
+            className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
             style={{ fontFamily: montserrat }}
           >
             Stay ahead of the curve with expert analysis, local market trends, and comprehensive guides for buyers, sellers, and investors.
@@ -297,20 +319,24 @@ export function BlogPageContent() {
       </section>
 
       {/* ── Content ── */}
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 pt-[60px] pb-16 lg:pb-20">
-        <div className="flex flex-col gap-[60px]">
-          <FeaturedBlog />
+      <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
+  <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[60px]">
+    <FeaturedBlog />
 
-          {/* 3-column grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[30px]">
-            {BLOG_POSTS.map((post) => (
-              <BlogCard key={post.id} post={post} />
-            ))}
-          </div>
+    {/* responsive grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-[30px]">
+      {BLOG_POSTS.map((post) => (
+        <BlogCard key={post.id} post={post} />
+      ))}
+    </div>
 
-          <Pagination currentPage={currentPage} totalPages={TOTAL_PAGES} onPageChange={setCurrentPage} />
-        </div>
-      </div>
+    <Pagination
+      currentPage={currentPage}
+      totalPages={TOTAL_PAGES}
+      onPageChange={setCurrentPage}
+    />
+  </div>
+</div>
     </>
   );
 }
