@@ -65,45 +65,72 @@ function MapPinIcon() {
 /* ─── 1. Hero ─── */
 function HeroBanner() {
   return (
-    <section className="relative h-[360px] lg:h-[408px] overflow-hidden">
-      <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <img
-        src={heroOverlay}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-        }}
-      />
-      <div className="relative h-full flex flex-col items-center justify-center gap-2 px-6 text-center">
-        {/* tag */}
-        <div className="flex items-center gap-2">
-          <span className="w-[7px] h-[7px] rounded-full bg-[#4896b6] shrink-0" />
-          <span
-            className="text-[16px] font-medium leading-[24px] tracking-[-0.16px] text-[#2b3038]"
-            style={{ fontFamily: montserrat }}
-          >
-            Privacy
-          </span>
-        </div>
-        <h1
-          className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] max-w-[644px]"
-          style={{ fontFamily: poppins }}
-        >
-          Privacy Policy
-        </h1>
-        <p
-          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
-          Last updated: October 15, 2023
-        </p>
-      </div>
-    </section>
+   <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
+  {/* Background image */}
+  <div className="absolute inset-0 overflow-hidden">
+    <img
+      src={heroBg}
+      alt=""
+      className="absolute w-full h-[110%] -top-[10%] object-cover"
+    />
+  </div>
+
+  {/* Main gradient */}
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
+    }}
+  />
+
+  {/* Overlay image */}
+  <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
+    <img
+      src={heroOverlay}
+      alt=""
+      className="absolute inset-0 w-full h-full object-cover"
+    />
+  </div>
+
+  {/* Bottom fade */}
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
+    }}
+  />
+
+  {/* Content */}
+  <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
+    {/* Tag */}
+    <div className="flex items-center gap-2">
+      <span className="w-[7px] h-[7px] rounded-full bg-[#4896b6] shrink-0" />
+
+      <span
+        className="text-[14px] sm:text-[16px] font-medium text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px]"
+        style={{ fontFamily: montserrat }}
+      >
+        Privacy
+      </span>
+    </div>
+
+    <h1
+      className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
+      style={{ fontFamily: poppins }}
+    >
+      Privacy Policy
+    </h1>
+
+    <p
+      className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px]"
+      style={{ fontFamily: montserrat }}
+    >
+      Last updated: October 15, 2023
+    </p>
+  </div>
+</section>
   );
 }
 
@@ -113,249 +140,310 @@ function PrivacyContent() {
     <div className="max-w-[1196px] mx-auto px-6 lg:px-10 py-[80px] flex flex-col gap-[48px]">
 
       {/* ── Intro section ── */}
-      <div className="flex flex-col gap-[32px]">
-        {/* heading block */}
-        <div className="flex flex-col gap-[16px] max-w-[759px]">
-          {/* breadcrumb */}
-          <div className="flex items-center gap-[6px]">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
-              <path
-                d="M12.6667 8H3.33334M3.33334 8L8.00001 12.6667M3.33334 8L8.00001 3.33333"
-                stroke="#6a7282"
-                strokeWidth="1.33"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span
-              className="text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px]"
-              style={{ fontFamily: montserrat }}
-            >
-              Privacy Policy
-            </span>
-          </div>
-          <h2
-            className="text-[32px] lg:text-[40px] font-semibold text-[#0d2138] leading-[1.3] lg:leading-[52px] tracking-[-0.4px]"
-            style={{ fontFamily: poppins }}
-          >
-            We prioritize your privacy and ensure your data is secure during our chat.
-          </h2>
-        </div>
+    <div className="flex flex-col gap-[24px] sm:gap-[28px] lg:gap-[32px]">
+  {/* Heading block */}
+  <div className="flex flex-col gap-[12px] sm:gap-[14px] lg:gap-[16px] max-w-[759px]">
+    {/* Breadcrumb */}
+    <div className="flex items-center gap-[6px]">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        className="shrink-0"
+      >
+        <path
+          d="M12.6667 8H3.33334M3.33334 8L8.00001 12.6667M3.33334 8L8.00001 3.33333"
+          stroke="#6a7282"
+          strokeWidth="1.33"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
 
-        {/* body */}
-        <div
-          className="flex flex-col gap-[24px] text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
-          <p>
-            Metafi is a service to accept cryptocurrency payments by Piers FZCO. This privacy notice
-            for Piers FZCO (&ldquo;Metafi&rdquo;, &ldquo;Company&rdquo;, &ldquo;we&rdquo;,
-            &ldquo;us&rdquo;, or &ldquo;our&rdquo;), describes how and why we might collect, store,
-            use, and/or share (&ldquo;process&rdquo;) your information when you use our services
-            (&ldquo;Services&rdquo;), such as when you:
-          </p>
-          <ul className="list-disc ml-6 flex flex-col gap-1">
-            <li>
-              Visit our website at{" "}
-              <span className="font-semibold text-[#4896b6]">https://ulrich.com</span>, or any
-              website of ours that links to this privacy notice
-            </li>
-            <li>
-              Engage with us in other related ways, including any sales, marketing, or events
-            </li>
-          </ul>
-          <p>
-            Questions or concerns? Reading this privacy notice will help you understand your privacy
-            rights and choices. If you do not agree with our policies and practices, please do not
-            use our Services. If you still have any questions or concerns, please contact us at
-            support@metafi.com.
-          </p>
-        </div>
-      </div>
+      <span
+        className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#6a7282] leading-[20px] sm:leading-[22px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+        style={{ fontFamily: montserrat }}
+      >
+        Privacy Policy
+      </span>
+    </div>
+
+    <h2
+      className="text-[24px] sm:text-[28px] lg:text-[40px] font-semibold text-[#0d2138] leading-[32px] sm:leading-[38px] lg:leading-[52px] tracking-[-0.24px] sm:tracking-[-0.28px] lg:tracking-[-0.4px]"
+      style={{ fontFamily: poppins }}
+    >
+      We prioritize your privacy and ensure your data is secure during our
+      chat.
+    </h2>
+  </div>
+
+  {/* Body */}
+  <div
+    className="flex flex-col gap-[18px] sm:gap-[20px] lg:gap-[24px] text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+    style={{ fontFamily: montserrat }}
+  >
+    <p>
+      Metafi is a service to accept cryptocurrency payments by Piers FZCO. This
+      privacy notice for Piers FZCO (&ldquo;Metafi&rdquo;,
+      &ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or
+      &ldquo;our&rdquo;), describes how and why we might collect, store, use,
+      and/or share (&ldquo;process&rdquo;) your information when you use our
+      services (&ldquo;Services&rdquo;), such as when you:
+    </p>
+
+    <ul className="list-disc ml-5 sm:ml-6 flex flex-col gap-1.5 sm:gap-1">
+      <li>
+        Visit our website at{" "}
+        <span className="font-semibold text-[#4896b6] break-all">
+          https://ulrich.com
+        </span>
+        , or any website of ours that links to this privacy notice
+      </li>
+
+      <li>
+        Engage with us in other related ways, including any sales, marketing,
+        or events
+      </li>
+    </ul>
+
+    <p>
+      Questions or concerns? Reading this privacy notice will help you
+      understand your privacy rights and choices. If you do not agree with our
+      policies and practices, please do not use our Services. If you still have
+      any questions or concerns, please contact us at support@metafi.com.
+    </p>
+  </div>
+</div>
 
       {/* ── Summary of key points ── */}
-      <div className="flex flex-col gap-[32px]">
-        <h3
-          className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-          style={{ fontFamily: poppins }}
-        >
-          Summary of key points
-        </h3>
-        <div
-          className="flex flex-col gap-[31px] text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
-          <p>
-            This summary provides key points from our privacy notice, but you can find out more
-            details about any of these topics by clicking the link following each key point or by
-            using our table of contents below to find the section you are looking for. You can also
-            click here to go directly to our table of contents.
-          </p>
-          <p>
-            What personal information do we process? When you visit, use, or navigate our Services,
-            we may process personal information depending on how you interact with Copperx and the
-            Services, the choices you make, and the products and features you use. Click here to
-            learn more.
-          </p>
-          <p>Do we process any sensitive personal information? We do not process sensitive personal information.</p>
-          <p>Do we receive any information from third parties? We do not receive any information from third parties.</p>
-          <p>
-            How do we process your information? We process your information to provide, improve, and
-            administer our Services, communicate with you, for security and fraud prevention, and to
-            comply with law. We may also process your information for other purposes with your
-            consent. We process your information only when we have a valid legal reason to do so.
-            Click here to learn more.
-          </p>
-          <p>
-            In what situations and with which types of parties do we share personal information? We
-            may share information in specific situations and with specific categories of third
-            parties. Click here to learn more.
-          </p>
-          <p>
-            How do we keep your information safe? We have organizational and technical processes and
-            procedures in place to protect your personal information. However, no electronic
-            transmission over the internet or information storage technology can be guaranteed to be
-            100% secure, so we cannot promise or guarantee that hackers, cybercriminals, or other
-            unauthorized third parties will not be able to defeat our security and improperly
-            collect, access, steal, or modify your information. Click here to learn more.
-          </p>
-          <p>
-            What are your rights? Depending on where you are located geographically, the applicable
-            privacy law may mean you have certain rights regarding your personal information.{" "}
-            <span className="font-semibold text-[#1e4f86]">Click here</span> to learn more.
-          </p>
-          <p>
-            How do you exercise your rights? The easiest way to exercise your rights is by filling
-            out our data subject request form available here:{" "}
-            <span className="font-semibold text-[#1e4f86]">https://support.ulrich.com</span>, or by
-            contacting us. We will consider and act upon any request in accordance with applicable
-            data protection laws.
-          </p>
-          <p>
-            Want to learn more about what Copperx does with any information we collect?{" "}
-            <span className="font-semibold text-[#1e4f86]">Click here</span> to review the notice
-            in full.
-          </p>
-        </div>
-      </div>
+     <div className="flex flex-col gap-[24px] sm:gap-[28px] lg:gap-[32px]">
+  <h3
+    className="text-[22px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
+    style={{ fontFamily: poppins }}
+  >
+    Summary of key points
+  </h3>
+
+  <div
+    className="flex flex-col gap-[20px] sm:gap-[25px] lg:gap-[31px] text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+    style={{ fontFamily: montserrat }}
+  >
+    <p>
+      This summary provides key points from our privacy notice, but you can
+      find out more details about any of these topics by clicking the link
+      following each key point or by using our table of contents below to find
+      the section you are looking for. You can also click here to go directly
+      to our table of contents.
+    </p>
+
+    <p>
+      What personal information do we process? When you visit, use, or navigate
+      our Services, we may process personal information depending on how you
+      interact with Copperx and the Services, the choices you make, and the
+      products and features you use. Click here to learn more.
+    </p>
+
+    <p>
+      Do we process any sensitive personal information? We do not process
+      sensitive personal information.
+    </p>
+
+    <p>
+      Do we receive any information from third parties? We do not receive any
+      information from third parties.
+    </p>
+
+    <p>
+      How do we process your information? We process your information to
+      provide, improve, and administer our Services, communicate with you, for
+      security and fraud prevention, and to comply with law. We may also
+      process your information for other purposes with your consent. We process
+      your information only when we have a valid legal reason to do so. Click
+      here to learn more.
+    </p>
+
+    <p>
+      In what situations and with which types of parties do we share personal
+      information? We may share information in specific situations and with
+      specific categories of third parties. Click here to learn more.
+    </p>
+
+    <p>
+      How do we keep your information safe? We have organizational and
+      technical processes and procedures in place to protect your personal
+      information. However, no electronic transmission over the internet or
+      information storage technology can be guaranteed to be 100% secure, so
+      we cannot promise or guarantee that hackers, cybercriminals, or other
+      unauthorized third parties will not be able to defeat our security and
+      improperly collect, access, steal, or modify your information. Click here
+      to learn more.
+    </p>
+
+    <p>
+      What are your rights? Depending on where you are located geographically,
+      the applicable privacy law may mean you have certain rights regarding
+      your personal information.{" "}
+      <span className="font-semibold text-[#1e4f86]">Click here</span> to learn
+      more.
+    </p>
+
+    <p>
+      How do you exercise your rights? The easiest way to exercise your rights
+      is by filling out our data subject request form available here:{" "}
+      <span className="font-semibold text-[#1e4f86] break-all">
+        https://support.ulrich.com
+      </span>
+      , or by contacting us. We will consider and act upon any request in
+      accordance with applicable data protection laws.
+    </p>
+
+    <p>
+      Want to learn more about what Copperx does with any information we
+      collect?{" "}
+      <span className="font-semibold text-[#1e4f86]">Click here</span> to
+      review the notice in full.
+    </p>
+  </div>
+</div>
 
       {/* ── Section 1: What information do we collect? ── */}
-      <div className="flex flex-col gap-[32px]">
-        <ol
-          className="list-decimal ml-[42px] text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-          style={{ fontFamily: poppins }}
-        >
-          <li>What information do we collect?</li>
-        </ol>
+      <div className="flex flex-col gap-[24px] sm:gap-[28px] lg:gap-[32px]">
+  <ol
+    className="list-decimal ml-[28px] sm:ml-[34px] lg:ml-[42px] text-[22px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
+    style={{ fontFamily: poppins }}
+  >
+    <li>What information do we collect?</li>
+  </ol>
 
-        <div className="flex flex-col gap-[24px]">
-          {/* main body */}
-          <div
-            className="flex flex-col gap-[24px] text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+  <div className="flex flex-col gap-[20px] sm:gap-[22px] lg:gap-[24px]">
+    {/* Main body */}
+    <div
+      className="flex flex-col gap-[18px] sm:gap-[20px] lg:gap-[24px] text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+      style={{ fontFamily: montserrat }}
+    >
+      <p>
+        *In Short: We collect personal information that you provide to us.*
+      </p>
+
+      <p>
+        We collect personal information that you voluntarily provide to us
+        when you register on the Services, express an interest in obtaining
+        information about us or our products and Services, when you participate
+        in activities on the Services, or otherwise when you contact us.
+      </p>
+
+      <div>
+        <p className="mb-2 sm:mb-1">
+          Personal Information Provided by You. The personal information that
+          we collect depends on the context of your interactions with us and
+          the Services, the choices you make, and the products and features you
+          use. The personal information we collect may include the following:
+        </p>
+
+        <ul className="list-disc ml-5 sm:ml-6 flex flex-col gap-1 sm:gap-0.5">
+          {[
+            "names",
+            "email addresses",
+            "phone numbers",
+            "billing addresses",
+            "contact or authentication data",
+            "job titles",
+            "usernames",
+            "passwords",
+            "contact preferences",
+            "wallet addresses",
+          ].map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <p>
+        Sensitive Information. We do not process sensitive information.
+      </p>
+
+      <p>
+        Social Media Login Data. We may provide you with the option to register
+        with us using your existing social media account details, like your
+        Facebook, X (Twitter), or other social media account. If you choose to
+        register in this way, we will collect the information described in the
+        section called &ldquo;HOW DO WE HANDLE YOUR SOCIAL LOGINS?&rdquo;
+        below.
+      </p>
+
+      <p>
+        All personal information that you provide to us must be true, complete,
+        and accurate, and you must notify us of any changes to such personal
+        information.
+      </p>
+    </div>
+
+    {/* Contact Information */}
+    <div className="flex flex-col gap-[14px] sm:gap-[15px] lg:gap-[16px] max-w-[840px]">
+      <h4
+        className="text-[22px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
+        style={{ fontFamily: poppins }}
+      >
+        Contact Information:
+      </h4>
+
+      <p
+        className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+        style={{ fontFamily: montserrat }}
+      >
+        If you have any questions or comments about this Privacy Policy, the
+        ways in which we collect and use your Personal Data or your choices and
+        rights regarding such collection and use, please do not hesitate to
+        contact us at:
+      </p>
+
+      <div className="flex flex-col gap-[10px] sm:gap-[12px]">
+        {/* Email */}
+        <div className="flex items-start sm:items-center gap-[10px] sm:gap-[12px]">
+          <div className="flex items-center justify-center w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] rounded-full bg-white shrink-0 shadow-sm">
+            <MailIcon />
+          </div>
+
+          <span
+            className="min-w-0 break-all text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
             style={{ fontFamily: montserrat }}
           >
-            <p>*In Short: We collect personal information that you provide to us.*</p>
-            <p>
-              We collect personal information that you voluntarily provide to us when you register on
-              the Services, express an interest in obtaining information about us or our products and
-              Services, when you participate in activities on the Services, or otherwise when you
-              contact us.
-            </p>
-            <div>
-              <p className="mb-1">
-                Personal Information Provided by You. The personal information that we collect
-                depends on the context of your interactions with us and the Services, the choices you
-                make, and the products and features you use. The personal information we collect may
-                include the following:
-              </p>
-              <ul className="list-disc ml-6 flex flex-col gap-0.5">
-                {[
-                  "names",
-                  "email addresses",
-                  "phone numbers",
-                  "billing addresses",
-                  "contact or authentication data",
-                  "job titles",
-                  "usernames",
-                  "passwords",
-                  "contact preferences",
-                  "wallet addresses",
-                ].map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <p>Sensitive Information. We do not process sensitive information.</p>
-            <p>
-              Social Media Login Data. We may provide you with the option to register with us using
-              your existing social media account details, like your Facebook, X (Twitter), or other
-              social media account. If you choose to register in this way, we will collect the
-              information described in the section called &ldquo;HOW DO WE HANDLE YOUR SOCIAL
-              LOGINS?&rdquo; below.
-            </p>
-            <p>
-              All personal information that you provide to us must be true, complete, and accurate,
-              and you must notify us of any changes to such personal information.
-            </p>
+            support@tendly.com
+          </span>
+        </div>
+
+        {/* Phone */}
+        <div className="flex items-start sm:items-center gap-[10px] sm:gap-[12px]">
+          <div className="flex items-center justify-center w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] rounded-full bg-white shrink-0 shadow-sm">
+            <PhoneIcon />
           </div>
 
-          {/* Contact Information card */}
-          <div className="flex flex-col gap-[16px] max-w-[840px]">
-            <h4
-              className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-              style={{ fontFamily: poppins }}
-            >
-              Contact Information:
-            </h4>
-            <p
-              className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-              style={{ fontFamily: montserrat }}
-            >
-              If you have any questions or comments about this Privacy Policy, the ways in which we
-              collect and use your Personal Data or your choices and rights regarding such collection
-              and use, please do not hesitate to contact us at:
-            </p>
-            <div className="flex flex-col gap-[12px]">
-              {/* Email */}
-              <div className="flex items-center gap-[12px]">
-                <div className="flex items-center justify-center w-[32px] h-[32px] rounded-full bg-white shrink-0 shadow-sm">
-                  <MailIcon />
-                </div>
-                <span
-                  className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
-                >
-                  support@tendly.com
-                </span>
-              </div>
-              {/* Phone */}
-              <div className="flex items-center gap-[12px]">
-                <div className="flex items-center justify-center w-[32px] h-[32px] rounded-full bg-white shrink-0 shadow-sm">
-                  <PhoneIcon />
-                </div>
-                <span
-                  className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
-                >
-                  +1 3245 8907
-                </span>
-              </div>
-              {/* Address */}
-              <div className="flex items-center gap-[12px]">
-                <div className="flex items-center justify-center w-[32px] h-[32px] rounded-full bg-white shrink-0 shadow-sm">
-                  <MapPinIcon />
-                </div>
-                <span
-                  className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
-                >
-                  3517 W. Gray St. Utica, Pennsylvania 57867
-                </span>
-              </div>
-            </div>
+          <span
+            className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+            style={{ fontFamily: montserrat }}
+          >
+            +1 3245 8907
+          </span>
+        </div>
+
+        {/* Address */}
+        <div className="flex items-start sm:items-center gap-[10px] sm:gap-[12px]">
+          <div className="flex items-center justify-center w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] rounded-full bg-white shrink-0 shadow-sm">
+            <MapPinIcon />
           </div>
+
+          <span
+            className="min-w-0 break-words text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
+            style={{ fontFamily: montserrat }}
+          >
+            3517 W. Gray St. Utica, Pennsylvania 57867
+          </span>
         </div>
       </div>
+    </div>
+  </div>
+</div>
     </div>
   );
 }
@@ -374,7 +462,7 @@ function ConsultationBanner() {
       <div className="relative z-10 h-full flex items-center justify-center px-6">
         <div className="bg-white rounded-[20px] p-[20px] w-full max-w-[539px] flex flex-col gap-[28px] overflow-hidden">
           <h3
-            className="text-[32px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.33] lg:leading-[48px] tracking-[-0.36px]"
+            className="text-[28px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.33] lg:leading-[48px] tracking-[-0.36px]"
             style={{ fontFamily: poppins }}
           >
             Schedule a free consultation
