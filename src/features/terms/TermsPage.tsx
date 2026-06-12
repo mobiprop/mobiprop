@@ -4,9 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 
 /* ─── assets ─── */
-const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
-const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
-const consultationBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.png";
+const heroBg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const heroOverlay =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
+const consultationBg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.png";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
@@ -56,7 +59,8 @@ const sections = [
         "You will not impersonate an agent, homeowner, or another user.",
       ],
     },
-    outro: "Any misuse may result in restricted access or removal of submitted content.",
+    outro:
+      "Any misuse may result in restricted access or removal of submitted content.",
   },
   {
     heading: "4. Property listings and accuracy",
@@ -98,20 +102,23 @@ const sections = [
         "Are used at your own discretion",
       ],
     },
-    outro: "We are not responsible for any issues arising from third-party websites.",
+    outro:
+      "We are not responsible for any issues arising from third-party websites.",
   },
 ];
 
 /* ─── 1. Hero ─── */
 function HeroBanner() {
   return (
-    <section className="relative h-[360px] lg:h-[408px] overflow-hidden">
-      <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <img
-        src={heroOverlay}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
-      />
+    <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
+      <div className="absolute inset-0 overflow-hidden">
+        <img
+          src={heroBg}
+          alt=""
+          className="absolute w-full h-[110%] -top-[10%] object-cover"
+        />
+      </div>
+
       <div
         className="absolute inset-0"
         style={{
@@ -119,15 +126,32 @@ function HeroBanner() {
             "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
         }}
       />
-      <div className="relative h-full flex flex-col items-center justify-center gap-[16px] px-6 text-center">
+
+      <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
+        <img
+          src={heroOverlay}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      </div>
+
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
+        }}
+      />
+
+      <div className="relative z-10 h-full flex flex-col items-center justify-center gap-[10px] sm:gap-[12px] lg:gap-[16px] px-4 sm:px-6 text-center">
         <h1
-          className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] max-w-[644px]"
+          className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[44px] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.34px] lg:tracking-[-0.44px] max-w-[340px] sm:max-w-[520px] lg:max-w-[644px]"
           style={{ fontFamily: poppins }}
         >
           Terms &amp; Conditions
         </h1>
         <p
-          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+          className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[20px] sm:leading-[22px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
           Last updated: October 15, 2023
@@ -140,30 +164,32 @@ function HeroBanner() {
 /* ─── 2. Content ─── */
 function TermsContent() {
   return (
-    <div className="max-w-[952px] mx-auto px-6 lg:px-0 py-[80px] flex flex-col gap-[48px]">
-
+    <div className="max-w-[952px] mx-auto px-4 sm:px-6 lg:px-0 py-[48px] sm:py-[64px] lg:py-[80px] flex flex-col gap-[36px] sm:gap-[42px] lg:gap-[48px]">
       {/* numbered sections */}
       {sections.map((s) => (
-        <div key={s.heading} className="flex flex-col gap-[20px]">
+        <div
+          key={s.heading}
+          className="flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]"
+        >
           <h2
-            className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
+            className="text-[24px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
             style={{ fontFamily: poppins }}
           >
             {s.heading}
           </h2>
           <div
-            className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+            className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
             style={{ fontFamily: montserrat }}
           >
             <p className="mb-3">{s.intro}</p>
             {s.list.type === "ol" ? (
-              <ol className="list-decimal ml-6 flex flex-col gap-1 mb-3">
+              <ol className="list-decimal ml-5 sm:ml-6 flex flex-col gap-1.5 sm:gap-1 mb-3">
                 {s.list.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ol>
             ) : (
-              <ul className="list-disc ml-6 flex flex-col gap-1 mb-3">
+              <ul className="list-disc ml-5 sm:ml-6 flex flex-col gap-1.5 sm:gap-1 mb-3">
                 {s.list.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -175,22 +201,25 @@ function TermsContent() {
       ))}
 
       {/* 12. Contact information */}
-      <div className="flex flex-col gap-[20px]">
+      <div className="flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]">
         <h2
-          className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
+          className="text-[22px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
           style={{ fontFamily: poppins }}
         >
           12. Contact information
         </h2>
         <div
-          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
+          className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
           <p className="mb-3">
-            If you have questions about these Terms and Conditions, you can reach us at:
+            If you have questions about these Terms and Conditions, you can
+            reach us at:
           </p>
           <p>
-            <span className="font-medium text-[#0d2138]">support@ulrich.com</span>
+            <span className="font-medium text-[#0d2138]">
+              support@ulrich.com
+            </span>
             <br />
             or via our{" "}
             <Link
@@ -209,26 +238,35 @@ function TermsContent() {
 
 /* ─── 3. Consultation Banner ─── */
 function ConsultationBanner() {
-  const [form, setForm] = useState({ name: "", email: "", topic: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    topic: "",
+    message: "",
+  });
 
   return (
-    <section className="relative h-[680px] lg:h-[784px] overflow-hidden">
-      <img src={consultationBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+    <section className="relative min-h-[690px] sm:min-h-[740px] lg:h-[784px] overflow-hidden">
+      <img
+        src={consultationBg}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+      />
       <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
 
-      <div className="relative z-10 h-full flex items-center justify-center px-6">
-        <div className="bg-white rounded-[20px] p-[20px] w-full max-w-[539px] flex flex-col gap-[28px]">
+      <div className="relative z-10 min-h-[690px] sm:min-h-[740px] lg:h-full flex items-center justify-center px-4 sm:px-6 py-10 sm:py-12 lg:py-0">
+        <div className="bg-white rounded-[16px] sm:rounded-[18px] lg:rounded-[20px] p-4 sm:p-5 lg:p-[20px] w-full max-w-[539px] flex flex-col gap-[22px] sm:gap-[25px] lg:gap-[28px]">
           <h3
-            className="text-[32px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.33] lg:leading-[48px] tracking-[-0.36px]"
+            className="text-[25px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[40px] lg:leading-[48px] tracking-[-0.25px] sm:tracking-[-0.3px] lg:tracking-[-0.36px]"
             style={{ fontFamily: poppins }}
           >
             Schedule a free consultation
           </h3>
 
-          <div className="flex flex-col gap-[12px]">
+          <div className="flex flex-col gap-[10px] sm:gap-[12px]">
             <div className="flex flex-col gap-[4px]">
               <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
                 Full Name
@@ -237,14 +275,16 @@ function ConsultationBanner() {
                 type="text"
                 placeholder="eg. Albert Jones"
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
+                className="h-[44px] sm:h-auto border border-[#d1d5dc] rounded-[9px] sm:rounded-[10px] px-[12px] sm:p-[12px] text-[13px] sm:text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
                 style={{ fontFamily: montserrat }}
               />
             </div>
             <div className="flex flex-col gap-[4px]">
               <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
                 Email address
@@ -253,14 +293,16 @@ function ConsultationBanner() {
                 type="email"
                 placeholder="albert@email.com"
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, email: e.target.value }))
+                }
+                className="h-[44px] sm:h-auto border border-[#d1d5dc] rounded-[9px] sm:rounded-[10px] px-[12px] sm:p-[12px] text-[13px] sm:text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
                 style={{ fontFamily: montserrat }}
               />
             </div>
             <div className="flex flex-col gap-[4px]">
               <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
                 Topic
@@ -269,14 +311,16 @@ function ConsultationBanner() {
                 type="text"
                 placeholder="Consultation"
                 value={form.topic}
-                onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, topic: e.target.value }))
+                }
+                className="h-[44px] sm:h-auto border border-[#d1d5dc] rounded-[9px] sm:rounded-[10px] px-[12px] sm:p-[12px] text-[13px] sm:text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
                 style={{ fontFamily: montserrat }}
               />
             </div>
             <div className="flex flex-col gap-[4px]">
               <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
+                className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
                 Messages
@@ -285,15 +329,17 @@ function ConsultationBanner() {
                 placeholder="Enter a message"
                 rows={4}
                 value={form.message}
-                onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#99a1af] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors resize-none"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, message: e.target.value }))
+                }
+                className="min-h-[105px] sm:min-h-[112px] border border-[#d1d5dc] rounded-[9px] sm:rounded-[10px] p-[12px] text-[13px] sm:text-[14px] text-[#99a1af] leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors resize-none"
                 style={{ fontFamily: montserrat }}
               />
             </div>
           </div>
 
           <button
-            className="w-full h-[46px] rounded-[48px] flex items-center justify-center gap-[12px] text-[16px] font-medium text-white leading-[24px] tracking-[-0.16px]"
+            className="w-full h-[44px] sm:h-[46px] rounded-[48px] flex items-center justify-center gap-[8px] sm:gap-[12px] text-[14px] sm:text-[16px] font-medium text-white leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
             style={{
               fontFamily: montserrat,
               background: "linear-gradient(to bottom, #005ea4, #006fc2)",
@@ -301,7 +347,13 @@ function ConsultationBanner() {
             }}
           >
             Book a Free consultation
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              className="shrink-0"
+            >
               <path
                 d="M4.16666 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333"
                 stroke="white"
