@@ -6,10 +6,11 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "prisma generate && next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint",
+    "prisma:generate": "prisma generate",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "deploy": "bash scripts/deploy.sh",
