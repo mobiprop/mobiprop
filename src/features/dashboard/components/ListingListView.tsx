@@ -1,9 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Filter, ChevronDown, Eye, Pencil, Trash2, MapPin } from "lucide-react";
+import { Search, Filter, ChevronDown, Pencil, Trash2, MapPin, Pause, Play, Star } from "lucide-react";
 
-import { type Listing, TYPE_BADGE, STATUS_BADGE } from "../listings-data";
+import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
+import {
+  TYPE_BADGE,
+  STATUS_BADGE,
+  TYPE_LABELS,
+  STATUS_LABELS,
+  OPERATION_LABELS,
+  FALLBACK_LISTING_IMAGE,
+  formatListingPrice,
+} from "../listings-data";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -18,12 +27,24 @@ function Badge({ label, style }: { label: string; style: { bg: string; text: str
   );
 }
 
-type ListingListViewProps = {
-  listings: Listing[];
-  onFilterClick: () => void;
+export type ListingRowActions = {
+  canUpdate: boolean;
+  canPause: boolean;
+  canFeature: boolean;
+  canDelete: boolean;
+  onEdit: (listing: DashboardListingDto) => void;
+  onToggleStatus: (listing: DashboardListingDto) => void;
+  onToggleFeatured: (listing: DashboardListingDto) => void;
+  onDelete: (listing: DashboardListingDto) => void;
 };
 
-export function ListingListView({ listings, onFilterClick }: ListingListViewProps) {
+type ListingListViewProps = {
+  listings: DashboardListingDto[];
+  onFilterClick: () => void;
+  actions: ListingRowActions;
+};
+
+export function ListingListView({ listings, onFilterClick, actions }: ListingListViewProps) {
   return (
     <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
       {/* Header / controls */}
@@ -33,7 +54,7 @@ export function ListingListView({ listings, onFilterClick }: ListingListViewProp
           <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[204px]">
             <Search size={16} className="text-[#99a1af] shrink-0" />
             <input
-              placeholder="Search agents..."
+              placeholder="Search listings..."
               className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full"
               style={mont}
             />
@@ -66,7 +87,7 @@ export function ListingListView({ listings, onFilterClick }: ListingListViewProp
               {["Listing ID", "Property", "Type", "Price", "Bedrooms", "Operation Type", "Status"].map((h) => (
                 <th key={h} className="px-5 py-3 text-[14px] font-medium text-[#6a7282] text-left whitespace-nowrap" style={mont}>{h}</th>
               ))}
-              <th className="px-5 py-3 w-[120px]" />
+              <th className="px-5 py-3 w-[140px]" />
             </tr>
           </thead>
           <tbody>
@@ -80,10 +101,19 @@ export function ListingListView({ listings, onFilterClick }: ListingListViewProp
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="relative size-11 rounded-[8px] overflow-hidden shrink-0 bg-[#f3f4f6]">
-                      <Image src={listing.image} alt={listing.name} fill sizes="44px" className="object-cover" />
+                      <Image
+                        src={listing.coverImageUrl ?? FALLBACK_LISTING_IMAGE}
+                        alt={listing.title}
+                        fill
+                        sizes="44px"
+                        className="object-cover"
+                      />
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>{listing.name}</span>
+                      <span className="flex items-center gap-1.5 text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>
+                        {listing.title}
+                        {listing.isFeatured && <Star size={13} className="text-[#f59e0b] fill-[#f59e0b] shrink-0" />}
+                      </span>
                       <span className="flex items-center gap-1 text-[12px] text-[#6a7282] whitespace-nowrap" style={mont}>
                         <MapPin size={12} />
                         {listing.location}
@@ -93,30 +123,53 @@ export function ListingListView({ listings, onFilterClick }: ListingListViewProp
                 </td>
                 {/* Type */}
                 <td className="px-5 py-4">
-                  <Badge label={listing.type} style={TYPE_BADGE[listing.type]} />
+                  <Badge label={TYPE_LABELS[listing.type]} style={TYPE_BADGE[listing.type]} />
                 </td>
                 {/* Price */}
                 <td className="px-5 py-4">
-                  <span className="text-[14px] font-semibold text-[#0d2138] whitespace-nowrap" style={mont}>{listing.price}</span>
+                  <span className="text-[14px] font-semibold text-[#0d2138] whitespace-nowrap" style={mont}>{formatListingPrice(listing)}</span>
                 </td>
                 {/* Bedrooms */}
                 <td className="px-5 py-4">
-                  <span className="text-[14px] text-[#6a7282]" style={mont}>{listing.bedrooms}</span>
+                  <span className="text-[14px] text-[#6a7282]" style={mont}>{listing.bedrooms ?? "—"}</span>
                 </td>
                 {/* Operation Type */}
                 <td className="px-5 py-4">
-                  <span className="text-[14px] text-[#6a7282]" style={mont}>{listing.operation}</span>
+                  <span className="text-[14px] text-[#6a7282]" style={mont}>{OPERATION_LABELS[listing.operationType]}</span>
                 </td>
                 {/* Status */}
                 <td className="px-5 py-4">
-                  <Badge label={listing.status} style={STATUS_BADGE[listing.status]} />
+                  <Badge label={STATUS_LABELS[listing.status]} style={STATUS_BADGE[listing.status]} />
                 </td>
                 {/* Actions */}
-                <td className="px-5 py-4 w-[120px]">
+                <td className="px-5 py-4 w-[140px]">
                   <div className="flex items-center gap-2 text-[#99a1af]">
-                    <button type="button" title="View" className="hover:text-[#1e4f86] transition-colors"><Eye size={16} /></button>
-                    <button type="button" title="Edit" className="hover:text-[#1e4f86] transition-colors"><Pencil size={16} /></button>
-                    <button type="button" title="Delete" className="hover:text-[#e7000b] transition-colors"><Trash2 size={16} /></button>
+                    {actions.canUpdate && (
+                      <button type="button" title="Edit" onClick={() => actions.onEdit(listing)} className="hover:text-[#1e4f86] transition-colors"><Pencil size={16} /></button>
+                    )}
+                    {actions.canPause && (
+                      <button
+                        type="button"
+                        title={listing.status === "ACTIVE" ? "Pause listing" : "Activate listing"}
+                        onClick={() => actions.onToggleStatus(listing)}
+                        className="hover:text-[#1e4f86] transition-colors"
+                      >
+                        {listing.status === "ACTIVE" ? <Pause size={16} /> : <Play size={16} />}
+                      </button>
+                    )}
+                    {actions.canFeature && (
+                      <button
+                        type="button"
+                        title={listing.isFeatured ? "Remove from featured" : "Mark as featured"}
+                        onClick={() => actions.onToggleFeatured(listing)}
+                        className="hover:text-[#f59e0b] transition-colors"
+                      >
+                        <Star size={16} className={listing.isFeatured ? "text-[#f59e0b] fill-[#f59e0b]" : undefined} />
+                      </button>
+                    )}
+                    {actions.canDelete && (
+                      <button type="button" title="Delete" onClick={() => actions.onDelete(listing)} className="hover:text-[#e7000b] transition-colors"><Trash2 size={16} /></button>
+                    )}
                   </div>
                 </td>
               </tr>
