@@ -2,12 +2,16 @@
   "name": "ulrich-propiedades",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "prisma generate && next dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "prisma:generate": "prisma generate",
+    "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "deploy": "bash scripts/deploy.sh",
     "deploy:client": "bash scripts/deploy-client.sh"
@@ -41,6 +45,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/google.maps": "^3.65.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
