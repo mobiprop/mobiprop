@@ -6,7 +6,11 @@ export type NotificationType =
   | "INVITATION_CREATED"
   | "INVITATION_ACCEPTED"
   | "INVITATION_REVOKED"
-  | "INVITATION_RESENT";
+  | "INVITATION_RESENT"
+  | "LISTING_CREATED"
+  | "LISTING_STATUS_CHANGED"
+  | "LISTING_FEATURED_CHANGED"
+  | "LISTING_DELETED";
 
 type NotificationContent = {
   type: NotificationType;

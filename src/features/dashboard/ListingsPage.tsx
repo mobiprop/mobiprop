@@ -1,20 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, Home, CheckCircle2, Eye, Star, ChevronDown, Filter, LayoutGrid, List } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  Search,
+  Plus,
+  Home,
+  CheckCircle2,
+  Eye,
+  Star,
+  ChevronDown,
+  Filter,
+  LayoutGrid,
+  List,
+  Loader2,
+} from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
+import { PropertyStatus, PropertyType } from "@/generated/prisma/enums";
+import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
+import { useDashboardListingsQuery } from "@/hooks/queries/useDashboardListingsQuery";
 import {
-  MOCK_LISTINGS,
-  type Listing,
-  type ListingType,
-  type ListingStatus,
-} from "./listings-data";
-import { ListingListView } from "./components/ListingListView";
+  useListingStatusMutation,
+  useListingFeaturedMutation,
+} from "@/hooks/mutations/useUpdateListingMutation";
+import { useDeleteListingMutation } from "@/hooks/mutations/useDeleteListingMutation";
+import { TYPE_LABELS, STATUS_LABELS } from "./listings-data";
+import { ListingListView, type ListingRowActions } from "./components/ListingListView";
 import { ListingGridView } from "./components/ListingGridView";
 import { ListingFilterModal } from "./components/ListingFilterModal";
-import { UploadListingModal, type NewListing } from "./components/UploadListingModal";
+import { UploadListingModal } from "./components/UploadListingModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -63,49 +79,85 @@ type ListingsPageProps = {
 export function ListingsPage({ role }: ListingsPageProps) {
   const [view, setView] = useState<ViewMode>("list");
   const [showUpload, setShowUpload] = useState(false);
+  const [editListing, setEditListing] = useState<DashboardListingDto | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ListingStatus | "All">("All");
-  const [typeFilter, setTypeFilter] = useState<ListingType | "All">("All");
-  const [listings, setListings] = useState<Listing[]>(MOCK_LISTINGS);
+  const [statusFilter, setStatusFilter] = useState<PropertyStatus | "All">("All");
+  const [typeFilter, setTypeFilter] = useState<PropertyType | "All">("All");
+
+  const { data, isLoading, isError } = useDashboardListingsQuery();
+  const statusMutation = useListingStatusMutation();
+  const featuredMutation = useListingFeaturedMutation();
+  const deleteMutation = useDeleteListingMutation();
 
   const canCreate = hasPermission(role, "listings:create");
+  const canUpdate = hasPermission(role, "listings:update");
+  const canPause = hasPermission(role, "listings:pause");
+  const canFeature = hasPermission(role, "listings:feature");
+  const canDelete = hasPermission(role, "listings:delete");
 
-  const filtered = listings.filter((l) => {
-    const matchesSearch =
-      !search ||
-      l.name.toLowerCase().includes(search.toLowerCase()) ||
-      l.location.toLowerCase().includes(search.toLowerCase()) ||
-      l.listingId.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || l.status === statusFilter;
-    const matchesType = typeFilter === "All" || l.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  const listings = useMemo(() => data?.listings ?? [], [data]);
+  const metrics = data?.metrics;
 
-  function handleCreate(input: NewListing) {
-    const price = input.salePrice || input.rentPrice || "0";
-    const formatted = `$${Number(price || 0).toLocaleString("en-US")}`;
-    setListings((prev) => [
-      {
-        id: Math.max(0, ...prev.map((l) => l.id)) + 1,
-        listingId: `LST-${String(prev.length + 1).padStart(4, "0")}`,
-        name: input.name || "Untitled Listing",
-        location: input.location || "—",
-        image: input.images[0] ?? "/assets/figma-temp/UserProfile/prop-0.png",
-        type: input.type,
-        price: formatted,
-        bedrooms: Number(input.bedrooms) || 0,
-        bathrooms: Number(input.bathrooms) || 0,
-        area: Number(input.area) || 0,
-        operation: input.operation,
-        status: input.status,
-        views: 0,
-        featured: input.featured,
-      },
-      ...prev,
-    ]);
-    setShowUpload(false);
+  const filtered = useMemo(
+    () =>
+      listings.filter((l) => {
+        const q = search.toLowerCase();
+        const matchesSearch =
+          !q ||
+          l.title.toLowerCase().includes(q) ||
+          l.location.toLowerCase().includes(q) ||
+          l.listingId.toLowerCase().includes(q);
+        const matchesStatus = statusFilter === "All" || l.status === statusFilter;
+        const matchesType = typeFilter === "All" || l.type === typeFilter;
+        return matchesSearch && matchesStatus && matchesType;
+      }),
+    [listings, search, statusFilter, typeFilter],
+  );
+
+  async function handleToggleStatus(listing: DashboardListingDto) {
+    const nextStatus =
+      listing.status === PropertyStatus.ACTIVE ? PropertyStatus.PAUSED : PropertyStatus.ACTIVE;
+    try {
+      await statusMutation.mutateAsync({ id: listing.id, status: nextStatus });
+      toast.success(nextStatus === PropertyStatus.PAUSED ? "Listing paused" : "Listing activated");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update status");
+    }
   }
+
+  async function handleToggleFeatured(listing: DashboardListingDto) {
+    try {
+      await featuredMutation.mutateAsync({ id: listing.id, isFeatured: !listing.isFeatured });
+      toast.success(listing.isFeatured ? "Removed from featured" : "Marked as featured");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update listing");
+    }
+  }
+
+  async function handleDelete(listing: DashboardListingDto) {
+    const confirmed = window.confirm(
+      `Delete "${listing.title}" (${listing.listingId})? This permanently removes the listing and its images.`,
+    );
+    if (!confirmed) return;
+    try {
+      await deleteMutation.mutateAsync(listing.id);
+      toast.success("Listing deleted");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete listing");
+    }
+  }
+
+  const rowActions: ListingRowActions = {
+    canUpdate,
+    canPause,
+    canFeature,
+    canDelete,
+    onEdit: (listing) => setEditListing(listing),
+    onToggleStatus: handleToggleStatus,
+    onToggleFeatured: handleToggleFeatured,
+    onDelete: handleDelete,
+  };
 
   return (
     <div className="px-6 py-5 flex flex-col gap-5">
@@ -130,10 +182,38 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
       {/* Stat cards */}
       <div className="flex flex-wrap gap-3.5">
-        <StatCard label="Total Listings"  value={String(listings.length)} trend="↑ 2 new this month"        iconBg="#e0e7ff" icon={<Home size={18} className="text-[#6366f1]" />} />
-        <StatCard label="Active Listings" value="108"   trend="↑ +12.5% from last month" iconBg="#d1fae5" icon={<CheckCircle2 size={18} className="text-[#10b981]" />} />
-        <StatCard label="Total Views"     value="3,161" trend="↑ +18.2% from last month" iconBg="#fef3c7" icon={<Eye size={18} className="text-[#f59e0b]" />} />
-        <StatCard label="Featured"        value="4.8"   trend="Premium listings" trendMuted iconBg="#e0e7ff" icon={<Star size={18} className="text-[#6366f1]" />} />
+        <StatCard
+          label="Total Listings"
+          value={metrics ? String(metrics.totalListings) : "—"}
+          trend="All listings"
+          trendMuted
+          iconBg="#e0e7ff"
+          icon={<Home size={18} className="text-[#6366f1]" />}
+        />
+        <StatCard
+          label="Active Listings"
+          value={metrics ? String(metrics.activeListings) : "—"}
+          trend="Visible on the public site"
+          trendMuted
+          iconBg="#d1fae5"
+          icon={<CheckCircle2 size={18} className="text-[#10b981]" />}
+        />
+        <StatCard
+          label="Total Views"
+          value={metrics ? metrics.totalViews.toLocaleString("en-US") : "—"}
+          trend="Across all listings"
+          trendMuted
+          iconBg="#fef3c7"
+          icon={<Eye size={18} className="text-[#f59e0b]" />}
+        />
+        <StatCard
+          label="Featured"
+          value={metrics ? String(metrics.featuredListings) : "—"}
+          trend="Premium listings"
+          trendMuted
+          iconBg="#e0e7ff"
+          icon={<Star size={18} className="text-[#6366f1]" />}
+        />
       </div>
 
       {/* Filter bar */}
@@ -162,15 +242,14 @@ export function ListingsPage({ role }: ListingsPageProps) {
           <div className="relative">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as ListingStatus | "All")}
+              onChange={(e) => setStatusFilter(e.target.value as PropertyStatus | "All")}
               className="h-9 pl-3 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#2b3038] appearance-none outline-none cursor-pointer"
               style={mont}
             >
               <option value="All">All</option>
-              <option value="Active">Active</option>
-              <option value="Paused">Paused</option>
-              <option value="Rented">Rented</option>
-              <option value="Sold">Sold</option>
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
             <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
           </div>
@@ -181,15 +260,14 @@ export function ListingsPage({ role }: ListingsPageProps) {
           <div className="relative">
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as ListingType | "All")}
+              onChange={(e) => setTypeFilter(e.target.value as PropertyType | "All")}
               className="h-9 pl-3 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#2b3038] appearance-none outline-none cursor-pointer"
               style={mont}
             >
               <option value="All">All</option>
-              <option value="Apartment">Apartment</option>
-              <option value="House">House</option>
-              <option value="Commercial">Commercial</option>
-              <option value="Land">Land</option>
+              {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
             <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
           </div>
@@ -221,13 +299,31 @@ export function ListingsPage({ role }: ListingsPageProps) {
       </div>
 
       {/* Content */}
-      {view === "list" ? (
-        <ListingListView listings={filtered} onFilterClick={() => setShowFilter(true)} />
+      {isLoading ? (
+        <div className="bg-white border border-[#f3f4f6] rounded-[14px] py-16 flex items-center justify-center gap-2 text-[14px] text-[#6a7282]" style={mont}>
+          <Loader2 size={16} className="animate-spin" />
+          Loading listings...
+        </div>
+      ) : isError ? (
+        <div className="bg-white border border-[#f3f4f6] rounded-[14px] py-16 text-center text-[14px] text-[#e7000b]" style={mont}>
+          Failed to load listings. Please refresh the page.
+        </div>
+      ) : view === "list" ? (
+        <ListingListView listings={filtered} onFilterClick={() => setShowFilter(true)} actions={rowActions} />
       ) : (
-        <ListingGridView listings={filtered} />
+        <ListingGridView listings={filtered} actions={rowActions} />
       )}
 
-      {showUpload && <UploadListingModal onClose={() => setShowUpload(false)} onCreate={handleCreate} />}
+      {showUpload && (
+        <UploadListingModal onClose={() => setShowUpload(false)} canFeature={canFeature} />
+      )}
+      {editListing && (
+        <UploadListingModal
+          listing={editListing}
+          onClose={() => setEditListing(null)}
+          canFeature={canFeature}
+        />
+      )}
       {showFilter && (
         <ListingFilterModal
           resultCount={filtered.length}

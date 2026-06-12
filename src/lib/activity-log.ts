@@ -3,7 +3,11 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export type ActivityEntityType = "AGENT_INVITATION" | "PROFILE" | "PROFILE_SETTINGS";
+export type ActivityEntityType =
+  | "AGENT_INVITATION"
+  | "PROFILE"
+  | "PROFILE_SETTINGS"
+  | "PROPERTY";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -16,7 +20,15 @@ export type ActivityAction =
   | "SECURITY_SETTINGS_UPDATED"
   | "NOTIFICATION_PREFERENCES_UPDATED"
   | "GENERAL_PREFERENCES_UPDATED"
-  | "PASSWORD_CHANGED";
+  | "PASSWORD_CHANGED"
+  | "PROPERTY_CREATED"
+  | "PROPERTY_UPDATED"
+  | "PROPERTY_DELETED"
+  | "PROPERTY_STATUS_CHANGED"
+  | "PROPERTY_FEATURED_CHANGED"
+  | "PROPERTY_IMAGE_UPLOADED"
+  | "PROPERTY_IMAGE_REMOVED"
+  | "PROPERTY_COVER_CHANGED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

@@ -32,6 +32,12 @@ export type Permission =
   | "listings:update"
   | "listings:delete"
   | "listings:assign"
+  // Pause/feature/image management per the listings plan. AGENT holders are
+  // additionally limited to created/assigned listings (record-level check in
+  // the listing actions).
+  | "listings:pause"
+  | "listings:feature"
+  | "listings:uploadImages"
   | "leads:view"
   | "leads:create"
   | "leads:update"
@@ -74,6 +80,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:update",
     "listings:delete",
     "listings:assign",
+    "listings:pause",
+    "listings:feature",
+    "listings:uploadImages",
     "leads:view",
     "leads:create",
     "leads:update",
@@ -105,6 +114,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:create",
     "listings:update",
     "listings:assign",
+    "listings:pause",
+    "listings:feature",
+    "listings:uploadImages",
     "leads:view",
     "leads:create",
     "leads:update",
@@ -127,6 +139,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:view",
     "listings:create",
     "listings:update",
+    "listings:pause",
+    "listings:uploadImages",
     "leads:view",
     "leads:update",
     "leads:convert",
