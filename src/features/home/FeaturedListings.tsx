@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import svgPaths from "@/assets/svg-6s7nojygyu";
+import type { PublicListingDto } from "@/features/listings/types/listing-dto";
+import {
+  PROPERTY_TYPE_LABELS,
+  formatArea,
+  formatBaths,
+  formatBeds,
+  listingDisplayPrice,
+} from "@/features/listings/utils/format";
 
-const img1 =
+const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.png";
-const img2 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting2.png";
-const img3 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting3.png";
 
 function HeartIcon() {
   return (
@@ -155,94 +160,19 @@ function BathIcon() {
   );
 }
 
-const properties = [
-  {
-    id: 1,
-    img: img1,
-    type: "Sale",
-    category: "Apartment",
-    name: "Coastal Modern Residence",
-    location: "Bayshore Gardens, Tampa, FL",
-    price: "$8,500,000",
-    area: "680 sq.ft",
-    beds: "3 Bed",
-    baths: "2.5 Bath",
-  },
-  {
-    id: 2,
-    img: img2,
-    type: "Sale",
-    category: "Apartment",
-    name: "Coastal Modern Residence",
-    location: "Bayshore Gardens, Tampa, FL",
-    price: "$8,500,000",
-    area: "680 sq.ft",
-    beds: "3 Bed",
-    baths: "2.5 Bath",
-  },
-  {
-    id: 3,
-    img: img3,
-    type: "Sale",
-    category: "Apartment",
-    name: "Coastal Modern Residence",
-    location: "Bayshore Gardens, Tampa, FL",
-    price: "$8,500,000",
-    area: "680 sq.ft",
-    beds: "3 Bed",
-    baths: "2.5 Bath",
-  },
-  {
-    id: 4,
-    img: img1,
-    type: "Sale",
-    category: "Apartment",
-    name: "Coastal Modern Residence",
-    location: "Bayshore Gardens, Tampa, FL",
-    price: "$8,500,000",
-    area: "680 sq.ft",
-    beds: "3 Bed",
-    baths: "2.5 Bath",
-  },
-  {
-    id: 5,
-    img: img2,
-    type: "Sale",
-    category: "Apartment",
-    name: "Coastal Modern Residence",
-    location: "Bayshore Gardens, Tampa, FL",
-    price: "$8,500,000",
-    area: "680 sq.ft",
-    beds: "3 Bed",
-    baths: "2.5 Bath",
-  },
-  {
-    id: 6,
-    img: img3,
-    type: "Sale",
-    category: "Apartment",
-    name: "Coastal Modern Residence",
-    location: "Bayshore Gardens, Tampa, FL",
-    price: "$8,500,000",
-    area: "680 sq.ft",
-    beds: "3 Bed",
-    baths: "2.5 Bath",
-  },
-];
-
-function PropertyCard({ property }: { property: (typeof properties)[0] }) {
+function PropertyCard({ property }: { property: PublicListingDto }) {
   const [liked, setLiked] = useState(false);
 
   return (
     <Link
-      href={`/listings/${property.id}`}
+      href={`/listings/${property.slug}`}
       className="flex w-full min-w-0 flex-col gap-4 sm:gap-5 group"
     >
       {/* Image */}
       <div className="relative h-[230px] sm:h-[250px] lg:h-[296px] w-full rounded-[16px] overflow-hidden">
         <img
-          src={property.img}
-          alt={property.name}
+          src={property.coverImageUrl ?? fallbackImg}
+          alt={property.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
 
@@ -252,14 +182,14 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
             className="bg-white/90 px-3 py-1 rounded-[36px] text-[12px] sm:text-[14px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {property.type}
+            {property.operationType === "RENT" ? "Rent" : "Sale"}
           </span>
 
           <span
             className="bg-white/90 px-3 py-1 rounded-[36px] text-[12px] sm:text-[14px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {property.category}
+            {PROPERTY_TYPE_LABELS[property.type]}
           </span>
         </div>
 
@@ -298,7 +228,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
               className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[28px] sm:leading-[32px] truncate"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
-              {property.name}
+              {property.title}
             </span>
 
             <div className="flex min-w-0 items-center gap-1 text-[#0d2138]">
@@ -316,7 +246,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
             className="text-[17px] sm:text-[18px] font-semibold text-[#2b3038] sm:text-right whitespace-nowrap"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            {property.price}
+            {listingDisplayPrice(property)}
           </span>
         </div>
 
@@ -328,7 +258,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
               className="text-[13px] text-[#2b3038]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              {property.area}
+              {formatArea(property.areaSqft)}
             </span>
           </div>
 
@@ -338,7 +268,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
               className="text-[13px] text-[#2b3038]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              {property.beds}
+              {formatBeds(property.bedrooms)}
             </span>
           </div>
 
@@ -348,7 +278,7 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
               className="text-[13px] text-[#2b3038]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              {property.baths}
+              {formatBaths(property.bathrooms)}
             </span>
           </div>
         </div>
@@ -359,6 +289,27 @@ function PropertyCard({ property }: { property: (typeof properties)[0] }) {
 
 export function FeaturedListings() {
   const [activeFilter, setActiveFilter] = useState("For Sale");
+
+  // All ACTIVE listings come back featured-first, newest-first; the homepage
+  // shows the top 6 per transaction tab.
+  const { data, isLoading } = useQuery({
+    queryKey: ["listings", "home-featured"],
+    queryFn: async () => {
+      const res = await fetch("/api/listings");
+      if (!res.ok) throw new Error("Failed to fetch listings");
+      return res.json();
+    },
+  });
+  const allListings: PublicListingDto[] = data?.listings ?? [];
+  const properties = allListings
+    .filter((listing) =>
+      activeFilter === "For Sale"
+        ? listing.operationType !== "RENT"
+        : listing.operationType !== "SALE",
+    )
+    .slice(0, 6);
+
+  if (!isLoading && allListings.length === 0) return null;
 
   return (
     <section className="bg-white py-16 lg:py-20">
@@ -413,11 +364,30 @@ export function FeaturedListings() {
   </div>
 
   {/* Grid */}
+  {isLoading ? (
   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 lg:gap-8">
-    {properties.map((p) => (
-      <PropertyCard key={p.id} property={p} />
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div key={i} className="flex w-full flex-col gap-4 animate-pulse">
+        <div className="h-[230px] sm:h-[250px] lg:h-[296px] w-full rounded-[16px] bg-[#eef1f5]" />
+        <div className="h-5 w-2/3 rounded bg-[#eef1f5]" />
+        <div className="h-4 w-1/2 rounded bg-[#eef1f5]" />
+      </div>
     ))}
   </div>
+  ) : properties.length > 0 ? (
+  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 lg:gap-8">
+    {properties.map((p) => (
+      <PropertyCard key={p.slug} property={p} />
+    ))}
+  </div>
+  ) : (
+  <p
+    className="text-center text-[15px] text-[#6a7282] py-8"
+    style={{ fontFamily: "Montserrat, sans-serif" }}
+  >
+    No {activeFilter.toLowerCase()} listings available right now.
+  </p>
+  )}
 </div>
     </section>
   );

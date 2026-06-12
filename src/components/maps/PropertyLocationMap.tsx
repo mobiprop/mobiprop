@@ -1,0 +1,90 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+// Shared Google Maps JS API loader — one script tag per page no matter how
+// many maps render. Requires NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
+let loaderPromise: Promise<void> | null = null;
+
+function loadGoogleMaps(apiKey: string): Promise<void> {
+  if (typeof window === "undefined") return Promise.reject(new Error("SSR"));
+  if (window.google?.maps) return Promise.resolve();
+  if (loaderPromise) return loaderPromise;
+
+  loaderPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      loaderPromise = null;
+      reject(new Error("Failed to load Google Maps"));
+    };
+    document.head.appendChild(script);
+  });
+  return loaderPromise;
+}
+
+/**
+ * Single-pin Google Map for a property's location. Fills its parent (which
+ * must have a height). Renders a quiet fallback if the API key is missing or
+ * the script fails, so the page never breaks on map problems.
+ */
+export function PropertyLocationMap({
+  latitude,
+  longitude,
+  title,
+  zoom = 15,
+}: {
+  latitude: number;
+  longitude: number;
+  title?: string;
+  zoom?: number;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      setFailed(true);
+      return;
+    }
+
+    let cancelled = false;
+    loadGoogleMaps(apiKey)
+      .then(() => {
+        if (cancelled || !containerRef.current) return;
+        const position = { lat: latitude, lng: longitude };
+        const map = new google.maps.Map(containerRef.current, {
+          center: position,
+          zoom,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: true,
+        });
+        new google.maps.Marker({ position, map, title });
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [latitude, longitude, title, zoom]);
+
+  if (failed) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-[#edf6ff]">
+        <p
+          className="text-[14px] text-[#6a7282]"
+          style={{ fontFamily: "Montserrat, sans-serif" }}
+        >
+          Map unavailable
+        </p>
+      </div>
+    );
+  }
+
+  return <div ref={containerRef} className="h-full w-full" />;
+}

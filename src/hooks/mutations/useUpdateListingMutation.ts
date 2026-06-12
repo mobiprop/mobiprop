@@ -78,6 +78,16 @@ export function useAddListingImagesMutation() {
   });
 }
 
+/** Set the cover image (PATCH /api/listings/[id]/images). */
+export function useSetListingCoverMutation() {
+  const invalidate = useListingInvalidation();
+  return useMutation({
+    mutationFn: ({ id, imageId }: { id: string; imageId: string }) =>
+      requestJson(`/api/listings/${id}/images`, "PATCH", { imageId }),
+    onSuccess: invalidate,
+  });
+}
+
 /** Remove one image from a listing (DELETE /api/listings/[id]/images). */
 export function useRemoveListingImageMutation() {
   const invalidate = useListingInvalidation();

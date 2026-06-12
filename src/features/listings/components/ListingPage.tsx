@@ -1,36 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useShallow } from "zustand/react/shallow";
 import svgPaths from "./svgPaths";
-import { FiltersModal } from "./FiltersModal";
+import { FiltersModal, type FiltersState } from "./FiltersModal";
+import { useListingsQuery } from "@/hooks/queries/useListingsQuery";
+import {
+  useListingFilterStore,
+  type PropertyType as PropertyTypeFilter,
+  type TransactionType as TransactionTypeFilter,
+} from "@/stores/useListingFilterStore";
+import type { PublicListingDto } from "../types/listing-dto";
+import {
+  PROPERTY_TYPE_LABELS,
+  formatArea,
+  formatBaths,
+  formatBeds,
+  listingDisplayPrice,
+  listingTags,
+} from "../utils/format";
 const heroImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
 const cloudsImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
-const img1 =
+const fallbackImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
-const img2 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-2.png";
-const img3 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-3.png";
-const img4 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-4.png";
-const img5 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-5.png";
-const img6 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-6.png";
-const img7 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-7.png";
-const img8 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-8.png";
-const img9 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-9.png";
-const sugg1 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-10.png";
-const sugg2 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-11.png";
-const sugg3 =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-12.png";
 const mapImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
 /* ─── icon helpers ─── */
@@ -222,161 +218,24 @@ return (
 </svg>
 );
 }
-/* ─── data ─── */
-const listings = [
-{
-id: 1,
-img: img1,
-tags: ["Sale", "Apartment"],
-price: "$8,500,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "680 sq.ft",
-beds: "3 Bed",
-baths: "2.5 Bath",
-},
-{
-id: 2,
-img: img2,
-tags: ["Sale", "Villa"],
-price: "$2,900,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "920 sq.ft",
-beds: "4 Bed",
-baths: "3 Bath",
-},
-{
-id: 3,
-img: img3,
-tags: ["Rent", "Apartment"],
-price: "$12,500/mo",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "540 sq.ft",
-beds: "2 Bed",
-baths: "2 Bath",
-},
-{
-id: 4,
-img: img4,
-tags: ["Sale", "Penthouse"],
-price: "$4,200,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "1100 sq.ft",
-beds: "5 Bed",
-baths: "4 Bath",
-},
-{
-id: 5,
-img: img5,
-tags: ["Sale", "Villa"],
-price: "$3,100,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "750 sq.ft",
-beds: "3 Bed",
-baths: "3 Bath",
-},
-{
-id: 6,
-img: img6,
-tags: ["Rent", "Apartment"],
-price: "$9,800/mo",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "480 sq.ft",
-beds: "2 Bed",
-baths: "2 Bath",
-},
-{
-id: 7,
-img: img7,
-tags: ["Sale", "Estate"],
-price: "$5,600,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "1450 sq.ft",
-beds: "6 Bed",
-baths: "5 Bath",
-},
-{
-id: 8,
-img: img8,
-tags: ["Sale", "Apartment"],
-price: "$2,750,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "620 sq.ft",
-beds: "3 Bed",
-baths: "2 Bath",
-},
-{
-id: 9,
-img: img9,
-tags: ["Rent", "Penthouse"],
-price: "$15,000/mo",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "980 sq.ft",
-beds: "4 Bed",
-baths: "4 Bath",
-},
-];
-const suggestions = [
-{
-id: 1,
-img: sugg1,
-tags: ["Sale", "Apartment"],
-price: "$8,500,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "680 sq.ft",
-beds: "3 Bed",
-baths: "2.5 Bath",
-},
-{
-id: 2,
-img: sugg2,
-tags: ["Sale", "Apartment"],
-price: "$8,500,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "680 sq.ft",
-beds: "3 Bed",
-baths: "2.5 Bath",
-},
-{
-id: 3,
-img: sugg3,
-tags: ["Sale", "Apartment"],
-price: "$8,500,000",
-title: "Coastal Modern Residence",
-location: "Bayshore Gardens, Tampa, FL",
-sqft: "680 sq.ft",
-beds: "3 Bed",
-baths: "2.5 Bath",
-},
-];
 /* ─── card component (vertical only) ─── */
-function PropertyCard({ item }: { item: (typeof listings)[0] }) {
+function PropertyCard({ item }: { item: PublicListingDto }) {
 const [liked, setLiked] = useState(false);
 return (
 <Link
-   href={`/listings/${item.id}`}
+   href={`/listings/${item.slug}`}
    className="flex flex-col gap-[20px] items-start w-full group"
    >
 {/* Image */}
 <div className="relative w-full h-[296px] rounded-[16px] overflow-hidden flex-shrink-0">
    <img
-      src={item.img}
+      src={item.coverImageUrl ?? fallbackImg}
       alt={item.title}
       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
       />
    {/* Tags top-left */}
    <div className="absolute top-4 left-4 flex gap-1">
-      {item.tags.map((t) => (
+      {listingTags(item).map((t) => (
       <span
       key={t}
       className="bg-white opacity-90 px-3 py-[4px] rounded-[36px] text-[14px] text-[#0d2138]"
@@ -425,7 +284,7 @@ return (
       className="text-[17px] sm:text-[18px] font-semibold text-[#2b3038] leading-[26px] whitespace-nowrap text-right"
       style={{ fontFamily: "Poppins, sans-serif" }}
       >
-      {item.price}
+      {listingDisplayPrice(item)}
       </p>
    </div>
    {/* Stats row */}
@@ -436,7 +295,7 @@ return (
          className="text-[14px] text-[#2b3038]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         {item.sqft}
+         {formatArea(item.areaSqft)}
          </span>
       </div>
       <div className="flex items-center gap-[7px]">
@@ -445,7 +304,7 @@ return (
          className="text-[14px] text-[#2b3038]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         {item.beds}
+         {formatBeds(item.bedrooms)}
          </span>
       </div>
       <div className="flex items-center gap-[7px]">
@@ -454,7 +313,7 @@ return (
          className="text-[14px] text-[#2b3038]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         {item.baths}
+         {formatBaths(item.bathrooms)}
          </span>
       </div>
    </div>
@@ -711,11 +570,236 @@ return (
 </div>
 );
 }
+/* ─── filter option catalogs ─── */
+const PROPERTY_TYPE_OPTIONS: { value: PropertyTypeFilter; label: string }[] = [
+  { value: "", label: "All Types" },
+  { value: "APARTMENT", label: PROPERTY_TYPE_LABELS.APARTMENT },
+  { value: "HOUSE", label: PROPERTY_TYPE_LABELS.HOUSE },
+  { value: "COMMERCIAL_OFFICE", label: PROPERTY_TYPE_LABELS.COMMERCIAL_OFFICE },
+  { value: "LOT", label: PROPERTY_TYPE_LABELS.LOT },
+  { value: "TOWNHOUSE", label: PROPERTY_TYPE_LABELS.TOWNHOUSE },
+];
+const TRANSACTION_OPTIONS: { value: TransactionTypeFilter; label: string }[] = [
+  { value: "", label: "Buy or Rent" },
+  { value: "SALE", label: "Buy" },
+  { value: "RENT", label: "Rent" },
+];
+// FiltersModal amenity labels → seeded amenity keys (amenities.key in DB).
+const MODAL_AMENITY_KEYS: Record<string, string> = {
+  "Credit Approved": "CREDIT_APPROVED",
+  Gas: "GAS",
+  "Radiant Slab": "RADIANT_FLOORS",
+  Internet: "INTERNET",
+  "Air Conditioning": "AIR_CONDITIONING",
+  Barbecue: "BARBECUE",
+  Laundry: "LAUNDRY",
+  Water: "WATER",
+  "Tennis Court": "TENNIS_COURT",
+};
+const PAGE_SIZE = 9;
+
+/* ─── search-bar dropdown (styled like the Figma pill fields) ─── */
+function SearchBarDropdown<T extends string>({
+  icon,
+  placeholder,
+  options,
+  value,
+  onChange,
+}: {
+  icon: React.ReactNode;
+  placeholder: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+  return (
+    <div ref={rootRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3 cursor-pointer"
+      >
+        <div className="flex items-center gap-[10px] min-w-0">
+          {icon}
+          <span
+            className={`text-[16px] leading-[24px] whitespace-nowrap max-xl:text-[14px] max-xl:truncate ${
+              selected && selected.value !== "" ? "text-[#0d2138]" : "text-[#6a7282]"
+            }`}
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            {selected && selected.value !== "" ? selected.label : placeholder}
+          </span>
+        </div>
+        <span className="flex-shrink-0">
+          <ChevronDown />
+        </span>
+      </button>
+      {open ? (
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 overflow-hidden">
+          {options.map((opt) => (
+            <button
+              key={opt.value || "all"}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
+              className={`w-full px-4 py-2.5 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
+                value === opt.value ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"
+              }`}
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /* ─── main export ─── */
 export function ListingPageContent() {
 const [page, setPage] = useState(1);
 const [isMapOpen, setIsMapOpen] = useState(false);
 const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+const searchParams = useSearchParams();
+const filters = useListingFilterStore(
+  useShallow((s) => ({
+    location: s.location,
+    propertyType: s.propertyType,
+    transactionType: s.transactionType,
+    minPrice: s.minPrice,
+    maxPrice: s.maxPrice,
+    bedrooms: s.bedrooms,
+    bathrooms: s.bathrooms,
+    minArea: s.minArea,
+    maxArea: s.maxArea,
+    amenities: s.amenities,
+  })),
+);
+const store = useListingFilterStore.getState();
+
+// Seed the filter store from URL params once (homepage hero search deep-links
+// here as /listings?location=…&propertyType=…&transactionType=…).
+const seededRef = useRef(false);
+useEffect(() => {
+  if (seededRef.current) return;
+  seededRef.current = true;
+  const num = (key: string) => {
+    const v = searchParams.get(key);
+    if (v === null || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const state = useListingFilterStore.getState();
+  const location = searchParams.get("location");
+  if (location !== null) state.setLocation(location);
+  const propertyType = searchParams.get("propertyType");
+  if (propertyType !== null) state.setPropertyType(propertyType as PropertyTypeFilter);
+  const transactionType = searchParams.get("transactionType");
+  if (transactionType !== null) state.setTransactionType(transactionType as TransactionTypeFilter);
+  if (searchParams.has("minPrice") || searchParams.has("maxPrice")) {
+    state.setPriceRange(num("minPrice"), num("maxPrice"));
+  }
+}, [searchParams]);
+
+// Location input with available-location suggestions.
+const [locationInput, setLocationInput] = useState(filters.location);
+const [locationOpen, setLocationOpen] = useState(false);
+const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+const locationRef = useRef<HTMLDivElement>(null);
+useEffect(() => setLocationInput(filters.location), [filters.location]);
+useEffect(() => {
+  if (!locationOpen) return;
+  const handler = (e: MouseEvent) => {
+    if (!locationRef.current?.contains(e.target as Node)) setLocationOpen(false);
+  };
+  document.addEventListener("mousedown", handler);
+  return () => document.removeEventListener("mousedown", handler);
+}, [locationOpen]);
+useEffect(() => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    fetch(`/api/listings/locations?q=${encodeURIComponent(locationInput)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : { locations: [] }))
+      .then((data) => setLocationSuggestions(data.locations ?? []))
+      .catch(() => undefined);
+  }, 250);
+  return () => {
+    controller.abort();
+    clearTimeout(timer);
+  };
+}, [locationInput]);
+
+const { data, isLoading, isError } = useListingsQuery();
+const listings: PublicListingDto[] = useMemo(() => data?.listings ?? [], [data]);
+
+const { data: featuredData } = useQuery({
+  queryKey: ["listings", "public-featured"],
+  queryFn: async () => {
+    const res = await fetch("/api/listings?featured=true");
+    if (!res.ok) throw new Error("Failed to fetch featured listings");
+    return res.json();
+  },
+});
+const suggestions: PublicListingDto[] = (featuredData?.listings ?? []).slice(0, 3);
+
+const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE));
+const safePage = Math.min(page, totalPages);
+const pageListings = listings.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+// Snap back to page 1 whenever the result set changes.
+const filterKey = JSON.stringify(filters);
+useEffect(() => setPage(1), [filterKey]);
+
+const resultsHeading = isLoading
+  ? "Searching properties…"
+  : isError
+    ? "We couldn't load listings right now"
+    : `${filters.location ? `${filters.location}: ` : ""}${listings.length} ${
+        listings.length === 1 ? "property" : "properties"
+      } found`;
+
+function commitLocation(value: string) {
+  setLocationInput(value);
+  store.setLocation(value.trim());
+  setLocationOpen(false);
+}
+
+function applyModalFilters(state: FiltersState) {
+  const num = (v: string) => {
+    if (v.trim() === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const plus = (v: string) => (v === "Any" ? null : Number(v.replace("+", "")));
+  const s = useListingFilterStore.getState();
+  s.setPriceRange(num(state.minPrice), num(state.maxPrice));
+  s.setBedrooms(plus(state.bedrooms));
+  s.setBathrooms(plus(state.bathrooms));
+  s.setAreaRange(num(state.minArea), num(state.maxArea));
+  const keys = [...state.amenities]
+    .map((label) => MODAL_AMENITY_KEYS[label])
+    .filter((key): key is string => Boolean(key));
+  useListingFilterStore.setState({ amenities: keys });
+}
+
 return (
 <>
 {/* ── Hero ── */}
@@ -793,42 +877,81 @@ return (
         Location
       </p>
 
-      <div className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-[10px] min-w-0">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 14.7333 18.0667"
-            fill="none"
-            className="flex-shrink-0"
-          >
-            <path
-              d={svgPaths.p327f1700}
-              stroke="#6A7282"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.4"
-            />
-            <path
-              d={svgPaths.p131e2100}
-              stroke="#6A7282"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.4"
-            />
-          </svg>
+      <div ref={locationRef} className="relative w-full">
+        <div className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-[10px] min-w-0 flex-1">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 14.7333 18.0667"
+              fill="none"
+              className="flex-shrink-0"
+            >
+              <path
+                d={svgPaths.p327f1700}
+                stroke="#6A7282"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.4"
+              />
+              <path
+                d={svgPaths.p131e2100}
+                stroke="#6A7282"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.4"
+              />
+            </svg>
 
-          <span
-            className="text-[16px] text-[#6a7282] leading-[24px] whitespace-nowrap max-xl:text-[14px] max-xl:truncate"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            Enter city, area, or address
-          </span>
+            <input
+              type="text"
+              value={locationInput}
+              onChange={(e) => {
+                setLocationInput(e.target.value);
+                setLocationOpen(true);
+              }}
+              onFocus={() => setLocationOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitLocation(locationInput);
+              }}
+              placeholder="Enter city, area, or address"
+              className="w-full min-w-0 bg-transparent text-[16px] text-[#0d2138] placeholder:text-[#6a7282] leading-[24px] outline-none max-xl:text-[14px]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+              aria-label="Search by location"
+            />
+          </div>
+
+          {locationInput ? (
+            <button
+              type="button"
+              onClick={() => commitLocation("")}
+              aria-label="Clear location"
+              className="flex-shrink-0 text-[#6a7282] hover:text-[#0d2138] cursor-pointer text-[18px] leading-none"
+            >
+              ×
+            </button>
+          ) : (
+            <span className="flex-shrink-0">
+              <ChevronDown />
+            </span>
+          )}
         </div>
 
-        <span className="flex-shrink-0">
-          <ChevronDown />
-        </span>
+        {locationOpen && locationSuggestions.length > 0 ? (
+          <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 overflow-hidden">
+            {locationSuggestions.map((sugg) => (
+              <button
+                key={sugg}
+                type="button"
+                onClick={() => commitLocation(sugg)}
+                className="w-full px-4 py-2.5 text-left text-[15px] text-[#6a7282] hover:bg-[#f3f4f6] transition-colors cursor-pointer truncate"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                {sugg}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
 
@@ -841,8 +964,8 @@ return (
         Property Type
       </p>
 
-      <div className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-[10px] min-w-0">
+      <SearchBarDropdown
+        icon={
           <svg
             width="20"
             height="20"
@@ -858,19 +981,12 @@ return (
               strokeWidth="1.4"
             />
           </svg>
-
-          <span
-            className="text-[16px] text-[#6a7282] leading-[24px] whitespace-nowrap max-xl:text-[14px] max-xl:truncate"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            Select property type
-          </span>
-        </div>
-
-        <span className="flex-shrink-0">
-          <ChevronDown />
-        </span>
-      </div>
+        }
+        placeholder="Select property type"
+        options={PROPERTY_TYPE_OPTIONS}
+        value={filters.propertyType}
+        onChange={(value) => store.setPropertyType(value)}
+      />
     </div>
 
     {/* Transaction Type */}
@@ -882,8 +998,8 @@ return (
         Transaction Type
       </p>
 
-      <div className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-[10px] min-w-0">
+      <SearchBarDropdown
+        icon={
           <svg
             width="20"
             height="20"
@@ -899,19 +1015,12 @@ return (
               strokeWidth="1.4"
             />
           </svg>
-
-          <span
-            className="text-[16px] text-[#6a7282] leading-[24px] whitespace-nowrap max-xl:text-[14px] max-xl:truncate"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            Select transaction
-          </span>
-        </div>
-
-        <span className="flex-shrink-0">
-          <ChevronDown />
-        </span>
-      </div>
+        }
+        placeholder="Select transaction"
+        options={TRANSACTION_OPTIONS}
+        value={filters.transactionType}
+        onChange={(value) => store.setTransactionType(value)}
+      />
     </div>
 
     {/* Buttons */}
@@ -925,6 +1034,7 @@ return (
       </button>
 
       <button
+        onClick={() => commitLocation(locationInput)}
         className="relative h-[48px] w-[231px] overflow-hidden whitespace-nowrap rounded-[48px] px-6 py-3 text-[16px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
         style={{
           fontFamily: "Poppins, sans-serif",
@@ -956,7 +1066,7 @@ return (
          className="text-[20px] sm:text-[22px] lg:text-[24px] font-semibold text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.01em]"
          style={{ fontFamily: "Poppins, sans-serif" }}
          >
-         Lisbon: 2,594 properties found
+         {resultsHeading}
          </h2>
          <button
             onClick={() =>
@@ -969,18 +1079,64 @@ return (
          </button>
       </div>
       {/* Card grid */}
+      {isLoading ? (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
-         {listings.map((item) => (
-         <PropertyCard key={item.id} item={item} />
+         {Array.from({ length: 6 }).map((_, i) => (
+         <div key={i} className="flex flex-col gap-[20px] w-full animate-pulse">
+            <div className="w-full h-[296px] rounded-[16px] bg-[#eef1f5]" />
+            <div className="flex flex-col gap-2 w-full">
+               <div className="h-5 w-2/3 rounded bg-[#eef1f5]" />
+               <div className="h-4 w-1/2 rounded bg-[#eef1f5]" />
+            </div>
+         </div>
          ))}
       </div>
-      {/* Pagination */}
-      <div className="mt-8 sm:mt-10 flex justify-center">
-         <Pagination current={page} total={16} onChange={setPage} />
+      ) : pageListings.length > 0 ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
+         {pageListings.map((item) => (
+         <PropertyCard key={item.slug} item={item} />
+         ))}
       </div>
+      ) : (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+         <p
+         className="text-[20px] font-medium text-[#0d2138]"
+         style={{ fontFamily: "Poppins, sans-serif" }}
+         >
+         {isError ? "Something went wrong" : "No properties match your search"}
+         </p>
+         <p
+         className="text-[15px] text-[#6a7282] max-w-[420px]"
+         style={{ fontFamily: "Montserrat, sans-serif" }}
+         >
+         {isError
+         ? "Please refresh the page or try again in a moment."
+         : "Try adjusting your filters or searching a different location."}
+         </p>
+         {!isError ? (
+         <button
+            onClick={() => {
+            useListingFilterStore.getState().resetFilters();
+            setLocationInput("");
+            }}
+            className="mt-2 rounded-full bg-[#1e4f86] px-6 py-2.5 text-[14px] text-white hover:bg-[#17446f] transition-colors cursor-pointer"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+            Clear all filters
+         </button>
+         ) : null}
+      </div>
+      )}
+      {/* Pagination */}
+      {!isLoading && listings.length > PAGE_SIZE ? (
+      <div className="mt-8 sm:mt-10 flex justify-center">
+         <Pagination current={safePage} total={totalPages} onChange={setPage} />
+      </div>
+      ) : null}
    </div>
 </section>
 {/* ── You Might Also Like ── */}
+{suggestions.length > 0 ? (
 <section className="bg-white pt-4 pb-16 lg:pb-20">
    <div className="might">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
@@ -1002,19 +1158,22 @@ return (
          {/* 3-card row */}
          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
             {suggestions.map((item) => (
-            <PropertyCard key={item.id} item={item} />
+            <PropertyCard key={item.slug} item={item} />
             ))}
          </div>
       </div>
    </div>
 </section>
+) : null}
 {isMapOpen ? (
 <PropertyMapModal onClose={() =>
 setIsMapOpen(false)} />
 ) : null}
 {isFiltersOpen ? (
-<FiltersModal onClose={() =>
-setIsFiltersOpen(false)} />
+<FiltersModal
+   onClose={() => setIsFiltersOpen(false)}
+   onApply={applyModalFilters}
+/>
 ) : null}
 </>
 );

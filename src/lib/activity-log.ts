@@ -28,7 +28,8 @@ export type ActivityAction =
   | "PROPERTY_FEATURED_CHANGED"
   | "PROPERTY_IMAGE_UPLOADED"
   | "PROPERTY_IMAGE_REMOVED"
-  | "PROPERTY_COVER_CHANGED";
+  | "PROPERTY_COVER_CHANGED"
+  | "PROPERTY_IMAGE_OPTIMIZATION_FALLBACK";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

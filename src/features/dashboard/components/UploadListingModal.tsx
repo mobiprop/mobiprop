@@ -48,6 +48,7 @@ import {
   useUpdateListingMutation,
   useAddListingImagesMutation,
   useRemoveListingImageMutation,
+  useSetListingCoverMutation,
 } from "@/hooks/mutations/useUpdateListingMutation";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import { TYPE_LABELS, STATUS_LABELS } from "../listings-data";
@@ -140,6 +141,10 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
 
 type NewImage = { file: File; preview: string };
 
+// Cover choice across both image lists: an already-stored image (edit mode)
+// or one of the newly added files (by index). Null lets the server decide.
+type CoverChoice = { existingId: string } | { newIndex: number } | null;
+
 type UploadListingModalProps = {
   onClose: () => void;
   /** When set, the modal edits this listing instead of creating a new one. */
@@ -180,21 +185,35 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
   const isEdit = listing !== undefined;
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Guards against the Save button absorbing the tail of a double-click on
+  // "Next Step" (the two buttons render in the same footer slot).
+  const lastStepChangeAt = useRef(0);
 
   const [newImages, setNewImages] = useState<NewImage[]>([]);
-  const [coverIndex, setCoverIndex] = useState(0);
+  const [cover, setCover] = useState<CoverChoice>(() => {
+    const current = listing?.images.find((i) => i.isCover);
+    return current ? { existingId: current.id } : null;
+  });
   const [imagesError, setImagesError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const createMutation = useCreateListingMutation();
   const updateMutation = useUpdateListingMutation();
   const addImagesMutation = useAddListingImagesMutation();
   const removeImageMutation = useRemoveListingImageMutation();
-  // Existing images shown in edit mode; kept in local state so removals/cover
-  // changes (applied immediately via mutations) reflect without a refetch.
+  const setCoverMutation = useSetListingCoverMutation();
+  // Existing images shown in edit mode. Removals only update local state here;
+  // the DELETE calls are deferred until submit so nothing hits the API (or
+  // closes the modal) before the user saves.
   const [existingImages, setExistingImages] = useState(listing?.images ?? []);
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
   const isSubmitting =
-    createMutation.isPending || updateMutation.isPending || addImagesMutation.isPending;
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    addImagesMutation.isPending ||
+    removeImageMutation.isPending ||
+    setCoverMutation.isPending;
 
   const {
     register,
@@ -259,6 +278,11 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
+    addFiles(files);
+  }
+
+  // Shared by the file picker and drag-and-drop.
+  function addFiles(files: File[]) {
     if (files.length === 0) return;
 
     const totalCount = existingImages.length + newImages.length + files.length;
@@ -287,26 +311,31 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
   function removeNewImage(index: number) {
     URL.revokeObjectURL(newImages[index].preview);
     setNewImages((prev) => prev.filter((_, i) => i !== index));
-    setCoverIndex((prev) => (index === prev ? 0 : index < prev ? prev - 1 : prev));
+    setCover((prev) => {
+      if (!prev || !("newIndex" in prev)) return prev;
+      if (index === prev.newIndex) return null;
+      return index < prev.newIndex ? { newIndex: prev.newIndex - 1 } : prev;
+    });
   }
 
-  async function removeExistingImage(imageId: string) {
-    if (!listing) return;
-    try {
-      const result = await removeImageMutation.mutateAsync({ id: listing.id, imageId });
-      setExistingImages(result.listing.images);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove image");
-    }
+  function removeExistingImage(imageId: string) {
+    setRemovedImageIds((prev) => [...prev, imageId]);
+    setExistingImages((prev) => prev.filter((image) => image.id !== imageId));
+    setCover((prev) => (prev && "existingId" in prev && prev.existingId === imageId ? null : prev));
+    setImagesError(null);
   }
 
   async function nextStep() {
     const valid = await trigger(LISTING_STEP_FIELDS[step] as (keyof ListingFormValues)[]);
-    if (valid) setStep((s) => s + 1);
+    if (valid) {
+      lastStepChangeAt.current = Date.now();
+      setStep((s) => s + 1);
+    }
   }
 
   const onSubmit = handleSubmit(async (values) => {
-    if (!isEdit && newImages.length === 0 && values.status !== PropertyStatus.DRAFT) {
+    const totalImages = existingImages.length + newImages.length;
+    if (totalImages === 0 && values.status !== PropertyStatus.DRAFT) {
       setImagesError("At least one image is required to publish a listing.");
       return;
     }
@@ -317,18 +346,42 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
     try {
       if (isEdit && listing) {
         await updateMutation.mutateAsync({ id: listing.id, data: payload });
+        // Add before removing so the listing never dips below one image
+        // (the server rejects removing the last image of a published listing).
+        let addedImages: { id: string; sortOrder: number }[] = [];
         if (newImages.length > 0) {
-          await addImagesMutation.mutateAsync({
+          const result = await addImagesMutation.mutateAsync({
             id: listing.id,
             images: newImages.map((i) => i.file),
           });
+          // New images are appended with the highest sort orders, in upload
+          // order — the tail of the sorted list maps back to `newImages`.
+          addedImages = [...result.listing.images]
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .slice(-newImages.length);
+        }
+        for (const imageId of removedImageIds) {
+          await removeImageMutation.mutateAsync({ id: listing.id, imageId });
+        }
+        // Apply the chosen cover last so removals can't override it.
+        const originalCoverId = listing.images.find((i) => i.isCover)?.id;
+        const desiredCoverId =
+          cover && "existingId" in cover
+            ? cover.existingId !== originalCoverId
+              ? cover.existingId
+              : undefined
+            : cover
+              ? addedImages[cover.newIndex]?.id
+              : undefined;
+        if (desiredCoverId) {
+          await setCoverMutation.mutateAsync({ id: listing.id, imageId: desiredCoverId });
         }
         toast.success("Listing updated");
       } else {
         await createMutation.mutateAsync({
           data: payload,
           images: newImages.map((i) => i.file),
-          coverIndex,
+          coverIndex: cover && "newIndex" in cover ? cover.newIndex : 0,
         });
         toast.success("Listing created");
       }
@@ -343,13 +396,19 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
     [errors, step],
   );
 
+  const isExistingCover = (id: string) =>
+    cover !== null && "existingId" in cover && cover.existingId === id;
+  // With no explicit choice, create mode defaults the first new image to cover
+  // (matching the server); in edit mode the server keeps/promotes one itself.
+  const newCoverIndex =
+    cover === null ? (isEdit ? -1 : 0) : "newIndex" in cover ? cover.newIndex : -1;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
-      <div
-        className="relative bg-white rounded-[14px] w-full max-w-[850px] max-h-[92vh] overflow-y-auto shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Close only on a press that starts on the dim layer; clicks inside the
+          dialog (or drags that end outside it) can never dismiss the modal. */}
+      <div className="absolute inset-0 bg-black/40" onMouseDown={onClose} />
+      <div className="relative bg-white rounded-[14px] w-full max-w-[850px] max-h-[92vh] overflow-y-auto shadow-xl">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white flex items-center justify-between px-6 pt-5 pb-5 border-b border-[#e5e7eb]">
           <div className="flex flex-col">
@@ -373,7 +432,19 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
           ))}
         </div>
 
-        <form onSubmit={onSubmit} className="px-6 py-6 flex flex-col gap-5">
+        <form
+          // Native form submission (Enter key, implicit submission, leaked
+          // events from the file dialog) is fully disabled; saving happens
+          // only via the Save button's onClick.
+          onSubmit={(e) => e.preventDefault()}
+          onKeyDown={(e) => {
+            // Enter inside a field must not submit the multi-step form.
+            if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") {
+              e.preventDefault();
+            }
+          }}
+          className="px-6 py-6 flex flex-col gap-5"
+        >
           {/* ── Step 1: Basic Info ── */}
           {step === 0 && (
             <>
@@ -545,8 +616,24 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
                 <input ref={fileRef} type="file" accept={LISTING_IMAGE_MIME_TYPES.join(",")} multiple className="hidden" onChange={handleFiles} />
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className={`w-full border-2 border-dashed ${imagesError ? "border-[#e7000b]" : "border-[#e5e7eb]"} rounded-[10px] bg-[#fafbfc] hover:bg-[#f3f4f6] transition-colors flex flex-col items-center justify-center gap-3 py-10 text-center`}
+                  onClick={(e) => {
+                    // Drop focus before the native dialog opens; otherwise the
+                    // Enter keystroke that confirms the file selection can leak
+                    // back and re-activate this still-focused button.
+                    e.currentTarget.blur();
+                    fileRef.current?.click();
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(true);
+                  }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    addFiles(Array.from(e.dataTransfer.files));
+                  }}
+                  className={`w-full border-2 border-dashed ${isDragOver ? "border-[#1e4f86] bg-[#e0e7ff]/40" : imagesError ? "border-[#e7000b] bg-[#fafbfc]" : "border-[#e5e7eb] bg-[#fafbfc] hover:bg-[#f3f4f6]"} rounded-[10px] transition-colors flex flex-col items-center justify-center gap-3 py-10 text-center`}
                 >
                   <span className="size-12 rounded-full bg-[#e0e7ff] flex items-center justify-center">
                     <Upload size={22} className="text-[#1e4f86]" />
@@ -568,15 +655,21 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
                     {existingImages.map((image) => (
                       <div key={image.id} className="relative aspect-square rounded-[10px] overflow-hidden border border-[#e5e7eb] group">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={image.url} alt={image.altText ?? "Listing image"} className="size-full object-cover" />
-                        {image.isCover && (
+                        <img
+                          src={image.url}
+                          alt={image.altText ?? "Listing image"}
+                          className="size-full object-cover cursor-pointer"
+                          onClick={() => setCover({ existingId: image.id })}
+                          title="Click to set as cover"
+                        />
+                        {isExistingCover(image.id) && (
                           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-[6px] bg-[#1e4f86] text-white text-[10px] font-medium" style={mont}>Cover</span>
                         )}
                         <button
                           type="button"
                           title="Remove image"
                           onClick={() => removeExistingImage(image.id)}
-                          disabled={removeImageMutation.isPending}
+                          disabled={isSubmitting}
                           className="absolute top-2 right-2 size-6 rounded-full bg-black/55 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X size={13} />
@@ -600,10 +693,10 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
                           src={image.preview}
                           alt={`Upload ${i + 1}`}
                           className="size-full object-cover cursor-pointer"
-                          onClick={() => !isEdit && setCoverIndex(i)}
-                          title={isEdit ? undefined : "Click to set as cover"}
+                          onClick={() => setCover({ newIndex: i })}
+                          title="Click to set as cover"
                         />
-                        {!isEdit && i === coverIndex && (
+                        {i === newCoverIndex && (
                           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-[6px] bg-[#1e4f86] text-white text-[10px] font-medium" style={mont}>Cover</span>
                         )}
                         <button
@@ -617,9 +710,7 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
                       </div>
                     ))}
                   </div>
-                  {!isEdit && (
-                    <p className="text-[11px] text-[#9ca3af]" style={mont}>Click an image to mark it as the cover.</p>
-                  )}
+                  <p className="text-[11px] text-[#9ca3af]" style={mont}>Click an image to mark it as the cover.</p>
                 </div>
               )}
             </>
@@ -638,12 +729,21 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
               </button>
             </div>
             {step < STEPS.length - 1 ? (
-              <button type="button" onClick={nextStep} className="h-10 px-5 bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors" style={mont}>
+              <button key="next-step" type="button" onClick={nextStep} className="h-10 px-5 bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors" style={mont}>
                 Next Step
               </button>
             ) : (
               <button
-                type="submit"
+                key="save"
+                type="button"
+                onClick={() => {
+                  // Swallow the tail of a double-click on "Next Step": this
+                  // button takes its place in the footer the moment the step
+                  // advances, so a click landing right after the swap is not
+                  // an intentional save.
+                  if (Date.now() - lastStepChangeAt.current < 400) return;
+                  void onSubmit();
+                }}
                 disabled={isSubmitting}
                 className="h-10 px-6 bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                 style={mont}
