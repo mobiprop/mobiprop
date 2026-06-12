@@ -10,7 +10,8 @@
 !.yarn/releases
 !.yarn/versions
 public/assets/figma-temp/UserProfile
-
+scripts/deploy-client.sh
+scripts/deploy.sh
 # testing
 /coverage
 

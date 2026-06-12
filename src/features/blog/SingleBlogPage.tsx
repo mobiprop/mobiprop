@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const heroBg = "/assets/figma-temp/SingleBlogPage/hero-bg.png";
-const heroBgOverlay = "/assets/figma-temp/SingleBlogPage/hero-bg-overlay.png";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+const heroBgOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
 const articleHeroImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleBlogPage/article-hero-img.png";
 const articleSectionImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleBlogPage/article-section-img.png";
 const blogCardImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/blogimg1.png";
@@ -136,11 +136,11 @@ function BlogCard({ post }: { post: (typeof CONTINUE_READING)[number] }) {
           <span className="whitespace-nowrap">{post.author}</span>
         </div>
         <h3
-          className="text-[20px] font-medium text-[#0d2138] leading-[32px] tracking-[-0.2px] line-clamp-2"
-          style={{ fontFamily: poppins }}
-        >
-          {post.title}
-        </h3>
+  className="text-[18px] sm:text-[20px] font-medium text-[#0d2138] leading-[26px] sm:leading-[32px] tracking-[-0.18px] sm:tracking-[-0.2px] line-clamp-2"
+  style={{ fontFamily: poppins }}
+>
+  {post.title}
+</h3>
       </div>
     </Link>
   );
@@ -150,60 +150,79 @@ function BlogCard({ post }: { post: (typeof CONTINUE_READING)[number] }) {
 function HeroBanner() {
   return (
     <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
-      <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <img
-        src={heroBgOverlay}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-        }}
-      />
-      <div className="relative h-full flex flex-col items-center justify-center gap-3 px-6 text-center">
-        <SectionTag label="Blog Post" />
-        <h1
-          className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] max-w-[644px]"
-          style={{ fontFamily: poppins }}
-        >
-          Our Blog Posts
-        </h1>
-        <p
-          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px] max-w-[560px]"
-          style={{ fontFamily: montserrat }}
-        >
-          Explore our latest blog posts, where we share insights, market trends, and thoughtful
-          perspectives on real estate.
-        </p>
-      </div>
-    </section>
+  <div className="absolute inset-0 overflow-hidden">
+    <img
+      src={heroBg}
+      alt=""
+      className="absolute w-full h-[110%] -top-[10%] object-cover"
+    />
+  </div>
+
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
+    }}
+  />
+
+  <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
+    <img
+      src={heroBgOverlay}
+      alt=""
+      className="absolute w-full h-full object-cover"
+    />
+  </div>
+
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
+    }}
+  />
+
+  <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
+    <SectionTag label="Blog Post" />
+
+    <h1
+      className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
+      style={{ fontFamily: poppins }}
+    >
+      Our Blog Posts
+    </h1>
+
+    <p
+      className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
+      style={{ fontFamily: montserrat }}
+    >
+      Explore our latest blog posts, where we share insights, market trends, and thoughtful
+      perspectives on real estate.
+    </p>
+  </div>
+</section>
   );
 }
 
 /* ─── Section body — splits multi-para on \n\n with tighter inner gap ─── */
 function SectionBody({ text }: { text: string }) {
   const paras = text.split("\n\n");
+
+  const paragraphClass =
+    "text-[15px] sm:text-[16px] text-[#2b3038] leading-[23px] sm:leading-[24px] tracking-[-0.15px] sm:tracking-[-0.16px]";
+
   if (paras.length === 1) {
     return (
-      <p
-        className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-        style={{ fontFamily: montserrat }}
-      >
+      <p className={paragraphClass} style={{ fontFamily: montserrat }}>
         {text}
       </p>
     );
   }
+
   return (
-    <div className="flex flex-col gap-[10px]">
+    <div className="flex flex-col gap-2.5 sm:gap-[10px]">
       {paras.map((para, i) => (
-        <p
-          key={i}
-          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
+        <p key={i} className={paragraphClass} style={{ fontFamily: montserrat }}>
           {para}
         </p>
       ))}
@@ -218,116 +237,134 @@ function ArticleContent({ post }: { post: BlogPost }) {
   return (
     <article className="flex flex-col gap-12 lg:gap-[48px]">
       {/* header: back + date + title — w-[866px] per Figma */}
-      <div className="flex flex-col gap-6 lg:gap-[24px] max-w-[866px]">
-        <Link
-          href="/blog"
-          className="flex items-center gap-3 text-[16px] text-[#0d2138] tracking-[-0.16px] w-fit"
-          style={{ fontFamily: montserrat }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0">
-            <path
-              d="M19 12H5M5 12L12 19M5 12L12 5"
-              stroke="#0d2138"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Back
-        </Link>
+      <div className="flex flex-col gap-5 sm:gap-6 lg:gap-[24px] max-w-[866px] w-full">
+  <Link
+    href="/blog"
+    className="flex items-center gap-2.5 sm:gap-3 text-[14px] sm:text-[16px] text-[#0d2138] tracking-[-0.14px] sm:tracking-[-0.16px] w-fit"
+    style={{ fontFamily: montserrat }}
+  >
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      className="shrink-0 sm:w-6 sm:h-6"
+    >
+      <path
+        d="M19 12H5M5 12L12 19M5 12L12 5"
+        stroke="#0d2138"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+    Back
+  </Link>
 
-        <div className="flex flex-col gap-[14px]">
-          <p
-            className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-            style={{ fontFamily: montserrat }}
-          >
-            {post.date}
-          </p>
-          <h2
-            className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px]"
-            style={{ fontFamily: poppins }}
-          >
-            {post.title}
-          </h2>
-        </div>
-      </div>
+  <div className="flex flex-col gap-3 sm:gap-[14px]">
+    <p
+      className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
+      style={{ fontFamily: montserrat }}
+    >
+      {post.date}
+    </p>
+
+    <h2
+      className="text-[26px] sm:text-[36px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] sm:leading-[1.22] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.36px] lg:tracking-[-0.44px]"
+      style={{ fontFamily: poppins }}
+    >
+      {post.title}
+    </h2>
+  </div>
+</div>
 
       {/* introduction */}
-      <div className="flex flex-col gap-[20px]">
-        <h3
-          className="text-[28px] font-medium text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-          style={{ fontFamily: poppins }}
-        >
-          Introduction
-        </h3>
-        <p
-          className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
-          {post.intro}
-        </p>
-      </div>
+<div className="flex flex-col gap-4 sm:gap-5">
+  <h3
+    className="text-[24px] sm:text-[28px] font-medium text-[#0d2138] leading-[32px] sm:leading-[36px] tracking-[-0.24px] sm:tracking-[-0.28px]"
+    style={{ fontFamily: poppins }}
+  >
+    Introduction
+  </h3>
 
-      {/* full-width hero image */}
-      <div className="h-[400px] lg:h-[720px] rounded-[20px] overflow-hidden w-full">
-        <img src={post.heroImg} alt="" className="w-full h-full object-cover" />
-      </div>
+  <p
+    className="text-[15px] sm:text-[16px] text-[#2b3038] leading-[23px] sm:leading-[24px] tracking-[-0.15px] sm:tracking-[-0.16px]"
+    style={{ fontFamily: montserrat }}
+  >
+    {post.intro}
+  </p>
+</div>
+
+{/* full-width hero image */}
+<div className="h-[260px] sm:h-[400px] lg:h-[720px] rounded-[14px] sm:rounded-[20px] overflow-hidden w-full">
+  <img
+    src={post.heroImg}
+    alt={post.title || "Blog hero image"}
+    className="w-full h-full object-cover"
+  />
+</div>
 
       {/* sections + section image + conclusion — gap-[40px] between all children */}
-      <div className="flex flex-col gap-10 lg:gap-[40px]">
+      <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[40px]">
+  {/* section 1 only */}
+  <div className="flex flex-col gap-4 sm:gap-5">
+    <h3
+      className="text-[20px] sm:text-[28px] font-semibold text-[#0d2138] leading-[32px] sm:leading-[36px] tracking-[-0.24px] sm:tracking-[-0.28px]"
+      style={{ fontFamily: poppins }}
+    >
+      {post.sections[0].heading}
+    </h3>
 
-        {/* section 1 only */}
-        <div className="flex flex-col gap-[20px]">
-          <h3
-            className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-            style={{ fontFamily: poppins }}
-          >
-            {post.sections[0].heading}
-          </h3>
-          <SectionBody text={post.sections[0].body} />
-        </div>
+    <SectionBody text={post.sections[0].body} />
+  </div>
 
-        {/* section image between section 1 and section 2 per Figma */}
-        <div className="h-[320px] lg:h-[512px] rounded-[20px] overflow-hidden w-full">
-          <img src={sectionImg} alt="" className="w-full h-full object-cover" />
-        </div>
+  {/* section image between section 1 and section 2 per Figma */}
+  <div className="h-[240px] sm:h-[320px] lg:h-[512px] rounded-[14px] sm:rounded-[20px] overflow-hidden w-full">
+    <img
+      src={sectionImg}
+      alt={post.sections[0].heading || "Section image"}
+      className="w-full h-full object-cover"
+    />
+  </div>
 
-        {/* sections 2-N + conclusion */}
-        <div className="flex flex-col gap-10 lg:gap-[40px]">
-          {post.sections.slice(1).map((section, i) => (
-            <div key={i} className="flex flex-col gap-[20px]">
-              <h3
-                className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-                style={{ fontFamily: poppins }}
-              >
-                {section.heading}
-              </h3>
-              <SectionBody text={section.body} />
-            </div>
-          ))}
+  {/* sections 2-N + conclusion */}
+  <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[40px]">
+    {post.sections.slice(1).map((section, i) => (
+      <div key={i} className="flex flex-col gap-4 sm:gap-5">
+        <h3
+          className="text-[20px] sm:text-[28px] font-semibold text-[#0d2138] leading-[32px] sm:leading-[36px] tracking-[-0.24px] sm:tracking-[-0.28px]"
+          style={{ fontFamily: poppins }}
+        >
+          {section.heading}
+        </h3>
 
-          {/* conclusion */}
-          <div className="flex flex-col gap-[20px]">
-            <h3
-              className="text-[28px] font-semibold text-[#0d2138] leading-[36px] tracking-[-0.28px]"
-              style={{ fontFamily: poppins }}
-            >
-              {post.conclusion.heading}
-            </h3>
-            <div className="flex flex-col gap-[10px]">
-              {post.conclusion.body.map((para, i) => (
-                <p
-                  key={i}
-                  className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
+        <SectionBody text={section.body} />
       </div>
+    ))}
+
+    {/* conclusion */}
+    <div className="flex flex-col gap-4 sm:gap-5">
+      <h3
+        className="text-[20px] sm:text-[28px] font-semibold text-[#0d2138] leading-[32px] sm:leading-[36px] tracking-[-0.24px] sm:tracking-[-0.28px]"
+        style={{ fontFamily: poppins }}
+      >
+        {post.conclusion.heading}
+      </h3>
+
+      <div className="flex flex-col gap-2.5">
+        {post.conclusion.body.map((para, i) => (
+          <p
+            key={i}
+            className="text-[15px] sm:text-[16px] text-[#2b3038] leading-[23px] sm:leading-[24px] tracking-[-0.15px] sm:tracking-[-0.16px]"
+            style={{ fontFamily: montserrat }}
+          >
+            {para}
+          </p>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
     </article>
   );
 }
@@ -335,22 +372,24 @@ function ArticleContent({ post }: { post: BlogPost }) {
 /* ─── Continue Reading ─── */
 function ContinueReading() {
   return (
-    <section className="flex flex-col gap-11 lg:gap-[44px] items-center">
-      <div className="flex flex-col gap-2 items-center">
-        <SectionTag label="More Posts" muted />
-        <h2
-          className="text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.44px] text-center"
-          style={{ fontFamily: poppins }}
-        >
-          Continue Reading
-        </h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8 w-full">
-        {CONTINUE_READING.map((post) => (
-          <BlogCard key={post.id} post={post} />
-        ))}
-      </div>
-    </section>
+    <section className="flex flex-col gap-8 sm:gap-10 lg:gap-[44px] items-center w-full">
+  <div className="flex flex-col gap-2 sm:gap-2.5 items-center">
+    <SectionTag label="More Posts" muted />
+
+    <h2
+      className="text-[28px] sm:text-[36px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] sm:leading-[1.22] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.36px] lg:tracking-[-0.44px] text-center"
+      style={{ fontFamily: poppins }}
+    >
+      Continue Reading
+    </h2>
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-6 sm:gap-y-8 w-full">
+    {CONTINUE_READING.map((post) => (
+      <BlogCard key={post.id} post={post} />
+    ))}
+  </div>
+</section>
   );
 }
 
@@ -362,7 +401,7 @@ export function SingleBlogPageContent() {
     <>
       <HeroBanner />
 
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 pt-[60px] pb-16 lg:pb-20">
+      <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
         <div className="flex flex-col gap-[68px]">
           <ArticleContent post={post} />
           <ContinueReading />

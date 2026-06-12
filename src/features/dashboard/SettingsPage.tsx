@@ -64,7 +64,7 @@ export function SettingsPage({ profile }: SettingsPageProps) {
         <div className="flex-1 bg-white border border-[#e5e5e5] rounded-[12px] p-6">
           {activeTab === "profile" && <ProfileTab profile={profile} />}
           {activeTab === "security" && <SecurityTab profile={profile} />}
-          {activeTab === "notifications" && <NotificationsTab />}
+          {activeTab === "notifications" && <NotificationsTab profile={profile} />}
           {activeTab === "privacy" && <PrivacyTab />}
           {activeTab === "preferences" && <PreferencesTab profile={profile} />}
         </div>

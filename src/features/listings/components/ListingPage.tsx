@@ -471,10 +471,10 @@ className?: string;
 }) {
 return (
 <span
-className={`absolute rounded-[8px] bg-[#4896b6] px-3 py-1.5 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(13,33,56,0.14)] ${className}`}
-style={{ fontFamily: "Montserrat, sans-serif" }}
+  className={`absolute rounded-[6px] bg-[#4896b6] px-2 py-1 text-[10px] font-medium text-white shadow-[0_8px_18px_rgba(13,33,56,0.14)] sm:rounded-[8px] sm:px-3 sm:py-1.5 sm:text-[14px] ${className}`}
+  style={{ fontFamily: "Montserrat, sans-serif" }}
 >
-{label}
+  {label}
 </span>
 );
 }
@@ -482,25 +482,25 @@ function ModalListingCard({ location }: { location: string }) {
 return (
 <div className="rounded-[12px] border border-[#d8dee8] bg-white px-4 py-4 shadow-[0_4px_18px_rgba(13,33,56,0.04)]">
    <p
-   className="text-[16px] font-semibold leading-[22px] text-[#0d2138]"
+   className="text-[18px] font-medium leading-[22px] text-[#0d2138]"
    style={{ fontFamily: "Poppins, sans-serif" }}
    >
    Coastal Modern Residence
    </p>
    <p
-   className="mt-1 text-[13px] leading-[18px] text-[#6a7282]"
+   className="mt-1 text-[14px] leading-[18px] text-[#6a7282]"
    style={{ fontFamily: "Montserrat, sans-serif" }}
    >
    {location}
    </p>
    <p
-   className="mt-3 text-[17px] font-semibold leading-[24px] text-[#005ea4]"
+   className="mt-3 text-[18px] font-semibold leading-[24px] text-[#005ea4]"
    style={{ fontFamily: "Poppins, sans-serif" }}
    >
    $8,500,000
    </p>
    <p
-   className="mt-1 text-[13px] leading-[18px] text-[#6a7282]"
+   className="mt-1 text-[14px] leading-[18px] text-[#6a7282]"
    style={{ fontFamily: "Montserrat, sans-serif" }}
    >
    5 Beds · 4 Baths · 4,200 sqft
@@ -509,105 +509,107 @@ return (
 );
 }
 function PropertyMapModal({ onClose }: { onClose: () => void }) {
-return (
-<div
-   className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2138]/60 px-4 py-8 backdrop-blur-[1px]"
-   role="dialog"
-   aria-modal="true"
-   aria-labelledby="property-map-title"
-   onMouseDown={onClose}
-   >
-<div
-   className="max-h-[calc(100vh-64px)] w-full max-w-[1030px] overflow-hidden rounded-[12px] bg-white shadow-[0_26px_80px_rgba(13,33,56,0.22)]"
-   onMouseDown={(event) =>
-event.stopPropagation()}
->
-<div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-5">
-   <div className="flex flex-wrap items-center gap-3">
-      <h2
-      id="property-map-title"
-      className="text-[26px] font-semibold leading-[32px] text-[#0d2138]"
-      style={{ fontFamily: "Poppins, sans-serif" }}
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2138]/60 px-2 py-3 sm:px-4 sm:py-8 backdrop-blur-[1px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="property-map-title"
+      onMouseDown={onClose}
+    >
+      <div
+        className="relative max-h-[calc(100vh-24px)] w-full max-w-[1030px] overflow-y-auto rounded-[10px] bg-white shadow-[0_20px_60px_rgba(13,33,56,0.22)] sm:max-h-[calc(100vh-32px)] sm:rounded-[12px]"
+        onMouseDown={(event) => event.stopPropagation()}
       >
-      Property Map
-      </h2>
-      <button
-      className="flex h-8 items-center gap-2 rounded-[7px] bg-[#285f9c] px-3 text-[13px] text-white"
-      style={{ fontFamily: "Montserrat, sans-serif" }}
-      >
-      <span className="h-2 w-2 rounded-full bg-white" />
-         Enable Drawing
-         </button>
-         <button
-         className="flex h-8 items-center gap-2 rounded-[7px] bg-[#4896b6] px-3 text-[13px] text-white"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         <span className="text-[18px] leading-none">×</span>
-         Clear Circles
-         </button>
-   </div>
-   <button
-      onClick={onClose}
-      aria-label="Close property map"
-      className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f3f6f9]"
-      >
-   <CloseIcon />
-   </button>
-</div>
-<div className="grid gap-5 px-6 py-5 lg:grid-cols-[1fr_280px]">
-<div className="min-w-0">
-<div className="relative h-[500px] overflow-hidden rounded-[10px] bg-[#edf6ff]">
-<img
-   src={mapImg}
-   alt="Map showing listing search area"
-   className="h-full w-full object-cover"
-   />
-<div className="absolute left-[32%] top-[18%] h-[260px] w-[260px] rounded-full border-[4px] border-[#2f7fc8]/55 bg-[#5fb6ff]/35" />
-<div className="absolute left-[44.5%] top-[38%] h-4 w-4 rounded-full border-[3px] border-white bg-[#1bbf86] shadow-[0_0_0_3px_rgba(27,191,134,0.2)]" />
-<PricePin label="$40,000" className="left-[10%] top-[24%]" />
-<PricePin
-   label="$40,000"
-   className="left-[41%] top-[19%] bg-[#285f9c]"
-   />
-<PricePin label="$40,000" className="left-[70%] top-[27%]" />
-<PricePin label="$40,000" className="left-[42%] top-[31%]" />
-<PricePin label="$40,000" className="left-[60%] top-[51%]" />
-<PricePin
-   label="$40,000"
-   className="left-[43%] top-[61%] bg-[#285f9c]"
-   />
-<PricePin label="$40,000" className="left-[16%] top-[68%]" />
-<PricePin label="$40,000" className="left-[60%] top-[73%]" />
-<PricePin
-   label="$40,000"
-   className="left-[82%] top-[61%] bg-[#285f9c]"
-   />
-<PricePin label="$40,000" className="left-[73%] top-[82%]" />
-</div>
-<p
-className="mt-3 text-[13px] leading-[20px] text-[#2b3038]"
-style={{ fontFamily: "Montserrat, sans-serif" }}
->
-Enable drawing mode to search for listings by area
-</p>
-</div>
-<aside className="flex min-w-0 flex-col">
-<h3
-className="mb-5 text-[17px] font-semibold leading-[24px] text-[#0d2138]"
-style={{ fontFamily: "Poppins, sans-serif" }}
->
-3 Listings Found
-</h3>
-<div className="flex flex-col gap-3">
-<ModalListingCard location="Lisbon, Portugal" />
-<ModalListingCard location="Montecarlo, Monaco" />
-<ModalListingCard location="Del Rio, Texas" />
-</div>
-</aside>
-</div>
-</div>
-</div>
-);
+        <div className="flex flex-col gap-3 border-b border-[#e5e7eb] px-4 py-4 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 pr-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:pr-0">
+            <h2
+              id="property-map-title"
+              className="text-[20px] font-[500] leading-[26px] text-[#0d2138] sm:text-[26px] sm:leading-[32px] lg:text-[28px]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              Property Map
+            </h2>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="flex h-8 items-center gap-1.5 rounded-[7px] bg-[#285f9c] px-2.5 text-[12px] leading-none text-white sm:gap-2 sm:px-3 sm:text-[14px]"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-white sm:h-2 sm:w-2" />
+                Enable Drawing
+              </button>
+
+              <button
+                className="flex h-8 items-center gap-1.5 rounded-[7px] bg-[#4896b6] px-2.5 text-[12px] leading-none text-white sm:gap-2 sm:px-3 sm:text-[14px]"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                <span className="text-[16px] leading-none sm:text-[18px]">×</span>
+                Clear Circles
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            aria-label="Close property map"
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#f3f6f9] sm:right-5 sm:top-5 sm:h-9 sm:w-9 md:static"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="grid gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[1fr_280px]">
+          <div className="min-w-0">
+            <div className="relative h-[270px] overflow-hidden rounded-[9px] bg-[#edf6ff] sm:h-[420px] sm:rounded-[10px] lg:h-[500px]">
+              <img
+                src={mapImg}
+                alt="Map showing listing search area"
+                className="h-full w-full object-cover"
+              />
+
+              <div className="absolute left-[28%] top-[16%] h-[150px] w-[150px] rounded-full border-[3px] border-[#2f7fc8]/55 bg-[#5fb6ff]/35 sm:left-[32%] sm:top-[18%] sm:h-[260px] sm:w-[260px] sm:border-[4px]" />
+
+              <div className="absolute left-[44.5%] top-[38%] h-3.5 w-3.5 rounded-full border-[2px] border-white bg-[#1bbf86] shadow-[0_0_0_3px_rgba(27,191,134,0.2)] sm:h-4 sm:w-4 sm:border-[3px]" />
+
+              <PricePin label="$40,000" className="left-[10%] top-[24%]" />
+              <PricePin label="$40,000" className="left-[41%] top-[19%] bg-[#285f9c]" />
+              <PricePin label="$40,000" className="left-[70%] top-[27%]" />
+              <PricePin label="$40,000" className="left-[42%] top-[31%]" />
+              <PricePin label="$40,000" className="left-[60%] top-[51%]" />
+              <PricePin label="$40,000" className="left-[43%] top-[61%] bg-[#285f9c]" />
+              <PricePin label="$40,000" className="left-[16%] top-[68%]" />
+              <PricePin label="$40,000" className="left-[60%] top-[73%]" />
+              <PricePin label="$40,000" className="left-[82%] top-[61%] bg-[#285f9c]" />
+              <PricePin label="$40,000" className="left-[73%] top-[82%]" />
+            </div>
+
+            <p
+              className="mt-2 text-[12px] leading-[18px] text-[#2b3038] sm:mt-3 sm:text-[14px] sm:leading-[20px]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              Enable drawing mode to search for listings by area
+            </p>
+          </div>
+
+          <aside className="flex min-w-0 flex-col">
+            <h3
+              className="mb-3 text-[17px] font-medium leading-[22px] text-[#0d2138] sm:mb-5 sm:text-[20px] sm:leading-[24px]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              3 Listings Found
+            </h3>
+
+            <div className="flex flex-col gap-2.5 sm:gap-3">
+              <ModalListingCard location="Lisbon, Portugal" />
+              <ModalListingCard location="Montecarlo, Monaco" />
+              <ModalListingCard location="Del Rio, Texas" />
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
 }
 /* ─── pagination ─── */
 function getPageItems(current: number, total: number): (number | "…")[] {

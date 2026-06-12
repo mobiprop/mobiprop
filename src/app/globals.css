@@ -31,3 +31,43 @@ body {
     top: 85px;
     left: -70px;
 }
+.agents-slider .slick-dots {
+  position: static;
+  bottom: auto;
+}
+
+.agents-slider .slick-dots li {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+.agents-slider .slick-dots li button {
+  width: auto;
+  height: auto;
+  padding: 0;
+}
+
+.agents-slider .slick-dots li button::before {
+  display: none;
+}
+
+.agents-slider .slick-dots li.slick-active .agent-custom-dot {
+  width: 20px;
+  height: 8px;
+  background: #1e4f86;
+  opacity: 1;
+  border-radius: 999px;
+}
+.agents-slider .slick-slide {
+  transition: all 0.4s ease-in-out;
+}
+
+.agents-slider .slick-list {
+  overflow: hidden;
+}
+
+.agents-slider .slick-track {
+  display: flex;
+  align-items: flex-start;
+}

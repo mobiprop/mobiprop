@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:client": "bash scripts/deploy-client.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -26,9 +27,11 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.77.0",
+    "react-slick": "^0.31.0",
     "recharts": "^3.8.1",
     "resend": "^6.12.4",
     "sharp": "^0.34.5",
+    "slick-carousel": "^1.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3",
@@ -39,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-slick": "^0.23.13",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",

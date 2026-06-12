@@ -3,7 +3,11 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export type ActivityEntityType = "AGENT_INVITATION" | "PROFILE" | "PROPERTY";
+export type ActivityEntityType =
+  | "AGENT_INVITATION"
+  | "PROFILE"
+  | "PROFILE_SETTINGS"
+  | "PROPERTY";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -12,6 +16,11 @@ export type ActivityAction =
   | "INVITATION_ACCEPTED"
   | "PROFILE_CREATED"
   | "ROLE_ASSIGNED"
+  | "PROFILE_SETTINGS_UPDATED"
+  | "SECURITY_SETTINGS_UPDATED"
+  | "NOTIFICATION_PREFERENCES_UPDATED"
+  | "GENERAL_PREFERENCES_UPDATED"
+  | "PASSWORD_CHANGED"
   | "PROPERTY_CREATED"
   | "PROPERTY_UPDATED"
   | "PROPERTY_DELETED"

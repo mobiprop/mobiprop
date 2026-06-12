@@ -4,12 +4,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getCurrentProfile } from "@/lib/auth";
+import { logActivity, type ActivityAction } from "@/lib/activity-log";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/require-permission";
 import { createClient } from "@/lib/supabase/server";
 import { removeAvatar, uploadAvatar } from "@/lib/supabase/storage";
 import type { Profile } from "@/generated/prisma/client";
 import {
   resolvePreferences,
+  type DashboardNotificationPreferences,
   type LocalePreferences,
   type NotificationPreferences,
   type SecurityPreferences,
@@ -82,6 +85,33 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
       },
     });
 
+    await logActivity({
+      actorId: profile.id,
+      action: "PROFILE_SETTINGS_UPDATED",
+      entityType: "PROFILE_SETTINGS",
+      entityId: profile.id,
+      oldValues: {
+        fullName: profile.fullName,
+        phone: profile.phone,
+        country: profile.country,
+        city: profile.city,
+        timezone: profile.timezone,
+        address: profile.address,
+        description: profile.description,
+        avatarUrl: profile.avatarUrl,
+      },
+      newValues: {
+        fullName: updated.fullName,
+        phone: updated.phone,
+        country: updated.country,
+        city: updated.city,
+        timezone: updated.timezone,
+        address: updated.address,
+        description: updated.description,
+        avatarUrl: updated.avatarUrl,
+      },
+    });
+
     revalidatePath("/", "layout");
 
     return { profile: updated };
@@ -91,22 +121,46 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
   }
 }
 
+type PreferencesSection = "notifications" | "dashboardNotifications" | "security" | "locale";
+
+const SECTION_ACTIVITY_ACTION: Record<PreferencesSection, ActivityAction> = {
+  notifications: "NOTIFICATION_PREFERENCES_UPDATED",
+  dashboardNotifications: "NOTIFICATION_PREFERENCES_UPDATED",
+  security: "SECURITY_SETTINGS_UPDATED",
+  locale: "GENERAL_PREFERENCES_UPDATED",
+};
+
 /** Merge one section of the preferences JSON and persist it. */
 async function updatePreferencesSection(
-  section: "notifications" | "security" | "locale",
-  value: NotificationPreferences | SecurityPreferences | LocalePreferences,
+  section: PreferencesSection,
+  value:
+    | NotificationPreferences
+    | DashboardNotificationPreferences
+    | SecurityPreferences
+    | LocalePreferences,
 ): Promise<UpdateProfileResult> {
   const profile = await getCurrentProfile();
   if (!profile) return { error: "You must be signed in." };
 
   try {
-    const preferences = { ...resolvePreferences(profile), [section]: value };
+    const current = resolvePreferences(profile);
+    const preferences = { ...current, [section]: value };
     const updated = await prisma.profile.update({
       where: { id: profile.id },
       data: { preferences },
     });
 
+    await logActivity({
+      actorId: profile.id,
+      action: SECTION_ACTIVITY_ACTION[section],
+      entityType: "PROFILE_SETTINGS",
+      entityId: profile.id,
+      oldValues: { [section]: current[section] },
+      newValues: { [section]: value },
+    });
+
     revalidatePath("/profile");
+    revalidatePath("/dashboard/settings");
 
     return { profile: updated };
   } catch (err) {
@@ -119,6 +173,19 @@ export async function updateNotificationPreferences(
   prefs: NotificationPreferences,
 ): Promise<UpdateProfileResult> {
   return updatePreferencesSection("notifications", prefs);
+}
+
+/**
+ * Dashboard-only notification toggles (/dashboard/settings → Notifications).
+ * Staff roles only — `settings:view` is not granted to USER.
+ */
+export async function updateDashboardNotificationPreferences(
+  prefs: DashboardNotificationPreferences,
+): Promise<UpdateProfileResult> {
+  const guard = await requirePermission("settings:view");
+  if (!guard.ok) return { error: guard.error };
+
+  return updatePreferencesSection("dashboardNotifications", prefs);
 }
 
 export async function updateSecurityPreferences(
@@ -172,6 +239,14 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) return { error: error.message };
+
+    // Audit trail only — never log password values.
+    await logActivity({
+      actorId: profile.id,
+      action: "PASSWORD_CHANGED",
+      entityType: "PROFILE_SETTINGS",
+      entityId: profile.id,
+    });
 
     return { success: true };
   } catch {
