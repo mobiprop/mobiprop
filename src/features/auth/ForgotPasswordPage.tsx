@@ -77,7 +77,17 @@ export function ForgotPasswordPageContent() {
 
             {/* Heading */}
             <div className="mb-[52px]">
-              <h1 className="text-[32px] leading-[44px] tracking-[-0.32px] text-[#0d2138] mb-[2px]" style={{ ...poppins, fontWeight: 600 }}>
+              <h1 className=" mb-[2px]
+  text-[32px] leading-[44px]
+  tracking-[-0.32px] text-[#0d2138]
+
+  max-md:text-[30px]
+  max-md:leading-[40px]
+  max-md:tracking-[-0.3px]
+
+  max-sm:text-[26px]
+  max-sm:leading-[34px]
+  max-sm:tracking-[-0.26px]" style={{ ...poppins, fontWeight: 600 }}>
                 Reset Password
               </h1>
               <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#6a7282]" style={{ ...mont, fontWeight: 400 }}>

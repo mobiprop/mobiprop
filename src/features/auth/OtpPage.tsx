@@ -163,101 +163,250 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
       </Link>
 
       {/* Centered card */}
-      <div className="flex flex-1 items-center justify-center px-6 py-20">
-        <div className="w-full max-w-[500px] bg-white border border-[#e5e7eb] rounded-[16px] p-8 flex flex-col gap-8">
-          {/* Icon */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="p-4 rounded-full">
-              <div className="bg-white border border-[#c2d5d0] rounded-full p-[14px] shadow-[0px_2px_4px_0px_rgba(179,212,253,0.04)] flex items-center justify-center">
-                <IconMailEnvelope />
-              </div>
-            </div>
+      <div
+  className="
+    flex flex-1 items-center justify-center px-6 py-20
+    max-md:px-5 max-md:py-12
+    max-sm:px-4 max-sm:py-8
+  "
+>
+  <div
+    className="
+      w-full max-w-[500px] bg-white
+      border border-[#e5e7eb] rounded-[16px]
+      p-8 flex flex-col gap-8
 
-            {/* Header text */}
-            <div className="flex flex-col gap-2 items-center text-center w-full">
-              <p className="text-[24px] leading-[28px] tracking-[-0.24px] text-[#0d0d12] w-full" style={{ ...poppins, fontWeight: 500 }}>
-                OTP Verification
-              </p>
-              <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#666d80] w-full" style={{ ...mont, fontWeight: 400 }}>
-                We have sent a verification code to email address{" "}
-                <span className="font-medium text-[#0d0d12]" style={mont}>{email}</span>
-              </p>
-            </div>
-          </div>
+      max-md:p-6 max-md:gap-6
+      max-sm:p-5 max-sm:rounded-[14px] max-sm:gap-5
+    "
+  >
+    {/* Icon */}
+    <div className="flex flex-col items-center gap-4 max-sm:gap-3">
+      <div className="p-4 max-sm:p-2">
+        <div
+          className="
+            bg-white border border-[#c2d5d0]
+            rounded-full p-[14px]
+            shadow-[0px_2px_4px_0px_rgba(179,212,253,0.04)]
+            flex items-center justify-center
 
-          {/* OTP inputs */}
-          <div className="flex gap-4">
-            {otp.map((digit, i) => (
-              <input
-                key={i}
-                ref={(el) => { inputRefs.current[i] = el; }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleInput(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                className={`flex-1 min-w-0 w-0 h-[52px] text-center text-[24px] leading-[28px] tracking-[-0.24px] text-[#0d0d12] rounded-[12px] border outline-none transition-colors ${
-                  digit
-                    ? "bg-[#f8fafc] border-[#1e4f86]"
-                    : "bg-white border-[#dfe1e7] focus:border-[#1e4f86] focus:bg-[#f8fafc]"
-                }`}
-                style={{ ...poppins, fontWeight: 500 }}
-              />
-            ))}
-          </div>
+            max-sm:p-3
+          "
+        >
+          <IconMailEnvelope />
+        </div>
+      </div>
 
-          {/* Verify button */}
-          <button
-            type="button"
-            onClick={handleVerify}
-            disabled={isVerifying}
-            className="w-full bg-[#1e4f86] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] h-[52px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:opacity-60"
+      {/* Header text */}
+      <div className="flex flex-col gap-2 items-center text-center w-full">
+        <p
+          className="
+            text-[24px] leading-[28px]
+            tracking-[-0.24px] text-[#0d0d12] w-full
+
+            max-sm:text-[20px]
+            max-sm:leading-[26px]
+            max-sm:tracking-[-0.2px]
+          "
+          style={{ ...poppins, fontWeight: 500 }}
+        >
+          OTP Verification
+        </p>
+
+        <p
+          className="
+            text-[16px] leading-[24px]
+            tracking-[-0.16px] text-[#666d80] w-full
+
+            max-sm:text-[14px]
+            max-sm:leading-[21px]
+            max-sm:tracking-[-0.14px]
+          "
+          style={{ ...mont, fontWeight: 400 }}
+        >
+          We have sent a verification code to email address{" "}
+          <span
+            className="font-medium text-[#0d0d12] break-all"
             style={mont}
           >
-            {isVerifying ? "Verifying…" : "Verify"}
-          </button>
-
-          {/* Resend */}
-          <p className="text-[16px] leading-[24px] text-[#666d80] text-center" style={{ ...mont, fontWeight: 400 }}>
-            {seconds > 0 ? (
-              <>
-                Resend code in{" "}
-                <span className="text-[#1e4f86] font-medium" style={mont}>{formatTime(seconds)}</span>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isResending}
-                className="text-[#1e4f86] font-medium hover:underline disabled:opacity-60"
-                style={mont}
-              >
-                {isResending ? "Sending…" : "Resend code"}
-              </button>
-            )}
-          </p>
-        </div>
+            {email}
+          </span>
+        </p>
       </div>
+    </div>
+
+    {/* OTP inputs */}
+    <div className="flex gap-4 max-md:gap-3 max-sm:gap-2">
+      {otp.map((digit, i) => (
+        <input
+          key={i}
+          ref={(el) => {
+            inputRefs.current[i] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={digit}
+          onChange={(e) => handleInput(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          className={`
+            flex-1 min-w-0 w-0 h-[52px]
+            text-center text-[24px] leading-[28px]
+            tracking-[-0.24px] text-[#0d0d12]
+            rounded-[12px] border outline-none transition-colors
+
+            max-sm:h-[46px]
+            max-sm:text-[20px]
+            max-sm:leading-[24px]
+            max-sm:rounded-[10px]
+
+            ${
+              digit
+                ? "bg-[#f8fafc] border-[#1e4f86]"
+                : "bg-white border-[#dfe1e7] focus:border-[#1e4f86] focus:bg-[#f8fafc]"
+            }
+          `}
+          style={{ ...poppins, fontWeight: 500 }}
+        />
+      ))}
+    </div>
+
+    {/* Verify button */}
+    <button
+      type="button"
+      onClick={handleVerify}
+      disabled={isVerifying}
+      className="
+        w-full bg-[#1e4f86] text-white
+        text-[16px] leading-[24px]
+        tracking-[-0.16px] font-medium
+        rounded-[12px] h-[52px]
+        flex items-center justify-center
+        hover:bg-[#1b487a] transition-colors
+        disabled:opacity-60
+
+        max-sm:h-[48px]
+        max-sm:text-[14px]
+        max-sm:leading-[20px]
+        max-sm:rounded-[10px]
+      "
+      style={mont}
+    >
+      {isVerifying ? "Verifying…" : "Verify"}
+    </button>
+
+    {/* Resend */}
+    <p
+      className="
+        text-[16px] leading-[24px]
+        text-[#666d80] text-center
+
+        max-sm:text-[14px]
+        max-sm:leading-[20px]
+      "
+      style={{ ...mont, fontWeight: 400 }}
+    >
+      {seconds > 0 ? (
+        <>
+          Resend code in{" "}
+          <span
+            className="text-[#1e4f86] font-medium"
+            style={mont}
+          >
+            {formatTime(seconds)}
+          </span>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={isResending}
+          className="
+            text-[#1e4f86] font-medium
+            hover:underline disabled:opacity-60
+          "
+          style={mont}
+        >
+          {isResending ? "Sending…" : "Resend code"}
+        </button>
+      )}
+    </p>
+  </div>
+</div>
 
       {/* Footer */}
-      <div className="shrink-0 flex items-center justify-between px-8 pb-8">
-        <span className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#666d80]" style={{ ...mont, fontWeight: 400 }}>
-          © 2026 Ulrich. All right reserved.
+      <div
+  className="
+    shrink-0 flex items-center justify-between px-8 pb-8
+
+    max-md:flex-col
+    max-md:items-center
+    max-md:gap-4
+    max-md:px-5
+    max-md:pb-5
+
+    max-sm:px-4
+  "
+>
+  <span
+    className="
+      text-[14px] leading-[20px]
+      tracking-[-0.14px] text-[#666d80]
+
+      max-md:text-center
+      max-sm:text-[12px]
+      max-sm:leading-[18px]
+    "
+    style={{ ...mont, fontWeight: 400 }}
+  >
+    © 2026 Ulrich. All rights reserved.
+  </span>
+
+  <div
+    className="
+      flex items-center gap-6
+
+      max-md:flex-wrap
+      max-md:justify-center
+      max-md:gap-x-5
+      max-md:gap-y-3
+
+      max-sm:gap-x-3
+    "
+  >
+    {[
+      { icon: <IconShield />, label: "Privacy", href: "/privacy" },
+      { icon: <IconFile />, label: "Terms", href: "/terms" },
+      { icon: <IconHelp />, label: "Get help", href: "/help" },
+    ].map(({ icon, label, href }) => (
+      <Link
+        key={label}
+        href={href}
+        className="
+          flex items-center gap-[6px]
+          text-[#666d80]
+          transition-colors
+          hover:text-[#0d0d12]
+        "
+      >
+        {icon}
+
+        <span
+          className="
+            text-[14px] leading-[20px]
+            tracking-[-0.14px]
+
+            max-sm:text-[12px]
+            max-sm:leading-[18px]
+          "
+          style={{ ...mont, fontWeight: 400 }}
+        >
+          {label}
         </span>
-        <div className="flex items-center gap-6">
-          {[
-            { icon: <IconShield />, label: "Privacy", href: "/privacy" },
-            { icon: <IconFile />, label: "Terms", href: "/terms" },
-            { icon: <IconHelp />, label: "Get help", href: "/help" },
-          ].map(({ icon, label, href }) => (
-            <Link key={label} href={href} className="flex items-center gap-[6px] text-[#666d80] hover:text-[#0d0d12] transition-colors">
-              {icon}
-              <span className="text-[14px] leading-[20px] tracking-[-0.14px]" style={{ ...mont, fontWeight: 400 }}>{label}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
+      </Link>
+    ))}
+  </div>
+</div>
     </div>
   );
 }
