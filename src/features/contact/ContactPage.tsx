@@ -110,7 +110,7 @@ function ContactCard() {
 
   return (
     <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1360px] mx-auto">
-  <div className="bg-white rounded-[18px] sm:rounded-[20px] lg:rounded-[24px] shadow-[0_10px_17.5px_rgba(27,45,84,0.07)] overflow-hidden">
+  <div className="bg-white rounded-[18px] sm:rounded-[20px] lg:rounded-[24px] shadow-[0px_10px_35px_-5px_#1B2D5412] overflow-hidden">
     <div className="flex flex-col lg:flex-row">
       {/* Left: Contact information */}
       <div className="w-full shrink-0 px-5 py-7 sm:p-8 md:px-10 md:py-10 lg:pl-[60px] lg:pt-[50px] lg:pb-[60px] lg:pr-8 lg:w-[532px]">

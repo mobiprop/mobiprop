@@ -4,8 +4,12 @@
 // application code and the database schema never drift apart. Each name is both a
 // runtime value (const object) and a type in Prisma's generated output.
 import type { UserRole } from "@/generated/prisma/enums";
-
-export { UserRole, UserStatus, InvitationStatus } from "@/generated/prisma/enums";
+import type { Viewport } from "next";
+export {
+  UserRole,
+  UserStatus,
+  InvitationStatus,
+} from "@/generated/prisma/enums";
 
 // Backwards-compatible alias used in older code paths.
 export type Role = UserRole;
@@ -27,3 +31,9 @@ export interface BlogPost {
   coverImage?: string;
   publishedAt?: string;
 }
+
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};

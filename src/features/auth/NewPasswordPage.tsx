@@ -151,13 +151,34 @@ export function NewPasswordPageContent() {
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center gap-[14px] px-10">
-          <span className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap" style={{ ...mont, fontWeight: 400 }}>© 2026 Ulrich Propiedades</span>
-          <div className="w-px h-[14px] bg-[#d1d5dc]" />
-          <Link href="/privacy" className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138]" style={{ ...mont, fontWeight: 400 }}>Privacy</Link>
-          <div className="w-px h-[14px] bg-[#d1d5dc]" />
-          <Link href="/terms" className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138]" style={{ ...mont, fontWeight: 400 }}>Terms</Link>
-        </div>
+        <div className="shrink-0 flex items-center gap-[14px] px-10 max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-2 max-sm:gap-y-1.5 max-sm:px-4 max-sm:py-3 max-sm:text-center">
+  <span
+    className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:w-full max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
+    style={{ ...mont, fontWeight: 400 }}
+  >
+    © 2026 Ulrich Propiedades
+  </span>
+
+  <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />
+
+  <Link
+    href="/privacy-policy"
+    className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
+    style={{ ...mont, fontWeight: 400 }}
+  >
+    Privacy
+  </Link>
+
+  <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
+
+  <Link
+    href="/terms-conditions"
+    className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
+    style={{ ...mont, fontWeight: 400 }}
+  >
+    Terms
+  </Link>
+</div>
       </div>
       <AuthRightPanel />
     </div>
