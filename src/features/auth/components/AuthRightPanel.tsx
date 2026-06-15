@@ -1,4 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
+const copy = {
+  cta: "Read our privacy policy →",
+  href: "/privacy-policy",
+};
 
 function IconArrow({ left = false }: { left?: boolean }) {
   return (
@@ -56,12 +61,13 @@ export function AuthRightPanel({ variant = "client" }: AuthRightPanelProps) {
               {copy.body}
             </p>
           </div>
-          <p
-            className="text-[16px] leading-[24px] tracking-[-0.16px] font-medium text-white"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          >
-            {copy.cta}
-          </p>
+         <Link
+              href="/privacy-policy"
+              className="text-[16px] leading-[24px] tracking-[-0.16px] font-medium text-white no-underline"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              {copy.cta}
+            </Link>
         </div>
         <div className="absolute bottom-7 right-7 flex items-center gap-5">
           <button type="button" className="flex items-center justify-center size-6 opacity-80 hover:opacity-100 transition-opacity">

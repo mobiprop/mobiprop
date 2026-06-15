@@ -375,8 +375,8 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     "
   >
     {[
-      { icon: <IconShield />, label: "Privacy", href: "/privacy" },
-      { icon: <IconFile />, label: "Terms", href: "/terms" },
+      { icon: <IconShield />, label: "Privacy", href: "/privacy-policy" },
+      { icon: <IconFile />, label: "Terms", href: "/terms-conditions" },
       { icon: <IconHelp />, label: "Get help", href: "/help" },
     ].map(({ icon, label, href }) => (
       <Link

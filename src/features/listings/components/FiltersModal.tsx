@@ -208,23 +208,23 @@ export function FiltersModal({ onClose, onApply }: {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
-        className="bg-white border border-[#d1d5dc] rounded-[24px] w-full max-w-[760px] max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-[1100px] max-h-[94vh] overflow-y-auto rounded-[20px] border border-[#d1d5dc] bg-white sm:rounded-[24px]"
         style={{ boxShadow: "0px 1px 1.5px rgba(0,0,0,0.1), 0px 1px 1px rgba(0,0,0,0.1)" }}
       >
-        <div className="flex flex-col gap-[32px] p-[32px]">
+        <div className="flex flex-col gap-6 p-4 sm:gap-7 sm:p-6 lg:gap-8 lg:p-8">
 
           {/* ── Price Range ── */}
-          <div className="flex flex-col gap-[16px]">
-            <p className="text-[20px] font-medium text-[#0d2138] leading-[32px] tracking-[-0.2px] whitespace-nowrap" style={{ fontFamily: poppins }}>
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <p className="whitespace-nowrap text-[17px] font-medium leading-7 tracking-[-0.2px] text-[#0d2138] sm:text-[19px] lg:text-[20px] lg:leading-8" style={{ fontFamily: poppins }}>
               Price Range
             </p>
-            <div className="grid grid-cols-2 gap-[16px]">
-              <div className="relative h-[52px]">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <div className="relative h-12 sm:h-[52px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <IconDollar />
                 </div>
                 <input
@@ -232,12 +232,12 @@ export function FiltersModal({ onClose, onApply }: {
                   placeholder="Min Price"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-full h-[52px] bg-[#f3f4f6] rounded-[14px] pl-[48px] pr-[16px] py-[14px] text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   style={{ fontFamily: montserrat }}
                 />
               </div>
-              <div className="relative h-[52px]">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="relative h-12 sm:h-[52px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <IconDollar />
                 </div>
                 <input
@@ -245,7 +245,7 @@ export function FiltersModal({ onClose, onApply }: {
                   placeholder="Max Price"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full h-[52px] bg-[#f3f4f6] rounded-[14px] pl-[48px] pr-[16px] py-[14px] text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   style={{ fontFamily: montserrat }}
                 />
               </div>
@@ -253,28 +253,28 @@ export function FiltersModal({ onClose, onApply }: {
           </div>
 
           {/* ── Property Details ── */}
-          <div className="flex flex-col gap-[16px]">
-            <p className="text-[20px] font-medium text-[#0d2138] leading-[32px] tracking-[-0.2px] whitespace-nowrap" style={{ fontFamily: poppins }}>
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <p className="whitespace-nowrap text-[17px] font-medium leading-7 tracking-[-0.2px] text-[#0d2138] sm:text-[19px] lg:text-[20px] lg:leading-8" style={{ fontFamily: poppins }}>
               Property Details
             </p>
-            <div className="grid grid-cols-2 gap-[16px]">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 
               {/* Bedrooms dropdown */}
-              <div className="relative h-[52px]">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="relative h-12 sm:h-[52px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <IconBed />
                 </div>
                 <button
                   onClick={() => { setBedroomOpen((o) => !o); setBathroomOpen(false); }}
-                  className="w-full h-[52px] bg-[#f3f4f6] rounded-[14px] pl-[48px] pr-[16px] text-left flex items-center justify-between"
+                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] pl-11 pr-4 text-left flex items-center justify-between sm:rounded-[14px] sm:pl-12"
                 >
-                  <span className="text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
+                  <span className="text-[14px] leading-6 tracking-[-0.16px] text-[#6a7282] sm:text-[16px]" style={{ fontFamily: montserrat }}>
                     {bedrooms === "Any" ? "Bedrooms" : `${bedrooms} Bedrooms`}
                   </span>
                   <IconChevron />
                 </button>
                 {bedroomOpen && (
-                  <div className="absolute top-[54px] left-0 w-full bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg z-10 py-1">
+                  <div className="absolute top-[50px] sm:top-[54px] left-0 w-full bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg z-30 py-1">
                     {bedroomOptions.map((opt) => (
                       <button
                         key={opt}
@@ -290,21 +290,21 @@ export function FiltersModal({ onClose, onApply }: {
               </div>
 
               {/* Bathrooms dropdown */}
-              <div className="relative h-[52px]">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="relative h-12 sm:h-[52px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <IconBath />
                 </div>
                 <button
                   onClick={() => { setBathroomOpen((o) => !o); setBedroomOpen(false); }}
-                  className="w-full h-[52px] bg-[#f3f4f6] rounded-[14px] pl-[48px] pr-[16px] text-left flex items-center justify-between"
+                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] pl-11 pr-4 text-left flex items-center justify-between sm:rounded-[14px] sm:pl-12"
                 >
-                  <span className="text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
+                  <span className="text-[14px] leading-6 tracking-[-0.16px] text-[#6a7282] sm:text-[16px]" style={{ fontFamily: montserrat }}>
                     {bathrooms === "Any" ? "Bathrooms" : `${bathrooms} Bathrooms`}
                   </span>
                   <IconChevron />
                 </button>
                 {bathroomOpen && (
-                  <div className="absolute top-[54px] left-0 w-full bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg z-10 py-1">
+                  <div className="absolute top-[50px] sm:top-[54px] left-0 w-full bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg z-30 py-1">
                     {bathroomOptions.map((opt) => (
                       <button
                         key={opt}
@@ -320,8 +320,8 @@ export function FiltersModal({ onClose, onApply }: {
               </div>
 
               {/* Min Area */}
-              <div className="relative h-[52px]">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="relative h-12 sm:h-[52px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <IconGrid />
                 </div>
                 <input
@@ -329,14 +329,14 @@ export function FiltersModal({ onClose, onApply }: {
                   placeholder="Min Area (sq ft)"
                   value={minArea}
                   onChange={(e) => setMinArea(e.target.value)}
-                  className="w-full h-[52px] bg-[#f3f4f6] rounded-[14px] pl-[48px] pr-[16px] py-[14px] text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   style={{ fontFamily: montserrat }}
                 />
               </div>
 
               {/* Max Area */}
-              <div className="relative h-[52px]">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="relative h-12 sm:h-[52px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <IconGrid />
                 </div>
                 <input
@@ -344,7 +344,7 @@ export function FiltersModal({ onClose, onApply }: {
                   placeholder="Max Area (sq ft)"
                   value={maxArea}
                   onChange={(e) => setMaxArea(e.target.value)}
-                  className="w-full h-[52px] bg-[#f3f4f6] rounded-[14px] pl-[48px] pr-[16px] py-[14px] text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   style={{ fontFamily: montserrat }}
                 />
               </div>
@@ -352,25 +352,25 @@ export function FiltersModal({ onClose, onApply }: {
           </div>
 
           {/* ── Amenities ── */}
-          <div className="flex flex-col gap-[16px]">
-            <p className="text-[20px] font-medium text-[#0d2138] leading-[32px] tracking-[-0.2px] whitespace-nowrap" style={{ fontFamily: poppins }}>
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <p className="whitespace-nowrap text-[17px] font-medium leading-7 tracking-[-0.2px] text-[#0d2138] sm:text-[19px] lg:text-[20px] lg:leading-8" style={{ fontFamily: poppins }}>
               Amenities
             </p>
-            <div className="flex flex-wrap gap-[8px]">
+            <div className="flex flex-wrap gap-2">
               {amenityList.map(({ label, icon }) => {
                 const isActive = amenities.has(label);
                 return (
                   <button
                     key={label}
                     onClick={() => toggleAmenity(label)}
-                    className={`flex items-center gap-[8px] px-[14px] py-[10px] rounded-full transition-colors ${
+                    className={`flex items-center gap-2 rounded-full px-3 py-2 transition-colors sm:px-[14px] sm:py-[9px] ${
                       isActive
                         ? "bg-[#eaeff4] border-[1.2px] border-[#6889ae] text-[#1e4f86]"
                         : "bg-[#f3f4f6] text-[#6a7282]"
                     }`}
                   >
                     <span className="shrink-0">{icon(isActive)}</span>
-                    <span className="text-[14px] font-medium leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
+                    <span className="text-[13px] font-medium leading-5 sm:text-[14px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
                       {label}
                     </span>
                   </button>
@@ -380,17 +380,17 @@ export function FiltersModal({ onClose, onApply }: {
           </div>
 
           {/* ── Footer buttons ── */}
-          <div className="flex items-center justify-between pt-[16px]">
+          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between sm:pt-4">
             <button
               onClick={handleReset}
-              className="h-[48px] px-[24px] bg-[#e5e7eb] rounded-[14px] text-[16px] font-medium text-[#2b3038] leading-[24px] tracking-[-0.16px] whitespace-nowrap"
+              className="h-11 w-full rounded-[12px] bg-[#e5e7eb] px-5 text-[14px] font-medium leading-6 tracking-[-0.16px] text-[#2b3038] sm:h-12 sm:w-auto sm:rounded-[14px] sm:px-6 sm:text-[16px]"
               style={{ fontFamily: montserrat }}
             >
               Reset
             </button>
             <button
               onClick={handleApply}
-              className="h-[48px] px-[24px] bg-[#1e4f86] rounded-[12px] text-[14px] text-white leading-[20px] tracking-[-0.14px] whitespace-nowrap"
+              className="h-11 w-full rounded-[12px] bg-[#1e4f86] px-5 text-[14px] leading-5 tracking-[-0.14px] text-white sm:h-12 sm:w-auto sm:px-6"
               style={{ fontFamily: montserrat }}
             >
               Apply Filters
