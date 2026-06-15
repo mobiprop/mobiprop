@@ -314,92 +314,65 @@ const stats = [
   {
     label: "Type",
     value: "For Sale",
-    icon: (
-      <svg width="29" height="29" viewBox="0 0 28.6872 28.6872" fill="none">
-        <path d={svgPaths.p29733200} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/type.svg" alt="Type" width={29} height={29} />,
   },
   {
     label: "Price",
     value: "$12,500,000",
-    icon: (
-      <svg width="32" height="22" viewBox="0 0 31.8697 21.2554" fill="none">
-        <path d={svgPaths.p1fddb00} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/price.svg" alt="Price" width={32} height={22} />,
   },
   {
     label: "Beds",
     value: "5",
-    icon: (
-      <svg width="32" height="24" viewBox="0 0 31.875 23.375" fill="none">
-        <path d={svgPaths.p28ac6600} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img
+  src="/assets/figma-temp/UserProfile/bed.svg"
+  alt="Beds"
+  width={32}
+  height={24}
+  style={{ maxWidth: "32px", height: "auto" }}
+/>,
   },
   {
     label: "Baths",
     value: "6",
-    icon: (
-      <svg width="32" height="27" viewBox="0 0 31.875 26.5625" fill="none">
-        <path d={svgPaths.p10ba5600} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/bath.svg" alt="Baths" width={32} height={27} />,
   },
   {
     label: "Size",
     value: "8,100 sq ft",
-    icon: (
-      <svg width="28" height="24" viewBox="0 0 27.625 23.375" fill="none">
-        <path d={svgPaths.pf50f000} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/size.svg" alt="Size" width={28} height={24} />,
   },
   {
     label: "Parking",
     value: "3",
-    icon: (
-      <svg width="32" height="25" viewBox="0 0 31.875 24.4375" fill="none">
-        <path d={svgPaths.pb4bb800} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/parking.svg" alt="Parking" width={32} height={25} />,
   },
   {
     label: "Lot Size",
     value: "1.1 acres",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 23.375 23.375" fill="none">
-        <path d={svgPaths.p252b0100} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Size" width={24} height={24} />,
   },
   {
     label: "Built in",
     value: "2021",
-    icon: (
-      <svg width="26" height="28" viewBox="0 0 25.5 27.625" fill="none">
-        <path d={svgPaths.p1ca2bf00} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/built.svg" alt="Built in" width={26} height={28} />,
   },
   {
     label: "Floors",
     value: "2 stories",
-    icon: (
-      <svg width="24" height="28" viewBox="0 0 23.375 27.625" fill="none">
-        <path d={svgPaths.p34680200} fill="#0D2138" />
-      </svg>
-    ),
+    icon: <img src="/assets/figma-temp/UserProfile/floor.svg" alt="Floors" width={24} height={28} />,
   },
   {
     label: "Property ID",
     value: "PHF-3128-RN",
     copy: true,
     icon: (
-      <svg width="28" height="24" viewBox="0 0 27.625 23.375" fill="none">
-        <path d={svgPaths.p1ec08e00} fill="#0D2138" />
-      </svg>
+      <img
+        src="/assets/figma-temp/UserProfile/property.svg"
+        alt="Property ID"
+        width={28}
+        height={24}
+      />
     ),
   },
 ];
@@ -839,13 +812,13 @@ export function SingleListingPageContent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-[30px]">
               {stats.map((stat, i) => (
                 <div key={stat.label} className="relative min-h-[78px] px-0">
-                  <div className="flex flex-col items-start text-left">
-                    <div className="mb-[8px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[22px] [&>svg]:w-[22px] [&>svg]:stroke-[1.8]">
+                  <div className="flex flex-col items-start text-left lg:gap-1">
+                    <div className="mb-[10px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[22px] [&>svg]:w-[22px] [&>svg]:stroke-[1.8]">
                       {stat.icon}
                     </div>
 
                     <p
-                      className="text-[#2b3038] text-[14px] sm:text-[15px] leading-[18px]"
+                      className="text-[#2b3038] text-[14px] sm:text-[18px] leading-[18px]"
                       style={{
                         fontFamily: "Poppins, sans-serif",
                         fontWeight: 500,
@@ -856,7 +829,7 @@ export function SingleListingPageContent() {
                     </p>
 
                     <p
-                      className="mt-[3px] flex items-center gap-[4px] text-[#2b3038]/60 text-[12px] sm:text-[13px] leading-[18px]"
+                      className="mt-[3px] flex items-center gap-[4px] text-[#2b3038]/60 text-[12px] sm:text-[16px] leading-[18px]"
                       style={{
                         fontFamily: "Montserrat, sans-serif",
                         fontWeight: 400,
@@ -898,7 +871,7 @@ export function SingleListingPageContent() {
                         </button>
                       )}
                     </p>
-                  </div>
+                  </div>  
 
                   {/* Desktop separator */}
                   {i % 6 !== 5 && i !== stats.length - 1 && (

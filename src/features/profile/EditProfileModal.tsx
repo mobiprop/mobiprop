@@ -112,7 +112,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (nex
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative shrink-0 w-[44px] h-[24px] rounded-full transition-colors ${checked ? "bg-[#15385f]" : "bg-[#e5e7eb]"}`}
+      className={`relative shrink-0 w-[44px] h-[24px] rounded-full transition-colors ${checked ? "bg-[#1E4F86]" : "bg-[#e5e7eb]"}`}
     >
       <span
         className={`absolute top-[2px] w-[20px] h-[20px] bg-white rounded-full shadow-sm transition-all ${checked ? "left-[22px]" : "left-[2px]"}`}
@@ -136,7 +136,7 @@ function TabHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="flex flex-col gap-[12px]">
       <div className="flex flex-col gap-[6px]">
-        <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
+        <p className="text-[20px] md:text-[24px]  font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
           {title}
         </p>
         <p className="text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
@@ -175,35 +175,45 @@ function FooterButtons({
   saveLabel?: string;
 }) {
   return (
-    <div className="flex items-center gap-[8px] justify-end pt-[4px]">
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={saving}
-        className="flex items-center justify-center h-[38px] px-[20px] bg-white border border-[#e5e7eb] rounded-[78px] disabled:opacity-60 hover:bg-[#f8fafc] transition-colors"
-      >
-        <span className="text-[14px] text-[#5f5f5f] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-          {cancelLabel}
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={saving}
-        className="flex items-center justify-center h-[38px] px-[32px] rounded-[48px] disabled:opacity-60"
-        style={{ background: "linear-gradient(to bottom, #005ea4, #006fc2)", border: "1px solid #0088ff" }}
-      >
-        <span className="text-[14px] font-medium text-white leading-[20px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
-          {saving ? "Saving…" : saveLabel}
-        </span>
-      </button>
-    </div>
+   <div className="flex items-center justify-end gap-[6px] pt-[4px] md:gap-[8px]">
+  <button
+    type="button"
+    onClick={onCancel}
+    disabled={saving}
+    className="flex h-[36px] items-center justify-center rounded-[78px] border border-[#e5e7eb] bg-white px-[16px] transition-colors hover:bg-[#f8fafc] disabled:opacity-60 md:h-[38px] md:px-[20px]"
+  >
+    <span
+      className="text-[13px] leading-[18px] tracking-[-0.13px] text-[#5f5f5f] md:text-[14px] md:leading-[20px] md:tracking-[-0.14px]"
+      style={{ fontFamily: montserrat }}
+    >
+      {cancelLabel}
+    </span>
+  </button>
+
+  <button
+    type="button"
+    onClick={onSave}
+    disabled={saving}
+    className="flex h-[36px] items-center justify-center rounded-[48px] px-[24px] disabled:opacity-60 md:h-[38px] md:px-[32px]"
+    style={{
+      background: "linear-gradient(to bottom, #005ea4, #006fc2)",
+      border: "1px solid #0088ff",
+    }}
+  >
+    <span
+      className="whitespace-nowrap text-[13px] font-medium leading-[18px] tracking-[-0.13px] text-white md:text-[14px] md:leading-[20px] md:tracking-[-0.14px]"
+      style={{ fontFamily: montserrat }}
+    >
+      {saving ? "Saving…" : saveLabel}
+    </span>
+  </button>
+</div>
   );
 }
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
+    <label className="text-[14px] font-medium text-[#0A0A0A] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
       {children}
     </label>
   );
@@ -820,29 +830,52 @@ function SecurityTab({
       <div className="flex flex-col gap-[12px]">
         <SectionHeader icon={<Smartphone size={18} />} title="Active Sessions" />
 
-        <div className="flex items-center justify-between gap-[16px] bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] px-[16px] py-[12px]">
-          <div className="flex items-center gap-[12px] min-w-0">
-            <div className="bg-white border border-[#e5e7eb] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center shrink-0">
-              {device.isMobile ? <Smartphone size={18} className="text-[#15385f]" /> : <Monitor size={18} className="text-[#15385f]" />}
-            </div>
-            <div className="flex flex-col gap-[2px] min-w-0">
-              <p className="text-[14px] font-semibold text-[#0d2138] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: poppins }}>
-                {device.name}
-              </p>
-              <div className="flex items-center gap-[12px]">
-                <span className="flex items-center gap-[4px] text-[12px] text-[#6a7282] leading-[16px]" style={{ fontFamily: montserrat }}>
-                  <MapPin size={12} /> This device
-                </span>
-                <span className="flex items-center gap-[4px] text-[12px] text-[#6a7282] leading-[16px]" style={{ fontFamily: montserrat }}>
-                  <Clock size={12} /> Active now
-                </span>
-              </div>
-            </div>
-          </div>
-          <span className="shrink-0 bg-[#dcfce7] text-[#00a63e] text-[12px] leading-[18px] px-[10px] py-[2px] rounded-[6px]" style={{ fontFamily: montserrat }}>
-            Current
-          </span>
-        </div>
+       <div className="flex flex-col gap-3 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 py-3 min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between">
+  <div className="flex min-w-0 items-start gap-3">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#e5e7eb] bg-white">
+      {device.isMobile ? (
+        <Smartphone size={18} className="text-[#15385f]" />
+      ) : (
+        <Monitor size={18} className="text-[#15385f]" />
+      )}
+    </div>
+
+    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <p
+        className="truncate text-sm font-semibold leading-5 tracking-[-0.14px] text-[#0d2138]"
+        style={{ fontFamily: poppins }}
+        title={device.name}
+      >
+        {device.name}
+      </p>
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span
+          className="flex items-center gap-1 text-xs leading-4 text-[#6a7282]"
+          style={{ fontFamily: montserrat }}
+        >
+          <MapPin size={12} className="shrink-0" />
+          This device
+        </span>
+
+        <span
+          className="flex items-center gap-1 text-xs leading-4 text-[#6a7282]"
+          style={{ fontFamily: montserrat }}
+        >
+          <Clock size={12} className="shrink-0" />
+          Active now
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <span
+    className="w-fit shrink-0 self-end rounded-md bg-[#dcfce7] px-2.5 py-0.5 text-xs leading-[18px] text-[#00a63e] min-[400px]:self-auto"
+    style={{ fontFamily: montserrat }}
+  >
+    Current
+  </span>
+</div>
 
         {sessionsMessage && <Feedback error={sessionsMessage.error ?? null} success={sessionsMessage.success ?? null} />}
 
@@ -1024,11 +1057,11 @@ export function EditProfileModal({
       aria-label="Edit Profile"
     >
       <div className="bg-white border border-[#e5e7eb] rounded-[20px] w-full max-w-[1196px] max-h-[92vh] overflow-y-auto shadow-2xl">
-        <div className="flex flex-col gap-[24px] p-[31px]">
+        <div className="flex flex-col gap-[24px] p-[20px] sm:p-[31px]">
           {/* ── Header ── */}
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-[8px]">
-              <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
+              <p className="text-[20px] md:text-[24px]  font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
                 Edit Profile
               </p>
               <p className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
