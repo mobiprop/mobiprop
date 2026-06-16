@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 
 import { logoutAction } from "@/features/auth/actions";
 import { DASHBOARD_NAV } from "@/config/dashboard-nav";
@@ -26,90 +27,258 @@ type SidebarProps = {
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
+
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function Sidebar({ role, fullName, email }: SidebarProps) {
   const pathname = usePathname();
-  const initials = (fullName || email).slice(0, 2).toUpperCase();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const initials = (fullName || email || "ST")
+    .trim()
+    .slice(0, 2)
+    .toUpperCase();
+
+  // Route change hone par sidebar close ho jayega
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  // Drawer open hone par background scroll disable
+  useEffect(() => {
+    if (!sidebarOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [sidebarOpen]);
+
+  // Escape press karne par sidebar close
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   return (
-    <aside className="w-[240px] shrink-0 h-screen sticky top-0 bg-white border-r border-[#e5e7eb] flex flex-col">
-      {/* Logo header */}
-      <div className="h-16 shrink-0 border-b border-[#e5e7eb] flex items-center px-5">
-        <img src="/logo.svg" alt="Ulrich Propiedades" className="h-9 w-auto" />
-      </div>
+    <>
+      {/* Mobile and tablet menu button */}
+      <button
+        type="button"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+        aria-expanded={sidebarOpen}
+        aria-controls="dashboard-sidebar"
+        className="
+          fixed left-4 top-3 z-30
+          flex size-10 items-center justify-center
+          rounded-[10px]
+          border border-[#e5e7eb]
+          bg-white text-[#1e4f86]
+          shadow-sm
+          transition-colors
+          hover:bg-[#f8fafc]
+          lg:hidden
+        "
+      >
+        <Menu size={21} strokeWidth={1.8} />
+      </button>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-5">
-        {DASHBOARD_NAV.map((section) => {
-          const items = section.items.filter(
-            (item) => !item.permission || hasPermission(role, item.permission),
-          );
-          if (items.length === 0) return null;
+      {/* Mobile and tablet overlay */}
+      <button
+        type="button"
+        onClick={() => setSidebarOpen(false)}
+        aria-label="Close sidebar"
+        tabIndex={sidebarOpen ? 0 : -1}
+        className={`
+          fixed inset-0 z-40
+          bg-black/35 backdrop-blur-[1px]
+          transition-opacity duration-300
+          lg:hidden
+          ${
+            sidebarOpen
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
+          }
+        `}
+      />
 
-          return (
-            <div key={section.title} className="flex flex-col gap-1">
-              <p className="px-2 mb-1 text-[12px] text-[#99a1af]" style={mont}>
-                {section.title}
-              </p>
-              {items.map((item) => {
-                const active = isActive(pathname, item.href);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-3 h-[35px] px-2 rounded-[10px] text-[14px] transition-colors ${
-                      active
-                        ? "bg-[#eff6ff] border border-[#b9c8d9] text-[#1e4f86] font-medium"
-                        : "text-[#2b3038] hover:bg-[#f9fafb] font-medium border border-transparent"
-                    }`}
-                    style={mont}
-                  >
-                    <Icon
-                      size={18}
-                      strokeWidth={1.75}
-                      className={active ? "text-[#1e4f86]" : "text-[#6a7282]"}
-                    />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          );
-        })}
-      </nav>
+      <aside
+        id="dashboard-sidebar"
+        className={`
+          fixed inset-y-0 left-0 z-50
+          flex h-dvh w-[280px] max-w-[86vw]
+          shrink-0 flex-col
+          border-r border-[#e5e7eb]
+          bg-white shadow-xl
+          transition-transform duration-300 ease-in-out
 
-      {/* Profile footer */}
-      <div className="shrink-0 border-t border-[#e5e7eb] px-3 py-3 flex items-center gap-3">
-        <div
-          className="size-9 rounded-full bg-[#1e4f86] text-white flex items-center justify-center text-[12px] font-semibold shrink-0"
-          style={mont}
-        >
-          {initials}
+          lg:sticky lg:top-0 lg:z-auto
+          lg:h-screen lg:w-[240px] lg:max-w-none
+          lg:translate-x-0 lg:shadow-none
+
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        {/* Logo header */}
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] px-4 sm:px-5">
+          <Link
+            href="/dashboard"
+            aria-label="Go to dashboard"
+            className="flex min-w-0 items-center"
+          >
+            <img
+              src="/logo.svg"
+              alt="Ulrich Propiedades"
+              className="h-8 w-auto max-w-[190px] object-contain sm:h-9 lg:max-w-full"
+            />
+          </Link>
+
+          {/* Mobile close button */}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+            className="
+              flex size-9 shrink-0 items-center justify-center
+              rounded-[9px]
+              text-[#6a7282]
+              transition-colors
+              hover:bg-[#f3f4f6]
+              hover:text-[#0d2138]
+              lg:hidden
+            "
+          >
+            <X size={20} strokeWidth={1.8} />
+          </button>
         </div>
-        <div className="flex-1 min-w-0">
-          <p
-            className="text-[14px] font-medium text-[#0d2138] truncate"
+
+        {/* Nav */}
+        <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-4">
+          {DASHBOARD_NAV.map((section) => {
+            const items = section.items.filter(
+              (item) =>
+                !item.permission || hasPermission(role, item.permission),
+            );
+
+            if (items.length === 0) return null;
+
+            return (
+              <div key={section.title} className="flex flex-col gap-1">
+                <p
+                  className="mb-1 px-2 text-[11px] text-[#99a1af] sm:text-[12px]"
+                  style={mont}
+                >
+                  {section.title}
+                </p>
+
+                {items.map((item) => {
+                  const active = isActive(pathname, item.href);
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex min-h-[42px] items-center gap-3
+                        rounded-[10px] border
+                        px-3 text-[14px] font-medium
+                        transition-colors
+
+                        lg:min-h-[35px] lg:px-2
+
+                        ${
+                          active
+                            ? "border-[#b9c8d9] bg-[#eff6ff] text-[#1e4f86]"
+                            : "border-transparent text-[#2b3038] hover:bg-[#f9fafb]"
+                        }
+                      `}
+                      style={mont}
+                    >
+                      <Icon
+                        size={18}
+                        strokeWidth={1.75}
+                        className={`shrink-0 ${
+                          active
+                            ? "text-[#1e4f86]"
+                            : "text-[#6a7282]"
+                        }`}
+                      />
+
+                      <span className="min-w-0 truncate">
+                        {item.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Profile footer */}
+        <div className="flex shrink-0 items-center gap-3 border-t border-[#e5e7eb] px-3 py-3">
+          <div
+            className="
+              flex size-10 shrink-0 items-center justify-center
+              rounded-full bg-[#1e4f86]
+              text-[12px] font-semibold text-white
+              lg:size-9
+            "
             style={mont}
           >
-            {fullName || "Staff"}
-          </p>
-          <p className="text-[12px] text-[#6a7282] truncate" style={mont}>
-            {ROLE_LABELS[role]}
-          </p>
+            {initials}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p
+              className="truncate text-[14px] font-medium text-[#0d2138]"
+              style={mont}
+            >
+              {fullName || "Staff"}
+            </p>
+
+            <p
+              className="truncate text-[12px] text-[#6a7282]"
+              style={mont}
+            >
+              {ROLE_LABELS[role]}
+            </p>
+          </div>
+
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              title="Log out"
+              aria-label="Log out"
+              className="
+                flex size-9 shrink-0 items-center justify-center
+                rounded-[9px]
+                text-[#6a7282]
+                transition-colors
+                hover:bg-red-50
+                hover:text-[#e7000b]
+              "
+            >
+              <LogOut size={18} strokeWidth={1.8} />
+            </button>
+          </form>
         </div>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            title="Log out"
-            className="shrink-0 text-[#6a7282] hover:text-[#e7000b] transition-colors"
-          >
-            <LogOut size={18} />
-          </button>
-        </form>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
