@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const heroImg =
@@ -64,8 +65,138 @@ function ChevronDown() {
   );
 }
 
+const PROPERTY_TYPE_OPTIONS = [
+  { value: "", label: "All property types" },
+  { value: "APARTMENT", label: "Apartment" },
+  { value: "HOUSE", label: "House" },
+  { value: "COMMERCIAL_OFFICE", label: "Commercial Office" },
+  { value: "LOT", label: "Lot" },
+  { value: "TOWNHOUSE", label: "Townhouse" },
+];
+
+const PRICE_OPTIONS = [
+  { value: { min: "", max: "" }, label: "Any price" },
+  { value: { min: "", max: "100000" }, label: "Up to $100,000" },
+  { value: { min: "100000", max: "500000" }, label: "$100,000 – $500,000" },
+  { value: { min: "500000", max: "1000000" }, label: "$500,000 – $1,000,000" },
+  { value: { min: "1000000", max: "5000000" }, label: "$1,000,000 – $5,000,000" },
+  { value: { min: "5000000", max: "" }, label: "$5,000,000+" },
+];
+
+/** Pill-styled dropdown matching the Figma hero search fields. */
+function HeroDropdown({
+  icon,
+  options,
+  selectedIndex,
+  onSelect,
+}: {
+  icon: React.ReactNode;
+  options: { label: string }[];
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-[50px] lg:h-[54px] w-full items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5 cursor-pointer"
+      >
+        <div className="flex min-w-0 items-center gap-3 text-[#4a5565]">
+          {icon}
+          <span
+            className="truncate text-[14px]"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {options[selectedIndex]?.label}
+          </span>
+        </div>
+        <ChevronDown />
+      </button>
+      {open ? (
+        <div className="absolute top-[calc(100%+6px)] left-0 z-20 w-full overflow-hidden rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
+          {options.map((opt, index) => (
+            <button
+              key={opt.label}
+              type="button"
+              onClick={() => {
+                onSelect(index);
+                setOpen(false);
+              }}
+              className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
+                index === selectedIndex ? "text-[#00528f] font-medium" : "text-[#4a5565]"
+              }`}
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function HeroSection() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"buy" | "rent">("buy");
+  const [location, setLocation] = useState("");
+  const [typeIndex, setTypeIndex] = useState(0);
+  const [priceIndex, setPriceIndex] = useState(0);
+
+  // Available-location suggestions for the typed search.
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const locationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!locationOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (!locationRef.current?.contains(e.target as Node)) setLocationOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [locationOpen]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/listings/locations?q=${encodeURIComponent(location)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => (res.ok ? res.json() : { locations: [] }))
+        .then((data) => setSuggestions(data.locations ?? []))
+        .catch(() => undefined);
+    }, 250);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [location]);
+
+  function handleSearch() {
+    const params = new URLSearchParams();
+    if (location.trim()) params.set("location", location.trim());
+    const propertyType = PROPERTY_TYPE_OPTIONS[typeIndex].value;
+    if (propertyType) params.set("propertyType", propertyType);
+    params.set("transactionType", activeTab === "buy" ? "SALE" : "RENT");
+    const price = PRICE_OPTIONS[priceIndex].value;
+    if (price.min) params.set("minPrice", price.min);
+    if (price.max) params.set("maxPrice", price.max);
+    router.push(`/listings?${params.toString()}`);
+  }
 
   return (
     <section className="relative w-full min-h-[760px] overflow-hidden sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]">
@@ -149,17 +280,48 @@ export function HeroSection() {
             Location
           </p>
 
-          <div className="flex h-[50px] lg:h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5">
-            <div className="flex min-w-0 items-center gap-3 text-[#4a5565]">
-              <LocationIcon />
-              <span
-                className="truncate text-[14px]"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                Lisbon, Portugal
-              </span>
+          <div ref={locationRef} className="relative w-full">
+            <div className="flex h-[50px] lg:h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5">
+              <div className="flex min-w-0 flex-1 items-center gap-3 text-[#4a5565]">
+                <LocationIcon />
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    setLocationOpen(true);
+                  }}
+                  onFocus={() => setLocationOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSearch();
+                  }}
+                  placeholder="Enter city, area, or address"
+                  className="w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] placeholder:text-[#4a5565] outline-none"
+                  style={{ fontFamily: "Poppins, sans-serif" }}
+                  aria-label="Search by location"
+                />
+              </div>
+              <ChevronDown />
             </div>
-            <ChevronDown />
+
+            {locationOpen && suggestions.length > 0 ? (
+              <div className="absolute top-[calc(100%+6px)] left-0 z-20 w-full overflow-hidden rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
+                {suggestions.map((sugg) => (
+                  <button
+                    key={sugg}
+                    type="button"
+                    onClick={() => {
+                      setLocation(sugg);
+                      setLocationOpen(false);
+                    }}
+                    className="w-full truncate px-4 py-2.5 text-left text-[14px] text-[#4a5565] hover:bg-[#f3f4f6] transition-colors cursor-pointer"
+                    style={{ fontFamily: "Poppins, sans-serif" }}
+                  >
+                    {sugg}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -171,18 +333,12 @@ export function HeroSection() {
             Property Type
           </p>
 
-          <div className="flex h-[50px] lg:h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5">
-            <div className="flex min-w-0 items-center gap-3 text-[#4a5565]">
-              <BuildingIcon />
-              <span
-                className="truncate text-[14px]"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                Apartment
-              </span>
-            </div>
-            <ChevronDown />
-          </div>
+          <HeroDropdown
+            icon={<BuildingIcon />}
+            options={PROPERTY_TYPE_OPTIONS}
+            selectedIndex={typeIndex}
+            onSelect={setTypeIndex}
+          />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -193,21 +349,16 @@ export function HeroSection() {
             Price
           </p>
 
-          <div className="flex h-[50px] lg:h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5">
-            <div className="flex min-w-0 items-center gap-3 text-[#4a5565]">
-              <DollarIcon />
-              <span
-                className="truncate text-[14px]"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                10,000 - 15,000
-              </span>
-            </div>
-            <ChevronDown />
-          </div>
+          <HeroDropdown
+            icon={<DollarIcon />}
+            options={PRICE_OPTIONS}
+            selectedIndex={priceIndex}
+            onSelect={setPriceIndex}
+          />
         </div>
 
         <button
+          onClick={handleSearch}
           className="relative h-[50px] lg:h-[54px] flex-shrink-0 overflow-hidden whitespace-nowrap rounded-[48px] px-8 text-[15px] lg:text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px]"
           style={{
             fontFamily: "Poppins, sans-serif",

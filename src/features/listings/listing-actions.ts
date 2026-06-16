@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { randomUUID } from "crypto";
 import type { ZodError } from "zod";
 
@@ -8,6 +9,7 @@ import { logActivity } from "@/lib/activity-log";
 import { notifyAdmins } from "@/lib/notifications";
 import { hasPermission } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
+import { geocodeAddress } from "@/lib/maps";
 import { optimizeListingImage } from "@/lib/images";
 import { removePropertyImages, uploadPropertyImage } from "@/lib/supabase/storage";
 import {
@@ -130,12 +132,22 @@ function toPublicDto(property: PropertyWithRelations): PublicListingDto {
     salePrice: property.salePrice === null ? null : Number(property.salePrice),
     rentPrice: property.rentPrice === null ? null : Number(property.rentPrice),
     location: property.location,
+    fullAddress: property.fullAddress,
     city: property.city,
+    province: property.province,
     country: property.country,
+    latitude: property.latitude === null ? null : Number(property.latitude),
+    longitude: property.longitude === null ? null : Number(property.longitude),
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
+    toilets: property.toilets,
     areaSqft: property.areaSqft,
+    lotSizeSqft: property.lotSizeSqft,
+    parkingSpaces: property.parkingSpaces,
+    yearBuilt: property.yearBuilt,
+    floors: property.floors,
     isFeatured: property.isFeatured,
+    publishedAt: property.publishedAt?.toISOString() ?? null,
     amenities: property.amenities.map((a) => a.amenity.key as AmenityKey),
     images: property.images.map(toImageDto),
     coverImageUrl: coverUrl(property.images),
@@ -192,6 +204,26 @@ type UploadedImage = {
   height: number | null;
   format: string;
 };
+
+/**
+ * The plan requires an audit entry whenever the WebP pipeline fell back to
+ * storing a validated original (uploaded format other than webp).
+ */
+async function logOptimizationFallbacks(
+  actorId: string,
+  propertyId: string,
+  uploaded: UploadedImage[],
+): Promise<void> {
+  const fallbacks = uploaded.filter((u) => u.format !== "webp");
+  if (fallbacks.length === 0) return;
+  await logActivity({
+    actorId,
+    action: "PROPERTY_IMAGE_OPTIMIZATION_FALLBACK",
+    entityType: "PROPERTY",
+    entityId: propertyId,
+    newValues: { files: fallbacks.map((f) => f.originalFileName), count: fallbacks.length },
+  });
+}
 
 /** Optimize + upload each file; on failure, removes already-uploaded objects. */
 async function uploadAll(propertyId: string, files: File[]): Promise<UploadedImage[]> {
@@ -259,6 +291,10 @@ export async function createListing(
 
   const safeCover = coverIndex >= 0 && coverIndex < uploaded.length ? coverIndex : 0;
 
+  // Best-effort: coordinates power the public map; a geocoding failure never
+  // blocks the listing.
+  const coords = await geocodeAddress(`${data.fullAddress}, ${data.location}`);
+
   try {
     // listingId has a unique constraint; retry once in case two staff submit
     // at the same moment.
@@ -280,6 +316,8 @@ export async function createListing(
             rentPrice: data.rentPrice,
             location: data.location,
             fullAddress: data.fullAddress,
+            latitude: coords?.latitude,
+            longitude: coords?.longitude,
             bedrooms: data.bedrooms,
             bathrooms: data.bathrooms,
             toilets: data.toilets,
@@ -333,6 +371,7 @@ export async function createListing(
         imageCount: uploaded.length,
       },
     });
+    await logOptimizationFallbacks(profile.id, property.id, uploaded);
     await notifyAdmins(
       {
         type: "LISTING_CREATED",
@@ -420,10 +459,21 @@ export async function updateListing(
 
   const { amenities, ...fields } = data;
 
+  // Re-geocode when the address changed (best-effort, never blocks the save).
+  const addressChanged =
+    (data.fullAddress !== undefined && data.fullAddress !== existing.fullAddress) ||
+    (data.location !== undefined && data.location !== existing.location);
+  const coords = addressChanged
+    ? await geocodeAddress(
+        `${data.fullAddress ?? existing.fullAddress}, ${data.location ?? existing.location}`,
+      )
+    : null;
+
   const property = await prisma.property.update({
     where: { id },
     data: {
       ...fields,
+      ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
       updatedById: profile.id,
       ...(data.status === PropertyStatus.ACTIVE && !existing.publishedAt
         ? { publishedAt: new Date() }
@@ -667,6 +717,7 @@ export async function addListingImages(
     entityId: id,
     newValues: { addedCount: uploaded.length },
   });
+  await logOptimizationFallbacks(profile.id, id, uploaded);
 
   const property = await prisma.property.findUniqueOrThrow({ where: { id }, include: listingInclude });
   return { ok: true, listing: toDashboardDto(property) };
@@ -811,4 +862,100 @@ export async function listPublicListings(
   });
 
   return { listings: properties.map(toPublicDto) };
+}
+
+/** Public-safe assigned agent info shown on the listing detail page. */
+export type PublicListingAgent = {
+  name: string;
+  avatarUrl: string | null;
+};
+
+/**
+ * Public: a single ACTIVE listing by slug, plus up to 3 similar ACTIVE
+ * listings (same city/type first, newest fallback) and the assigned agent's
+ * public info. Increments the view counter best-effort — a failed increment
+ * never blocks the page. Wrapped in cache() so generateMetadata and the page
+ * share one fetch (and one view increment) per request.
+ */
+export const getPublicListingBySlug = cache(async function getPublicListingBySlug(
+  slug: string,
+): Promise<{
+  listing: PublicListingDto;
+  similar: PublicListingDto[];
+  agent: PublicListingAgent | null;
+} | null> {
+  const property = await prisma.property.findFirst({
+    where: { slug, status: PropertyStatus.ACTIVE },
+    include: listingInclude,
+  });
+  if (!property) return null;
+
+  prisma.property
+    .update({ where: { id: property.id }, data: { viewsCount: { increment: 1 } } })
+    .catch(() => undefined);
+
+  const [similar, agentProfile] = await Promise.all([
+    prisma.property.findMany({
+      where: {
+        status: PropertyStatus.ACTIVE,
+        id: { not: property.id },
+        OR: [
+          ...(property.city ? [{ city: property.city }] : []),
+          { type: property.type },
+        ],
+      },
+      include: listingInclude,
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      take: 3,
+    }),
+    property.assignedAgentId
+      ? prisma.profile.findUnique({
+          where: { id: property.assignedAgentId },
+          select: { fullName: true, avatarUrl: true },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  return {
+    listing: toPublicDto(property),
+    similar: similar.map(toPublicDto),
+    agent: agentProfile?.fullName
+      ? { name: agentProfile.fullName, avatarUrl: agentProfile.avatarUrl }
+      : null,
+  };
+});
+
+/**
+ * Public: location suggestions for the search autocomplete — distinct
+ * city/location values from ACTIVE listings matching the typed query.
+ */
+export async function listPublicLocationSuggestions(query: string): Promise<string[]> {
+  const q = query.trim();
+  const where: Prisma.PropertyWhereInput = { status: PropertyStatus.ACTIVE };
+  if (q) {
+    where.OR = [
+      { location: { contains: q, mode: "insensitive" } },
+      { city: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  const rows = await prisma.property.findMany({
+    where,
+    select: { location: true, city: true },
+    take: 50,
+  });
+
+  // Suggest values exactly as stored so a selected suggestion round-trips
+  // through the `location` contains-filter.
+  const lower = q.toLowerCase();
+  const suggestions = new Set<string>();
+  for (const row of rows) {
+    if (row.city && (!lower || row.city.toLowerCase().includes(lower))) {
+      suggestions.add(row.city);
+    }
+    if (!lower || row.location.toLowerCase().includes(lower)) {
+      suggestions.add(row.location);
+    }
+  }
+  return [...suggestions].slice(0, 8);
 }

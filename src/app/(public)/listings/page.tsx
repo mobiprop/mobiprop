@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { ListingPageContent } from "@/features/listings/components/ListingPage";
 
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function ListingsPage() {
-  return <ListingPageContent />;
+  // Suspense required: ListingPageContent reads useSearchParams for deep-linked filters.
+  return (
+    <Suspense>
+      <ListingPageContent />
+    </Suspense>
+  );
 }

@@ -2,26 +2,27 @@
 
 import { useState } from "react";
 import svgPaths from "./singleListingSvgPaths";
+import type { PublicListingAgent } from "../listing-actions";
+import type { PublicListingDto } from "../types/listing-dto";
+import type { AmenityKey } from "@/schemas/listing.schema";
+import { AMENITY_OPTIONS } from "@/schemas/listing.schema";
+import {
+  PROPERTY_TYPE_LABELS,
+  formatRentPrice,
+  formatSalePrice,
+} from "../utils/format";
+import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
 
-const mainImg =
+const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.png";
-const sideImg1 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-2.png";
-const sideImg2 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-3.png";
-const sideImg3 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/pr-4.png";
 const agentImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/emily.png";
-const videoImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/vid-yy.png";
-const mapImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
 const footerBgImg =
   "/assets/figma-temp/SingleListingPage/3fba757107af3080a480784b8edf8f9a8a4c4646.png";
 
-const amenities = [
+const amenityIcons: { key: AmenityKey; label: string; icon: React.ReactNode }[] = [
   {
+    key: "PARKING",
     label: "Parking",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -57,6 +58,7 @@ const amenities = [
     ),
   },
   {
+    key: "GARDEN",
     label: "Garden",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -92,6 +94,7 @@ const amenities = [
     ),
   },
   {
+    key: "POOL",
     label: "Pool",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -120,6 +123,7 @@ const amenities = [
     ),
   },
   {
+    key: "GYM",
     label: "Gym",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -148,6 +152,7 @@ const amenities = [
     ),
   },
   {
+    key: "BALCONY",
     label: "Balcony",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -176,6 +181,7 @@ const amenities = [
     ),
   },
   {
+    key: "ELEVATOR",
     label: "Elevator",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -218,6 +224,7 @@ const amenities = [
     ),
   },
   {
+    key: "SECURITY",
     label: "Security",
     icon: (
       <svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -232,6 +239,7 @@ const amenities = [
     ),
   },
   {
+    key: "FURNISHED",
     label: "Furnished",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -274,6 +282,7 @@ const amenities = [
     ),
   },
   {
+    key: "PET_FRIENDLY",
     label: "Pet Friendly",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -310,7 +319,8 @@ const amenities = [
   },
 ];
 
-const stats = [
+// Icon catalog for the stats strip; values come from the listing at render time.
+const statCatalog = [
   {
     label: "Type",
     value: "For Sale",
@@ -377,13 +387,88 @@ const stats = [
   },
 ];
 
-export function SingleListingPageContent() {
+const OPERATION_LABELS: Record<PublicListingDto["operationType"], string> = {
+  SALE: "For Sale",
+  RENT: "For Rent",
+  SALE_AND_RENT: "For Sale & Rent",
+};
+
+function statIcon(label: string): React.ReactNode {
+  return statCatalog.find((s) => s.label === label)?.icon ?? null;
+}
+
+function buildStats(listing: PublicListingDto) {
+  const stats: { label: string; value: string; copy?: boolean; icon: React.ReactNode }[] = [];
+  const push = (label: string, value: string, copy = false) =>
+    stats.push({ label, value, copy, icon: statIcon(label) });
+
+  push("Type", OPERATION_LABELS[listing.operationType]);
+  if (listing.salePrice !== null) push("Price", formatSalePrice(listing.salePrice));
+  else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice));
+  if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
+  if (listing.bathrooms !== null) push("Baths", String(listing.bathrooms));
+  if (listing.areaSqft !== null) push("Size", `${listing.areaSqft.toLocaleString("en-US")} sq ft`);
+  if (listing.parkingSpaces !== null) push("Parking", String(listing.parkingSpaces));
+  if (listing.lotSizeSqft !== null)
+    push("Lot Size", `${listing.lotSizeSqft.toLocaleString("en-US")} sq ft`);
+  if (listing.yearBuilt !== null) push("Built in", String(listing.yearBuilt));
+  if (listing.floors !== null)
+    push("Floors", listing.floors === 1 ? "1 story" : `${listing.floors} stories`);
+  push("Property ID", listing.listingId, true);
+  return stats;
+}
+
+// Generic check icon for amenities without a bespoke Figma icon.
+function AmenityCheckIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="#1E4F86" strokeWidth="1.5" />
+      <path
+        d="M8.5 12.2L11 14.7L15.5 9.8"
+        stroke="#1E4F86"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
+export function SingleListingPageContent({
+  listing,
+  agent,
+}: {
+  listing: PublicListingDto;
+  agent: PublicListingAgent | null;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).catch(() => undefined);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const shareUrl = typeof window === "undefined" ? "" : window.location.href;
+  const shareText = `${listing.title} — ${listing.location}`;
+  const openShare = (url: string) => window.open(url, "_blank", "noopener,noreferrer");
+
+  const images = listing.images;
+  const mainImage = images.find((img) => img.isCover) ?? images[0] ?? null;
+  const sideImages = images.filter((img) => img !== mainImage).slice(0, 3);
+
+  const stats = buildStats(listing);
+  const listingAmenities = listing.amenities.map((key) => ({
+    key,
+    label: AMENITY_OPTIONS.find((opt) => opt.key === key)?.label ?? key,
+    icon: amenityIcons.find((item) => item.key === key)?.icon ?? <AmenityCheckIcon />,
+  }));
+
+  const badges = [
+    OPERATION_LABELS[listing.operationType],
+    PROPERTY_TYPE_LABELS[listing.type],
+    ...(listing.yearBuilt !== null ? [String(listing.yearBuilt)] : []),
+  ];
 
   return (
     <div className="w-full bg-white">
@@ -409,14 +494,14 @@ export function SingleListingPageContent() {
           {/* Main Image */}
           <div className="relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
             <img
-              src={mainImg}
-              alt="Coastal Modern Residence"
+              src={mainImage?.url ?? fallbackImg}
+              alt={mainImage?.altText ?? listing.title}
               className="w-full h-full object-cover"
             />
 
             {/* Badges */}
             <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-wrap gap-1.5">
-              {["For Rent", "Apartment", "2026"].map((tag) => (
+              {badges.map((tag) => (
                 <span
                   key={tag}
                   className="bg-white/90 px-2.5 sm:px-3 py-1 rounded-[36px] text-[#0d2138] text-[11px] sm:text-[14px]"
@@ -429,30 +514,20 @@ export function SingleListingPageContent() {
           </div>
 
           {/* Side Images */}
+          {sideImages.length > 0 ? (
           <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2 sm:gap-4 w-full lg:w-[342px] lg:shrink-0">
-            <div className="rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]">
+            {sideImages.map((img, i) => (
+            <div
+              key={img.id}
+              className="relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]"
+            >
               <img
-                src={sideImg1}
-                alt="Property view 1"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]">
-              <img
-                src={sideImg2}
-                alt="Property view 2"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]">
-              <img
-                src={sideImg3}
-                alt="Property view 3"
+                src={img.url}
+                alt={img.altText ?? `${listing.title} view ${i + 1}`}
                 className="w-full h-full object-cover"
               />
 
+              {i === sideImages.length - 1 && images.length > sideImages.length + 1 ? (
               <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-white rounded-[50px] px-2.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1">
                 <span
                   className="text-[#232323] text-[10px] sm:text-[13px] lg:text-[14px] whitespace-nowrap"
@@ -461,11 +536,14 @@ export function SingleListingPageContent() {
                     fontWeight: 500,
                   }}
                 >
-                  Show all
+                  +{images.length - sideImages.length - 1} more
                 </span>
               </div>
+              ) : null}
             </div>
+            ))}
           </div>
+          ) : null}
         </div>
 
         {/* Property Info Row */}
@@ -480,7 +558,7 @@ export function SingleListingPageContent() {
                 letterSpacing: "-0.32px",
               }}
             >
-              Coastal Modern Residence
+              {listing.title}
             </h1>
 
             <div
@@ -519,13 +597,14 @@ export function SingleListingPageContent() {
               </svg>
 
               <span className="leading-[20px]">
-                Bayshore Gardens, Tampa, FL
+                {listing.fullAddress || listing.location}
               </span>
             </div>
           </div>
 
           {/* Prices */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-3 sm:gap-6 md:gap-2">
+            {listing.salePrice !== null ? (
             <div className="flex items-center justify-between sm:justify-start gap-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-2 h-2 rounded-full bg-[#1e4f86]" />
@@ -548,10 +627,12 @@ export function SingleListingPageContent() {
                   letterSpacing: "-0.24px",
                 }}
               >
-                $749,000
+                {formatSalePrice(listing.salePrice)}
               </span>
             </div>
+            ) : null}
 
+            {listing.rentPrice !== null ? (
             <div className="flex items-center justify-between sm:justify-start gap-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-2 h-2 rounded-full bg-[#4896b6]" />
@@ -574,9 +655,10 @@ export function SingleListingPageContent() {
                   letterSpacing: "-0.24px",
                 }}
               >
-                $548,000
+                {formatRentPrice(listing.rentPrice)}
               </span>
             </div>
+            ) : null}
           </div>
         </div>
 
@@ -593,7 +675,15 @@ export function SingleListingPageContent() {
           {/* Social Icons */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Facebook */}
-            <button className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden shrink-0">
+            <button
+              onClick={() =>
+                openShare(
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                )
+              }
+              aria-label="Share on Facebook"
+              className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden shrink-0"
+            >
               <svg
                 viewBox="0 0 24 24"
                 className="w-6 h-6 relative top-[2px]"
@@ -607,14 +697,24 @@ export function SingleListingPageContent() {
             </button>
 
             {/* Twitter/X */}
-            <div className="w-6 h-6 overflow-clip relative cursor-pointer shrink-0">
+            <button
+              onClick={() =>
+                openShare(
+                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
+                )
+              }
+              aria-label="Share on X"
+              className="w-6 h-6 overflow-clip relative cursor-pointer shrink-0"
+            >
               <svg viewBox="0 0 20 18" className="w-6 h-6">
                 <path d={svgPaths.p7cd5f00} fill="#000000" />
               </svg>
-            </div>
+            </button>
 
             {/* Instagram */}
             <button
+              onClick={() => openShare("https://www.instagram.com/")}
+              aria-label="Open Instagram"
               className="w-6 h-6 rounded-[6px] flex items-center justify-center overflow-hidden cursor-pointer shrink-0"
               style={{
                 background:
@@ -647,7 +747,15 @@ export function SingleListingPageContent() {
             </button>
 
             {/* LinkedIn */}
-            <div className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px] shrink-0">
+            <button
+              onClick={() =>
+                openShare(
+                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                )
+              }
+              aria-label="Share on LinkedIn"
+              className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px] shrink-0"
+            >
               <svg
                 viewBox="0 0 20 20"
                 fill="none"
@@ -673,10 +781,18 @@ export function SingleListingPageContent() {
                   fillRule="evenodd"
                 />
               </svg>
-            </div>
+            </button>
 
             {/* WhatsApp */}
-            <div className="w-8 h-8 relative cursor-pointer shrink-0">
+            <button
+              onClick={() =>
+                openShare(
+                  `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`,
+                )
+              }
+              aria-label="Share on WhatsApp"
+              className="w-8 h-8 relative cursor-pointer shrink-0"
+            >
               <svg
                 viewBox="0 0 24 24"
                 className="w-[30px] h-[30px]"
@@ -719,7 +835,7 @@ export function SingleListingPageContent() {
                   fillRule="evenodd"
                 />
               </svg>
-            </div>
+            </button>
           </div>
 
           {/* Copy Link */}
@@ -761,35 +877,14 @@ export function SingleListingPageContent() {
         </h2>
 
         <p
-          className="text-[#0d2138] text-[14px] sm:text-[15px] md:text-[16px] mb-4 leading-[22px] sm:leading-[24px]"
+          className="text-[#0d2138] text-[14px] sm:text-[15px] md:text-[16px] mb-4 leading-[22px] sm:leading-[24px] whitespace-pre-line"
           style={{
             fontFamily: "Montserrat, sans-serif",
             letterSpacing: "-0.16px",
           }}
         >
-          A bright coastal-inspired home offering modern interiors, spacious
-          living areas, and elegant finishes throughout. Ideal for buyers
-          seeking comfort, style, and a well-located property close to Tampa's
-          best amenities and attractions.
+          {listing.description}
         </p>
-
-        <div className="flex items-start gap-3 sm:gap-4 mt-5 sm:mt-4">
-          <div className="w-px bg-[#d4d4d4] self-stretch min-h-[100px] sm:min-h-[60px]" />
-
-          <p
-            className="text-[#2b3038] text-[14px] sm:text-[15px] md:text-[16px] italic leading-[24px] sm:leading-[27px] md:leading-[28.8px]"
-            style={{
-              fontFamily: "Inter, sans-serif",
-              letterSpacing: "-0.32px",
-            }}
-          >
-            This Beverly Hills villa redefines{" "}
-            <strong>modern elegance and exclusivity</strong>. Featuring
-            expansive interiors, outdoor entertainment areas, and breathtaking
-            city views, it is "crafted for those who seek the ultimate luxury
-            lifestyle in Los Angeles."
-          </p>
-        </div>
       </div>
 
       {/* Property Details Stats heading */}
@@ -895,6 +990,7 @@ export function SingleListingPageContent() {
       </div>
 
       {/* Features & Amenities */}
+      {listingAmenities.length > 0 ? (
       <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-16">
         <h2
           className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
@@ -908,7 +1004,7 @@ export function SingleListingPageContent() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {amenities.map((item) => (
+          {listingAmenities.map((item) => (
             <div
               key={item.label}
               className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[48px] sm:min-h-[50px]"
@@ -931,61 +1027,13 @@ export function SingleListingPageContent() {
           ))}
         </div>
       </div>
+      ) : null}
 
-      {/* Video Preview */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
-  <h2
-    className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
-    style={{
-      fontFamily: "Poppins, sans-serif",
-      fontWeight: 500,
-      letterSpacing: "-0.24px",
-    }}
-  >
-    Video Preview
-  </h2>
+      {/* Video Preview: listings have no video support yet — per spec the
+          section is hidden entirely when a listing has no video. */}
 
-  <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden bg-[#bfbfbf] h-[220px] sm:h-[360px] md:h-[460px] lg:h-[566px]">
-    <img
-      src={videoImg}
-      alt="Video preview"
-      className="w-full h-full object-cover"
-    />
-
-    {/* YouTube Play Button */}
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="relative w-[72px] h-[72px] sm:w-[96px] sm:h-[96px] lg:w-[127px] lg:h-[127px]">
-        <svg
-          viewBox="0 0 111.425 79.5892"
-          fill="none"
-          className="absolute"
-          style={{
-            inset: "18.75% 6.25%",
-            width: "87.5%",
-            height: "62.5%",
-          }}
-        >
-          <path d={svgPaths.p3b152600} fill="#FC0D1B" />
-        </svg>
-
-        <svg
-          viewBox="0 0 31.8357 31.8357"
-          fill="none"
-          className="absolute"
-          style={{
-            inset: "37.5% 34.38% 37.5% 40.62%",
-            width: "25.62%",
-            height: "25%",
-          }}
-        >
-          <path d={svgPaths.p277c6500} fill="white" />
-        </svg>
-      </div>
-    </div>
-  </div>
-</div>
-
-      {/* On the Map */}
+      {/* On the Map — hidden until the listing has geocoded coordinates */}
+      {listing.latitude !== null && listing.longitude !== null ? (
       <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
   <h2
     className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
@@ -999,10 +1047,10 @@ export function SingleListingPageContent() {
   </h2>
 
   <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px]">
-    <img
-      src={mapImg}
-      alt="Map"
-      className="w-full h-full object-cover rounded-[14px] sm:rounded-[20px]"
+    <PropertyLocationMap
+      latitude={listing.latitude}
+      longitude={listing.longitude}
+      title={listing.title}
     />
 
     {/* Location Card */}
@@ -1015,106 +1063,22 @@ export function SingleListingPageContent() {
           letterSpacing: "-0.14px",
         }}
       >
-        Buenos Aires, Argentina
+        {listing.location}
       </p>
 
       <p
-        className="text-[#5f5f5f] text-[11px] sm:text-[12px] mb-2 leading-[16px]"
+        className="text-[#5f5f5f] text-[11px] sm:text-[12px] leading-[16px]"
         style={{
           fontFamily: "Poppins, sans-serif",
           letterSpacing: "-0.12px",
         }}
       >
-        Av. Santa Fe 1234, BA, Argentina
+        {listing.fullAddress}
       </p>
-
-      <div className="flex items-center gap-1 flex-wrap">
-        <span
-          className="text-[#232323] text-[12px] sm:text-[14px]"
-          style={{
-            fontFamily: "Montserrat, sans-serif",
-            fontWeight: 500,
-          }}
-        >
-          5.0
-        </span>
-
-        {[...Array(5)].map((_, i) => (
-          <svg
-            key={i}
-            className="w-[13px] h-[13px] sm:w-4 sm:h-4 shrink-0"
-            viewBox="0 0 13.3351 12.6675"
-            fill="none"
-          >
-            <path d={svgPaths.p3684cf00} fill="#F5A405" />
-          </svg>
-        ))}
-
-        <span
-          className="text-[#4896b6] text-[11px] sm:text-[12px] ml-1"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          6,546
-        </span>
-      </div>
-    </div>
-
-    {/* Map Controls */}
-    <div className="absolute right-3 bottom-3 sm:right-6 sm:bottom-6 flex flex-col gap-2 sm:gap-3">
-      <button className="bg-white rounded-full shadow-lg p-2.5 sm:p-3 flex items-center justify-center">
-        <svg
-          className="w-[15px] h-[15px] sm:w-[17px] sm:h-[17px]"
-          viewBox="0 0 16.9302 16.9302"
-          fill="none"
-        >
-          <path
-            d={svgPaths.p3d32ae80}
-            stroke="#232323"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.81395"
-          />
-        </svg>
-      </button>
-
-      <div className="bg-white rounded-full shadow-lg flex flex-col items-center overflow-hidden">
-        <button className="p-2.5 sm:p-3 flex items-center justify-center">
-          <svg
-            className="w-[11px] h-[11px] sm:w-3 sm:h-3"
-            viewBox="0 0 12.3953 12.3953"
-            fill="none"
-          >
-            <path
-              d={svgPaths.p305e76c0}
-              stroke="#232323"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.81395"
-            />
-          </svg>
-        </button>
-
-        <div className="w-8 sm:w-10 h-px bg-[#e5e7eb]" />
-
-        <button className="p-2.5 sm:p-3 flex items-center justify-center">
-          <svg
-            className="w-[11px] h-[2px] sm:w-3 sm:h-[2px]"
-            viewBox="0 0 12.3953 1.81395"
-            fill="none"
-          >
-            <path
-              d="M0.906977 0.906977H11.4884"
-              stroke="#232323"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.81395"
-            />
-          </svg>
-        </button>
-      </div>
     </div>
   </div>
 </div>
+      ) : null}
 
       {/* Agent Contact Banner */}
       <div className="w-[calc(100%-38px)] max-w-[1196px] mx-auto py-8 sm:py-12 lg:py-16">
@@ -1129,12 +1093,14 @@ export function SingleListingPageContent() {
     </div>
 
     <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-stretch gap-7 lg:gap-8 p-5 sm:p-8 lg:p-16">
+      {agent ? (
+      <>
       {/* Left: Agent */}
       <div className="flex flex-col items-start gap-4 sm:gap-5 lg:w-[280px]">
         <div className="rounded-full overflow-hidden w-[64px] h-[64px] sm:w-[80px] sm:h-[80px] shrink-0">
           <img
-            src={agentImg}
-            alt="Emily Carter"
+            src={agent.avatarUrl ?? agentImg}
+            alt={agent.name}
             className="w-full h-full object-cover"
           />
         </div>
@@ -1148,7 +1114,7 @@ export function SingleListingPageContent() {
               letterSpacing: "-0.24px",
             }}
           >
-            Emily Carter
+            {agent.name}
           </p>
 
           <p
@@ -1158,26 +1124,6 @@ export function SingleListingPageContent() {
             Listing Agent
           </p>
         </div>
-
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          {[...Array(5)].map((_, i) => (
-            <svg
-              key={i}
-              className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] shrink-0"
-              viewBox="0 0 18.9649 18.2953"
-              fill="none"
-            >
-              <path d={svgPaths.p236f5cd0} fill="#FFB86A" />
-            </svg>
-          ))}
-
-          <span
-            className="text-[#f8fafc] text-[14px] sm:text-[16px] ml-1"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            5 stars
-          </span>
-        </div>
       </div>
 
       {/* Divider */}
@@ -1185,6 +1131,8 @@ export function SingleListingPageContent() {
 
       {/* Mobile Divider */}
       <div className="block lg:hidden w-full h-px bg-white/15" />
+      </>
+      ) : null}
 
       {/* Middle: CTA text */}
       <div className="flex flex-col gap-3 sm:gap-4 flex-1">
@@ -1206,7 +1154,8 @@ export function SingleListingPageContent() {
             letterSpacing: "-0.16px",
           }}
         >
-          Book a Private tour or send a message directly to Emily.
+          Book a private tour or send a message directly to{" "}
+          {agent ? agent.name.split(" ")[0] : "our team"}.
           <br className="hidden sm:block" />
           No commitment needed
         </p>
