@@ -41,7 +41,11 @@ export function useUpdateContactMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: patchContact,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() });
+      // Lead list and detail pages embed contact name/email — refresh them too.
+      qc.invalidateQueries({ queryKey: queryKeys.leads() });
+    },
   });
 }
 
@@ -56,7 +60,10 @@ export function useDeleteContactMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteContactReq,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() });
+      qc.invalidateQueries({ queryKey: queryKeys.leads() });
+    },
   });
 }
 

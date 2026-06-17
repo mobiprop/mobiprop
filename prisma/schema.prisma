@@ -188,6 +188,7 @@ model Property {
   contacts      ContactProperty[]
   opportunities Opportunity[]
   contracts     Contract[]
+  leads         Lead[]            @relation("LeadPrimaryListing")
 
   @@index([status], map: "properties_status_idx")
   @@index([type], map: "properties_type_idx")
@@ -318,6 +319,7 @@ model Contact {
   properties    ContactProperty[]
   opportunities Opportunity[]
   contracts     Contract[]
+  leads         Lead[]
 
   @@index([email], map: "contacts_email_idx")
   @@index([type], map: "contacts_type_idx")
@@ -365,8 +367,8 @@ model Opportunity {
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 
-  contact  Contact?  @relation(fields: [contactId], references: [id])
-  property Property? @relation(fields: [propertyId], references: [id])
+  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
   @@index([contactId], map: "opportunities_contact_idx")
   @@index([propertyId], map: "opportunities_property_idx")
@@ -394,11 +396,142 @@ model Contract {
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
-  contact  Contact?  @relation(fields: [contactId], references: [id])
-  property Property? @relation(fields: [propertyId], references: [id])
+  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
   @@index([contactId], map: "contracts_contact_idx")
   @@index([propertyId], map: "contracts_property_idx")
   @@index([status], map: "contracts_status_idx")
   @@map("contracts")
+}
+
+// ── Leads ──────────────────────────────────────────────────────────────────────
+
+enum LeadSource {
+  WEBSITE_LISTING_INQUIRY
+  WEBSITE_CONTACT_FORM
+  SCHEDULED_TOUR
+  MANUAL
+  PHONE
+  EMAIL
+  WHATSAPP
+  REFERRAL
+  SOCIAL_MEDIA
+  IMPORT
+  EXTERNAL_API
+  OTHER
+}
+
+enum LeadTemperature {
+  COLD
+  WARM
+  HOT
+}
+
+enum LeadLifecycleStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  QUALIFIED
+  UNQUALIFIED
+  CONVERTED
+  CLOSED
+}
+
+// CRM lead — top-of-funnel record linking a potential client to a contact,
+// optional listing interest, and an assigned agent. Kept separate from
+// Opportunity so temperature / lifecycle tracking stays independent.
+model Lead {
+  id                     String              @id @default(cuid())
+  leadNumber             String              @unique @map("lead_number")
+
+  contactId              String              @map("contact_id")
+  contact                Contact             @relation(fields: [contactId], references: [id])
+
+  primaryListingId       String?             @map("primary_listing_id")
+  primaryListing         Property?           @relation("LeadPrimaryListing", fields: [primaryListingId], references: [id], onDelete: SetNull)
+
+  assignedAgentId        String?             @map("assigned_agent_id") @db.Uuid
+  createdById            String?             @map("created_by_id") @db.Uuid
+
+  convertedOpportunityId String?             @map("converted_opportunity_id")
+  convertedAt            DateTime?           @map("converted_at")
+
+  // Snapshot of submitted info — preserved even if Contact is updated later.
+  submittedName          String              @map("submitted_name")
+  submittedEmail         String?             @map("submitted_email")
+  submittedPhone         String?             @map("submitted_phone")
+  submittedLocation      String?             @map("submitted_location")
+
+  source                 LeadSource
+  sourceDetail           String?             @map("source_detail")
+  sourceUrl              String?             @map("source_url")
+  externalSource         String?             @map("external_source")
+  externalSourceId       String?             @map("external_source_id")
+  importBatchId          String?             @map("import_batch_id")
+
+  budgetMin              Decimal?            @map("budget_min") @db.Decimal(14, 2)
+  budgetMax              Decimal?            @map("budget_max") @db.Decimal(14, 2)
+  currency               String              @default("ARS")
+
+  score                  Int                 @default(0)
+  temperature            LeadTemperature     @default(COLD)
+  lifecycleStatus        LeadLifecycleStatus @default(NEW) @map("lifecycle_status")
+
+  notes                  String?
+  lastContactedAt        DateTime?           @map("last_contacted_at")
+  nextFollowUpAt         DateTime?           @map("next_follow_up_at")
+  closedAt               DateTime?           @map("closed_at")
+
+  isArchived             Boolean             @default(false) @map("is_archived")
+  archivedAt             DateTime?           @map("archived_at")
+
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
+
+  leadNotes              LeadNote[]
+  activities             LeadActivity[]
+
+  @@index([contactId], map: "leads_contact_idx")
+  @@index([primaryListingId], map: "leads_listing_idx")
+  @@index([assignedAgentId], map: "leads_agent_idx")
+  @@index([temperature], map: "leads_temperature_idx")
+  @@index([lifecycleStatus], map: "leads_lifecycle_status_idx")
+  @@index([source], map: "leads_source_idx")
+  @@index([isArchived], map: "leads_is_archived_idx")
+  @@index([createdAt], map: "leads_created_at_idx")
+  @@index([nextFollowUpAt], map: "leads_next_follow_up_idx")
+  @@map("leads")
+}
+
+// Individual note on a lead — preserves author and timestamp.
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String   @map("lead_id")
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String   @map("author_id") @db.Uuid
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([leadId, createdAt], map: "lead_notes_lead_created_idx")
+  @@map("lead_notes")
+}
+
+// Immutable audit record for every meaningful lead change.
+model LeadActivity {
+  id        String   @id @default(cuid())
+  leadId    String   @map("lead_id")
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actorId   String?  @map("actor_id") @db.Uuid
+  type      String
+  fieldName String?  @map("field_name")
+  oldValue  Json?    @map("old_value")
+  newValue  Json?    @map("new_value")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([leadId, createdAt], map: "lead_activities_lead_created_idx")
+  @@index([actorId], map: "lead_activities_actor_idx")
+  @@map("lead_activities")
 }
