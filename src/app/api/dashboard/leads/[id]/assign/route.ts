@@ -1,0 +1,19 @@
+import { NextResponse } from "next/server";
+
+import { assignLead } from "@/features/crm/lead-actions";
+
+export const runtime = "nodejs";
+
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const body = await req.json().catch(() => null);
+  if (!body) {
+    return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const result = await assignLead(id, body);
+  if (!result.ok) {
+    return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+  }
+  return NextResponse.json({ success: true, lead: result.lead });
+}

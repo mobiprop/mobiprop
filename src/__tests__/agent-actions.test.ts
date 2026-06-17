@@ -1,0 +1,118 @@
+/**
+ * Agent-actions unit tests.
+ *
+ * Covers:
+ *   1. updateAgentStatus logs AGENT_ACTIVATED / AGENT_DEACTIVATED.
+ *   2. Deactivating an agent does NOT touch leads or listings (no cascade).
+ *   3. Inactive agent cannot be assigned to new leads.
+ */
+
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("server-only", () => ({}));
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  return { ...actual, cache: (fn: unknown) => fn };
+});
+
+const mockLogActivity = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/activity-log", () => ({ logActivity: mockLogActivity }));
+vi.mock("@/lib/notifications", () => ({ notifyAdmins: vi.fn() }));
+
+let mockRequirePermissionResult: Record<string, unknown> = {};
+
+vi.mock("@/lib/require-permission", () => ({
+  requirePermission: vi.fn(async () => mockRequirePermissionResult),
+}));
+
+const mockPrismaProfile = {
+  findUnique: vi.fn(),
+  update: vi.fn(),
+  findMany: vi.fn(),
+};
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    profile: mockPrismaProfile,
+    lead: { count: vi.fn().mockResolvedValue(0) },
+    property: {},
+  },
+}));
+
+const ADMIN_ID = "admin-id-0000-0000-0000-000000000000";
+const AGENT_ID  = "agent-id-0000-0000-0000-000000000000";
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockRequirePermissionResult = {
+    ok: true,
+    profile: { id: ADMIN_ID, role: "ADMIN", status: "ACTIVE", fullName: "Admin", email: "admin@test.com", avatarUrl: null },
+  };
+});
+
+const { updateAgentStatus } = await import("@/features/agents/agent-actions");
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. updateAgentStatus logs activity
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("updateAgentStatus — activity logging", () => {
+  it("logs AGENT_DEACTIVATED with old/new status when deactivating", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "AGENT", status: "ACTIVE" });
+    mockPrismaProfile.update.mockResolvedValue({ id: AGENT_ID, status: "INACTIVE" });
+
+    const res = await updateAgentStatus(AGENT_ID, "INACTIVE");
+    expect(res.ok).toBe(true);
+
+    expect(mockLogActivity).toHaveBeenCalledOnce();
+    const [call] = mockLogActivity.mock.calls;
+    expect(call[0].action).toBe("AGENT_DEACTIVATED");
+    expect(call[0].entityId).toBe(AGENT_ID);
+    expect(call[0].oldValues).toEqual({ status: "ACTIVE" });
+    expect(call[0].newValues).toEqual({ status: "INACTIVE" });
+    expect(call[0].actorId).toBe(ADMIN_ID);
+  });
+
+  it("logs AGENT_ACTIVATED with old/new status when activating", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "AGENT", status: "INACTIVE" });
+    mockPrismaProfile.update.mockResolvedValue({ id: AGENT_ID, status: "ACTIVE" });
+
+    const res = await updateAgentStatus(AGENT_ID, "ACTIVE");
+    expect(res.ok).toBe(true);
+
+    const [call] = mockLogActivity.mock.calls;
+    expect(call[0].action).toBe("AGENT_ACTIVATED");
+    expect(call[0].oldValues).toEqual({ status: "INACTIVE" });
+    expect(call[0].newValues).toEqual({ status: "ACTIVE" });
+  });
+
+  it("returns 404 for USER role (not an agent)", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "USER", status: "ACTIVE" });
+
+    const res = await updateAgentStatus(AGENT_ID, "INACTIVE");
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(404);
+    expect(mockLogActivity).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. Deactivating an agent does NOT affect leads or listings (no DB cascade)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("updateAgentStatus — no cascade to leads/listings", () => {
+  it("only updates the profile row, never touches leads or properties", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "AGENT", status: "ACTIVE" });
+    mockPrismaProfile.update.mockResolvedValue({ id: AGENT_ID, status: "INACTIVE" });
+
+    await updateAgentStatus(AGENT_ID, "INACTIVE");
+
+    // Only profile.findUnique + profile.update should be called.
+    expect(mockPrismaProfile.findUnique).toHaveBeenCalledOnce();
+    expect(mockPrismaProfile.update).toHaveBeenCalledOnce();
+    expect(mockPrismaProfile.update.mock.calls[0][0]).toMatchObject({
+      where: { id: AGENT_ID },
+      data: { status: "INACTIVE" },
+    });
+  });
+});

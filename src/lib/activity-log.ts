@@ -8,13 +8,17 @@ export type ActivityEntityType =
   | "PROFILE"
   | "PROFILE_SETTINGS"
   | "PROPERTY"
-  | "CONTACT";
+  | "CONTACT"
+  | "LEAD"
+  | "LEAD_NOTE";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
   | "INVITATION_RESENT"
   | "INVITATION_REVOKED"
   | "INVITATION_ACCEPTED"
+  | "AGENT_ACTIVATED"
+  | "AGENT_DEACTIVATED"
   | "PROFILE_CREATED"
   | "ROLE_ASSIGNED"
   | "PROFILE_SETTINGS_UPDATED"
@@ -34,7 +38,24 @@ export type ActivityAction =
   | "CONTACT_CREATED"
   | "CONTACT_UPDATED"
   | "CONTACT_DELETED"
-  | "CONTACT_RESTORED";
+  | "CONTACT_RESTORED"
+  | "LEAD_CREATED"
+  | "LEAD_UPDATED"
+  | "LEAD_CONTACT_LINKED"
+  | "LEAD_LISTING_LINKED"
+  | "LEAD_ASSIGNED"
+  | "LEAD_REASSIGNED"
+  | "LEAD_SCORE_CHANGED"
+  | "LEAD_TEMPERATURE_CHANGED"
+  | "LEAD_STATUS_CHANGED"
+  | "LEAD_FOLLOW_UP_CHANGED"
+  | "LEAD_NOTE_ADDED"
+  | "LEAD_NOTE_UPDATED"
+  | "LEAD_INQUIRY_RECEIVED"
+  | "LEAD_TOUR_LINKED"
+  | "LEAD_CONVERTED"
+  | "LEAD_ARCHIVED"
+  | "LEAD_RESTORED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

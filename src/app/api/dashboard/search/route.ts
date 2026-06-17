@@ -81,9 +81,14 @@ export async function GET(req: Request) {
 
   const { profile } = gate;
   const isAgent = profile.role === UserRole.AGENT;
-  const agentScope = isAgent
-    ? { OR: [{ createdById: profile.id }, { assignedAgentId: profile.id }] as const }
-    : {};
+  const searchOR = [
+    { title: { contains: q, mode: "insensitive" as const } },
+    { listingId: { contains: q, mode: "insensitive" as const } },
+    { location: { contains: q, mode: "insensitive" as const } },
+    { fullAddress: { contains: q, mode: "insensitive" as const } },
+    { city: { contains: q, mode: "insensitive" as const } },
+    { province: { contains: q, mode: "insensitive" as const } },
+  ];
 
   // ── Run all queries in parallel ──────────────────────────────────────────
 
@@ -93,19 +98,16 @@ export async function GET(req: Request) {
     matchedOpportunities,
     matchedContracts,
   ] = await Promise.all([
-    // 1. Listings matching by title / ID / address fields
+    // 1. Listings matching by title / ID / address fields — AGENT sees only own listings
     prisma.property.findMany({
-      where: {
-        ...agentScope,
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { listingId: { contains: q, mode: "insensitive" } },
-          { location: { contains: q, mode: "insensitive" } },
-          { fullAddress: { contains: q, mode: "insensitive" } },
-          { city: { contains: q, mode: "insensitive" } },
-          { province: { contains: q, mode: "insensitive" } },
-        ],
-      },
+      where: isAgent
+        ? {
+            AND: [
+              { OR: [{ createdById: profile.id }, { assignedAgentId: profile.id }] },
+              { OR: searchOR },
+            ],
+          }
+        : { OR: searchOR },
       select: {
         id: true, listingId: true, title: true, location: true,
         status: true, type: true, slug: true,
@@ -115,9 +117,10 @@ export async function GET(req: Request) {
       take: MAX,
     }),
 
-    // 2. Contacts matching by name / email / phone / ID
+    // 2. Contacts matching by name / email / phone / ID (exclude soft-deleted)
     prisma.contact.findMany({
       where: {
+        isDeleted: false,
         OR: [
           { firstName: { contains: q, mode: "insensitive" } },
           { lastName: { contains: q, mode: "insensitive" } },
@@ -134,7 +137,6 @@ export async function GET(req: Request) {
                 id: true, listingId: true, title: true, location: true,
                 status: true, type: true, slug: true,
                 images: { where: { isCover: true }, select: { url: true }, take: 1 },
-                ...agentScope,
               },
             },
           },

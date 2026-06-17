@@ -78,16 +78,30 @@ const contactInclude = {
 
 // ── List ──────────────────────────────────────────────────────────────────────
 
-export async function listContacts(): Promise<
+export async function listContacts(search?: string): Promise<
   CrmActionResult<{ contacts: ContactDto[]; metrics: ContactMetrics }>
 > {
   const gate = await requirePermission("contacts:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const where: import("@/generated/prisma/client").Prisma.ContactWhereInput = {
+    isDeleted: false,
+    ...(search && {
+      OR: [
+        { firstName: { contains: search, mode: "insensitive" as const } },
+        { lastName: { contains: search, mode: "insensitive" as const } },
+        { email: { contains: search, mode: "insensitive" as const } },
+        { phone: { contains: search, mode: "insensitive" as const } },
+        { contactId: { contains: search, mode: "insensitive" as const } },
+      ],
+    }),
+  };
+
   const contacts = await prisma.contact.findMany({
-    where: { isDeleted: false },
+    where,
     include: contactInclude,
     orderBy: { createdAt: "desc" },
+    ...(search && { take: 10 }),
   });
 
   const dtos = contacts.map(toContactDto);

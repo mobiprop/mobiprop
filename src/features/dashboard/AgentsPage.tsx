@@ -27,6 +27,33 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type AgentStatus = "Approved" | "Pending" | "Denied";
+type PeriodFilter = "this_week" | "this_month" | "last_month" | "all";
+
+const PERIOD_LABELS: Record<PeriodFilter, string> = {
+  this_week:  "This Week",
+  this_month: "This Month",
+  last_month: "Last Month",
+  all:        "All Time",
+};
+
+function getPeriodBounds(period: PeriodFilter): { from: Date; to: Date } | null {
+  if (period === "all") return null;
+  const now = new Date();
+  if (period === "this_week") {
+    const day = now.getDay(); // 0=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((day + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+    return { from: monday, to: now };
+  }
+  if (period === "this_month") {
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+  }
+  // last_month
+  const firstOfLast = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastOfLast  = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  return { from: firstOfLast, to: lastOfLast };
+}
 
 function mapStatus(status: AgentDto["status"]): AgentStatus {
   if (status === "ACTIVE") return "Approved";
@@ -105,6 +132,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [metrics, setMetrics] = useState<AgentMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const [period, setPeriod] = useState<PeriodFilter>("all");
 
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
@@ -148,6 +176,8 @@ export function AgentsPage({ role }: AgentsPageProps) {
     setActioningId(null);
   }
 
+  const periodBounds = getPeriodBounds(period);
+
   const filtered = agents.filter((a) => {
     const mapped = mapStatus(a.status);
     const matchesSearch =
@@ -156,7 +186,9 @@ export function AgentsPage({ role }: AgentsPageProps) {
       a.email.toLowerCase().includes(search.toLowerCase()) ||
       (a.city ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || mapped === statusFilter;
-    return matchesSearch && matchesStatus;
+    const signedUp = new Date(a.createdAt);
+    const matchesPeriod = !periodBounds || (signedUp >= periodBounds.from && signedUp <= periodBounds.to);
+    return matchesSearch && matchesStatus && matchesPeriod;
   });
 
   return (
@@ -257,13 +289,19 @@ export function AgentsPage({ role }: AgentsPageProps) {
               <Filter size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
             </div>
             {/* Period */}
-            <button
-              type="button"
-              className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af]"
-              style={mont}
-            >
-              Last Month <ChevronDown size={14} />
-            </button>
+            <div className="relative">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
+                className="h-9 pl-3 pr-8 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
+                style={mont}
+              >
+                {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
+                  <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
+            </div>
           </div>
         </div>
 
