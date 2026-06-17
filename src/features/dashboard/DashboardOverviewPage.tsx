@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -17,6 +18,8 @@ import {
   CalendarDays,
   ChevronDown,
   DollarSign,
+  ListFilter,
+  RotateCcw,
   MoreVertical,
   Plus,
   Search,
@@ -98,104 +101,84 @@ function MetricCardView({ card }: { card: MetricCard }) {
     value,
   }));
 
-  return (
-    <div className="min-w-0 flex-1 rounded-[16px] border border-[#f3f4f6] bg-white p-[18px]">
-      <div className="mb-2 flex items-start justify-between">
-        <span
-          className="flex size-9 items-center justify-center rounded-[10px]"
-          style={{ backgroundColor: card.iconBg }}
-        >
-          <MetricIcon card={card} />
-        </span>
-
-        <div className="h-9 w-[72px]">
-          <AreaChart
-            width={72}
-            height={36}
-            data={chartData}
-            margin={{
-              top: 4,
-              right: 0,
-              bottom: 0,
-              left: 0,
-            }}
-          >
-            <defs>
-              <linearGradient
-                id={`spark-${card.key}`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor={isUp ? "#00c950" : "#fb2c36"}
-                  stopOpacity={0.25}
-                />
-                <stop
-                  offset="100%"
-                  stopColor={isUp ? "#00c950" : "#fb2c36"}
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke={isUp ? "#00c950" : "#fb2c36"}
-              strokeWidth={1.5}
-              fill={`url(#spark-${card.key})`}
-              dot={false}
-            />
-          </AreaChart>
-        </div>
-      </div>
-
+ return (
+  <div className="min-w-0 flex-1 rounded-[16px] border border-[#f3f4f6] bg-white p-[18px]">
+    <div className="mb-2 flex items-start justify-between">
       <p
-        className="mb-1 text-[14px] font-medium text-[#6a7282]"
+        className="text-[14px] font-medium text-[#6a7282]"
         style={mont}
       >
         {card.label}
       </p>
 
-      <div className="mb-2 flex items-baseline gap-2">
+      <span
+        className="flex size-9 items-center justify-center rounded-[10px]"
+        style={{ backgroundColor: card.iconBg }}
+      >
+        <MetricIcon card={card} />
+      </span>
+    </div>
+
+    <div className="mb-1 flex items-baseline gap-2">
+      <span
+        className="text-[24px] font-semibold text-[#0d2138]"
+        style={poppins}
+      >
+        {card.value}
+      </span>
+
+      {card.sub && (
         <span
-          className="text-[24px] font-semibold text-[#0d2138]"
-          style={poppins}
-        >
-          {card.value}
-        </span>
-
-        {card.sub && (
-          <span
-            className="text-[14px] font-medium text-[#6a7282]"
-            style={mont}
-          >
-            {card.sub}
-          </span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-1">
-        {isUp ? (
-          <ArrowUpRight size={14} className="text-[#00c950]" />
-        ) : (
-          <ArrowDownRight size={14} className="text-[#fb2c36]" />
-        )}
-
-        <span
-          className={`text-[12px] font-medium ${
-            isUp ? "text-[#00c950]" : "text-[#fb2c36]"
-          }`}
+          className="text-[14px] font-medium text-[#6a7282]"
           style={mont}
         >
-          {card.trendLabel}
+          {card.sub}
         </span>
-      </div>
+      )}
     </div>
-  );
+
+    <div className="mb-4 flex items-center gap-1">
+      {isUp ? (
+        <ArrowUpRight size={14} className="text-[#00c950]" />
+      ) : (
+        <ArrowDownRight size={14} className="text-[#fb2c36]" />
+      )}
+
+      <span
+        className={`text-[12px] font-medium ${
+          isUp ? "text-[#00c950]" : "text-[#fb2c36]"
+        }`}
+        style={mont}
+      >
+        {card.trendLabel}
+      </span>
+    </div>
+
+    <div className="h-7 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={chartData}
+          margin={{
+            top: 3,
+            right: 0,
+            bottom: 0,
+            left: 0,
+          }}
+        >
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={isUp ? "#00c950" : "#fb2c36"}
+            strokeWidth={1.8}
+            fill="transparent"
+            dot={false}
+            isAnimationActive={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+);
 }
 
 // ── Sale operation badge ──────────────────────────────────────────────────────
@@ -334,484 +317,525 @@ export function DashboardOverviewPage({
       </div>
 
       {/* Chart + locations */}
-      <div className="flex flex-col gap-3.5 lg:flex-row">
-        {/* Revenue / opportunities chart */}
-        <div className="min-w-0 flex-1 rounded-[14px] border border-[#f3f4f6] bg-white p-4 sm:p-5">
-          <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0">
-              <h2
-                className="mb-3 text-[14px] font-semibold leading-5 text-[#0d2138] sm:text-[16px]"
-                style={mont}
-              >
-                Open Opportunities / Revenue
-              </h2>
+    <div className="flex flex-col gap-4 lg:flex-row">
+  {/* Revenue / opportunities chart */}
+  <div className="min-w-0 flex-1 rounded-[14px] border border-[#f3f4f6] bg-white px-3 pb-3 pt-4 sm:px-4">
+    <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="min-w-0">
+        <h2
+          className="mb-3 text-[14px] font-semibold leading-5 text-[#0d2138]"
+          style={mont}
+        >
+          Open Opportunities / Revenue
+        </h2>
 
-              <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="size-2 shrink-0 rounded-full bg-[#ff7093]" />
+        <div className="mb-1 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="flex items-center gap-1.5">
+            <span className="size-1.5 shrink-0 rounded-full bg-[#ff3545]" />
 
-                  <span
-                    className="text-[14px] text-[#99a1af] sm:text-[12px]"
-                    style={mont}
-                  >
-                    Revenue
-                  </span>
-
-                  <span
-                    className="ml-auto text-[14px] font-semibold text-[#6a7282] sm:ml-0 sm:text-[16px]"
-                    style={mont}
-                  >
-                    US$14.000
-                  </span>
-                </div>
-
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="size-2 shrink-0 rounded-full bg-[#fe9a00]" />
-
-                  <span
-                    className="truncate text-[14px] text-[#99a1af] sm:text-[12px]"
-                    style={mont}
-                  >
-                    Open Opportunities
-                  </span>
-
-                  <span
-                    className="ml-auto shrink-0 text-[14px] font-semibold text-[#6a7282] sm:ml-0 sm:text-[16px]"
-                    style={mont}
-                  >
-                    US$12.000
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid w-full grid-cols-3 rounded-[8px] bg-[#f3f4f6] p-1 sm:flex sm:w-fit sm:items-center">
-              {CHART_TABS.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setChartTab(tab)}
-                  className={`min-w-0 rounded-[6px] px-2 py-1.5 text-[14px] font-medium transition-colors sm:px-3 sm:text-[12px] ${
-                    chartTab === tab
-                      ? "bg-white text-[#1e4f86] shadow-sm"
-                      : "text-[#99a1af]"
-                  }`}
-                  style={mont}
-                >
-                  <span className="block truncate">{tab}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="h-[220px] w-full sm:h-[260px]">
-            {mounted && (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={REVENUE_CHART}
-                  margin={{
-                    top: 10,
-                    right: 5,
-                    left: -25,
-                    bottom: 0,
-                  }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="grad-revenue"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#ff7093"
-                        stopOpacity={0.2}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="#ff7093"
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-
-                    <linearGradient
-                      id="grad-opps"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#fe9a00"
-                        stopOpacity={0.2}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="#fe9a00"
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-
-                  <CartesianGrid
-                    strokeDasharray="4 4"
-                    stroke="#f3f4f6"
-                    vertical={false}
-                  />
-
-                  <XAxis
-                    dataKey="month"
-                    tick={{
-                      fontSize: 10,
-                      fill: "#99a1af",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    minTickGap={12}
-                  />
-
-                  <YAxis
-                    tick={{
-                      fontSize: 10,
-                      fill: "#99a1af",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={42}
-                  />
-
-                  <Tooltip />
-
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#ff7093"
-                    strokeWidth={2}
-                    fill="url(#grad-revenue)"
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="opportunities"
-                    stroke="#fe9a00"
-                    strokeWidth={2}
-                    fill="url(#grad-opps)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        {/* Locations */}
-        <div className="w-full shrink-0 rounded-[16px] border border-[#f3f4f6] bg-white p-4 sm:p-5 lg:w-[340px]">
-          <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
-            <h2
-              className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
+            <span
+              className="text-[10px] font-medium text-[#6a7282]"
               style={mont}
             >
-              Ubicaciones
-            </h2>
-
-            <button
-              type="button"
-              className="flex h-8 shrink-0 items-center gap-1 rounded-[8px] bg-[#f3f4f6] px-2.5 text-[14px] text-[#6a7282] sm:text-[12px]"
-              style={mont}
-            >
-              <Plus size={14} />
-              Agregar
-            </button>
+              Revenue
+            </span>
           </div>
 
-          <div className="flex flex-col">
-            {LOCATIONS.map((location) => (
-              <div
-                key={location.name}
-                className="flex items-center justify-between gap-3 border-b border-[#f3f4f6] py-3 last:border-b-0"
-              >
-                <span
-                  className="min-w-0 truncate 4 text-[#2b3038] sm:text-[14px]"
-                  style={mont}
-                >
-                  {location.name}
-                </span>
+          <div className="flex items-center gap-1.5">
+            <span className="size-1.5 shrink-0 rounded-full bg-[#ff6b00]" />
 
-                <span
-                  className="shrink-0 rounded-full bg-[#f5f5f5] px-2.5 py-0.5 text-[14px] text-[#6a7282] sm:text-[12px]"
-                  style={mont}
-                >
-                  {location.count}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Total Sales */}
-      <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
-        <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <h2
-            className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
-            style={mont}
-          >
-            Total Sales
-          </h2>
-
-          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
-            <div className="col-span-2 flex h-9 min-w-0 items-center gap-2 rounded-[10px] border border-[#e5e7eb] px-3 sm:col-span-1 sm:w-[180px]">
-              <Search
-                size={14}
-                className="shrink-0 text-[#6a7282]"
-              />
-
-              <input
-                placeholder="Search..."
-                className="min-w-0 flex-1 bg-transparent text-[12px] text-[#2b3038] outline-none placeholder:text-[#6a7282]"
-                style={mont}
-              />
-            </div>
-
-            <button
-              type="button"
-              className="h-9 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] text-[#6a7282] sm:text-[12px]"
+            <span
+              className="text-[10px] font-medium text-[#6a7282]"
               style={mont}
             >
-              Last Month
-            </button>
-
-            <button
-              type="button"
-              className="h-9 rounded-[10px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:text-[12px]"
-              style={mont}
-            >
-              Export
-            </button>
+              Open Opportunities
+            </span>
           </div>
         </div>
 
-        {/* Desktop and tablet table */}
-        <div className="hidden overflow-x-auto sm:block">
-          <table className="w-full min-w-[760px]">
-            <thead>
-              <tr className="bg-[#f9fafb] text-left">
-                {[
-                  "Agent Name",
-                  "Listing ID",
-                  "Opportunity ID",
-                  "Operation Type",
-                  "Date",
-                  "Revenue",
-                  "",
-                ].map((heading, index) => (
-                  <th
-                    key={`${heading}-${index}`}
-                    className="whitespace-nowrap px-4 py-3 text-[12px] font-medium text-[#6a7282] lg:px-5 lg:text-[14px]"
-                    style={mont}
-                  >
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {SALES.map((row, index) => (
-                <tr
-                  key={index}
-                  className="border-t border-[#f3f4f6] transition-colors hover:bg-[#fcfcfd]"
-                >
-                  <td className="px-4 py-3 lg:px-5">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
-                        style={mont}
-                      >
-                        {row.agentName
-                          .split(" ")
-                          .map((name) => name[0])
-                          .join("")
-                          .slice(0, 2)}
-                      </span>
-
-                      <span
-                        className="whitespace-nowrap text-[12px] text-[#2b3038] lg:text-[14px]"
-                        style={mont}
-                      >
-                        {row.agentName}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td
-                    className="whitespace-nowrap px-4 py-3 text-[12px] text-[#6a7282] lg:px-5 lg:text-[14px]"
-                    style={mont}
-                  >
-                    {row.listingId}
-                  </td>
-
-                  <td
-                    className="whitespace-nowrap px-4 py-3 text-[12px] text-[#6a7282] lg:px-5 lg:text-[14px]"
-                    style={mont}
-                  >
-                    {row.opportunityId}
-                  </td>
-
-                  <td className="whitespace-nowrap px-4 py-3 lg:px-5">
-                    <OperationBadge operation={row.operation} />
-                  </td>
-
-                  <td
-                    className="whitespace-nowrap px-4 py-3 text-[12px] text-[#6a7282] lg:px-5 lg:text-[14px]"
-                    style={mont}
-                  >
-                    {row.date}
-                  </td>
-
-                  <td
-                    className="whitespace-nowrap px-4 py-3 text-[12px] font-medium text-[#1e4f86] lg:px-5 lg:text-[14px]"
-                    style={mont}
-                  >
-                    {row.revenue}
-                  </td>
-
-                  <td className="px-4 py-3 text-right lg:px-5">
-                    <button
-                      type="button"
-                      aria-label="Open sale options"
-                      className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile cards */}
-        <div className="flex flex-col sm:hidden">
-          {SALES.map((row, index) => (
-            <div
-              key={index}
-              className="border-t border-[#f3f4f6] p-4 first:border-t-0"
-            >
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <span
-                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
-                    style={mont}
-                  >
-                    {row.agentName
-                      .split(" ")
-                      .map((name) => name[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </span>
-
-                  <div className="min-w-0">
-                    <p
-                      className="truncate text-[14px] font-medium text-[#2b3038]"
-                      style={mont}
-                    >
-                      {row.agentName}
-                    </p>
-
-                    <p
-                      className="mt-0.5 text-[14px] text-[#99a1af]"
-                      style={mont}
-                    >
-                      {row.date}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Open sale options"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
-                >
-                  <MoreVertical size={16} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <div className="min-w-0">
-                  <p
-                    className="text-[14px] text-[#99a1af]"
-                    style={mont}
-                  >
-                    Listing ID
-                  </p>
-
-                  <p
-                    className="mt-1 truncate text-[14px] text-[#6a7282]"
-                    style={mont}
-                  >
-                    {row.listingId}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p
-                    className="text-[14px] text-[#99a1af]"
-                    style={mont}
-                  >
-                    Opportunity ID
-                  </p>
-
-                  <p
-                    className="mt-1 truncate text-[12px] text-[#6a7282]"
-                    style={mont}
-                  >
-                    {row.opportunityId}
-                  </p>
-                </div>
-
-                <div>
-                  <p
-                    className="mb-1.5 text-[14px] text-[#99a1af]"
-                    style={mont}
-                  >
-                    Operation Type
-                  </p>
-
-                  <OperationBadge operation={row.operation} />
-                </div>
-
-                <div>
-                  <p
-                    className="text-[14px] text-[#99a1af]"
-                    style={mont}
-                  >
-                    Revenue
-                  </p>
-
-                  <p
-                    className="mt-1 4 font-medium text-[#1e4f86]"
-                    style={mont}
-                  >
-                    {row.revenue}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t border-[#f3f4f6] px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span
-            className="text-[14px] font-medium text-[#6a7282] sm:text-[12px]"
+            className="text-[13px] font-semibold text-[#6a7282]"
             style={mont}
           >
-            Showing {SALES.length} of {SALES.length} results
+            US$14.000
+          </span>
+
+          <span
+            className="text-[13px] font-semibold text-[#6a7282]"
+            style={mont}
+          >
+            US$12.000
           </span>
         </div>
       </div>
+
+      <div className="flex w-full min-w-0 items-center gap-2 md:w-auto md:shrink-0">
+        <button
+          type="button"
+          className="flex size-7 shrink-0 items-center justify-center text-[#99a1af]"
+          aria-label="Refresh chart"
+        >
+          <RotateCcw size={12} strokeWidth={1.5} />
+        </button>
+
+        <div className="grid min-w-0 flex-1 grid-cols-3 items-center rounded-[8px] bg-[#f3f4f6] p-[3px] md:flex md:flex-none">
+          {CHART_TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setChartTab(tab)}
+              className={`min-w-0 rounded-[6px] px-2 py-1.5 text-[10px] font-medium transition-colors sm:px-3 ${
+                chartTab === tab
+                  ? "bg-white text-[#1e4f86] shadow-sm"
+                  : "text-[#99a1af]"
+              }`}
+              style={mont}
+            >
+              <span className="block truncate">{tab}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div className="h-[210px] w-full min-w-0 sm:h-[230px] lg:h-[185px]">
+      {mounted && (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={REVENUE_CHART}
+            margin={{
+              top: 8,
+              right: 0,
+              left: -28,
+              bottom: 0,
+            }}
+          >
+            <defs>
+              <linearGradient
+                id="grad-revenue"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#ff3545"
+                  stopOpacity={0.18}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="#ff3545"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+
+              <linearGradient
+                id="grad-opps"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#ff6b00"
+                  stopOpacity={0.12}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="#ff6b00"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#e9edf2"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tickMargin={12}
+              interval="preserveStartEnd"
+              minTickGap={8}
+              tick={{
+                fontSize: 9,
+                fill: "#99a1af",
+              }}
+            />
+
+            <YAxis
+              domain={[0, 140]}
+              ticks={[0, 35, 70, 105, 140]}
+              axisLine={false}
+              tickLine={false}
+              tickMargin={5}
+              width={42}
+              tick={{
+                fontSize: 9,
+                fill: "#99a1af",
+              }}
+            />
+
+            <Tooltip />
+
+            <Area
+              type="monotone"
+              dataKey="opportunities"
+              stroke="#ff6b00"
+              strokeWidth={1.8}
+              fill="url(#grad-opps)"
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#ff3545"
+              strokeWidth={1.8}
+              fill="url(#grad-revenue)"
+              dot={false}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  </div>
+
+  {/* Locations */}
+  <div className="w-full min-w-0 shrink-0 rounded-[14px] border border-[#f3f4f6] bg-white p-4 lg:w-[292px]">
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+      <h2
+        className="text-[14px] font-semibold text-[#0d2138]"
+        style={mont}
+      >
+        Locations
+      </h2>
+
+      <button
+        type="button"
+        className="flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-[8px] bg-[#f3f4f6] px-3 text-[10px] font-medium text-[#6a7282]"
+        style={mont}
+      >
+        <Plus size={13} strokeWidth={1.7} />
+        Add Location
+      </button>
+    </div>
+
+    <div className="flex flex-col">
+      {LOCATIONS.map((location, index) => (
+        <div
+          key={`${location.name}-${index}`}
+          className="flex min-h-[38px] items-center justify-between gap-3 border-b border-[#f3f4f6] py-2 last:border-b-0"
+        >
+          <span
+            className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#2b3038]"
+            style={mont}
+          >
+            {location.name}
+          </span>
+
+          <span
+            className="flex min-w-[30px] shrink-0 items-center justify-center rounded-[6px] bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#6a7282]"
+            style={mont}
+          >
+            {location.count}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+      {/* Total Sales */}
+     <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
+  {/* Header */}
+  <div className="border-b border-[#f3f4f6] p-4 sm:p-5">
+    <h2
+      className="mb-4 text-[14px] font-semibold text-[#0d2138] sm:mb-0 sm:text-[16px]"
+      style={mont}
+    >
+      Total Sales
+    </h2>
+
+    <div className="grid grid-cols-2 gap-2.5 sm:mt-4 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+      {/* Search */}
+      <div className="col-span-2 flex h-11 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-white px-3 focus-within:border-[#1e4f86] sm:h-9 sm:w-[180px]">
+        <Search size={16} className="shrink-0 text-[#99a1af]" />
+
+        <input
+          type="search"
+          placeholder="Search sales..."
+          className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[12px]"
+          style={mont}
+        />
+      </div>
+
+      {/* Filter */}
+      <button
+        type="button"
+        className="flex h-11 items-center justify-between gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] text-[#6a7282] sm:h-9 sm:justify-center sm:text-[12px]"
+        style={mont}
+      >
+        <span>All</span>
+        <ListFilter size={16} className="text-[#99a1af]" />
+      </button>
+
+      {/* Date */}
+      <button
+        type="button"
+        className="flex h-11 items-center justify-between gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] text-[#6a7282] sm:h-9 sm:justify-center sm:text-[12px]"
+        style={mont}
+      >
+        <span>Last Month</span>
+        <ChevronDown size={16} className="text-[#99a1af]" />
+      </button>
+
+      {/* Export */}
+      <button
+        type="button"
+        className="col-span-2 flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#183f6b] active:scale-[0.99] sm:col-span-1 sm:h-9 sm:text-[12px]"
+        style={mont}
+      >
+        <Plus size={16} />
+        <span>Export</span>
+      </button>
+    </div>
+  </div>
+
+  {/* Desktop and tablet table */}
+  <div className="hidden overflow-x-auto sm:block">
+    <table className="w-full min-w-[760px]">
+      <thead>
+        <tr className="bg-[#f9fafb] text-left">
+          {[
+            "Agent Name",
+            "Listing ID",
+            "Opportunity ID",
+            "Operation Type",
+            "Date",
+            "Revenue",
+            "",
+          ].map((heading, index) => (
+            <th
+              key={`${heading}-${index}`}
+              className="whitespace-nowrap px-4 py-3 text-[12px] font-medium text-[#6a7282] lg:px-5 lg:text-[14px]"
+              style={mont}
+            >
+              {heading}
+            </th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {SALES.map((row, index) => (
+          <tr
+            key={index}
+            className="border-t border-[#f3f4f6] transition-colors hover:bg-[#fcfcfd]"
+          >
+            <td className="px-4 py-3 lg:px-5">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
+                  style={mont}
+                >
+                  {row.agentName
+                    .split(" ")
+                    .map((name) => name[0])
+                    .join("")
+                    .slice(0, 2)}
+                </span>
+
+                <span
+                  className="whitespace-nowrap text-[12px] text-[#2b3038] lg:text-[14px]"
+                  style={mont}
+                >
+                  {row.agentName}
+                </span>
+              </div>
+            </td>
+
+            <td
+              className="whitespace-nowrap px-4 py-3 text-[12px] text-[#6a7282] lg:px-5 lg:text-[14px]"
+              style={mont}
+            >
+              {row.listingId}
+            </td>
+
+            <td
+              className="whitespace-nowrap px-4 py-3 text-[12px] text-[#6a7282] lg:px-5 lg:text-[14px]"
+              style={mont}
+            >
+              {row.opportunityId}
+            </td>
+
+            <td className="whitespace-nowrap px-4 py-3 lg:px-5">
+              <OperationBadge operation={row.operation} />
+            </td>
+
+            <td
+              className="whitespace-nowrap px-4 py-3 text-[12px] text-[#6a7282] lg:px-5 lg:text-[14px]"
+              style={mont}
+            >
+              {row.date}
+            </td>
+
+            <td
+              className="whitespace-nowrap px-4 py-3 text-[12px] font-medium text-[#1e4f86] lg:px-5 lg:text-[14px]"
+              style={mont}
+            >
+              {row.revenue}
+            </td>
+
+            <td className="px-4 py-3 text-right lg:px-5">
+              <button
+                type="button"
+                aria-label="Open sale options"
+                className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-[#f3f4f6]"
+              >
+                <MoreVertical size={16} />
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {/* Improved mobile cards */}
+  <div className="flex flex-col gap-3 bg-[#f8fafc] p-3 sm:hidden">
+    {SALES.map((row, index) => (
+      <article
+        key={index}
+        className="rounded-[14px] border border-[#e8ebef] bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
+      >
+        {/* Agent details */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
+              style={mont}
+            >
+              {row.agentName
+                .split(" ")
+                .map((name) => name[0])
+                .join("")
+                .slice(0, 2)}
+            </span>
+
+            <div className="min-w-0">
+              <h3
+                className="truncate text-[14px] font-semibold text-[#0d2138]"
+                style={mont}
+              >
+                {row.agentName}
+              </h3>
+
+              <p
+                className="mt-1 text-[14px] text-[#99a1af]"
+                style={mont}
+              >
+                {row.date}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            aria-label={`Open options for ${row.agentName}`}
+            className="flex size-10 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6]"
+          >
+            <MoreVertical size={18} />
+          </button>
+        </div>
+
+        {/* IDs */}
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
+          <div className="min-w-0 rounded-[10px] bg-[#f8fafc] p-3">
+            <p
+              className="text-[14px] text-[#99a1af]"
+              style={mont}
+            >
+              Listing ID
+            </p>
+
+            <p
+              className="mt-1.5 truncate text-[14px] font-medium text-[#4b5563]"
+              style={mont}
+            >
+              {row.listingId}
+            </p>
+          </div>
+
+          <div className="min-w-0 rounded-[10px] bg-[#f8fafc] p-3">
+            <p
+              className="text-[14px] text-[#99a1af]"
+              style={mont}
+            >
+              Opportunity ID
+            </p>
+
+            <p
+              className="mt-1.5 truncate text-[14px] font-medium text-[#4b5563]"
+              style={mont}
+            >
+              {row.opportunityId}
+            </p>
+          </div>
+        </div>
+
+        {/* Operation and revenue */}
+        <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#f3f4f6] pt-4">
+          <div>
+            <p
+              className="mb-2 text-[14px] text-[#99a1af]"
+              style={mont}
+            >
+              Operation Type
+            </p>
+
+            <OperationBadge operation={row.operation} />
+          </div>
+
+          <div className="text-right">
+            <p
+              className="text-[14px] text-[#99a1af]"
+              style={mont}
+            >
+              Revenue
+            </p>
+
+            <p
+              className="mt-1.5 text-[14px] font-semibold text-[#1e4f86]"
+              style={mont}
+            >
+              {row.revenue}
+            </p>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  {/* Footer */}
+  <div className="border-t border-[#f3f4f6] bg-white px-4 py-4 sm:px-5 sm:py-3">
+    <p
+      className="text-center text-[14px] font-medium text-[#6a7282] sm:text-left sm:text-[12px]"
+      style={mont}
+    >
+      Showing {SALES.length} of {SALES.length} results
+    </p>
+  </div>
+</div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import {
   Search,
@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   List,
   Loader2,
+  X,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -27,7 +28,10 @@ import {
 } from "@/hooks/mutations/useUpdateListingMutation";
 import { useDeleteListingMutation } from "@/hooks/mutations/useDeleteListingMutation";
 import { TYPE_LABELS, STATUS_LABELS } from "./listings-data";
-import { ListingListView, type ListingRowActions } from "./components/ListingListView";
+import {
+  ListingListView,
+  type ListingRowActions,
+} from "./components/ListingListView";
 import { ListingGridView } from "./components/ListingGridView";
 import { ListingFilterModal } from "./components/ListingFilterModal";
 import { UploadListingModal } from "./components/UploadListingModal";
@@ -37,40 +41,61 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 type ViewMode = "list" | "grid";
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
-
-function StatCard({
-  label,
-  value,
-  trend,
-  trendMuted,
-  iconBg,
-  icon,
-}: {
+type StatCardProps = {
   label: string;
   value: string;
   trend: string;
   trendMuted?: boolean;
   iconBg: string;
-  icon: React.ReactNode;
-}) {
+  icon: ReactNode;
+};
+
+function StatCard({
+  label,
+  value,
+  trend,
+  trendMuted = false,
+  iconBg,
+  icon,
+}: StatCardProps) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-7">
-        <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
-        <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
+    <article className="flex min-h-[142px] min-w-0 flex-col justify-between rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-5">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <p
+          className="min-w-0 text-[14px] font-medium leading-5 text-[#6a7282]"
+          style={mont}
+        >
+          {label}
+        </p>
+
+        <span
+          className="flex size-10 shrink-0 items-center justify-center rounded-[12px]"
+          style={{ backgroundColor: iconBg }}
+        >
           {icon}
         </span>
       </div>
-      <div className="flex flex-col gap-1">
-        <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</p>
-        <p className={`text-[12px] font-medium ${trendMuted ? "text-[#6a7282]" : "text-[#00a63e]"}`} style={mont}>{trend}</p>
+
+      <div className="mt-5 min-w-0">
+        <p
+          className="truncate text-[24px] font-semibold leading-8 text-[#0d2138]"
+          style={poppins}
+        >
+          {value}
+        </p>
+
+        <p
+          className={`mt-1 text-[14px] font-medium leading-5 ${
+            trendMuted ? "text-[#6a7282]" : "text-[#00a63e]"
+          }`}
+          style={mont}
+        >
+          {trend}
+        </p>
       </div>
-    </div>
+    </article>
   );
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 type ListingsPageProps = {
   role: Role;
@@ -79,10 +104,14 @@ type ListingsPageProps = {
 export function ListingsPage({ role }: ListingsPageProps) {
   const [view, setView] = useState<ViewMode>("list");
   const [showUpload, setShowUpload] = useState(false);
-  const [editListing, setEditListing] = useState<DashboardListingDto | null>(null);
+  const [editListing, setEditListing] = useState<DashboardListingDto | null>(
+    null,
+  );
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<PropertyStatus | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<PropertyStatus | "All">(
+    "All",
+  );
   const [typeFilter, setTypeFilter] = useState<PropertyType | "All">("All");
 
   const { data, isLoading, isError } = useDashboardListingsQuery();
@@ -99,39 +128,72 @@ export function ListingsPage({ role }: ListingsPageProps) {
   const listings = useMemo(() => data?.listings ?? [], [data]);
   const metrics = data?.metrics;
 
-  const filtered = useMemo(
-    () =>
-      listings.filter((l) => {
-        const q = search.toLowerCase();
-        const matchesSearch =
-          !q ||
-          l.title.toLowerCase().includes(q) ||
-          l.location.toLowerCase().includes(q) ||
-          l.listingId.toLowerCase().includes(q);
-        const matchesStatus = statusFilter === "All" || l.status === statusFilter;
-        const matchesType = typeFilter === "All" || l.type === typeFilter;
-        return matchesSearch && matchesStatus && matchesType;
-      }),
-    [listings, search, statusFilter, typeFilter],
-  );
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return listings.filter((listing) => {
+      const matchesSearch =
+        !query ||
+        listing.title.toLowerCase().includes(query) ||
+        listing.location.toLowerCase().includes(query) ||
+        listing.listingId.toLowerCase().includes(query);
+
+      const matchesStatus =
+        statusFilter === "All" || listing.status === statusFilter;
+
+      const matchesType = typeFilter === "All" || listing.type === typeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [listings, search, statusFilter, typeFilter]);
+
+  const hasActiveFilters =
+    search.trim().length > 0 || statusFilter !== "All" || typeFilter !== "All";
+
+  function clearFilters() {
+    setSearch("");
+    setStatusFilter("All");
+    setTypeFilter("All");
+  }
 
   async function handleToggleStatus(listing: DashboardListingDto) {
     const nextStatus =
-      listing.status === PropertyStatus.ACTIVE ? PropertyStatus.PAUSED : PropertyStatus.ACTIVE;
+      listing.status === PropertyStatus.ACTIVE
+        ? PropertyStatus.PAUSED
+        : PropertyStatus.ACTIVE;
+
     try {
-      await statusMutation.mutateAsync({ id: listing.id, status: nextStatus });
-      toast.success(nextStatus === PropertyStatus.PAUSED ? "Listing paused" : "Listing activated");
+      await statusMutation.mutateAsync({
+        id: listing.id,
+        status: nextStatus,
+      });
+
+      toast.success(
+        nextStatus === PropertyStatus.PAUSED
+          ? "Listing paused"
+          : "Listing activated",
+      );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update status");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update status",
+      );
     }
   }
 
   async function handleToggleFeatured(listing: DashboardListingDto) {
     try {
-      await featuredMutation.mutateAsync({ id: listing.id, isFeatured: !listing.isFeatured });
-      toast.success(listing.isFeatured ? "Removed from featured" : "Marked as featured");
+      await featuredMutation.mutateAsync({
+        id: listing.id,
+        isFeatured: !listing.isFeatured,
+      });
+
+      toast.success(
+        listing.isFeatured ? "Removed from featured" : "Marked as featured",
+      );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update listing");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update listing",
+      );
     }
   }
 
@@ -139,12 +201,16 @@ export function ListingsPage({ role }: ListingsPageProps) {
     const confirmed = window.confirm(
       `Delete "${listing.title}" (${listing.listingId})? This permanently removes the listing and its images.`,
     );
+
     if (!confirmed) return;
+
     try {
       await deleteMutation.mutateAsync(listing.id);
       toast.success("Listing deleted");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete listing");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete listing",
+      );
     }
   }
 
@@ -160,177 +226,331 @@ export function ListingsPage({ role }: ListingsPageProps) {
   };
 
   return (
-    <div className="px-6 py-5 flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>Listings</h1>
-          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage and upload property listings</p>
-        </div>
-        {canCreate && (
-          <button
-            type="button"
-            onClick={() => setShowUpload(true)}
-            className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
+    <main className="min-h-full bg-[#f8fafc] px-4 py-4 sm:px-5 sm:py-5 lg:px-6">
+      <div className="mx-auto flex w-full max-w-[1600px] min-w-0 flex-col gap-4 sm:gap-5">
+        {/* Header */}
+        <header className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1
+              className="text-[20px] font-semibold leading-8 text-[#0d2138] sm:text-[22px]"
+              style={poppins}
+            >
+              Listings
+            </h1>
+
+            <p
+              className="mt-1 text-[14px] leading-5 text-[#6a7282]"
+              style={mont}
+            >
+              Manage and upload property listings
+            </p>
+          </div>
+
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => setShowUpload(true)}
+              className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[14px] font-semibold text-white transition-colors hover:bg-[#1b487a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 sm:w-auto"
+              style={mont}
+            >
+              <Plus size={16} className="shrink-0" />
+              Upload New Listing
+            </button>
+          )}
+        </header>
+
+        {/* Stat cards */}
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Total Listings"
+            value={metrics ? String(metrics.totalListings) : "—"}
+            trend="All listings"
+            trendMuted
+            iconBg="#e0e7ff"
+            icon={
+              <Home
+                size={19}
+                strokeWidth={1.8}
+                className="text-[#6366f1]"
+              />
+            }
+          />
+
+          <StatCard
+            label="Active Listings"
+            value={metrics ? String(metrics.activeListings) : "—"}
+            trend="Visible on the public site"
+            trendMuted
+            iconBg="#d1fae5"
+            icon={
+              <CheckCircle2
+                size={19}
+                strokeWidth={1.8}
+                className="text-[#10b981]"
+              />
+            }
+          />
+
+          <StatCard
+            label="Total Views"
+            value={metrics ? metrics.totalViews.toLocaleString("en-US") : "—"}
+            trend="Across all listings"
+            trendMuted
+            iconBg="#fef3c7"
+            icon={
+              <Eye
+                size={19}
+                strokeWidth={1.8}
+                className="text-[#f59e0b]"
+              />
+            }
+          />
+
+          <StatCard
+            label="Featured"
+            value={metrics ? String(metrics.featuredListings) : "—"}
+            trend="Premium listings"
+            trendMuted
+            iconBg="#e0e7ff"
+            icon={
+              <Star
+                size={19}
+                strokeWidth={1.8}
+                className="text-[#6366f1]"
+              />
+            }
+          />
+        </section>
+
+        {/* Filters */}
+        <section className="rounded-[14px] border border-[#e5e7eb] bg-white p-3 sm:p-4">
+          <div className="grid min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-4 lg:flex lg:items-center lg:gap-3">
+            {/* Search */}
+            <div className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 transition-all focus-within:border-[#1e4f86] focus-within:ring-2 focus-within:ring-[#1e4f86]/10 sm:col-span-4 lg:w-[300px] lg:flex-none">
+              <Search size={16} className="shrink-0 text-[#99a1af]" />
+
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by name, location..."
+                aria-label="Search listings"
+                className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af]"
+                style={mont}
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-[7px] text-[#99a1af] transition-colors hover:bg-[#e9edf2] hover:text-[#0d2138]"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter modal */}
+            <button
+              type="button"
+              onClick={() => setShowFilter(true)}
+              className="flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#6a7282] transition-colors hover:bg-[#f3f4f6] lg:w-11 lg:px-0"
+              title="More filters"
+              style={mont}
+            >
+              <Filter size={16} className="shrink-0" />
+              <span className="lg:hidden">Filters</span>
+            </button>
+
+            {/* Status filter */}
+            <div className="relative min-w-0">
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as PropertyStatus | "All")
+                }
+                aria-label="Filter by status"
+                className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#2b3038] outline-none transition-all focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 lg:min-w-[130px]"
+                style={mont}
+              >
+                <option value="All">All Status</option>
+
+                {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+              />
+            </div>
+
+            {/* Type filter */}
+            <div className="relative min-w-0">
+              <select
+                value={typeFilter}
+                onChange={(event) =>
+                  setTypeFilter(event.target.value as PropertyType | "All")
+                }
+                aria-label="Filter by property type"
+                className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#2b3038] outline-none transition-all focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 lg:min-w-[135px]"
+                style={mont}
+              >
+                <option value="All">All Types</option>
+
+                {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+              />
+            </div>
+
+            {/* Clear filters */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="col-span-2 flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#6a7282] transition-colors hover:bg-[#f8fafc] hover:text-[#0d2138] sm:col-span-1 lg:w-auto"
+                style={mont}
+              >
+                <X size={15} />
+                Clear
+              </button>
+            )}
+
+            {/* View toggle */}
+            <div className="col-span-2 flex h-11 items-center justify-end gap-2 sm:col-span-1 lg:ml-auto">
+              <button
+                type="button"
+                onClick={() => setView("grid")}
+                title="Grid view"
+                aria-label="Show listings in grid view"
+                aria-pressed={view === "grid"}
+                className={`flex size-10 items-center justify-center rounded-[9px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
+                  view === "grid"
+                    ? "border-[#1e4f86] bg-[#1e4f86] text-white"
+                    : "border-[#e5e7eb] bg-white text-[#6a7282] hover:bg-[#f9fafb]"
+                }`}
+              >
+                <LayoutGrid size={17} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setView("list")}
+                title="List view"
+                aria-label="Show listings in list view"
+                aria-pressed={view === "list"}
+                className={`flex size-10 items-center justify-center rounded-[9px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
+                  view === "list"
+                    ? "border-[#1e4f86] bg-[#1e4f86] text-white"
+                    : "border-[#e5e7eb] bg-white text-[#6a7282] hover:bg-[#f9fafb]"
+                }`}
+              >
+                <List size={17} />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#f3f4f6] pt-3">
+            <p
+              className="text-[14px] font-medium text-[#6a7282]"
+              style={mont}
+            >
+              Showing {filtered.length} of {listings.length} listings
+            </p>
+          </div>
+        </section>
+
+        {/* Content */}
+        {isLoading ? (
+          <div
+            className="flex min-h-[220px] items-center justify-center gap-2 rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-16 text-[14px] text-[#6a7282]"
             style={mont}
           >
-            <Plus size={16} />
-            Upload New Listing
-          </button>
+            <Loader2 size={18} className="animate-spin" />
+            Loading listings...
+          </div>
+        ) : isError ? (
+          <div
+            role="alert"
+            className="flex min-h-[220px] items-center justify-center rounded-[14px] border border-[#fecaca] bg-white px-4 py-16 text-center text-[14px] text-[#e7000b]"
+            style={mont}
+          >
+            Failed to load listings. Please refresh the page.
+          </div>
+        ) : filtered.length === 0 ? (
+          <div
+            className="flex min-h-[220px] flex-col items-center justify-center rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-16 text-center"
+            style={mont}
+          >
+            <Search size={24} className="text-[#99a1af]" />
+
+            <p className="mt-3 text-[16px] font-semibold text-[#0d2138]">
+              No listings found
+            </p>
+
+            <p className="mt-1 text-[14px] text-[#6a7282]">
+              Try changing your search or filters.
+            </p>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-[9px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a]"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        ) : view === "list" ? (
+          <div className="min-w-0 overflow-hidden">
+            <ListingListView
+              listings={filtered}
+              onFilterClick={() => setShowFilter(true)}
+              actions={rowActions}
+            />
+          </div>
+        ) : (
+          <div className="min-w-0">
+            <ListingGridView listings={filtered} actions={rowActions} />
+          </div>
+        )}
+
+        {showUpload && (
+          <UploadListingModal
+            onClose={() => setShowUpload(false)}
+            canFeature={canFeature}
+          />
+        )}
+
+        {editListing && (
+          <UploadListingModal
+            listing={editListing}
+            onClose={() => setEditListing(null)}
+            canFeature={canFeature}
+          />
+        )}
+
+        {showFilter && (
+          <ListingFilterModal
+            resultCount={filtered.length}
+            onApply={() => setShowFilter(false)}
+            onClose={() => setShowFilter(false)}
+          />
         )}
       </div>
-
-      {/* Stat cards */}
-      <div className="flex flex-wrap gap-3.5">
-        <StatCard
-          label="Total Listings"
-          value={metrics ? String(metrics.totalListings) : "—"}
-          trend="All listings"
-          trendMuted
-          iconBg="#e0e7ff"
-          icon={<Home size={18} className="text-[#6366f1]" />}
-        />
-        <StatCard
-          label="Active Listings"
-          value={metrics ? String(metrics.activeListings) : "—"}
-          trend="Visible on the public site"
-          trendMuted
-          iconBg="#d1fae5"
-          icon={<CheckCircle2 size={18} className="text-[#10b981]" />}
-        />
-        <StatCard
-          label="Total Views"
-          value={metrics ? metrics.totalViews.toLocaleString("en-US") : "—"}
-          trend="Across all listings"
-          trendMuted
-          iconBg="#fef3c7"
-          icon={<Eye size={18} className="text-[#f59e0b]" />}
-        />
-        <StatCard
-          label="Featured"
-          value={metrics ? String(metrics.featuredListings) : "—"}
-          trend="Premium listings"
-          trendMuted
-          iconBg="#e0e7ff"
-          icon={<Star size={18} className="text-[#6366f1]" />}
-        />
-      </div>
-
-      {/* Filter bar */}
-      <div className="bg-white border border-[#f3f4f6] rounded-[14px] p-[17px] flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[280px] max-w-full">
-          <Search size={16} className="text-[#99a1af] shrink-0" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, location...."
-            className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full"
-            style={mont}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowFilter(true)}
-          className="size-9 flex items-center justify-center bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] transition-colors"
-          title="Filter"
-        >
-          <Filter size={16} />
-        </button>
-        {/* Status */}
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-[#6a7282]" style={mont}>Status:</span>
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as PropertyStatus | "All")}
-              className="h-9 pl-3 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#2b3038] appearance-none outline-none cursor-pointer"
-              style={mont}
-            >
-              <option value="All">All</option>
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-          </div>
-        </div>
-        {/* Type */}
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-[#6a7282]" style={mont}>Type:</span>
-          <div className="relative">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as PropertyType | "All")}
-              className="h-9 pl-3 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#2b3038] appearance-none outline-none cursor-pointer"
-              style={mont}
-            >
-              <option value="All">All</option>
-              {Object.entries(TYPE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-          </div>
-        </div>
-
-        {/* View toggle */}
-        <div className="flex items-center gap-2 ml-auto">
-          <button
-            type="button"
-            onClick={() => setView("grid")}
-            title="Grid view"
-            className={`size-8 flex items-center justify-center rounded-[8px] border transition-colors ${
-              view === "grid" ? "bg-[#1e4f86] border-[#1e4f86] text-white" : "bg-white border-[#e5e7eb] text-[#6a7282] hover:bg-[#f9fafb]"
-            }`}
-          >
-            <LayoutGrid size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("list")}
-            title="List view"
-            className={`size-8 flex items-center justify-center rounded-[8px] border transition-colors ${
-              view === "list" ? "bg-[#1e4f86] border-[#1e4f86] text-white" : "bg-white border-[#e5e7eb] text-[#6a7282] hover:bg-[#f9fafb]"
-            }`}
-          >
-            <List size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      {isLoading ? (
-        <div className="bg-white border border-[#f3f4f6] rounded-[14px] py-16 flex items-center justify-center gap-2 text-[14px] text-[#6a7282]" style={mont}>
-          <Loader2 size={16} className="animate-spin" />
-          Loading listings...
-        </div>
-      ) : isError ? (
-        <div className="bg-white border border-[#f3f4f6] rounded-[14px] py-16 text-center text-[14px] text-[#e7000b]" style={mont}>
-          Failed to load listings. Please refresh the page.
-        </div>
-      ) : view === "list" ? (
-        <ListingListView listings={filtered} onFilterClick={() => setShowFilter(true)} actions={rowActions} />
-      ) : (
-        <ListingGridView listings={filtered} actions={rowActions} />
-      )}
-
-      {showUpload && (
-        <UploadListingModal onClose={() => setShowUpload(false)} canFeature={canFeature} />
-      )}
-      {editListing && (
-        <UploadListingModal
-          listing={editListing}
-          onClose={() => setEditListing(null)}
-          canFeature={canFeature}
-        />
-      )}
-      {showFilter && (
-        <ListingFilterModal
-          resultCount={filtered.length}
-          onApply={() => setShowFilter(false)}
-          onClose={() => setShowFilter(false)}
-        />
-      )}
-    </div>
+    </main>
   );
 }

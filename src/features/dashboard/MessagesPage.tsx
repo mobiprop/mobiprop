@@ -11,6 +11,7 @@ import {
   Smile,
   Star,
   Trash2,
+  ImageIcon,
 } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -659,103 +660,117 @@ export function MessagesPage() {
 
           {/* Message input */}
           <div className="shrink-0 border-t border-[#e5e7eb] p-3 sm:p-4 lg:p-6">
-            <div className="flex items-center gap-2">
-              {/* Input container */}
-              <div
-                className="
-                  flex h-11 min-w-0 flex-1
-                  items-center gap-1
-                  rounded-[12px]
-                  border border-[#e5e7eb]
-                  px-1.5
-                  sm:gap-2 sm:px-2
-                "
-              >
-                <button
-                  type="button"
-                  aria-label="Attach file"
-                  className="
-                    flex size-[30px] shrink-0
-                    items-center justify-center
-                    rounded-[10px]
-                    text-[#6a7282]
-                    transition-colors
-                    hover:bg-[#f3f4f6]
-                  "
-                >
-                  <Paperclip size={16} />
-                </button>
+  <div className="flex items-center gap-2">
+    {/* Message input */}
+    <div
+      className="
+        flex h-11 min-w-0 flex-1
+        items-center
+        rounded-[12px]
+        border border-[#dfe3e8]
+        bg-white
+        px-2
+        sm:px-3
+      "
+    >
+      <button
+        type="button"
+        aria-label="Attach file"
+        className="
+          flex size-8 shrink-0
+          items-center justify-center
+          rounded-[8px]
+          text-[#6a7282]
+          transition-colors
+          hover:bg-[#f3f4f6]
+        "
+      >
+        <Paperclip size={17} strokeWidth={1.8} />
+      </button>
 
-                <button
-                  type="button"
-                  aria-label="Add emoji"
-                  className="
-                    hidden size-[30px] shrink-0
-                    items-center justify-center
-                    rounded-[10px]
-                    text-[#6a7282]
-                    transition-colors
-                    hover:bg-[#f3f4f6]
-                    sm:flex
-                  "
-                >
-                  <Smile size={16} />
-                </button>
+      <button
+        type="button"
+        aria-label="Attach image"
+        className="
+          flex size-8 shrink-0
+          items-center justify-center
+          rounded-[8px]
+          text-[#6a7282]
+          transition-colors
+          hover:bg-[#f3f4f6]
+        "
+      >
+        <ImageIcon size={17} strokeWidth={1.8} />
+      </button>
 
-                <input
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Type your message..."
-                  className="
-                    min-w-0 flex-1
-                    bg-transparent
-                    text-[12px] text-[#0d2138]
-                    outline-none
-                    placeholder:text-[#99a1af]
-                  "
-                  style={poppins}
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === "Enter" &&
-                      !event.shiftKey
-                    ) {
-                      event.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                />
-              </div>
+      <input
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        placeholder="Type your message..."
+        className="
+          min-w-0 flex-1
+          bg-transparent
+          px-2
+          text-[12px] text-[#0d2138]
+          outline-none
+          placeholder:text-[#99a1af]
+          sm:text-[13px]
+        "
+        style={poppins}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            handleSendMessage();
+          }
+        }}
+      />
 
-              {/* Send button */}
-              <button
-                type="button"
-                disabled={!draft.trim()}
-                aria-label="Send message"
-                onClick={handleSendMessage}
-                className="
-                  flex size-11 shrink-0
-                  items-center justify-center
-                  rounded-[12px]
-                  bg-[#1e4f86]
-                  text-white
-                  transition-colors
-                  hover:bg-[#1b487a]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-50
+      <button
+        type="button"
+        aria-label="Add emoji"
+        className="
+          flex size-8 shrink-0
+          items-center justify-center
+          rounded-[8px]
+          text-[#6a7282]
+          transition-colors
+          hover:bg-[#f3f4f6]
+        "
+      >
+        <Smile size={17} strokeWidth={1.8} />
+      </button>
+    </div>
 
-                  sm:w-auto sm:px-5
-                  lg:h-11 lg:px-6
-                "
-                style={mont}
-              >
-                <Send size={16} />
+    {/* Send button */}
+    <button
+      type="button"
+      disabled={!draft.trim()}
+      aria-label="Send message"
+      onClick={handleSendMessage}
+      className="
+        flex h-11 shrink-0
+        items-center justify-center
+        gap-2
+        rounded-[12px]
+        bg-[#22558e]
+        px-4
+        text-white
+        transition-colors
+        hover:bg-[#1b487a]
+        disabled:cursor-not-allowed
+        disabled:opacity-50
+        sm:px-6
+      "
+      style={mont}
+    >
+      <Send size={17} strokeWidth={1.8} />
 
-                <span className="ml-2 hidden text-[14px] font-medium sm:inline">
-                  Send
-                </span>
-              </button>
-            </div>
-          </div>
+      <span className="hidden text-[14px] font-semibold sm:inline">
+        Send
+      </span>
+    </button>
+  </div>
+</div>
         </div>
       </div>
     </div>

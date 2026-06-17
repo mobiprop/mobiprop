@@ -31,7 +31,7 @@ export function Topbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4 pl-16 sm:px-5 sm:pl-16 lg:px-6 lg:pl-6">
+    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4 pl-18 sm:px-5 sm:pl-16 lg:px-6 lg:pl-6">
       {/* Global search */}
       <GlobalSearch />
 
