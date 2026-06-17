@@ -56,7 +56,7 @@ type StatCardProps = {
 
 function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-3">
+    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[14px] p-[18px] flex flex-col gap-3">
       <div className="flex items-start justify-between">
         <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
         <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
@@ -65,7 +65,7 @@ function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
       </div>
       <div>
         <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</p>
-        <p className="text-[12px] font-medium text-[#00c950] mt-1" style={mont}>{trend}</p>
+        <p className="text-[14px] font-medium text-[#00c950] mt-1" style={mont}>{trend}</p>
       </div>
     </div>
   );
@@ -83,7 +83,7 @@ function StatusBadge({ status }: { status: AgentStatus }) {
   const s = STATUS_STYLE[status];
   return (
     <span
-      className="inline-flex items-center px-3 py-[7px] rounded-[8px] text-[12px]"
+      className="inline-flex items-center px-3 py-[7px] rounded-[8px] text-[14px]"
       style={{ backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.text, ...mont }}
     >
       {status}
@@ -160,40 +160,40 @@ export function AgentsPage({ role }: AgentsPageProps) {
   });
 
   return (
-    <div className="px-6 py-5 flex flex-col gap-5">
+    <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[20px] font-medium text-[#0d2138]" style={poppins}>Agents</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>Agents</h1>
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage your team of property agents</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           {canViewInvitations && (
             <Link
               href="/dashboard/agents/invitations"
-              className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] text-[#1e4f86] rounded-[10px] text-[14px] font-medium hover:bg-[#f8fafc] transition-colors"
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f8fafc] sm:px-4"
               style={mont}
             >
-              <Mail size={16} />
-              Invitations
+              <Mail size={16} className="shrink-0" />
+              <span className="truncate">Invitations</span>
             </Link>
           )}
           {canInvite && (
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:px-4"
               style={mont}
             >
-              <Plus size={16} />
-              Add Agent
+              <Plus size={16} className="shrink-0" />
+              <span className="truncate">Add Agent</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Stat cards */}
-      <div className="flex flex-wrap gap-3.5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
         <StatCard
           label="Total Agents"
           value={metrics ? String(metrics.total) : "—"}
@@ -227,17 +227,17 @@ export function AgentsPage({ role }: AgentsPageProps) {
       {/* Agents table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
         {/* Table header / controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <h2 className="text-[16px] font-medium text-[#0d2138]" style={mont}>Approve Agents</h2>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <h2 className="text-[14px] font-medium text-[#0d2138] sm:text-[16px]" style={mont}>Approve Agents</h2>
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
             {/* Search */}
-            <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px]">
+            <div className="col-span-2 flex h-9 min-w-0 items-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 sm:col-span-1 sm:w-[200px]">
               <Search size={14} className="text-[#6a7282] shrink-0" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search agents..."
-                className="text-[12px] text-[#2b3038] placeholder:text-[#6a7282] bg-transparent outline-none w-[160px]"
+                className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#6a7282]"
                 style={mont}
               />
             </div>

@@ -123,28 +123,32 @@ export function AddContractModal({ onClose, onCreate, isSaving }: AddContractMod
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4"
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-black/40" />
       <div
-        className="relative bg-white rounded-[14px] w-full max-w-[850px] max-h-[92vh] overflow-y-auto shadow-xl"
+        className="relative flex max-h-[100dvh] w-full flex-col overflow-hidden rounded-t-[16px] bg-white shadow-xl sm:max-h-[92vh] sm:max-w-[850px] sm:rounded-[14px]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white flex items-center justify-between px-5 pt-5 pb-[21px] border-b border-[#e5e7eb]">
-          <div className="flex flex-col">
-            <p className="text-[16px] font-semibold text-[#0d2138] leading-6" style={mont}>New Contract</p>
-            <p className="text-[12px] text-[#6a7282] mt-0.5" style={mont}>Create a new property contract</p>
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4 py-4 sm:px-5 sm:pb-[21px] sm:pt-5">
+          <div className="flex min-w-0 flex-col">
+            <p className="truncate text-[15px] font-semibold leading-6 text-[#0d2138] sm:text-[16px]" style={mont}>New Contract</p>
+            <p className="mt-0.5 truncate text-[11px] text-[#6a7282] sm:text-[12px]" style={mont}>Create a new property contract</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors"
+            aria-label="Close modal"
+            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
           >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-6 flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-4 sm:gap-6 sm:px-6 sm:py-6">
           {/* Basic Information */}
           <div className="flex flex-col gap-4">
             <p className="text-[14px] font-medium text-[#1f2937]" style={mont}>Basic Information</p>

@@ -47,7 +47,7 @@ type StatCardProps = {
 
 function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
+    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[14px] p-[18px] flex flex-col gap-6">
       <div className="flex items-start justify-between gap-7">
         <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
         <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
@@ -56,7 +56,7 @@ function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
       </div>
       <div className="flex flex-col gap-1">
         <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</p>
-        <p className="text-[12px] font-medium text-[#00c950]" style={mont}>{trend}</p>
+        <p className="text-[14px] font-medium text-[#00c950]" style={mont}>{trend}</p>
       </div>
     </div>
   );
@@ -78,7 +78,7 @@ function TypeBadge({ type }: { type: ContactType }) {
   const s = TYPE_STYLE[type] ?? TYPE_STYLE.BUYER;
   return (
     <span
-      className="inline-flex items-center justify-center w-[76px] px-3 py-1 rounded-[6px] text-[12px] font-medium"
+      className="inline-flex items-center justify-center w-[76px] px-3 py-1 rounded-[6px] text-[14px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
       {TYPE_LABEL[type] ?? type}
@@ -294,46 +294,46 @@ export function ContactsPage({ role }: ContactsPageProps) {
   }
 
   return (
-    <div className="px-6 py-5 flex flex-col gap-5">
+    <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>Contacts</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>Contacts</h1>
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage your clients and prospects database</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           <button
             type="button"
-            className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f9fafb] transition-colors"
+            className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f9fafb] sm:px-4"
             style={mont}
           >
-            <Upload size={16} />
-            Import
+            <Upload size={16} className="shrink-0" />
+            <span className="truncate">Import</span>
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f9fafb] transition-colors"
+            className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f9fafb] sm:px-4"
             style={mont}
           >
-            <Share2 size={16} />
-            Export
+            <Share2 size={16} className="shrink-0" />
+            <span className="truncate">Export</span>
           </button>
           {canCreate && (
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
+              className="col-span-2 flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:col-span-1 sm:px-4"
               style={mont}
             >
-              <Plus size={16} />
-              Add Contact
+              <Plus size={16} className="shrink-0" />
+              <span className="truncate">Add Contact</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Stat cards */}
-      <div className="flex flex-wrap gap-3.5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
         <StatCard
           label="Total Contacts"
           value={isLoading ? "—" : String(metrics?.total ?? 0)}
@@ -367,8 +367,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
       {/* Contacts table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
         {/* Table controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <h2 className="text-[16px] font-semibold text-[#0d2138]" style={mont}>All Contacts</h2>
+        <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <h2 className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]" style={mont}>All Contacts</h2>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[204px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />

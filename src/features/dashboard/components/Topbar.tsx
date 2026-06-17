@@ -31,24 +31,28 @@ export function Topbar() {
   }, []);
 
   return (
-    <header className="h-16 shrink-0 sticky top-0 z-20 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-6">
+    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4 pl-16 sm:px-5 sm:pl-16 lg:px-6 lg:pl-6">
       {/* Global search */}
       <GlobalSearch />
 
       {/* Right icons */}
-      <div className="flex items-center gap-6">
+      <div className="ml-3 flex shrink-0 items-center gap-1 sm:ml-4 sm:gap-2 lg:gap-6">
         {/* Bell */}
         <div ref={bellRef} className="relative">
           <button
             type="button"
             onClick={() => toggle("notifications")}
-            className={`relative transition-colors ${open === "notifications" ? "text-[#1e4f86]" : "text-[#6a7282] hover:text-[#0d2138]"}`}
+            aria-label="Open notifications"
+            aria-expanded={open === "notifications"}
+            className={`relative flex size-9 items-center justify-center rounded-[9px] transition-colors ${open === "notifications" ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"}`}
           >
-            <Bell size={22} />
-            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-[#fb2c36] border-2 border-white" />
+            <Bell size={20} className="sm:size-[22px]" />
+            <span className="absolute right-[7px] top-[6px] size-2 rounded-full border-2 border-white bg-[#fb2c36]" />
           </button>
           {open === "notifications" && (
-            <NotificationsPanel onClose={() => setOpen(null)} />
+            <div className="fixed inset-x-3 top-[72px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-[44px]">
+              <NotificationsPanel onClose={() => setOpen(null)} />
+            </div>
           )}
         </div>
 
@@ -57,12 +61,16 @@ export function Topbar() {
           <button
             type="button"
             onClick={() => toggle("calendar")}
-            className={`transition-colors ${open === "calendar" ? "text-[#1e4f86]" : "text-[#6a7282] hover:text-[#0d2138]"}`}
+            aria-label="Open calendar"
+            aria-expanded={open === "calendar"}
+            className={`flex size-9 items-center justify-center rounded-[9px] transition-colors ${open === "calendar" ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"}`}
           >
-            <Calendar size={22} />
+            <Calendar size={20} className="sm:size-[22px]" />
           </button>
           {open === "calendar" && (
-            <CalendarPanel onClose={() => setOpen(null)} />
+            <div className="fixed inset-x-3 top-[72px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-[44px]">
+              <CalendarPanel onClose={() => setOpen(null)} />
+            </div>
           )}
         </div>
       </div>

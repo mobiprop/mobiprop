@@ -59,7 +59,7 @@ function StatCard({ label, value, trend, iconBg, icon }: {
   label: string; value: string; trend: string; iconBg: string; icon: React.ReactNode;
 }) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
+    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[14px] p-[18px] flex flex-col gap-6">
       <div className="flex items-start justify-between gap-7">
         <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
         <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
@@ -68,7 +68,7 @@ function StatCard({ label, value, trend, iconBg, icon }: {
       </div>
       <div className="flex flex-col gap-1">
         <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</p>
-        <p className="text-[12px] font-medium text-[#00a63e]" style={mont}>{trend}</p>
+        <p className="text-[14px] font-medium text-[#00a63e]" style={mont}>{trend}</p>
       </div>
     </div>
   );
@@ -135,27 +135,27 @@ export function ContractsPage({ role }: { role: Role }) {
   }
 
   return (
-    <div className="px-6 py-5 flex flex-col gap-5">
+    <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>Contracts</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>Contracts</h1>
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage and track all property contracts</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button type="button" className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f9fafb] transition-colors" style={mont}>
-            <Share2 size={16} /> Export
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
+          <button type="button" className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f9fafb] sm:px-4" style={mont}>
+            <Share2 size={16} className="shrink-0" /><span className="truncate">Export</span>
           </button>
           {canCreate && (
-            <button type="button" onClick={() => setShowModal(true)} className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors" style={mont}>
-              <Plus size={16} /> Add Contract
+            <button type="button" onClick={() => setShowModal(true)} className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:px-4" style={mont}>
+              <Plus size={16} className="shrink-0" /><span className="truncate">Add Contract</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Stat cards */}
-      <div className="flex flex-wrap gap-3.5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
         <StatCard label="Total Contracts" value={isLoading ? "—" : String(metrics?.total ?? 0)} trend="Live from database" iconBg="#e0e7ff" icon={<FileText size={18} className="text-[#6366f1]" />} />
         <StatCard label="Active" value={isLoading ? "—" : String(metrics?.active ?? 0)} trend="Currently active" iconBg="#d1fae5" icon={<CheckCircle2 size={18} className="text-[#10b981]" />} />
         <StatCard label="Pending" value={isLoading ? "—" : String(metrics?.pending ?? 0)} trend="Awaiting signature" iconBg="#fef3c7" icon={<Clock size={18} className="text-[#f59e0b]" />} />
@@ -164,8 +164,8 @@ export function ContractsPage({ role }: { role: Role }) {
 
       {/* Contracts table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <h2 className="text-[16px] font-semibold text-[#0d2138]" style={mont}>All Contracts List</h2>
+        <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <h2 className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]" style={mont}>All Contracts List</h2>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[204px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />
