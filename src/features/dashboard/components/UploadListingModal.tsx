@@ -51,6 +51,7 @@ import {
   useSetListingCoverMutation,
 } from "@/hooks/mutations/useUpdateListingMutation";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
+import type { ListingInput } from "@/schemas/listing.schema";
 import { TYPE_LABELS, STATUS_LABELS } from "../listings-data";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -152,6 +153,45 @@ type UploadListingModalProps = {
   canFeature: boolean;
 };
 
+/**
+ * Returns only the fields that changed vs the saved listing.
+ * Sending a minimal diff avoids unnecessary DB writes and geocode calls.
+ * When operationType changes we always include both prices so the server's
+ * conditional price validation has them available.
+ */
+function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Partial<ListingInput> {
+  const diff: Partial<ListingInput> = {};
+
+  if (parsed.title !== listing.title) diff.title = parsed.title;
+  if (parsed.type !== listing.type) diff.type = parsed.type;
+  if (parsed.status !== listing.status) diff.status = parsed.status;
+  if (parsed.operationType !== listing.operationType) diff.operationType = parsed.operationType;
+  if (parsed.salePrice !== (listing.salePrice ?? undefined)) diff.salePrice = parsed.salePrice;
+  if (parsed.rentPrice !== (listing.rentPrice ?? undefined)) diff.rentPrice = parsed.rentPrice;
+  if (parsed.location !== listing.location) diff.location = parsed.location;
+  if (parsed.fullAddress !== listing.fullAddress) diff.fullAddress = parsed.fullAddress;
+  if (parsed.isFeatured !== listing.isFeatured) diff.isFeatured = parsed.isFeatured;
+  if (parsed.bedrooms !== (listing.bedrooms ?? undefined)) diff.bedrooms = parsed.bedrooms;
+  if (parsed.bathrooms !== (listing.bathrooms ?? undefined)) diff.bathrooms = parsed.bathrooms;
+  if (parsed.toilets !== (listing.toilets ?? undefined)) diff.toilets = parsed.toilets;
+  if (parsed.areaSqft !== (listing.areaSqft ?? undefined)) diff.areaSqft = parsed.areaSqft;
+  if (parsed.yearBuilt !== (listing.yearBuilt ?? undefined)) diff.yearBuilt = parsed.yearBuilt;
+  if (parsed.description !== listing.description) diff.description = parsed.description;
+
+  // operationType change: always include both prices so the server's
+  // conditional price validation (requires relevant prices) can run.
+  if (diff.operationType !== undefined) {
+    diff.salePrice = parsed.salePrice;
+    diff.rentPrice = parsed.rentPrice;
+  }
+
+  const origAmenities = [...listing.amenities].sort().join(",");
+  const newAmenities = [...parsed.amenities].sort().join(",");
+  if (origAmenities !== newAmenities) diff.amenities = parsed.amenities;
+
+  return diff;
+}
+
 const inputClass =
   "h-10 px-3.5 bg-[#fafbfc] border rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
@@ -234,6 +274,9 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
   const operationType = watch("operationType");
   const amenities = watch("amenities");
   const isFeatured = watch("isFeatured");
+  const status = watch("status");
+
+  const totalImages = existingImages.length + newImages.length;
 
   const hasSale =
     operationType === PropertyOperationType.SALE ||
@@ -334,36 +377,49 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
   }
 
   const onSubmit = handleSubmit(async (values) => {
-    const totalImages = existingImages.length + newImages.length;
     if (totalImages === 0 && values.status !== PropertyStatus.DRAFT) {
       setImagesError("At least one image is required to publish a listing.");
       return;
     }
 
-    // The resolver validated; parse again to get the coerced (numeric) payload.
-    const payload = createListingSchema.parse(values);
+    // Parse again after resolver to get coerced (numeric) values.
+    const parsed = createListingSchema.parse(values);
 
     try {
       if (isEdit && listing) {
-        await updateMutation.mutateAsync({ id: listing.id, data: payload });
-        // Add before removing so the listing never dips below one image
-        // (the server rejects removing the last image of a published listing).
-        let addedImages: { id: string; sortOrder: number }[] = [];
-        if (newImages.length > 0) {
-          const result = await addImagesMutation.mutateAsync({
-            id: listing.id,
-            images: newImages.map((i) => i.file),
-          });
-          // New images are appended with the highest sort orders, in upload
-          // order — the tail of the sorted list maps back to `newImages`.
-          addedImages = [...result.listing.images]
-            .sort((a, b) => a.sortOrder - b.sortOrder)
-            .slice(-newImages.length);
+        const diff = buildUpdateDiff(listing, parsed);
+        const hasFieldChanges = Object.keys(diff).length > 0;
+
+        // Phase 1 — field update and image upload are independent: run in parallel.
+        // Add new images before removing so the listing never dips below 1 image.
+        const [, addResult] = await Promise.all([
+          hasFieldChanges
+            ? updateMutation.mutateAsync({ id: listing.id, data: diff })
+            : Promise.resolve(null),
+          newImages.length > 0
+            ? addImagesMutation.mutateAsync({
+                id: listing.id,
+                images: newImages.map((i) => i.file),
+              })
+            : Promise.resolve(null),
+        ]);
+
+        // Phase 2 — remove unwanted images in parallel (new images are already saved).
+        if (removedImageIds.length > 0) {
+          await Promise.all(
+            removedImageIds.map((imageId) =>
+              removeImageMutation.mutateAsync({ id: listing.id, imageId }),
+            ),
+          );
         }
-        for (const imageId of removedImageIds) {
-          await removeImageMutation.mutateAsync({ id: listing.id, imageId });
-        }
-        // Apply the chosen cover last so removals can't override it.
+
+        // Phase 3 — set cover last so neither adds nor removes can override it.
+        // Map new-image index → the actual DB id from the add result.
+        const addedImages = addResult
+          ? [...addResult.listing.images]
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .slice(-newImages.length)
+          : [];
         const originalCoverId = listing.images.find((i) => i.isCover)?.id;
         const desiredCoverId =
           cover && "existingId" in cover
@@ -376,10 +432,11 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
         if (desiredCoverId) {
           await setCoverMutation.mutateAsync({ id: listing.id, imageId: desiredCoverId });
         }
+
         toast.success("Listing updated");
       } else {
         await createMutation.mutateAsync({
-          data: payload,
+          data: parsed,
           images: newImages.map((i) => i.file),
           coverIndex: cover && "newIndex" in cover ? cover.newIndex : 0,
         });
@@ -646,6 +703,11 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
                   <p className="text-[11px] text-[#9ca3af]" style={mont}>Supported formats: JPG, PNG, WebP (Max 10MB each)</p>
                 </button>
                 <FieldError message={imagesError ?? undefined} />
+                {!imagesError && totalImages === 0 && status !== PropertyStatus.DRAFT && (
+                  <p className="text-[11px] text-amber-600" style={mont}>
+                    At least one image is required to publish this listing. Add images or change status to Draft.
+                  </p>
+                )}
               </div>
 
               {existingImages.length > 0 && (

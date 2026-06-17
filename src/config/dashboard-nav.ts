@@ -11,6 +11,7 @@ import {
   MapPin,
   Settings,
   HelpCircle,
+  CalendarCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -47,6 +48,7 @@ export const DASHBOARD_NAV: DashboardNavSection[] = [
       { label: "Contracts", href: "/dashboard/contracts", icon: FileText, permission: "contracts:view" },
       { label: "Listings", href: "/dashboard/listings", icon: Building2, permission: "listings:view" },
       { label: "Leads", href: "/dashboard/leads", icon: UserPlus, permission: "leads:view" },
+      { label: "Tours", href: "/dashboard/tours", icon: CalendarCheck, permission: "tours:view" },
       { label: "Opportunities", href: "/dashboard/opportunities", icon: Briefcase, permission: "opportunities:view" },
     ],
   },

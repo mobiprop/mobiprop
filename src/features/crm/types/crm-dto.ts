@@ -1,5 +1,5 @@
-import type { ContactType, OpportunityStage, OpportunityStatus, ContractType, ContractStatus, LeadSource, LeadTemperature, LeadLifecycleStatus } from "@/generated/prisma/enums";
-export type { LeadSource, LeadTemperature, LeadLifecycleStatus };
+import type { ContactType, OpportunityStage, OpportunityStatus, ContractType, ContractStatus, LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus } from "@/generated/prisma/enums";
+export type { LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus };
 
 // ── Contact ───────────────────────────────────────────────────────────────────
 
@@ -201,4 +201,82 @@ export type LeadMetrics = {
   hot: number;
   conversionRate: number;
   averageScore: number;
+};
+
+// ── Tour ──────────────────────────────────────────────────────────────────────
+
+export type TourContactDto = {
+  id: string;
+  contactId: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+};
+
+export type TourListingDto = {
+  id: string;
+  listingId: string;
+  title: string;
+  location: string;
+  slug: string;
+  coverUrl: string | null;
+};
+
+export type TourAgentDto = {
+  id: string;
+  fullName: string | null;
+  email: string;
+  avatarUrl: string | null;
+};
+
+export type TourDto = {
+  id: string;
+  tourNumber: string;
+  submittedName: string;
+  submittedEmail: string | null;
+  submittedPhone: string | null;
+  submittedMessage: string | null;
+  contactId: string;
+  contact: TourContactDto;
+  propertyId: string | null;
+  property: TourListingDto | null;
+  leadId: string | null;
+  assignedAgentId: string | null;
+  assignedAgent: TourAgentDto | null;
+  createdById: string | null;
+  status: TourStatus;
+  scheduledAt: string;
+  durationMinutes: number;
+  confirmationNote: string | null;
+  rescheduleNote: string | null;
+  cancellationReason: string | null;
+  completionNote: string | null;
+  rescheduledFrom: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TourMetrics = {
+  total: number;
+  requested: number;
+  confirmed: number;
+  completed: number;
+  cancelled: number;
+  upcoming: number;
+};
+
+// Lean version for the user's "My Tours" account page
+export type MyTourDto = {
+  id: string;
+  tourNumber: string;
+  status: TourStatus;
+  scheduledAt: string;
+  durationMinutes: number;
+  property: TourListingDto | null;
+  assignedAgent: TourAgentDto | null;
+  cancellationReason: string | null;
+  createdAt: string;
 };

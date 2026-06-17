@@ -189,6 +189,7 @@ model Property {
   opportunities Opportunity[]
   contracts     Contract[]
   leads         Lead[]            @relation("LeadPrimaryListing")
+  tours         Tour[]
 
   @@index([status], map: "properties_status_idx")
   @@index([type], map: "properties_type_idx")
@@ -320,6 +321,7 @@ model Contact {
   opportunities Opportunity[]
   contracts     Contract[]
   leads         Lead[]
+  tours         Tour[]
 
   @@index([email], map: "contacts_email_idx")
   @@index([type], map: "contacts_type_idx")
@@ -403,6 +405,71 @@ model Contract {
   @@index([propertyId], map: "contracts_property_idx")
   @@index([status], map: "contracts_status_idx")
   @@map("contracts")
+}
+
+// ── Tours ─────────────────────────────────────────────────────────────────────
+
+enum TourStatus {
+  REQUESTED
+  CONFIRMED
+  RESCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// A property viewing appointment — links a contact, an optional listing, an
+// optional lead, and an assigned agent. Created from the public listing page
+// or manually from the dashboard. RLS deny-all (server-only access).
+model Tour {
+  id               String     @id @default(cuid())
+  tourNumber       String     @unique @map("tour_number")
+
+  // Submitted snapshot (preserved even if Contact is later edited)
+  submittedName    String     @map("submitted_name")
+  submittedEmail   String?    @map("submitted_email")
+  submittedPhone   String?    @map("submitted_phone")
+  submittedMessage String?    @map("submitted_message")
+
+  contactId        String     @map("contact_id")
+  contact          Contact    @relation(fields: [contactId], references: [id])
+
+  propertyId       String?    @map("property_id")
+  property         Property?  @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  leadId           String?    @map("lead_id")
+  lead             Lead?      @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  assignedAgentId  String?    @map("assigned_agent_id") @db.Uuid
+  createdById      String?    @map("created_by_id") @db.Uuid
+
+  status           TourStatus @default(REQUESTED)
+  scheduledAt      DateTime   @map("scheduled_at")
+  durationMinutes  Int        @default(60) @map("duration_minutes")
+
+  confirmationNote   String?  @map("confirmation_note")
+  rescheduleNote     String?  @map("reschedule_note")
+  cancellationReason String?  @map("cancellation_reason")
+  completionNote     String?  @map("completion_note")
+
+  rescheduledFrom  DateTime?  @map("rescheduled_from")
+  completedAt      DateTime?  @map("completed_at")
+  cancelledAt      DateTime?  @map("cancelled_at")
+
+  // "PUBLIC_REQUEST" | "DASHBOARD_CREATED"
+  source           String     @default("PUBLIC_REQUEST")
+
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  @@index([contactId], map: "tours_contact_idx")
+  @@index([propertyId], map: "tours_property_idx")
+  @@index([leadId], map: "tours_lead_idx")
+  @@index([assignedAgentId], map: "tours_agent_idx")
+  @@index([status], map: "tours_status_idx")
+  @@index([scheduledAt], map: "tours_scheduled_at_idx")
+  @@index([createdAt], map: "tours_created_at_idx")
+  @@map("tours")
 }
 
 // ── Leads ──────────────────────────────────────────────────────────────────────
@@ -491,6 +558,7 @@ model Lead {
 
   leadNotes              LeadNote[]
   activities             LeadActivity[]
+  tours                  Tour[]
 
   @@index([contactId], map: "leads_contact_idx")
   @@index([primaryListingId], map: "leads_listing_idx")

@@ -56,6 +56,7 @@ export type DashboardListingMetrics = {
 
 /** Safe subset for the public website — never exposes internal/CRM fields. */
 export type PublicListingDto = {
+  id: string;
   listingId: string;
   slug: string;
   title: string;
