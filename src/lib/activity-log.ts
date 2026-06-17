@@ -10,7 +10,8 @@ export type ActivityEntityType =
   | "PROPERTY"
   | "CONTACT"
   | "LEAD"
-  | "LEAD_NOTE";
+  | "LEAD_NOTE"
+  | "TOUR";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -55,7 +56,18 @@ export type ActivityAction =
   | "LEAD_TOUR_LINKED"
   | "LEAD_CONVERTED"
   | "LEAD_ARCHIVED"
-  | "LEAD_RESTORED";
+  | "LEAD_RESTORED"
+  | "TOUR_CREATED"
+  | "TOUR_CONFIRMED"
+  | "TOUR_RESCHEDULED"
+  | "TOUR_COMPLETED"
+  | "TOUR_CANCELLED"
+  | "TOUR_NO_SHOW"
+  | "TOUR_ASSIGNED"
+  | "TOUR_REASSIGNED"
+  | "TOUR_UPDATED"
+  | "TOUR_LEAD_CREATED"
+  | "TOUR_LEAD_REUSED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

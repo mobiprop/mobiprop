@@ -122,6 +122,7 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
 
 function toPublicDto(property: PropertyWithRelations): PublicListingDto {
   return {
+    id: property.id,
     listingId: property.listingId,
     slug: property.slug,
     title: property.title,

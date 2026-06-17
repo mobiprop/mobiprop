@@ -1,0 +1,246 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { X, Search, Loader2 } from "lucide-react";
+
+import type { Role } from "@/lib/permissions";
+import { useCreateTourMutation } from "@/hooks/mutations/useTourMutations";
+
+const mont = { fontFamily: "'Montserrat', sans-serif" };
+const inputCls =
+  "h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors w-full";
+const labelCls = "text-[12px] font-medium text-[#1f2937]";
+
+type Agent = { id: string; fullName: string | null; email: string };
+type Listing = { id: string; listingId: string; title: string; location: string };
+
+type Props = {
+  role: Role;
+  onClose: () => void;
+  onCreated: (id: string) => void;
+};
+
+// Minimum datetime string for input[type=datetime-local] (now + 1 hour)
+function minDatetimeLocal() {
+  const d = new Date(Date.now() + 60 * 60 * 1000);
+  return d.toISOString().slice(0, 16);
+}
+
+export function AddTourModal({ onClose, onCreated }: Props) {
+  const create = useCreateTourMutation();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  const [scheduledAt, setScheduledAt] = useState(minDatetimeLocal());
+  const [duration, setDuration] = useState(60);
+  const [agentId, setAgentId] = useState("");
+  const [listingSearch, setListingSearch] = useState("");
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [error, setError] = useState("");
+
+  // Load agents once
+  useEffect(() => {
+    fetch("/api/dashboard/agents?limit=100&status=ACTIVE")
+      .then((r) => r.json())
+      .then((j) => setAgents(j.agents ?? []))
+      .catch(() => {});
+  }, []);
+
+  // Search listings
+  useEffect(() => {
+    if (!listingSearch.trim()) { setListings([]); return; }
+    const t = setTimeout(() => {
+      fetch(`/api/dashboard/listings?search=${encodeURIComponent(listingSearch)}&limit=6`)
+        .then((r) => r.json())
+        .then((j) => setListings(j.listings ?? []))
+        .catch(() => {});
+    }, 300);
+    return () => clearTimeout(t);
+  }, [listingSearch]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!name.trim()) { setError("Name is required"); return; }
+    if (!scheduledAt) { setError("Please select a date and time"); return; }
+    if (new Date(scheduledAt) <= new Date()) { setError("Please choose a future date and time"); return; }
+
+    try {
+      const result = await create.mutateAsync({
+        submittedName: name.trim(),
+        submittedEmail: email.trim() || undefined,
+        submittedPhone: phone.trim() || undefined,
+        submittedMessage: message.trim() || undefined,
+        propertyId: selectedListing?.id,
+        assignedAgentId: agentId || undefined,
+        scheduledAt: new Date(scheduledAt).toISOString(),
+        durationMinutes: duration,
+        source: "DASHBOARD_CREATED",
+      });
+      onCreated(result.id);
+    } catch (err) {
+      setError((err as Error).message ?? "Failed to create tour");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-[16px] shadow-xl w-full max-w-lg mx-4 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#f3f4f6]">
+          <h2 className="text-[16px] font-bold text-[#0d2138]" style={mont}>New Tour</h2>
+          <button onClick={onClose} className="p-1.5 rounded-[6px] hover:bg-[#f3f4f6] transition-colors">
+            <X size={16} color="#6b7280" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+          {/* Visitor info */}
+          <div className="flex flex-col gap-1">
+            <label className={labelCls} style={mont}>Full Name *</label>
+            <input className={inputCls} style={mont} placeholder="Visitor name" value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className={labelCls} style={mont}>Email</label>
+              <input className={inputCls} style={mont} type="email" placeholder="visitor@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className={labelCls} style={mont}>Phone</label>
+              <input className={inputCls} style={mont} placeholder="+54 9..." value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+          </div>
+
+          {/* Scheduling */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className={labelCls} style={mont}>Date & Time *</label>
+              <input
+                type="datetime-local"
+                className={inputCls}
+                style={mont}
+                value={scheduledAt}
+                min={minDatetimeLocal()}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className={labelCls} style={mont}>Duration (min)</label>
+              <select
+                className="h-10 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
+                style={mont}
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+              >
+                {[30, 45, 60, 90, 120].map((m) => (
+                  <option key={m} value={m}>{m} min</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Listing search */}
+          <div className="flex flex-col gap-1">
+            <label className={labelCls} style={mont}>Property (optional)</label>
+            {selectedListing ? (
+              <div className="flex items-center gap-2 border border-[#e5e7eb] rounded-[10px] px-3 h-10">
+                <p className="flex-1 text-[12px] text-[#0d2138]" style={mont}>{selectedListing.title} · {selectedListing.listingId}</p>
+                <button type="button" onClick={() => { setSelectedListing(null); setListingSearch(""); }}>
+                  <X size={13} color="#9ca3af" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="flex items-center gap-2 border border-[#e5e7eb] rounded-[10px] px-3 h-10">
+                  <Search size={13} color="#9ca3af" />
+                  <input
+                    type="text"
+                    placeholder="Search listing…"
+                    className="flex-1 outline-none text-[12px] text-[#0d2138] bg-transparent placeholder:text-[#9ca3af]"
+                    style={mont}
+                    value={listingSearch}
+                    onChange={(e) => setListingSearch(e.target.value)}
+                  />
+                </div>
+                {listings.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-10 bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg mt-1 max-h-40 overflow-y-auto">
+                    {listings.map((l) => (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => { setSelectedListing(l); setListingSearch(""); setListings([]); }}
+                        className="w-full text-left px-3 py-2 hover:bg-[#f9fafb] text-[12px] text-[#0d2138]"
+                        style={mont}
+                      >
+                        <span className="font-medium">{l.title}</span>
+                        <span className="text-[#9ca3af]"> · {l.listingId} · {l.location}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Agent */}
+          <div className="flex flex-col gap-1">
+            <label className={labelCls} style={mont}>Assign Agent (optional)</label>
+            <select
+              className="h-10 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
+              style={mont}
+              value={agentId}
+              onChange={(e) => setAgentId(e.target.value)}
+            >
+              <option value="">No agent</option>
+              {agents.map((a) => (
+                <option key={a.id} value={a.id}>{a.fullName ?? a.email}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Message */}
+          <div className="flex flex-col gap-1">
+            <label className={labelCls} style={mont}>Visitor Message (optional)</label>
+            <textarea
+              className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] resize-none"
+              style={mont}
+              placeholder="Any notes from the visitor…"
+              rows={2}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+
+          {error && <p className="text-[12px] text-red-500" style={mont}>{error}</p>}
+
+          <div className="flex justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] text-[13px] text-[#374151] hover:bg-[#f3f4f6] transition-colors"
+              style={mont}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={create.isPending}
+              className="h-10 px-4 rounded-[10px] bg-[#0d2138] text-white text-[13px] font-semibold flex items-center gap-2 hover:bg-[#1a3a5c] disabled:opacity-40 transition-colors"
+              style={mont}
+            >
+              {create.isPending && <Loader2 size={13} className="animate-spin" />}
+              Create Tour
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
