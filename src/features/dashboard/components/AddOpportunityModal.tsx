@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, ChevronDown, Plus, Calendar } from "lucide-react";
 
 import type { OppStage, OppStatus } from "../opportunities-data";
+import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { QuickAddContactModal } from "./QuickAddContactModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -32,6 +33,8 @@ export type NewOpportunity = {
 type AddOpportunityModalProps = {
   onClose: () => void;
   onCreate?: (opp: NewOpportunity) => void;
+  contacts?: ContactDto[];
+  isSaving?: boolean;
 };
 
 const inputClass =
@@ -44,7 +47,7 @@ const DEAL_TYPES = ["Rent", "Sale"];
 const STAGES: OppStage[] = ["Qualification", "Visitation", "Offer", "Negotiation", "Closing"];
 const STATUSES: OppStatus[] = ["Open", "Closed Won", "Closed Lost"];
 
-export function AddOpportunityModal({ onClose, onCreate }: AddOpportunityModalProps) {
+export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving }: AddOpportunityModalProps) {
   const [name, setName] = useState("");
   const [contactSide, setContactSide] = useState<"Buyer" | "Seller">("Buyer");
   const [contact, setContact] = useState("");
@@ -121,9 +124,10 @@ export function AddOpportunityModal({ onClose, onCreate }: AddOpportunityModalPr
               </div>
               <div className="relative flex-1">
                 <select value={contact} onChange={(e) => setContact(e.target.value)} className={selectClass} style={mont}>
-                  <option value="">Select contacts from Contacts</option>
-                  <option value="Thomas Fletcher">Thomas Fletcher</option>
-                  <option value="Robert Johnson">Robert Johnson</option>
+                  <option value="">Select contact…</option>
+                  {contacts.map((c) => (
+                    <option key={c.id} value={c.fullName}>{c.fullName}</option>
+                  ))}
                   {extraContacts.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -289,8 +293,8 @@ export function AddOpportunityModal({ onClose, onCreate }: AddOpportunityModalPr
             <button type="button" onClick={onClose} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>
               Cancel
             </button>
-            <button type="submit" className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors" style={mont}>
-              Create Opportunity
+            <button type="submit" disabled={isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>
+              {isSaving ? "Saving…" : "Create Opportunity"}
             </button>
           </div>
         </form>

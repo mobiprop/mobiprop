@@ -1,29 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-// Shared Google Maps JS API loader — one script tag per page no matter how
-// many maps render. Requires NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
-let loaderPromise: Promise<void> | null = null;
-
-function loadGoogleMaps(apiKey: string): Promise<void> {
-  if (typeof window === "undefined") return Promise.reject(new Error("SSR"));
-  if (window.google?.maps) return Promise.resolve();
-  if (loaderPromise) return loaderPromise;
-
-  loaderPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => {
-      loaderPromise = null;
-      reject(new Error("Failed to load Google Maps"));
-    };
-    document.head.appendChild(script);
-  });
-  return loaderPromise;
-}
+import { loadGoogleMaps } from "@/lib/google-maps-loader";
 
 /**
  * Single-pin Google Map for a property's location. Fills its parent (which

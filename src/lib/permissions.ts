@@ -27,6 +27,8 @@ export type Permission =
   | "contacts:create"
   | "contacts:update"
   | "contacts:delete"
+  | "contacts:archive"
+  | "contacts:viewMetrics"
   | "listings:view"
   | "listings:create"
   | "listings:update"
@@ -75,6 +77,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "contacts:create",
     "contacts:update",
     "contacts:delete",
+    "contacts:archive",
+    "contacts:viewMetrics",
     "listings:view",
     "listings:create",
     "listings:update",
@@ -110,6 +114,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "contacts:view",
     "contacts:create",
     "contacts:update",
+    "contacts:archive",
+    "contacts:viewMetrics",
     "listings:view",
     "listings:create",
     "listings:update",

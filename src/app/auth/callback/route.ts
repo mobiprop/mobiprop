@@ -73,7 +73,16 @@ export async function GET(request: NextRequest) {
     return errorRedirect(origin, "account_not_active");
   }
 
-  // 5. A safe `next` (e.g. password recovery → /new-password) wins over the
+  // 5. Staff accounts must never authenticate via social OAuth on the public
+  //    login. They are invited via email and must use the dashboard login page.
+  const oauthProvider = user.app_metadata?.provider as string | undefined;
+  const isOAuth = oauthProvider === "google" || oauthProvider === "facebook";
+  if (isOAuth && canAccessDashboard(profile.role)) {
+    await supabase.auth.signOut();
+    return errorRedirect(origin, "staff_use_dashboard");
+  }
+
+  // 6. A safe `next` (e.g. password recovery → /new-password) wins over the
   //    default role landing page.
   if (next) return NextResponse.redirect(`${origin}${next}`);
 

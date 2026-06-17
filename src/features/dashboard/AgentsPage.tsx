@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -19,6 +19,7 @@ import {
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
 import { AddAgentModal } from "./components/AddAgentModal";
+import type { AgentDto, AgentMetrics } from "@/features/agents/agent-actions";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -27,28 +28,21 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 type AgentStatus = "Approved" | "Pending" | "Denied";
 
-type MockAgent = {
-  id: number;
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  location: string;
-  signUpDate: string;
-  status: AgentStatus;
-};
+function mapStatus(status: AgentDto["status"]): AgentStatus {
+  if (status === "ACTIVE") return "Approved";
+  if (status === "PENDING" || status === "INVITED") return "Pending";
+  return "Denied";
+}
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+function mapRole(role: AgentDto["role"]): string {
+  if (role === "ADMIN") return "Administrator";
+  if (role === "MANAGER") return "Manager";
+  return "Property Specialist";
+}
 
-const MOCK_AGENTS: MockAgent[] = [
-  { id: 1, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata",  signUpDate: "May 5th, 2026", status: "Approved" },
-  { id: 2, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "Córdoba",   signUpDate: "May 5th, 2026", status: "Pending"  },
-  { id: 3, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "Rosario",   signUpDate: "May 5th, 2026", status: "Pending"  },
-  { id: 4, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "Ushuaia",   signUpDate: "May 5th, 2026", status: "Pending"  },
-  { id: 5, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "Bariloche", signUpDate: "May 5th, 2026", status: "Denied"   },
-  { id: 6, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "Rosario",   signUpDate: "May 5th, 2026", status: "Approved" },
-  { id: 7, name: "Thomas Fletcher", role: "Property Specialist", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "Córdoba",   signUpDate: "May 5th, 2026", status: "Approved" },
-];
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -107,17 +101,61 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "All">("All");
+  const [agents, setAgents] = useState<AgentDto[]>([]);
+  const [metrics, setMetrics] = useState<AgentMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actioningId, setActioningId] = useState<string | null>(null);
+
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
   const canViewInvitations = hasPermission(role, "invitations:view");
 
-  const filtered = MOCK_AGENTS.filter((a) => {
+  const fetchAgents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dashboard/agents");
+      const data = await res.json();
+      if (data.success) {
+        setAgents(data.agents);
+        setMetrics(data.metrics);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchAgents(); }, [fetchAgents]);
+
+  async function handleApprove(agentId: string) {
+    setActioningId(agentId);
+    await fetch(`/api/dashboard/agents/${agentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ACTIVE" }),
+    });
+    await fetchAgents();
+    setActioningId(null);
+  }
+
+  async function handleDeny(agentId: string) {
+    setActioningId(agentId);
+    await fetch(`/api/dashboard/agents/${agentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "INACTIVE" }),
+    });
+    await fetchAgents();
+    setActioningId(null);
+  }
+
+  const filtered = agents.filter((a) => {
+    const mapped = mapStatus(a.status);
     const matchesSearch =
       !search ||
       a.name.toLowerCase().includes(search.toLowerCase()) ||
       a.email.toLowerCase().includes(search.toLowerCase()) ||
-      a.location.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || a.status === statusFilter;
+      (a.city ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "All" || mapped === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -158,29 +196,29 @@ export function AgentsPage({ role }: AgentsPageProps) {
       <div className="flex flex-wrap gap-3.5">
         <StatCard
           label="Total Agents"
-          value="6"
-          trend="↑ 2 new this month"
+          value={metrics ? String(metrics.total) : "—"}
+          trend={metrics ? `${metrics.active} active` : "Loading…"}
           iconBg="#e0e7ff"
           icon={<Users size={16} className="text-[#6366f1]" />}
         />
         <StatCard
-          label="Active Deals"
-          value="108"
-          trend="↑ +12.5% from last month"
+          label="Pending Approval"
+          value={metrics ? String(metrics.pending) : "—"}
+          trend={metrics ? `${metrics.total - metrics.pending} already reviewed` : "Loading…"}
           iconBg="#ecfdf5"
           icon={<Briefcase size={18} className="text-[#10b981]" />}
         />
         <StatCard
-          label="Total Revenue"
-          value="$2.21M"
-          trend="↑ +18.2% from last month"
+          label="Active Agents"
+          value={metrics ? String(metrics.active) : "—"}
+          trend={metrics ? `${metrics.inactive} inactive` : "Loading…"}
           iconBg="#fef3c7"
           icon={<DollarSign size={18} className="text-[#f59e0b]" />}
         />
         <StatCard
-          label="Total Listings"
-          value="19"
-          trend="↑ +0.3 from last month"
+          label="Total Staff"
+          value={metrics ? String(metrics.total) : "—"}
+          trend="Agents + Managers + Admins"
           iconBg="#fff7ed"
           icon={<Building2 size={18} className="text-[#f97316]" />}
         />
@@ -246,8 +284,16 @@ export function AgentsPage({ role }: AgentsPageProps) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((agent) => {
-                const isActioned = agent.status === "Approved" || agent.status === "Denied";
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
+                    Loading agents…
+                  </td>
+                </tr>
+              ) : filtered.map((agent) => {
+                const mappedStatus = mapStatus(agent.status);
+                const isActioned = mappedStatus === "Approved" || mappedStatus === "Denied";
+                const isActioning = actioningId === agent.id;
                 return (
                   <tr key={agent.id} className="border-b border-[#e5e7eb] last:border-b-0">
                     {/* Name */}
@@ -267,36 +313,39 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     </td>
                     {/* Role */}
                     <td className="px-4 py-4 w-[172px]">
-                      <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{agent.role}</span>
+                      <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{mapRole(agent.role)}</span>
                     </td>
                     {/* Contact */}
                     <td className="px-4 py-4 w-[200px]">
                       <div className="flex flex-col gap-1">
                         <span className="text-[14px] text-[#0d2138] whitespace-nowrap" style={mont}>{agent.email}</span>
-                        <span className="text-[12px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.phone}</span>
+                        <span className="text-[12px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.phone ?? "—"}</span>
                       </div>
                     </td>
                     {/* Location */}
                     <td className="px-4 py-4 w-[136px]">
-                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.location}</span>
+                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.city ?? "—"}</span>
                     </td>
                     {/* Sign Up Date */}
                     <td className="px-4 py-4 w-[144px]">
-                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.signUpDate}</span>
+                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{formatDate(agent.createdAt)}</span>
                     </td>
                     {/* Status */}
                     <td className="px-4 py-4 w-[144px] text-center">
-                      <StatusBadge status={agent.status} />
+                      <StatusBadge status={mappedStatus} />
                     </td>
                     {/* Actions */}
                     <td className="px-4 py-4 w-[134px] text-center">
-                      {isActioned ? (
-                        <span className="text-[14px] text-[#6a7282]" style={mont}>{agent.status}</span>
+                      {isActioning ? (
+                        <span className="text-[12px] text-[#99a1af]" style={mont}>…</span>
+                      ) : isActioned ? (
+                        <span className="text-[14px] text-[#6a7282]" style={mont}>{mappedStatus}</span>
                       ) : canApprove ? (
                         <div className="flex items-center justify-center gap-2">
                           <button
                             type="button"
                             title="Approve"
+                            onClick={() => handleApprove(agent.id)}
                             className="size-8 flex items-center justify-center border border-[#7bf1a8] rounded-[8px] bg-white hover:bg-[#f5fffa] transition-colors"
                           >
                             <Check size={14} className="text-[#00aa4f]" />
@@ -304,6 +353,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                           <button
                             type="button"
                             title="Deny"
+                            onClick={() => handleDeny(agent.id)}
                             className="size-8 flex items-center justify-center border border-[#ffa2a2] rounded-[8px] bg-white hover:bg-[#fff5f5] transition-colors"
                           >
                             <X size={14} className="text-[#fb2c36]" />
@@ -316,7 +366,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                   </tr>
                 );
               })}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
                     No agents found.
@@ -330,7 +380,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
         {/* Footer */}
         <div className="px-5 py-3 border-t border-[#f3f4f6]">
           <span className="text-[12px] font-medium text-[#6a7282]" style={mont}>
-            Showing {filtered.length} of {MOCK_AGENTS.length} agents
+            Showing {filtered.length} of {agents.length} agents
           </span>
         </div>
       </div>

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ulrich Propiedades — Platform Overview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: #0D2138;
+      padding: 40px 60px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .logo {
+      width: 48px; height: 48px;
+      background: #4896B6;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .header h1 { color: #fff; font-size: 24px; font-weight: 700; }
+    .header p  { color: #94a3b8; font-size: 14px; margin-top: 3px; }
+
+    /* ── NAV ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 60px;
+      display: flex; gap: 4px;
+      overflow-x: auto;
+    }
+    nav a {
+      display: block; padding: 13px 15px;
+      font-size: 13px; font-weight: 500;
+      color: #64748b; text-decoration: none;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    nav a:hover { color: #4896B6; border-bottom-color: #4896B6; }
+
+    /* ── MAIN ── */
+    main { max-width: 900px; margin: 0 auto; padding: 48px 40px 80px; }
+
+    /* ── SECTION ── */
+    section { margin-bottom: 60px; scroll-margin-top: 80px; }
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: #94a3b8;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 20px; font-weight: 700; color: #0D2138;
+      margin-bottom: 6px;
+    }
+    .section-sub {
+      font-size: 14px; color: #64748b; margin-bottom: 24px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 14px; color: #1e40af;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .info-box strong { font-weight: 600; }
+
+    /* ── TWO SYSTEMS ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .sys-card {
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 14px; padding: 24px;
+    }
+    .sys-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 12px;
+    }
+    .sys-card h3 { font-size: 16px; font-weight: 700; color: #0D2138; margin-bottom: 6px; }
+    .sys-card p  { font-size: 13px; color: #64748b; margin-bottom: 14px; line-height: 1.6; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 11px; font-weight: 600; padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .tag-blue   { background: #dbeafe; color: #1d4ed8; }
+    .tag-purple { background: #ede9fe; color: #6d28d9; }
+
+    /* ── USER CARDS ── */
+    .users-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .user-card {
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 14px; padding: 20px;
+    }
+    .uc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .uc-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .user-card h3 { font-size: 15px; font-weight: 700; color: #0D2138; }
+    .user-card .role { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
+    .user-card ul  { list-style: none; }
+    .user-card li  {
+      font-size: 13px; color: #475569;
+      padding: 3px 0; display: flex; gap: 7px; line-height: 1.5;
+    }
+    .user-card li::before { content: "›"; color: #cbd5e1; font-weight: 700; }
+
+    /* ── PIPELINE ── */
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step  { display: flex; align-items: flex-start; gap: 14px; position: relative; }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute; left: 16px; top: 36px; bottom: -16px;
+      width: 1px; background: #e2e8f0;
+    }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0; z-index: 1;
+    }
+    .step-body {
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 12px; padding: 14px 18px;
+      flex: 1; margin-bottom: 16px;
+    }
+    .step-body h4 { font-size: 14px; font-weight: 700; color: #0D2138; margin-bottom: 3px; }
+    .step-body p  { font-size: 13px; color: #64748b; line-height: 1.6; }
+
+    /* ── ACCESS TABLE ── */
+    .access-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .access-table th {
+      background: #f8fafc; font-weight: 600;
+      padding: 10px 14px; text-align: center;
+      border: 1px solid #e2e8f0; font-size: 12px; color: #475569;
+    }
+    .access-table th:first-child { text-align: left; }
+    .access-table td {
+      padding: 9px 14px; border: 1px solid #e2e8f0; text-align: center;
+      color: #64748b;
+    }
+    .access-table td:first-child { text-align: left; color: #1e293b; font-weight: 500; }
+    .access-table tr:nth-child(even) td { background: #f8fafc; }
+    .yes     { color: #16a34a; font-weight: 600; }
+    .no      { color: #cbd5e1; }
+    .partial { color: #d97706; font-weight: 500; }
+
+    /* ── NOTIFICATIONS ── */
+    .notif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .notif-item {
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 12px; padding: 16px;
+    }
+    .notif-trigger { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .notif-item h5 { font-size: 14px; font-weight: 700; color: #0D2138; margin-bottom: 8px; }
+    .notif-item ul { list-style: none; }
+    .notif-item li { font-size: 12px; color: #64748b; padding: 2px 0; }
+    .notif-item li::before { content: "→ "; color: #4896B6; font-weight: 700; }
+
+    /* ── KEY RULES ── */
+    .rules-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .rules-table th {
+      background: #0D2138; color: #fff;
+      padding: 10px 14px; text-align: left; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .rules-table td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .rules-table tr:nth-child(even) td { background: #f8fafc; }
+    .rules-table td strong { color: #0D2138; font-weight: 600; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #0D2138; color: #64748b;
+      text-align: center; padding: 24px;
+      font-size: 13px;
+    }
+    footer strong { color: #4896B6; }
+
+    @media (max-width: 640px) {
+      .header { padding: 24px 20px; }
+      nav { padding: 0 20px; }
+      main { padding: 32px 20px 60px; }
+      .two-col { grid-template-columns: 1fr; }
+      .users-grid { grid-template-columns: 1fr; }
+      .notif-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">U</div>
+  <div>
+    <h1>Ulrich Propiedades — Platform Overview</h1>
+    <p>A plain-English guide to how the platform works</p>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <a href="#s1">The Two Parts</a>
+  <a href="#s2">Who Uses It</a>
+  <a href="#s3">How a Deal Works</a>
+  <a href="#s4">Who Can Do What</a>
+  <a href="#s5">Notifications</a>
+  <a href="#s6">Key Rules</a>
+</nav>
+
+<main>
+
+<!-- SECTION 1 — TWO SYSTEMS -->
+<section id="s1">
+  <div class="section-label">Section 1</div>
+  <div class="section-title">The two parts of the platform</div>
+  <div class="section-sub">Ulrich Propiedades has a public website that clients use, and a private dashboard that staff use. They share the same data.</div>
+
+  <div class="two-col" style="margin-bottom:16px">
+    <div class="sys-card">
+      <div class="sys-icon" style="background:#eff6ff">🌐</div>
+      <h3>Public Website</h3>
+      <p>What buyers and sellers see when they visit the site. No account needed to browse.</p>
+      <div class="tag-row">
+        <span class="tag tag-blue">Browse listings</span>
+        <span class="tag tag-blue">Search & filter</span>
+        <span class="tag tag-blue">Book a tour</span>
+        <span class="tag tag-blue">Send an inquiry</span>
+        <span class="tag tag-blue">Read the blog</span>
+        <span class="tag tag-blue">About us</span>
+      </div>
+    </div>
+    <div class="sys-card">
+      <div class="sys-icon" style="background:#faf5ff">🔒</div>
+      <h3>Internal Dashboard</h3>
+      <p>The back-office tool only agents and admins can log into. Hidden from the public entirely.</p>
+      <div class="tag-row">
+        <span class="tag tag-purple">Manage leads</span>
+        <span class="tag tag-purple">Manage listings</span>
+        <span class="tag tag-purple">Track deals</span>
+        <span class="tag tag-purple">Contracts</span>
+        <span class="tag tag-purple">Contacts</span>
+        <span class="tag tag-purple">Revenue reports</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>They share the same data.</strong> A listing published in the dashboard appears on the website instantly. A contact form submitted on the website creates a lead in the dashboard immediately — no manual copying needed.
+  </div>
+</section>
+
+<!-- SECTION 2 — WHO USES IT -->
+<section id="s2">
+  <div class="section-label">Section 2</div>
+  <div class="section-title">Who uses the platform</div>
+  <div class="section-sub">Four types of people interact with Ulrich Propiedades, each with a different level of access.</div>
+
+  <div class="users-grid">
+    <div class="user-card">
+      <div class="uc-header">
+        <div class="uc-dot" style="background:#3b82f6"></div>
+        <h3>Visitor</h3>
+      </div>
+      <div class="role">No account required</div>
+      <ul>
+        <li>Browses and searches listings freely</li>
+        <li>Views property detail pages</li>
+        <li>Sends a contact message</li>
+        <li>Requests a property tour</li>
+        <li>Reads the blog and About page</li>
+        <li>Cannot save favourites yet</li>
+      </ul>
+    </div>
+
+    <div class="user-card">
+      <div class="uc-header">
+        <div class="uc-dot" style="background:#16a34a"></div>
+        <h3>Registered User</h3>
+      </div>
+      <div class="role">Buyer or seller with an account</div>
+      <ul>
+        <li>Everything a visitor can do</li>
+        <li>Saves favourite listings</li>
+        <li>Tracks their scheduled tours</li>
+        <li>Views their own contracts</li>
+        <li>Manages their profile</li>
+        <li>Receives email confirmations</li>
+      </ul>
+    </div>
+
+    <div class="user-card">
+      <div class="uc-header">
+        <div class="uc-dot" style="background:#7c3aed"></div>
+        <h3>Agent</h3>
+      </div>
+      <div class="role">Staff — invited by admin only</div>
+      <ul>
+        <li>Accesses the internal dashboard</li>
+        <li>Manages their own listings</li>
+        <li>Handles their assigned leads</li>
+        <li>Tracks their own deals & contracts</li>
+        <li>Communicates with contacts</li>
+        <li>Cannot see other agents' data or company revenue</li>
+      </ul>
+    </div>
+
+    <div class="user-card">
+      <div class="uc-header">
+        <div class="uc-dot" style="background:#d97706"></div>
+        <h3>Admin / Manager</h3>
+      </div>
+      <div class="role">Full control of everything</div>
+      <ul>
+        <li>Everything an agent can do</li>
+        <li>Sees all agents and their performance</li>
+        <li>Views full company revenue</li>
+        <li>Invites and manages agents</li>
+        <li>Manages all listings and locations</li>
+        <li>Configures platform settings</li>
+        <li>Reads activity logs (who changed what)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3 — HOW A DEAL WORKS -->
+<section id="s3">
+  <div class="section-label">Section 3</div>
+  <div class="section-title">How a new inquiry becomes a closed deal</div>
+  <div class="section-sub">Every deal starts with someone showing interest. Here's how that becomes revenue — step by step.</div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#dbeafe;color:#1d4ed8">1</div>
+      <div class="step-body">
+        <h4>Someone fills a form on the website</h4>
+        <p>A contact message, tour request, or property inquiry — it all arrives automatically in the dashboard as a new <strong>Lead</strong>. The assigned agent gets notified right away.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#dcfce7;color:#166534">2</div>
+      <div class="step-body">
+        <h4>Agent reviews and qualifies the lead</h4>
+        <p>The agent calls or emails the person, scores them as Cold, Warm, or Hot, and adds notes. Once they're qualified and ready to proceed, the lead is promoted to a <strong>Contact</strong>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#ede9fe;color:#6d28d9">3</div>
+      <div class="step-body">
+        <h4>Agent opens an active Deal</h4>
+        <p>The agent links the Contact to a specific property listing and opens a <strong>Deal</strong> (called an Opportunity in the system). The deal then moves through stages:</p>
+        <p style="margin-top:8px;font-style:italic;color:#94a3b8">Qualification → Property visit → Offer made → Negotiation → Closing</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#ffedd5;color:#c2410c">4</div>
+      <div class="step-body">
+        <h4>Contract created</h4>
+        <p>If the deal is won, a <strong>Contract</strong> is created. The agent uploads the signed documents, sets the contract value, and tracks the expiry date. Status goes from Pending → Active → Completed.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#dcfce7;color:#166534">5</div>
+      <div class="step-body">
+        <h4>Revenue recorded on the dashboard</h4>
+        <p>Once a contract is marked Completed, the revenue value automatically appears on the admin dashboard — showing total revenue, per-agent performance, and per-location summaries.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4 — WHO CAN DO WHAT -->
+<section id="s4">
+  <div class="section-label">Section 4</div>
+  <div class="section-title">Who can do what</div>
+  <div class="section-sub">A quick reference for permissions across all four user types.</div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="access-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>🌐 Visitor</th>
+          <th>🏠 Registered User</th>
+          <th>👤 Agent</th>
+          <th>⚙️ Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Browse listings on the website</td>
+          <td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Save / favourite listings</td>
+          <td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Book a property tour</td>
+          <td class="partial">Form only</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Log into the dashboard</td>
+          <td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Upload and manage listings</td>
+          <td class="no">—</td><td class="no">—</td><td class="partial">Own listings only</td><td class="yes">All listings</td>
+        </tr>
+        <tr>
+          <td>See leads</td>
+          <td class="no">—</td><td class="no">—</td><td class="partial">Assigned to them</td><td class="yes">All leads</td>
+        </tr>
+        <tr>
+          <td>See deals (opportunities)</td>
+          <td class="no">—</td><td class="no">—</td><td class="partial">Their own deals</td><td class="yes">All deals</td>
+        </tr>
+        <tr>
+          <td>View contracts</td>
+          <td class="no">—</td><td class="partial">Their own</td><td class="partial">Their own</td><td class="yes">All</td>
+        </tr>
+        <tr>
+          <td>See company revenue</td>
+          <td class="no">—</td><td class="no">—</td><td class="partial">Own commission only</td><td class="yes">Full company view</td>
+        </tr>
+        <tr>
+          <td>Invite new agents</td>
+          <td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Manage office locations</td>
+          <td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Read activity logs</td>
+          <td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td>
+        </tr>
+        <tr>
+          <td>Configure platform settings</td>
+          <td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:#64748b">
+    <span><span style="color:#16a34a;font-weight:700">✓</span> Full access</span>
+    <span><span style="color:#d97706;font-weight:600">Partial</span> Scoped or limited</span>
+    <span><span style="color:#cbd5e1">—</span> No access</span>
+  </div>
+</section>
+
+<!-- SECTION 5 — NOTIFICATIONS -->
+<section id="s5">
+  <div class="section-label">Section 5</div>
+  <div class="section-title">What triggers a notification</div>
+  <div class="section-sub">The platform automatically notifies the right people when something important happens.</div>
+
+  <div class="notif-grid">
+    <div class="notif-item">
+      <div class="notif-trigger">Trigger</div>
+      <h5>🗓️ Tour booked by a visitor</h5>
+      <ul>
+        <li>Confirmation email sent to the visitor</li>
+        <li>Alert sent to the assigned agent</li>
+        <li>New lead created in the dashboard</li>
+      </ul>
+    </div>
+    <div class="notif-item">
+      <div class="notif-trigger">Trigger</div>
+      <h5>📩 New contact form submitted</h5>
+      <ul>
+        <li>New lead created in the dashboard</li>
+        <li>Notification sent to admin and agents</li>
+        <li>Alert sent to the assigned agent</li>
+      </ul>
+    </div>
+    <div class="notif-item">
+      <div class="notif-trigger">Trigger</div>
+      <h5>📄 Contract approaching expiry</h5>
+      <ul>
+        <li>Alert sent to the admin</li>
+        <li>Alert sent to the responsible agent</li>
+        <li>Warning badge shown on the dashboard</li>
+      </ul>
+    </div>
+    <div class="notif-item">
+      <div class="notif-trigger">Trigger</div>
+      <h5>👤 New agent joins the platform</h5>
+      <ul>
+        <li>Admin gets notified</li>
+        <li>Welcome email sent to the new agent</li>
+        <li>Activity log entry recorded</li>
+      </ul>
+    </div>
+    <div class="notif-item">
+      <div class="notif-trigger">Trigger</div>
+      <h5>🎯 Lead assigned to an agent</h5>
+      <ul>
+        <li>In-app notification sent to the agent</li>
+        <li>Lead appears on their dashboard</li>
+        <li>Optional email alert to the agent</li>
+      </ul>
+    </div>
+    <div class="notif-item">
+      <div class="notif-trigger">Trigger</div>
+      <h5>🏠 New listing published</h5>
+      <ul>
+        <li>Listing goes live on the public website</li>
+        <li>Optional team-wide notification</li>
+        <li>Activity log entry recorded</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6 — KEY RULES -->
+<section id="s6">
+  <div class="section-label">Section 6</div>
+  <div class="section-title">Key rules that keep the platform clean</div>
+  <div class="section-sub">These are the built-in guardrails that ensure accurate data and proper accountability.</div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="rules-table">
+      <thead>
+        <tr><th>Rule</th><th>Why it matters</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Every listing has one agent owner</strong></td>
+          <td>Ensures accountability. Agents can only see and edit their own listings. The listing counts toward their personal performance stats.</td>
+        </tr>
+        <tr>
+          <td><strong>Every deal needs a contact and a property</strong></td>
+          <td>You can't open a deal without knowing who the client is and which property is involved. This keeps the data clean and trackable.</td>
+        </tr>
+        <tr>
+          <td><strong>Revenue only counts from completed contracts</strong></td>
+          <td>Dashboard revenue numbers are always accurate — pending or active contracts are not counted until they're fully completed.</td>
+        </tr>
+        <tr>
+          <td><strong>Agents only see their own data by default</strong></td>
+          <td>An agent sees their own leads, deals, and commission — not the whole company's revenue or another agent's pipeline.</td>
+        </tr>
+        <tr>
+          <td><strong>Contracts track expiry dates</strong></td>
+          <td>The system alerts the admin and the responsible agent before a contract expires. This is especially important for rental agreements.</td>
+        </tr>
+        <tr>
+          <td><strong>Every change is recorded in the activity log</strong></td>
+          <td>The admin can see who changed what, when, and what the previous value was. Deleted records are archived, not permanently removed.</td>
+        </tr>
+        <tr>
+          <td><strong>Agents must be invited — no self sign-up</strong></td>
+          <td>Only an admin can generate an invite link for a new agent. Without an invitation, no one can create a staff account.</td>
+        </tr>
+        <tr>
+          <td><strong>Website listings are the same as dashboard listings</strong></td>
+          <td>There is one single source of truth. When an agent publishes a listing in the dashboard, it appears on the website immediately — no manual sync needed.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <strong>Ulrich Propiedades</strong> — Platform Overview · June 2026
+</footer>
+
+</body>
+</html>

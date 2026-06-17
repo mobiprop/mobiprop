@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useSavedListings } from "@/hooks/useSavedListings";
+import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
 import {
@@ -15,19 +17,6 @@ import {
 
 const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.png";
-
-function HeartIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path
-        d={svgPaths.p2a65c600}
-        stroke="#6A7282"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function MarkerIcon() {
   return (
@@ -161,13 +150,17 @@ function BathIcon() {
 }
 
 function PropertyCard({ property }: { property: PublicListingDto }) {
-  const [liked, setLiked] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const { isSaved, toggleSave } = useSavedListings();
+  const saved = isSaved(property.listingId);
 
   return (
-    <Link
-      href={`/listings/${property.slug}`}
-      className="flex w-full min-w-0 flex-col gap-4 sm:gap-5 group"
-    >
+    <>
+      <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <Link
+        href={`/listings/${property.slug}`}
+        className="flex w-full min-w-0 flex-col gap-4 sm:gap-5 group"
+      >
       {/* Image */}
       <div className="relative h-[230px] sm:h-[250px] lg:h-[296px] w-full rounded-[16px] overflow-hidden">
         <img
@@ -198,20 +191,20 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setLiked(!liked);
+            toggleSave(property.listingId, () => setLoginOpen(true));
           }}
-          aria-label={liked ? "Remove from favorites" : "Add to favorites"}
+          aria-label={saved ? "Remove from saved" : "Save property"}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm"
         >
           <svg
             width="16"
             height="16"
             viewBox="0 0 16 16"
-            fill={liked ? "#e74c3c" : "none"}
+            fill={saved ? "#e74c3c" : "none"}
           >
             <path
               d={svgPaths.p2a65c600}
-              stroke={liked ? "#e74c3c" : "#6A7282"}
+              stroke={saved ? "#e74c3c" : "#6A7282"}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -284,6 +277,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
         </div>
       </div>
     </Link>
+    </>
   );
 }
 

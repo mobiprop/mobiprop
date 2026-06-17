@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   Search,
   Plus,
@@ -12,40 +13,27 @@ import {
   Upload,
   Share2,
   MoreVertical,
+  Loader2,
+  Pencil,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
+import { ContactType } from "@/generated/prisma/enums";
+import type { ContactDto } from "@/features/crm/types/crm-dto";
+import { useDashboardContactsQuery } from "@/hooks/queries/useDashboardContactsQuery";
+import {
+  useCreateContactMutation,
+  useUpdateContactMutation,
+  useDeleteContactMutation,
+} from "@/hooks/mutations/useCrmMutations";
 import { AddContactModal, type NewContact } from "./components/AddContactModal";
+import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-export type ContactType = "Buyer" | "Seller";
-
-type MockContact = {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  location: string;
-  assignedListings: number;
-  contactId: string;
-  type: ContactType;
-};
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-
-const MOCK_CONTACTS: MockContact[] = [
-  { id: 1, name: "Thomas Fletcher", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata, Argentina", assignedListings: 23, contactId: "#1234", type: "Seller" },
-  { id: 2, name: "Thomas Fletcher", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata, Argentina", assignedListings: 23, contactId: "#1234", type: "Buyer"  },
-  { id: 3, name: "Thomas Fletcher", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata, Argentina", assignedListings: 23, contactId: "#1234", type: "Buyer"  },
-  { id: 4, name: "Thomas Fletcher", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata, Argentina", assignedListings: 23, contactId: "#1234", type: "Buyer"  },
-  { id: 5, name: "Thomas Fletcher", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata, Argentina", assignedListings: 23, contactId: "#1234", type: "Seller" },
-  { id: 6, name: "Thomas Fletcher", email: "michael.r@ulrich.com", phone: "+54 11 4567-8901", location: "La Plata, Argentina", assignedListings: 23, contactId: "#1234", type: "Seller" },
-];
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -76,20 +64,146 @@ function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
 
 // ── Contact type badge ────────────────────────────────────────────────────────
 
-const TYPE_STYLE: Record<ContactType, { bg: string; text: string }> = {
-  Seller: { bg: "#b8e6fe", text: "#0069a8" },
-  Buyer:  { bg: "#dcfce7", text: "#008236" },
+const TYPE_STYLE: Record<string, { bg: string; text: string }> = {
+  BUYER:  { bg: "#dcfce7", text: "#008236" },
+  SELLER: { bg: "#b8e6fe", text: "#0069a8" },
+  BOTH:   { bg: "#fef3c7", text: "#b45309" },
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  BUYER: "Buyer", SELLER: "Seller", BOTH: "Both",
 };
 
 function TypeBadge({ type }: { type: ContactType }) {
-  const s = TYPE_STYLE[type];
+  const s = TYPE_STYLE[type] ?? TYPE_STYLE.BUYER;
   return (
     <span
       className="inline-flex items-center justify-center w-[76px] px-3 py-1 rounded-[6px] text-[12px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
-      {type}
+      {TYPE_LABEL[type] ?? type}
     </span>
+  );
+}
+
+// ── Row action menu ───────────────────────────────────────────────────────────
+
+type RowMenuProps = {
+  contact: ContactDto;
+  canEdit: boolean;
+  canDelete: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+};
+
+function RowMenu({ contact, canEdit, canDelete, onEdit, onDelete }: RowMenuProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  if (!canEdit && !canDelete) return null;
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        type="button"
+        title="Actions"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-7 z-50 bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg w-[160px] py-1.5 overflow-hidden">
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onEdit(); }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#0d2138] hover:bg-[#f8fafc] transition-colors"
+              style={mont}
+            >
+              <Pencil size={14} className="text-[#1e4f86]" />
+              Edit
+            </button>
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onDelete(); }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-[#fb2c36] hover:bg-[#fff1f2] transition-colors"
+              style={mont}
+            >
+              <Trash2 size={14} />
+              Delete
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Delete confirmation modal ─────────────────────────────────────────────────
+
+type DeleteConfirmProps = {
+  contact: ContactDto;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm }: DeleteConfirmProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative bg-white rounded-[16px] w-full max-w-[420px] p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="size-12 rounded-full bg-[#fff1f2] flex items-center justify-center">
+            <AlertTriangle size={22} className="text-[#fb2c36]" />
+          </span>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Delete Contact</p>
+            <p className="text-[13px] text-[#6a7282] leading-5" style={mont}>
+              <span className="font-semibold text-[#0d2138]">{contact.fullName}</span> will be marked as deleted
+              and removed from all lists. This can be restored by an administrator.
+            </p>
+          </div>
+          <div className="flex gap-3 w-full pt-1">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 h-10 border border-[#e5e7eb] rounded-[10px] text-[13px] font-medium text-[#6b7280] bg-[#f8fafc] hover:bg-[#f3f4f6] transition-colors"
+              style={mont}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={onConfirm}
+              className="flex-1 h-10 bg-[#fb2c36] rounded-[10px] text-[13px] font-medium text-white hover:bg-[#e0262f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              style={mont}
+            >
+              {isDeleting ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -100,45 +214,83 @@ type ContactsPageProps = {
 };
 
 export function ContactsPage({ role }: ContactsPageProps) {
-  const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingContact, setEditingContact] = useState<ContactDto | null>(null);
+  const [deletingContact, setDeletingContact] = useState<ContactDto | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<ContactType | "All">("All");
   const [sortBy, setSortBy] = useState<"default" | "name" | "listings">("default");
-  const [contacts, setContacts] = useState<MockContact[]>(MOCK_CONTACTS);
+
+  const { data, isLoading, isError } = useDashboardContactsQuery();
+  const createMutation = useCreateContactMutation();
+  const updateMutation = useUpdateContactMutation();
+  const deleteMutation = useDeleteContactMutation();
 
   const canCreate = hasPermission(role, "contacts:create");
+  const canEdit   = hasPermission(role, "contacts:update");
+  const canDelete = hasPermission(role, "contacts:delete");
 
-  const filtered = contacts
-    .filter((c) => {
-      const matchesSearch =
-        !search ||
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.email.toLowerCase().includes(search.toLowerCase()) ||
-        c.location.toLowerCase().includes(search.toLowerCase());
-      const matchesType = typeFilter === "All" || c.type === typeFilter;
-      return matchesSearch && matchesType;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "listings") return b.assignedListings - a.assignedListings;
-      return 0;
-    });
+  const contacts = useMemo(() => data?.contacts ?? [], [data]);
+  const metrics = data?.metrics;
 
-  function handleCreate(input: NewContact) {
-    setContacts((prev) => [
-      {
-        id: Math.max(0, ...prev.map((c) => c.id)) + 1,
-        name: `${input.firstName} ${input.lastName}`.trim(),
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return contacts
+      .filter((c) => {
+        const matchesSearch =
+          !q ||
+          c.fullName.toLowerCase().includes(q) ||
+          (c.email ?? "").toLowerCase().includes(q) ||
+          (c.location ?? "").toLowerCase().includes(q) ||
+          c.contactId.toLowerCase().includes(q);
+        const matchesType = typeFilter === "All" || c.type === typeFilter;
+        return matchesSearch && matchesType;
+      })
+      .sort((a, b) => {
+        if (sortBy === "name") return a.fullName.localeCompare(b.fullName);
+        if (sortBy === "listings") return b.properties.length - a.properties.length;
+        return 0;
+      });
+  }, [contacts, search, typeFilter, sortBy]);
+
+  async function handleCreate(input: NewContact) {
+    try {
+      await createMutation.mutateAsync({
+        firstName: input.firstName,
+        lastName: input.lastName,
         email: input.email,
         phone: input.phone,
-        location: input.location || "—",
-        assignedListings: input.properties?.filter(Boolean).length ?? 0,
-        contactId: `#${1000 + prev.length + 1}`,
-        type: input.contactType,
-      },
-      ...prev,
-    ]);
-    setShowModal(false);
+        type: input.contactType === "Seller" ? ContactType.SELLER : ContactType.BUYER,
+        location: input.location,
+        address: input.address,
+        notes: input.notes,
+      });
+      toast.success("Contact created");
+      setShowAddModal(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create contact");
+    }
+  }
+
+  async function handleUpdate(id: string, input: EditContactInput) {
+    try {
+      await updateMutation.mutateAsync({ id, body: input });
+      toast.success("Contact updated");
+      setEditingContact(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update contact");
+    }
+  }
+
+  async function handleDelete() {
+    if (!deletingContact) return;
+    try {
+      await deleteMutation.mutateAsync(deletingContact.id);
+      toast.success("Contact deleted");
+      setDeletingContact(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete contact");
+    }
   }
 
   return (
@@ -169,7 +321,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
           {canCreate && (
             <button
               type="button"
-              onClick={() => setShowModal(true)}
+              onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
               style={mont}
             >
@@ -184,29 +336,29 @@ export function ContactsPage({ role }: ContactsPageProps) {
       <div className="flex flex-wrap gap-3.5">
         <StatCard
           label="Total Contacts"
-          value={String(contacts.length)}
-          trend="↑ 2 new this month"
+          value={isLoading ? "—" : String(metrics?.total ?? 0)}
+          trend="Live from database"
           iconBg="#e0e7ff"
           icon={<Users size={18} className="text-[#6366f1]" />}
         />
         <StatCard
-          label="Active Deals"
-          value="108"
-          trend="↑ +12.5% from last month"
+          label="Buyers"
+          value={isLoading ? "—" : String(metrics?.buyers ?? 0)}
+          trend="Contacts looking to purchase"
           iconBg="#d1fae5"
           icon={<TrendingUp size={18} className="text-[#10b981]" />}
         />
         <StatCard
-          label="Total Revenue"
-          value="$2.21M"
-          trend="↑ +18.2% from last month"
+          label="Sellers"
+          value={isLoading ? "—" : String(metrics?.sellers ?? 0)}
+          trend="Contacts with properties"
           iconBg="#fef3c7"
           icon={<DollarSign size={18} className="text-[#f59e0b]" />}
         />
         <StatCard
-          label="Contacts in Opportunities"
-          value="54%"
-          trend="↑ +0.3 from last month"
+          label="With Listings"
+          value={isLoading ? "—" : String(metrics?.withListings ?? 0)}
+          trend="Contacts linked to properties"
           iconBg="#fee2e2"
           icon={<Briefcase size={18} className="text-[#ef4444]" />}
         />
@@ -214,11 +366,10 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
       {/* Contacts table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-        {/* Table header / controls */}
+        {/* Table controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <h2 className="text-[16px] font-semibold text-[#0d2138]" style={mont}>All Contacts</h2>
           <div className="flex items-center gap-3">
-            {/* Search */}
             <div className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[204px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />
               <input
@@ -229,7 +380,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
                 style={mont}
               />
             </div>
-            {/* Sort By */}
             <div className="relative">
               <select
                 value={sortBy}
@@ -243,7 +393,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
             </div>
-            {/* Contact Type filter */}
             <div className="relative">
               <select
                 value={typeFilter}
@@ -252,102 +401,103 @@ export function ContactsPage({ role }: ContactsPageProps) {
                 style={mont}
               >
                 <option value="All">Contact Type</option>
-                <option value="Buyer">Buyer</option>
-                <option value="Seller">Seller</option>
-              </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
-            </div>
-            {/* Status */}
-            <div className="relative">
-              <select
-                className="h-9 pl-4 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
-                style={mont}
-                defaultValue="All"
-              >
-                <option value="All">Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value={ContactType.BUYER}>Buyer</option>
+                <option value={ContactType.SELLER}>Seller</option>
+                <option value={ContactType.BOTH}>Both</option>
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
             </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px]">
-            <thead>
-              <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
-                <th className="px-6 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[240px]" style={mont}>Contact Name</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[224px]" style={mont}>Contact Information</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[200px]" style={mont}>Location</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[156px]" style={mont}>Assigned Listings</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[160px]" style={mont}>Contact ID</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-center w-[120px]" style={mont}>Contact Type</th>
-                <th className="w-[55px]" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((contact) => (
-                <tr key={contact.id} className="border-b border-[#e5e7eb] last:border-b-0">
-                  {/* Name */}
-                  <td className="px-6 py-4 w-[240px]">
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-full bg-[#1e4f86] text-white flex items-center justify-center text-[11px] font-semibold shrink-0" style={mont}>
-                        {contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+        {/* Loading / error / table */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 gap-2 text-[#6a7282]">
+            <Loader2 size={18} className="animate-spin" />
+            <span className="text-[14px]" style={mont}>Loading contacts…</span>
+          </div>
+        ) : isError ? (
+          <div className="py-10 text-center text-[14px] text-red-500" style={mont}>
+            Failed to load contacts.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px]">
+              <thead>
+                <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
+                  <th className="px-6 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[240px]" style={mont}>Contact Name</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[224px]" style={mont}>Contact Information</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[200px]" style={mont}>Location</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[156px]" style={mont}>Assigned Listings</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[160px]" style={mont}>Contact ID</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-center w-[120px]" style={mont}>Contact Type</th>
+                  <th className="w-[55px]" />
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((contact: ContactDto) => (
+                  <tr key={contact.id} className="border-b border-[#e5e7eb] last:border-b-0">
+                    <td className="px-6 py-4 w-[240px]">
+                      <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-full bg-[#1e4f86] text-white flex items-center justify-center text-[11px] font-semibold shrink-0" style={mont}>
+                          {contact.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>
+                          {contact.fullName}
+                        </span>
                       </div>
-                      <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>
-                        {contact.name}
+                    </td>
+                    <td className="px-4 py-[14px] w-[224px]">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>
+                          {contact.email ?? "—"}
+                        </span>
+                        <span className="text-[12px] text-[#6a7282] whitespace-nowrap" style={mont}>
+                          {contact.phone ?? "—"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-[18px] w-[200px]">
+                      <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>
+                        {contact.location ?? "—"}
                       </span>
-                    </div>
-                  </td>
-                  {/* Contact Information */}
-                  <td className="px-4 py-[14px] w-[224px]">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{contact.email}</span>
-                      <span className="text-[12px] text-[#6a7282] whitespace-nowrap" style={mont}>{contact.phone}</span>
-                    </div>
-                  </td>
-                  {/* Location */}
-                  <td className="px-4 py-[18px] w-[200px]">
-                    <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{contact.location}</span>
-                  </td>
-                  {/* Assigned Listings */}
-                  <td className="px-4 py-[18px] w-[156px]">
-                    <span className="text-[14px] font-semibold text-[#4896b6]" style={mont}>{contact.assignedListings}</span>
-                  </td>
-                  {/* Contact ID */}
-                  <td className="px-4 py-6 w-[160px]">
-                    <span className="text-[14px] font-semibold text-[#4896b6]" style={mont}>{contact.contactId}</span>
-                  </td>
-                  {/* Contact Type */}
-                  <td className="px-4 py-4 w-[120px] text-center">
-                    <TypeBadge type={contact.type} />
-                  </td>
-                  {/* Actions */}
-                  <td className="px-4 py-4 w-[55px] text-center">
-                    <button
-                      type="button"
-                      title="Actions"
-                      className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    No contacts found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </td>
+                    <td className="px-4 py-[18px] w-[156px]">
+                      <span className="text-[14px] font-semibold text-[#4896b6]" style={mont}>
+                        {contact.properties.length}
+                      </span>
+                    </td>
+                    <td className="px-4 py-6 w-[160px]">
+                      <span className="text-[14px] font-semibold text-[#4896b6]" style={mont}>
+                        {contact.contactId}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 w-[120px] text-center">
+                      <TypeBadge type={contact.type} />
+                    </td>
+                    <td className="px-4 py-4 w-[55px] text-center">
+                      <RowMenu
+                        contact={contact}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        onEdit={() => setEditingContact(contact)}
+                        onDelete={() => setDeletingContact(contact)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && !isLoading && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
+                      {contacts.length === 0 ? "No contacts yet — add your first contact." : "No contacts match your search."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {/* Footer */}
         <div className="px-5 py-3 border-t border-[#f3f4f6]">
           <span className="text-[12px] font-medium text-[#6a7282]" style={mont}>
             Showing {filtered.length} of {contacts.length} contacts
@@ -355,8 +505,29 @@ export function ContactsPage({ role }: ContactsPageProps) {
         </div>
       </div>
 
-      {showModal && (
-        <AddContactModal onClose={() => setShowModal(false)} onCreate={handleCreate} />
+      {/* Modals */}
+      {showAddModal && (
+        <AddContactModal
+          onClose={() => setShowAddModal(false)}
+          onCreate={handleCreate}
+          isSaving={createMutation.isPending}
+        />
+      )}
+      {editingContact && (
+        <EditContactModal
+          contact={editingContact}
+          onClose={() => setEditingContact(null)}
+          onSave={handleUpdate}
+          isSaving={updateMutation.isPending}
+        />
+      )}
+      {deletingContact && (
+        <DeleteConfirmModal
+          contact={deletingContact}
+          isDeleting={deleteMutation.isPending}
+          onCancel={() => setDeletingContact(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </div>
   );

@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ulrich Propiedades — Platform Flows & Connections</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --brand-dark: #0f172a;
+      --brand-mid: #1e293b;
+      --brand-accent: #c9a96e;
+      --brand-accent-light: #e8d5b0;
+      --brand-blue: #3b82f6;
+      --brand-green: #10b981;
+      --brand-red: #ef4444;
+      --brand-purple: #8b5cf6;
+      --brand-orange: #f59e0b;
+      --text-primary: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --bg-light: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    .site-header {
+      background: var(--brand-dark);
+      padding: 40px 60px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .site-header .logo-mark {
+      width: 48px; height: 48px;
+      background: var(--brand-accent);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 800; color: var(--brand-dark);
+    }
+    .site-header .title-block h1 {
+      color: #fff; font-size: 26px; font-weight: 700; letter-spacing: -0.5px;
+    }
+    .site-header .title-block p {
+      color: #94a3b8; font-size: 14px; margin-top: 2px;
+    }
+
+    /* ── NAV ── */
+    .toc {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 60px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    .toc a {
+      display: block;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .toc a:hover { color: var(--brand-accent); border-bottom-color: var(--brand-accent); }
+
+    /* ── MAIN ── */
+    main { max-width: 1200px; margin: 0 auto; padding: 48px 40px 80px; }
+
+    /* ── SECTION ── */
+    .section {
+      margin-bottom: 64px;
+      scroll-margin-top: 80px;
+    }
+    .section-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .section-number {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--brand-accent);
+      color: var(--brand-dark);
+      font-weight: 800; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-header h2 { font-size: 22px; font-weight: 700; color: var(--brand-dark); }
+    .section-header .subtitle { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── DIAGRAM CARD ── */
+    .diagram-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .diagram-card h3 {
+      font-size: 15px; font-weight: 600; color: var(--text-primary);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .diagram-card h3 .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .diagram-card .caption {
+      font-size: 13px; color: var(--text-muted);
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      margin-top: 16px;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 3px;
+    }
+
+    /* ── USER TYPE CARDS ── */
+    .user-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .user-card {
+      border-radius: 14px;
+      padding: 22px;
+      border: 1px solid;
+    }
+    .user-card.public   { background: #eff6ff; border-color: #bfdbfe; }
+    .user-card.buyer    { background: #f0fdf4; border-color: #bbf7d0; }
+    .user-card.agent    { background: #faf5ff; border-color: #ddd6fe; }
+    .user-card.admin    { background: #fff7ed; border-color: #fed7aa; }
+
+    .user-card .icon { font-size: 28px; margin-bottom: 8px; }
+    .user-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .user-card .role-badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .public   .role-badge { background: #dbeafe; color: #1d4ed8; }
+    .buyer    .role-badge { background: #dcfce7; color: #166534; }
+    .agent    .role-badge { background: #ede9fe; color: #6d28d9; }
+    .admin    .role-badge { background: #ffedd5; color: #c2410c; }
+
+    .user-card ul { list-style: none; }
+    .user-card ul li {
+      font-size: 13px; color: var(--text-muted);
+      padding: 3px 0;
+      display: flex; align-items: flex-start; gap: 6px;
+    }
+    .user-card ul li::before { content: "›"; font-weight: 700; flex-shrink: 0; }
+
+    /* ── MODULE MAP ── */
+    .module-map {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .module-group {
+      border-radius: 12px; padding: 18px;
+      border: 1px solid;
+    }
+    .module-group h4 {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .module-group.public-side { background: #f0f9ff; border-color: #bae6fd; }
+    .module-group.public-side h4 { color: #0369a1; }
+    .module-group.crm-side    { background: #faf5ff; border-color: #ddd6fe; }
+    .module-group.crm-side h4 { color: #7c3aed; }
+    .module-group.shared      { background: #f0fdf4; border-color: #bbf7d0; }
+    .module-group.shared h4   { color: #15803d; }
+
+    .module-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; padding: 4px 10px; border-radius: 20px;
+      margin: 3px 2px;
+      font-weight: 500;
+    }
+    .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+    .pill-purple { background: #ede9fe; color: #6d28d9; }
+    .pill-green  { background: #dcfce7; color: #166534; }
+    .pill-orange { background: #ffedd5; color: #c2410c; }
+    .pill-gray   { background: #f1f5f9; color: #475569; }
+
+    /* ── FLOW STEPS ── */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      position: relative;
+    }
+    .flow-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 20px;
+      top: 44px;
+      bottom: -20px;
+      width: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .step-num {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px;
+      flex-shrink: 0; position: relative; z-index: 1;
+      border: 2px solid;
+    }
+    .step-content {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      flex: 1;
+      margin-bottom: 20px;
+    }
+    .step-content h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .step-content p  { font-size: 13px; color: var(--text-muted); }
+    .step-content .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 11px; font-weight: 500;
+      padding: 2px 8px; border-radius: 20px;
+      background: var(--bg-light); color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* step color variants */
+    .step-blue   .step-num { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+    .step-purple .step-num { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+    .step-green  .step-num { background: #dcfce7; color: #166534; border-color: #86efac; }
+    .step-orange .step-num { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+    .step-gold   .step-num { background: #fef9c3; color: #854d0e; border-color: #fde047; }
+
+    /* ── RELATIONSHIP TABLE ── */
+    .rel-table { width: 100%; border-collapse: collapse; }
+    .rel-table th {
+      background: var(--brand-dark); color: #fff;
+      padding: 10px 14px; font-size: 12px; font-weight: 600;
+      text-align: left; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .rel-table th:first-child { border-radius: 8px 0 0 0; }
+    .rel-table th:last-child  { border-radius: 0 8px 0 0; }
+    .rel-table td {
+      padding: 10px 14px; font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .rel-table tr:nth-child(even) td { background: var(--bg-light); }
+    .rel-table td strong { color: var(--brand-dark); }
+    .rel-table td .arrow { color: var(--brand-accent); font-weight: 700; margin: 0 4px; }
+
+    /* ── RBAC GRID ── */
+    .rbac-grid { width: 100%; border-collapse: collapse; }
+    .rbac-grid th {
+      padding: 10px 14px; font-size: 12px; font-weight: 700;
+      text-align: center; background: var(--bg-light);
+      border: 1px solid var(--border);
+    }
+    .rbac-grid th:first-child { text-align: left; }
+    .rbac-grid td {
+      padding: 9px 14px; font-size: 13px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .rbac-grid td:first-child { text-align: left; font-weight: 500; }
+    .check { color: #16a34a; font-size: 16px; }
+    .cross { color: #dc2626; font-size: 16px; }
+    .partial { color: #d97706; font-size: 16px; }
+
+    /* ── PIPELINE ── */
+    .pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .pipeline-stage {
+      flex: 1; min-width: 130px;
+      position: relative;
+    }
+    .pipeline-stage .stage-header {
+      padding: 12px 16px;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .pipeline-stage .stage-body {
+      padding: 12px;
+      font-size: 12px; color: var(--text-muted);
+      text-align: center;
+    }
+    .pipeline-stage:not(:last-child)::after {
+      content: '›';
+      position: absolute;
+      right: -10px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px; font-weight: 800;
+      color: var(--border);
+      z-index: 10;
+    }
+    .stage-1 .stage-header { background: #dbeafe; color: #1e40af; border-radius: 10px 0 0 10px; }
+    .stage-2 .stage-header { background: #ede9fe; color: #5b21b6; }
+    .stage-3 .stage-header { background: #fef3c7; color: #92400e; }
+    .stage-4 .stage-header { background: #ffedd5; color: #c2410c; }
+    .stage-5 .stage-header { background: #dcfce7; color: #14532d; border-radius: 0 10px 10px 0; }
+
+    /* ── NOTIFICATION FLOW ── */
+    .notif-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .notif-item {
+      border-radius: 10px; padding: 16px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+    .notif-item .trigger { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+    .notif-item h5 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .notif-item ul { list-style: none; }
+    .notif-item ul li { font-size: 12px; color: var(--text-muted); padding: 2px 0; }
+    .notif-item ul li::before { content: "→ "; color: var(--brand-accent); font-weight: 700; }
+
+    /* ── MERMAID OVERRIDE ── */
+    .mermaid { display: flex; justify-content: center; }
+    .mermaid svg { max-width: 100%; height: auto; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--brand-dark); color: #94a3b8;
+      text-align: center; padding: 24px;
+      font-size: 13px;
+    }
+    footer strong { color: var(--brand-accent); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="logo-mark">U</div>
+  <div class="title-block">
+    <h1>Ulrich Propiedades — Platform Flows & Connections</h1>
+    <p>How every user type interacts with the platform · How all modules connect · End-to-end data flow</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#s1">1 · Who Uses It</a>
+  <a href="#s2">2 · Platform Map</a>
+  <a href="#s3">3 · Public User Journey</a>
+  <a href="#s4">4 · Lead → Deal Flow</a>
+  <a href="#s5">5 · Module Connections</a>
+  <a href="#s6">6 · Agent Workflow</a>
+  <a href="#s7">7 · Admin Overview</a>
+  <a href="#s8">8 · Access Control</a>
+  <a href="#s9">9 · Notification Map</a>
+  <a href="#s10">10 · Full Data Flow</a>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — WHO USES THE PLATFORM
+══════════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <div class="section-number">1</div>
+    <div>
+      <h2>Who Uses the Platform</h2>
+      <div class="subtitle">Four distinct user types, each with a different entry point and set of permissions</div>
+    </div>
+  </div>
+
+  <div class="user-types">
+    <div class="user-card public">
+      <div class="icon">🌐</div>
+      <h4>Public Visitor</h4>
+      <div class="role-badge">No Account</div>
+      <ul>
+        <li>Browses listings freely</li>
+        <li>Uses search & filters</li>
+        <li>Views property detail pages</li>
+        <li>Reads blog & about pages</li>
+        <li>Fills contact / inquiry form</li>
+        <li>Submits tour request</li>
+        <li>Cannot save favorites yet</li>
+      </ul>
+    </div>
+
+    <div class="user-card buyer">
+      <div class="icon">🏠</div>
+      <h4>Registered User</h4>
+      <div class="role-badge">Buyer / Seller</div>
+      <ul>
+        <li>Everything a visitor can do</li>
+        <li>Saves / favorites listings</li>
+        <li>Schedules property tours</li>
+        <li>Views own contracts</li>
+        <li>Tracks scheduled tours</li>
+        <li>Manages profile & preferences</li>
+        <li>Receives tour email confirmations</li>
+      </ul>
+    </div>
+
+    <div class="user-card agent">
+      <div class="icon">👤</div>
+      <h4>Agent (Staff)</h4>
+      <div class="role-badge">Invite-Only</div>
+      <ul>
+        <li>Registers via invitation link</li>
+        <li>Accesses internal dashboard</li>
+        <li>Manages own listings</li>
+        <li>Handles assigned leads</li>
+        <li>Manages own opportunities</li>
+        <li>Views own revenue / deals</li>
+        <li>Communicates with contacts</li>
+        <li>Cannot see all company revenue</li>
+      </ul>
+    </div>
+
+    <div class="user-card admin">
+      <div class="icon">⚙️</div>
+      <h4>Admin / Manager</h4>
+      <div class="role-badge">Full Access</div>
+      <ul>
+        <li>All agent capabilities</li>
+        <li>Full revenue visibility</li>
+        <li>Invites & manages agents</li>
+        <li>Manages all listings globally</li>
+        <li>Views all leads / contracts</li>
+        <li>Configures platform settings</li>
+        <li>Manages office locations</li>
+        <li>Accesses integrations</li>
+        <li>Reads full activity logs</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — PLATFORM MAP
+══════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <div class="section-number">2</div>
+    <div>
+      <h2>Two-System Platform Map</h2>
+      <div class="subtitle">The public website and internal CRM share the same database but serve entirely different audiences</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <h3><span class="dot" style="background:#3b82f6"></span> How the two systems relate</h3>
+    <div class="mermaid">
+graph TB
+    subgraph PUB["🌐  PUBLIC WEBSITE  (what the world sees)"]
+      direction LR
+      HP[Homepage] --> LP[Listings Page]
+      LP --> PD[Property Detail]
+      PD --> CT[Contact / Tour Form]
+      HP --> AB[About Us]
+      HP --> BL[Blog]
+      HP --> CO[Contact Page]
+    end
+
+    subgraph CRM["🔒  INTERNAL CRM / DASHBOARD  (staff only)"]
+      direction LR
+      DA[Dashboard Overview] --> AG[Agents]
+      DA --> LI[Listings Manager]
+      DA --> LD[Leads]
+      DA --> OP[Opportunities]
+      DA --> CN[Contracts]
+      DA --> CO2[Contacts]
+      DA --> ME[Messages]
+      DA --> LO[Locations]
+      DA --> IN[Integrations]
+      DA --> SE[Settings]
+    end
+
+    subgraph DB["🗄️  SHARED DATABASE  (Supabase / PostgreSQL)"]
+      direction LR
+      TL[(listings)] --- TC[(contacts)]
+      TC --- TO[(opportunities)]
+      TO --- TN[(contracts)]
+      TN --- TA[(agents/users)]
+    end
+
+    CT -->|"Creates lead"| LD
+    PD -->|"Listing data"| TL
+    LI -->|"Reads & writes"| TL
+    LD -->|"Stored in"| TC
+    OP --- TO
+    CN --- TN
+
+    style PUB fill:#eff6ff,stroke:#93c5fd,color:#1e3a5f
+    style CRM fill:#faf5ff,stroke:#c4b5fd,color:#3b0764
+    style DB fill:#f0fdf4,stroke:#86efac,color:#14532d
+    </div>
+    <div class="caption">The public website is the customer-facing layer. The CRM is the operations layer. Both read and write from the same Supabase database — listings created in the CRM instantly appear on the public site.</div>
+  </div>
+
+  <div class="diagram-card">
+    <h3><span class="dot" style="background:#c9a96e"></span> Module overview</h3>
+    <div class="module-map">
+      <div class="module-group public-side">
+        <h4>Public Website</h4>
+        <span class="module-pill pill-blue">🏠 Homepage</span>
+        <span class="module-pill pill-blue">🔍 Listings Search</span>
+        <span class="module-pill pill-blue">📄 Property Detail</span>
+        <span class="module-pill pill-blue">📰 Blog</span>
+        <span class="module-pill pill-blue">📞 Contact Page</span>
+        <span class="module-pill pill-blue">ℹ️ About Us</span>
+        <span class="module-pill pill-blue">👤 User Profile</span>
+        <span class="module-pill pill-blue">🗺️ Map View</span>
+      </div>
+      <div class="module-group crm-side">
+        <h4>CRM Dashboard</h4>
+        <span class="module-pill pill-purple">📊 Overview</span>
+        <span class="module-pill pill-purple">👥 Agents</span>
+        <span class="module-pill pill-purple">📋 Listings</span>
+        <span class="module-pill pill-purple">🎯 Leads</span>
+        <span class="module-pill pill-purple">💼 Opportunities</span>
+        <span class="module-pill pill-purple">📝 Contracts</span>
+        <span class="module-pill pill-purple">👤 Contacts</span>
+        <span class="module-pill pill-purple">💬 Messages</span>
+        <span class="module-pill pill-purple">📍 Locations</span>
+        <span class="module-pill pill-purple">🔗 Integrations</span>
+        <span class="module-pill pill-purple">⚙️ Settings</span>
+      </div>
+      <div class="module-group shared">
+        <h4>Shared / Cross-Cutting</h4>
+        <span class="module-pill pill-green">🔐 Auth (Supabase)</span>
+        <span class="module-pill pill-green">🗂️ File Storage</span>
+        <span class="module-pill pill-green">📧 Email System</span>
+        <span class="module-pill pill-green">🔔 Notifications</span>
+        <span class="module-pill pill-green">🔎 Global Search</span>
+        <span class="module-pill pill-green">📝 Activity Logs</span>
+        <span class="module-pill pill-green">🗺️ Google Maps</span>
+        <span class="module-pill pill-orange">🔑 RBAC</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 — PUBLIC USER JOURNEY
+══════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <div class="section-number">3</div>
+    <div>
+      <h2>Public User Journey</h2>
+      <div class="subtitle">How a stranger on the internet becomes a registered contact in your CRM</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+flowchart TD
+    A([🌐 Visitor lands on website]) --> B[Sees Homepage Hero\nwith search bar]
+    B --> C{How do they search?}
+
+    C -->|Types location keywords\nsets filters| D[Listings Results Page\nGrid or Map view]
+    C -->|Clicks featured area\nor property type| D
+
+    D --> E[Opens single Property Page]
+    E --> F{What action do they take?}
+
+    F -->|Interested| G[Fills Contact / Inquiry Form]
+    F -->|Wants to visit| H[Schedules a Tour]
+    F -->|Not ready yet| I[Shares listing link\nFacebook · WhatsApp etc]
+    F -->|Creates account| J[Registers → saves to favorites]
+
+    G -->|Email sent to agent| K[📬 Lead created in CRM]
+    H -->|HTML email sent to user| K
+    J --> L[User Profile\nsaved listings · tours · contracts]
+
+    K --> M[Agent picks up lead\nin CRM dashboard]
+
+    style A fill:#dbeafe,stroke:#93c5fd
+    style K fill:#dcfce7,stroke:#86efac
+    style M fill:#ede9fe,stroke:#c4b5fd
+    </div>
+    <div class="caption">The moment a visitor submits any form — contact, tour request, or inquiry — they automatically become a Lead inside the CRM. The assigned agent is notified instantly.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4 — LEAD TO DEAL FLOW
+══════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <div class="section-number">4</div>
+    <div>
+      <h2>Lead → Opportunity → Contract → Revenue</h2>
+      <div class="subtitle">The core business pipeline — how a new inquiry becomes closed revenue</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <h3><span class="dot" style="background:#f59e0b"></span> Sales pipeline stages</h3>
+    <div class="pipeline">
+      <div class="pipeline-stage stage-1">
+        <div class="stage-header">1 · Lead</div>
+        <div class="stage-body">New contact from website form, referral, or manual entry<br><br><strong>Score:</strong> Cold / Warm / Hot<br><strong>Source:</strong> Website, referral, direct</div>
+      </div>
+      <div class="pipeline-stage stage-2">
+        <div class="stage-header">2 · Contact</div>
+        <div class="stage-body">Lead is qualified and converted to a named contact<br><br><strong>Type:</strong> Buyer / Seller / Agent<br>Linked to property interest</div>
+      </div>
+      <div class="pipeline-stage stage-3">
+        <div class="stage-header">3 · Opportunity</div>
+        <div class="stage-body">Active deal being pursued<br><br><strong>Stages:</strong> Qualification → Visitation → Offer → Negotiation → Closing<br>Tracks commission</div>
+      </div>
+      <div class="pipeline-stage stage-4">
+        <div class="stage-header">4 · Contract</div>
+        <div class="stage-body">Formal agreement created<br><br><strong>Status:</strong> Pending → Active → Completed<br>Documents uploaded</div>
+      </div>
+      <div class="pipeline-stage stage-5">
+        <div class="stage-header">5 · Revenue</div>
+        <div class="stage-body">Deal closes, revenue recorded<br><br>Appears on Dashboard metrics<br>Links to agent commission</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+flowchart LR
+    L[🎯 LEAD\nCold · Warm · Hot] -->|Agent qualifies| C[👤 CONTACT\nBuyer / Seller]
+    C -->|Agent opens deal| O[💼 OPPORTUNITY\nQualification stage]
+
+    O --> O1[Visitation]
+    O1 --> O2[Offer Made]
+    O2 --> O3[Negotiation]
+    O3 --> O4[Closing]
+
+    O4 -->|Win| CN[📝 CONTRACT\nPending]
+    O4 -->|Loss| CL[❌ Closed Lost]
+
+    CN -->|Signed & active| CA[✅ CONTRACT\nActive]
+    CA -->|Completed| REV[💰 REVENUE\nRecorded on Dashboard]
+
+    REV --> AG[Agent commission\nrecorded]
+    REV --> DA[Dashboard metrics\nupdated]
+
+    style L fill:#fef3c7,stroke:#fcd34d
+    style C fill:#dbeafe,stroke:#93c5fd
+    style O fill:#ede9fe,stroke:#c4b5fd
+    style CN fill:#ffedd5,stroke:#fdba74
+    style CA fill:#dcfce7,stroke:#86efac
+    style REV fill:#d1fae5,stroke:#6ee7b7
+    style CL fill:#fee2e2,stroke:#fca5a5
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <h3><span class="dot" style="background:#3b82f6"></span> Step-by-step walkthrough</h3>
+    <div class="flow-steps">
+      <div class="flow-step step-blue">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Lead enters the system</h4>
+          <p>Someone fills the contact form, schedules a tour, or an agent manually adds them. They are scored (Cold/Warm/Hot) and assigned to an agent.</p>
+          <div class="tags"><span class="tag">Source: website form</span><span class="tag">Score slider 0–100</span><span class="tag">Auto-notifies agent</span></div>
+        </div>
+      </div>
+      <div class="flow-step step-purple">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Lead becomes a Contact</h4>
+          <p>Once the agent has spoken with them, the lead is promoted to a Contact with full details: name, type (Buyer/Seller/Agent), location, linked property interest.</p>
+          <div class="tags"><span class="tag">Buyer / Seller / Agent type</span><span class="tag">Links to listing</span><span class="tag">Notes & history</span></div>
+        </div>
+      </div>
+      <div class="flow-step step-orange">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Opportunity opened</h4>
+          <p>Agent creates an Opportunity linking the Contact + Listing. Moves through stages: Qualification → Visitation → Offer → Negotiation → Closing. Tracks commission amount and probability %.</p>
+          <div class="tags"><span class="tag">5 pipeline stages</span><span class="tag">Commission tracked</span><span class="tag">Expected close date</span><span class="tag">Win probability</span></div>
+        </div>
+      </div>
+      <div class="flow-step step-gold">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Contract created</h4>
+          <p>If the opportunity closes as Won, a Contract is created. Includes type, value, contingencies, terms, and document uploads (PDF/DOC). Status: Pending → Active → Completed.</p>
+          <div class="tags"><span class="tag">Document upload</span><span class="tag">Expiry tracking</span><span class="tag">Expiry notifications</span></div>
+        </div>
+      </div>
+      <div class="flow-step step-green">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>Revenue recorded</h4>
+          <p>Once a contract is marked Completed, the revenue value flows into the Dashboard — showing total revenue, agent performance, location summaries, and the sales summary table.</p>
+          <div class="tags"><span class="tag">Dashboard metrics</span><span class="tag">Agent commission</span><span class="tag">Location revenue</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5 — MODULE CONNECTIONS
+══════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <div class="section-number">5</div>
+    <div>
+      <h2>How Every Module Connects</h2>
+      <div class="subtitle">The relationships and data links between all modules in the system</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+graph TD
+    LISTING[🏠 LISTING\nThe core asset]
+    AGENT[👤 AGENT\nResponsible person]
+    CONTACT[👥 CONTACT\nBuyer or Seller]
+    LEAD[🎯 LEAD\nPotential client]
+    OPP[💼 OPPORTUNITY\nActive deal]
+    CONTRACT[📝 CONTRACT\nFormal agreement]
+    LOCATION[📍 LOCATION\nOffice / Area]
+    MESSAGE[💬 MESSAGE\nComms thread]
+    REVENUE[💰 REVENUE\nDashboard metric]
+
+    AGENT -->|assigned to| LISTING
+    AGENT -->|handles| LEAD
+    AGENT -->|owns| OPP
+    AGENT -->|part of| LOCATION
+
+    LISTING -->|linked to| OPP
+    LISTING -->|shown in| CONTRACT
+    LISTING -->|associated with| CONTACT
+
+    LEAD -->|converts to| CONTACT
+    CONTACT -->|linked in| OPP
+    CONTACT -->|named in| CONTRACT
+    CONTACT -->|messages via| MESSAGE
+
+    OPP -->|closes into| CONTRACT
+    CONTRACT -->|produces| REVENUE
+
+    LOCATION -->|contains| LISTING
+    LOCATION -->|has| AGENT
+
+    REVENUE -->|shown on| DA[📊 Dashboard]
+
+    style LISTING fill:#dbeafe,stroke:#93c5fd
+    style AGENT fill:#ede9fe,stroke:#c4b5fd
+    style OPP fill:#fef3c7,stroke:#fcd34d
+    style CONTRACT fill:#ffedd5,stroke:#fdba74
+    style REVENUE fill:#dcfce7,stroke:#86efac
+    style LEAD fill:#fee2e2,stroke:#fca5a5
+    </div>
+    <div class="caption">Every module in the CRM eventually connects back to either a Listing (the property) or an Agent (the person responsible). Listings and Agents are the two anchor records everything else hangs from.</div>
+  </div>
+
+  <div class="diagram-card">
+    <h3><span class="dot" style="background:#8b5cf6"></span> Cross-module relationship table</h3>
+    <table class="rel-table">
+      <thead>
+        <tr>
+          <th>Module</th>
+          <th>Connects to</th>
+          <th>How they relate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Listing</strong></td>
+          <td>Agent · Location · Opportunity · Contract</td>
+          <td>Each listing is assigned to an agent and a location. Opportunities and contracts reference the listing as the "property" field.</td>
+        </tr>
+        <tr>
+          <td><strong>Lead</strong></td>
+          <td>Contact · Agent · Listing</td>
+          <td>A lead has a "property interest" field that links to a specific listing. When qualified, the lead is promoted to a Contact. The lead is assigned to an agent.</td>
+        </tr>
+        <tr>
+          <td><strong>Contact</strong></td>
+          <td>Lead · Opportunity · Contract · Listing · Message</td>
+          <td>Contacts are the client records. A seller contact can link directly to a property listing they own. Contacts appear in opportunities as the "client" side.</td>
+        </tr>
+        <tr>
+          <td><strong>Opportunity</strong></td>
+          <td>Contact · Listing · Agent · Contract</td>
+          <td>An opportunity always has: one contact (the buyer/seller), one listing (the property), one agent. When marked Won, it spawns a Contract.</td>
+        </tr>
+        <tr>
+          <td><strong>Contract</strong></td>
+          <td>Opportunity · Listing · Contact · Agent</td>
+          <td>Contracts reference the listing, the counterparty contact, and the responsible agent. Revenue is derived from the contract value when Completed.</td>
+        </tr>
+        <tr>
+          <td><strong>Agent</strong></td>
+          <td>Listing · Lead · Opportunity · Contract · Location · Message</td>
+          <td>Agents are assigned to listings, own leads, manage opportunities, sign contracts, and belong to an office location. Dashboard shows their individual performance.</td>
+        </tr>
+        <tr>
+          <td><strong>Location</strong></td>
+          <td>Listing · Agent</td>
+          <td>Locations are office areas or regions. Listings belong to a location. Agents are assigned to a location. Dashboard shows per-location revenue and property count.</td>
+        </tr>
+        <tr>
+          <td><strong>Message</strong></td>
+          <td>Contact · Agent</td>
+          <td>Messages connect an agent (or admin) with a contact (or public user via front-end DM). The same inbox handles both internal agent chat and customer inquiries.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 6 — AGENT WORKFLOW
+══════════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <div class="section-number">6</div>
+    <div>
+      <h2>Agent Daily Workflow</h2>
+      <div class="subtitle">A typical day for a real estate agent using the internal CRM</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+flowchart TD
+    START([🔒 Agent logs in\nvia email + OTP]) --> DASH[Dashboard Overview\nSee today's metrics & notifications]
+
+    DASH --> N{New notification?}
+    N -->|New lead arrived| LD[Open Leads Module\nReview & score lead]
+    N -->|Message received| MSG[Open Messages\nReply to contact or colleague]
+    N -->|Contract expiring| CN[Open Contracts\nReview & take action]
+    N -->|Nothing urgent| PLAN[Check opportunity pipeline]
+
+    LD --> LD2[Qualify lead\nUpdate score & notes]
+    LD2 --> LD3{Ready to convert?}
+    LD3 -->|Yes| CO[Create Contact\nfrom lead record]
+    LD3 -->|Not yet| LD4[Schedule follow-up\nAdd notes]
+
+    CO --> OP[Create Opportunity\nLink contact + listing]
+    OP --> OP2[Move through stages:\nVisitation → Offer → Negotiation]
+    OP2 -->|Deal won| CT[Create Contract\nUpload documents]
+    OP2 -->|Deal lost| CL[Mark Closed Lost\nAdd reason notes]
+
+    PLAN --> LI[Check assigned listings\nUpdate status if needed]
+    LI --> LI2[Upload new listing\n4-step form]
+
+    style START fill:#dbeafe,stroke:#93c5fd
+    style DASH fill:#f0f9ff,stroke:#bae6fd
+    style CT fill:#dcfce7,stroke:#86efac
+    style CL fill:#fee2e2,stroke:#fca5a5
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 7 — ADMIN OVERVIEW
+══════════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <div class="section-number">7</div>
+    <div>
+      <h2>Admin / Manager Overview</h2>
+      <div class="subtitle">What the admin sees that agents don't — and how the whole platform is managed</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+flowchart TD
+    ADMIN([👑 Admin logs in]) --> GDASH[Global Dashboard\nFull company view]
+
+    GDASH --> MET[All Metrics\nRevenue · Properties · All Opportunities]
+    GDASH --> AGENTS[Agents Module\nAll agents + performance]
+    GDASH --> ALL_L[All Listings\nAcross all locations]
+    GDASH --> ALL_LD[All Leads\nFrom all sources]
+    GDASH --> ALL_OP[All Opportunities\nAll agents pipeline]
+    GDASH --> ALL_CN[All Contracts\nAll statuses]
+    GDASH --> LOC[Locations Module\nAll office areas]
+    GDASH --> INT[Integrations\nAPI keys · Webhooks]
+    GDASH --> SET[Settings\nPlatform config]
+    GDASH --> LOG[Activity Logs\nWho changed what & when]
+
+    AGENTS --> INV[Send invite link to new agent\nExpires after set time]
+    INV --> REG[Agent registers via\nsecure token URL]
+    REG --> DASH2[Agent gets access to\ntheir own dashboard]
+
+    LOG --> L1[Tracks: who edited a record]
+    LOG --> L2[Tracks: previous field values]
+    LOG --> L3[Tracks: deleted records]
+    LOG --> L4[Tracks: status changes]
+
+    style ADMIN fill:#ffedd5,stroke:#fdba74
+    style GDASH fill:#fff7ed,stroke:#fed7aa
+    style LOG fill:#fef3c7,stroke:#fcd34d
+    style INV fill:#dcfce7,stroke:#86efac
+    </div>
+    <div class="caption">The admin is the only role with global visibility. They can see combined revenue across all agents, manage office locations, configure integrations, and audit the full activity log — none of which agents can access.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 8 — ACCESS CONTROL (RBAC)
+══════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <div class="section-number">8</div>
+    <div>
+      <h2>Role-Based Access Control (RBAC)</h2>
+      <div class="subtitle">Who can see and do what — this is enforced at the database level, not just the UI</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <table class="rbac-grid">
+      <thead>
+        <tr>
+          <th>Feature / Data</th>
+          <th>🌐 Public</th>
+          <th>🏠 Registered User</th>
+          <th>👤 Agent</th>
+          <th>👑 Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Browse listings</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Save / favorite listings</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Schedule a tour</td>
+          <td><span class="partial">△ (form only)</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Access CRM dashboard</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Upload & manage listings</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">△ Own only</span></td>
+          <td><span class="check">✓ All</span></td>
+        </tr>
+        <tr>
+          <td>View leads</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">△ Assigned only</span></td>
+          <td><span class="check">✓ All</span></td>
+        </tr>
+        <tr>
+          <td>View opportunities</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">△ Own deals</span></td>
+          <td><span class="check">✓ All</span></td>
+        </tr>
+        <tr>
+          <td>View contracts</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">△ Own contracts</span></td>
+          <td><span class="partial">△ Own deals</span></td>
+          <td><span class="check">✓ All</span></td>
+        </tr>
+        <tr>
+          <td>View company revenue</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">△ Own commission</span></td>
+          <td><span class="check">✓ Full</span></td>
+        </tr>
+        <tr>
+          <td>Manage agents</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Send invite links</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Manage locations</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Configure integrations</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Read activity logs</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Message contacts</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">△ To agents only</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="legend" style="margin-top:12px">
+      <div class="legend-item"><span class="legend-dot" style="background:#16a34a"></span> ✓ Full access</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#d97706"></span> △ Partial / scoped access</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#dc2626"></span> ✗ No access</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 9 — NOTIFICATION MAP
+══════════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <div class="section-number">9</div>
+    <div>
+      <h2>Notification & Email Map</h2>
+      <div class="subtitle">What triggers a notification, who receives it, and through what channel</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="notif-grid">
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>🏠 Tour scheduled by public user</h5>
+        <ul>
+          <li>HTML branded email → User (confirmation)</li>
+          <li>In-app notification → Assigned agent</li>
+          <li>Email alert → Assigned agent</li>
+          <li>Lead created → CRM Leads module</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>📝 New contact form submitted</h5>
+        <ul>
+          <li>Lead created → CRM Leads module</li>
+          <li>In-app notification → Admin + agents</li>
+          <li>Email alert → Assigned agent</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>📄 Contract approaching expiry</h5>
+        <ul>
+          <li>In-app notification → Admin</li>
+          <li>Email alert → Admin</li>
+          <li>In-app notification → Responsible agent</li>
+          <li>Dashboard warning badge displayed</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>👤 New agent registered</h5>
+        <ul>
+          <li>In-app notification → Admin</li>
+          <li>Welcome email → New agent</li>
+          <li>Activity log entry created</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>🎯 New lead assigned to agent</h5>
+        <ul>
+          <li>In-app notification → Agent</li>
+          <li>Email alert → Agent (if enabled)</li>
+          <li>Lead appears in agent's dashboard</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>💬 New message received</h5>
+        <ul>
+          <li>In-app notification → Recipient</li>
+          <li>Email alert → Recipient (if enabled)</li>
+          <li>Badge on Messages sidebar icon</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>🏠 New listing published</h5>
+        <ul>
+          <li>In-app notification → All agents (optional)</li>
+          <li>Listing goes live on public website</li>
+          <li>Activity log entry created</li>
+        </ul>
+      </div>
+      <div class="notif-item">
+        <div class="trigger">TRIGGER</div>
+        <h5>📊 Weekly performance</h5>
+        <ul>
+          <li>Weekly email report → Admin</li>
+          <li>Weekly email report → Each agent (own stats)</li>
+          <li>Configurable in Settings → Notifications</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 10 — FULL PLATFORM FLOW
+══════════════════════════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-header">
+    <div class="section-number">10</div>
+    <div>
+      <h2>Complete End-to-End Platform Flow</h2>
+      <div class="subtitle">The full picture — from first website visit to closed deal, showing every system involved</div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+flowchart TD
+    subgraph INTERNET["🌐 PUBLIC INTERNET"]
+      V([Visitor]) -->|searches| WEB[Public Website]
+      WEB -->|views| PROP[Property Page]
+      PROP -->|submits form| FORM[Tour / Contact Form]
+    end
+
+    subgraph AUTH["🔐 AUTHENTICATION LAYER  (Supabase Auth + OTP)"]
+      FORM -->|anonymous| LEAD_IN[Lead created]
+      FORM -->|registers| USER_ACC[User Account created]
+      STAFF_INV[Admin sends invite] -->|secure token link| AGENT_REG[Agent registers]
+      AGENT_REG --> AGENT_ACC[Agent Account created]
+    end
+
+    subgraph CRM_LAYER["📊 CRM OPERATIONS"]
+      LEAD_IN --> LEADS_M[Leads Module\nScore & assign]
+      LEADS_M --> CONTACTS_M[Contacts Module\nQualified contact record]
+      CONTACTS_M --> OPP_M[Opportunities Module\nDeal tracking through stages]
+      OPP_M -->|won| CONTRACTS_M[Contracts Module\nFormal agreement + docs]
+      CONTRACTS_M -->|completed| REVENUE[Revenue → Dashboard]
+    end
+
+    subgraph SUPPORT["⚙️ SUPPORTING SYSTEMS"]
+      EMAIL[📧 Email System\nHTML branded emails]
+      NOTIF[🔔 Notifications\nIn-app + email alerts]
+      STORAGE[🗂️ Supabase Storage\nImages · PDFs · Docs]
+      MAPS[🗺️ Google Maps\nProperty & location maps]
+      LOGS[📝 Activity Logs\nEvery change tracked]
+      SEARCH[🔍 Global Search\nAll modules searchable]
+    end
+
+    subgraph ADMIN_LAYER["👑 ADMIN CONTROL"]
+      STAFF_INV
+      LOCATIONS[Locations Module]
+      SETTINGS[Settings & Integrations]
+      ANALYTICS[Dashboard Analytics]
+    end
+
+    LEAD_IN --> NOTIF
+    CONTRACTS_M --> NOTIF
+    CONTRACTS_M --> EMAIL
+    FORM --> EMAIL
+    USER_ACC --> EMAIL
+    AGENT_ACC --> EMAIL
+
+    OPP_M --> LOGS
+    CONTACTS_M --> LOGS
+    CONTRACTS_M --> LOGS
+
+    PROP --> MAPS
+    LOCATIONS --> MAPS
+
+    WEB --> STORAGE
+    CONTRACTS_M --> STORAGE
+
+    REVENUE --> ANALYTICS
+    LEADS_M --> ANALYTICS
+    OPP_M --> ANALYTICS
+
+    style INTERNET fill:#eff6ff,stroke:#bfdbfe,color:#1e3a5f
+    style AUTH fill:#f0fdf4,stroke:#bbf7d0,color:#14532d
+    style CRM_LAYER fill:#faf5ff,stroke:#ddd6fe,color:#3b0764
+    style SUPPORT fill:#fff7ed,stroke:#fed7aa,color:#7c2d12
+    style ADMIN_LAYER fill:#fef3c7,stroke:#fcd34d,color:#78350f
+    </div>
+    <div class="caption">
+      Every action on the platform — from a visitor clicking a listing to an admin closing a contract — flows through this connected system.
+      The database is the single source of truth; Auth controls who can access what; the CRM is where the business happens;
+      and the supporting systems (email, notifications, storage, logs) make sure nothing is missed.
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <h3><span class="dot" style="background:#c9a96e"></span> Key rules that hold everything together</h3>
+    <table class="rel-table">
+      <thead>
+        <tr><th>Rule</th><th>Why it matters</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Every listing has one agent owner</strong></td>
+          <td>Ensures accountability. The listing shows on that agent's performance stats. Agents only see and edit their own listings.</td>
+        </tr>
+        <tr>
+          <td><strong>Every opportunity has one contact + one listing</strong></td>
+          <td>Forces clean data entry. You can't have a deal without knowing who the client is and which property is involved.</td>
+        </tr>
+        <tr>
+          <td><strong>Revenue only comes from completed contracts</strong></td>
+          <td>Dashboard revenue numbers are always accurate — they don't count pending or active contracts, only completed ones.</td>
+        </tr>
+        <tr>
+          <td><strong>Agents can only see their own data by default</strong></td>
+          <td>Protects company-wide information. An agent sees their leads, deals, and commission — not the whole company's revenue.</td>
+        </tr>
+        <tr>
+          <td><strong>Contracts track expiry dates</strong></td>
+          <td>The system automatically notifies admin and the responsible agent before a contract expires — this is critical for rentals.</td>
+        </tr>
+        <tr>
+          <td><strong>Every change is logged</strong></td>
+          <td>Activity logs record who changed what, when, and what the previous value was. Deleted records are not lost — they're archived.</td>
+        </tr>
+        <tr>
+          <td><strong>Agent registration is invite-only</strong></td>
+          <td>Prevents unauthorised access. Admin generates a time-limited token URL. Anyone without an invite cannot create an agent account.</td>
+        </tr>
+        <tr>
+          <td><strong>Listings on website = listings in CRM</strong></td>
+          <td>There is one source of truth. When an agent publishes a listing in the CRM, it immediately appears on the public website. No manual sync needed.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <strong>Ulrich Propiedades</strong> — Platform Flows & User Interaction Documentation · June 2026
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#dbeafe',
+      primaryTextColor: '#1e293b',
+      primaryBorderColor: '#93c5fd',
+      lineColor: '#94a3b8',
+      secondaryColor: '#f0fdf4',
+      tertiaryColor: '#faf5ff',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: '13px'
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20
+    }
+  });
+</script>
+</body>
+</html>

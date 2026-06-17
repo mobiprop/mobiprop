@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSavedListings } from "@/hooks/useSavedListings";
+import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import svgPaths from "./singleListingSvgPaths";
 import type { PublicListingAgent } from "../listing-actions";
 import type { PublicListingDto } from "../types/listing-dto";
@@ -442,6 +444,9 @@ export function SingleListingPageContent({
   agent: PublicListingAgent | null;
 }) {
   const [copied, setCopied] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const { isSaved, toggleSave } = useSavedListings();
+  const saved = isSaved(listing.listingId);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).catch(() => undefined);
@@ -472,6 +477,7 @@ export function SingleListingPageContent({
 
   return (
     <div className="w-full bg-white">
+      <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       {/* Breadcrumb */}
       <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-5">
         <p
@@ -858,6 +864,28 @@ export function SingleListingPageContent({
               />
             </svg>
             {copied ? "Copied!" : "Copy Link"}
+          </button>
+
+          {/* Save button */}
+          <button
+            onClick={() => toggleSave(listing.listingId, () => setLoginOpen(true))}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-4xl border text-[13px] sm:text-[14px] transition-colors shrink-0 ${
+              saved
+                ? "border-[#e74c3c] text-[#e74c3c] bg-[#fff5f5] hover:bg-[#ffe8e8]"
+                : "border-[#d1d5dc] text-[#2b3038] hover:bg-gray-50"
+            }`}
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+            aria-label={saved ? "Remove from saved" : "Save property"}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill={saved ? "#e74c3c" : "none"}>
+              <path
+                d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
+                stroke={saved ? "#e74c3c" : "#6A7282"}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {saved ? "Saved" : "Save"}
           </button>
         </div>
       </div>

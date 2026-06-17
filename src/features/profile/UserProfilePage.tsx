@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-import { logoutAction } from "@/features/auth/actions";
+import Link from "next/link";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 import { EditProfileModal } from "./EditProfileModal";
 import type { Profile } from "@/generated/prisma/client";
 import {
@@ -13,33 +14,26 @@ import {
   MessageSquare,
   Heart, FileText, MapPin
 } from "lucide-react";
+import {
+  listingDisplayPrice,
+  formatArea,
+  formatBeds,
+  formatBaths,
+  PROPERTY_TYPE_LABELS,
+} from "@/features/listings/utils/format";
 
 /* ─── assets ─── */
 const clouds =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
-const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
 const iconEmail = "/assets/figma-temp/UserProfile/email.svg";
 const iconPhone = "/assets/figma-temp/UserProfile/phone.svg";
 const iconMap = "/assets/figma-temp/UserProfile/location.svg";
 const iconEdit = "/assets/figma-temp/UserProfile/icon-edit.svg";
-const iconHeart = "/assets/figma-temp/UserProfile/Heart.svg";
 const iconSqft = "/assets/figma-temp/UserProfile/icon-sqft.svg";
 const iconBed = "/assets/figma-temp/UserProfile/icon-bed.svg";
 const iconBath = "/assets/figma-temp/UserProfile/icon-bath.svg";
 const iconLocation = "/assets/figma-temp/UserProfile/icon-location.svg";
-/* inline SVG icons (Figma asset downloads were blank for these small icons) */
-
-const propPhotos = [
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-7.png",
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-8.png",
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-9.png",
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png",
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-5.png",
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-4.png",
-  "/assets/figma-temp/UserProfile/prop-6.png",
-  "/assets/figma-temp/UserProfile/prop-7.png",
-];
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
@@ -63,65 +57,154 @@ function IconUpload() {
   );
 }
 
-/* ─── Property Card ─── */
-function PropertyCard({ photo, tag1 = "Sale", tag2 = "Apartment" }: { photo: string; tag1?: string; tag2?: string }) {
-  const [saved, setSaved] = useState(false);
+/* ─── Saved property type ─── */
+type SavedListing = {
+  id: string;
+  slug: string;
+  title: string;
+  location: string;
+  type: string;
+  operationType: string;
+  salePrice: number | null;
+  rentPrice: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  areaSqft: number | null;
+  coverImageUrl: string | null;
+  savedAt: string;
+};
+
+const fallbackImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
+
+/* ─── Real Saved Property Card ─── */
+function SavedCard({
+  listing,
+  onRemove,
+}: {
+  listing: SavedListing;
+  onRemove: (id: string) => void;
+}) {
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRemove(listing.id);
+  };
+
+  const price = listingDisplayPrice({
+    salePrice: listing.salePrice,
+    rentPrice: listing.rentPrice,
+    operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
+  } as Parameters<typeof listingDisplayPrice>[0]);
+
+  const typeLabel =
+    PROPERTY_TYPE_LABELS[listing.type as keyof typeof PROPERTY_TYPE_LABELS] ??
+    listing.type;
+  const opLabel = listing.operationType === "RENT" ? "Rent" : "Sale";
 
   return (
-    <div className="flex w-full flex-col items-start gap-[16px] sm:gap-[18px] lg:gap-[20px]">
+    <Link
+      href={`/listings/${listing.slug}`}
+      className="flex w-full flex-col items-start gap-[16px] sm:gap-[18px] lg:gap-[20px] group"
+    >
       <div className="relative h-[220px] w-full shrink-0 overflow-hidden rounded-[14px] sm:h-[260px] sm:rounded-[16px] lg:h-[296px]">
-        <img src={photo} alt="Property" className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={listing.coverImageUrl ?? fallbackImg}
+          alt={listing.title}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        />
+        {/* Remove / unsave button */}
         <button
-          onClick={() => setSaved((s) => !s)}
-          className="absolute right-[12px] top-[12px] flex h-[32px] w-[32px] items-center justify-center rounded-full bg-white shadow-sm sm:right-[16px] sm:top-[16px]"
+          onClick={handleRemove}
+          aria-label="Remove from saved"
+          className="absolute right-[12px] top-[12px] flex h-[32px] w-[32px] items-center justify-center rounded-full bg-white shadow-sm hover:bg-[#fff0f0] transition-colors sm:right-[16px] sm:top-[16px]"
         >
-          <img src={iconHeart} alt="Save" className={`w-[16px] h-[16px] ${saved ? "opacity-100" : "opacity-60"}`} />
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="#e74c3c">
+            <path
+              d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
+              stroke="#e74c3c"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
+        {/* Badges */}
         <div className="absolute left-[12px] top-[12px] flex flex-wrap gap-[4px] sm:left-[16px] sm:top-[16px]">
-          <span className="rounded-[36px] bg-white bg-opacity-90 px-[10px] py-[3px] text-[12px] leading-[18px] tracking-[-0.12px] text-[#0d2138] sm:px-[12px] sm:py-[4px] sm:text-[14px] sm:leading-[20px] sm:tracking-[-0.14px]" style={{ fontFamily: montserrat }}>{tag1}</span>
-          <span className="rounded-[36px] bg-white bg-opacity-90 px-[10px] py-[3px] text-[12px] leading-[18px] tracking-[-0.12px] text-[#0d2138] sm:px-[12px] sm:py-[4px] sm:text-[14px] sm:leading-[20px] sm:tracking-[-0.14px]" style={{ fontFamily: montserrat }}>{tag2}</span>
+          <span
+            className="rounded-[36px] bg-white bg-opacity-90 px-[10px] py-[3px] text-[12px] leading-[18px] text-[#0d2138] sm:px-[12px] sm:py-[4px] sm:text-[14px]"
+            style={{ fontFamily: montserrat }}
+          >
+            {opLabel}
+          </span>
+          <span
+            className="rounded-[36px] bg-white bg-opacity-90 px-[10px] py-[3px] text-[12px] leading-[18px] text-[#0d2138] sm:px-[12px] sm:py-[4px] sm:text-[14px]"
+            style={{ fontFamily: montserrat }}
+          >
+            {typeLabel}
+          </span>
         </div>
       </div>
 
       <div className="flex flex-col gap-[10px] items-start w-full">
         <div className="flex w-full flex-col items-start gap-[8px] border-b border-[#e5e7eb] pb-[10px] sm:flex-row sm:justify-between sm:gap-4">
           <div className="flex flex-col gap-[2px]">
-            <p className="max-w-full truncate text-[18px] font-medium leading-[28px] tracking-[-0.18px] text-[#0d2138] sm:max-w-[260px] sm:text-[18px] sm:leading-[32px] sm:tracking-[-0.2px]" style={{ fontFamily: poppins }}>
-              Coastal Modern Residence
+            <p
+              className="max-w-full truncate text-[18px] font-medium leading-[28px] text-[#0d2138] sm:max-w-[260px] sm:leading-[32px]"
+              style={{ fontFamily: poppins }}
+            >
+              {listing.title}
             </p>
             <div className="flex gap-[4px] items-center">
               <img src={iconLocation} alt="" className="w-[16px] h-[16px] shrink-0" />
-              <p className="max-w-[230px] truncate text-[13px] leading-[19px] tracking-[-0.13px] text-[#0d2138] sm:max-w-[160px] sm:text-[14px] sm:leading-[20px] sm:tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                Bayshore Gardens, Tampa, FL
+              <p
+                className="max-w-[230px] truncate text-[13px] text-[#0d2138] sm:max-w-[160px] sm:text-[14px]"
+                style={{ fontFamily: montserrat }}
+              >
+                {listing.location}
               </p>
             </div>
           </div>
-          <p className="shrink-0 whitespace-nowrap text-left text-[17px] font-semibold leading-[24px] tracking-[-0.17px] text-[#2b3038] sm:text-right sm:text-[17px] sm:leading-[26px] sm:tracking-[-0.18px]" style={{ fontFamily: poppins }}>
-            $8,500,000
+          <p
+            className="shrink-0 whitespace-nowrap text-left text-[17px] font-semibold text-[#2b3038] sm:text-right sm:text-[17px]"
+            style={{ fontFamily: poppins }}
+          >
+            {price}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-[16px] gap-y-[8px] sm:gap-[20px]">
-          <div className="flex items-center gap-[6px] sm:gap-[8px]">
-            <img src={iconSqft} alt="" className="w-[20px] h-[20px] shrink-0" />
-            <span className="text-[14px] text-[#2b3038] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>680 sq.ft</span>
-          </div>
-          <div className="flex items-center gap-[6px] sm:gap-[8px]">
-            <img src={iconBed} alt="" className="w-[20px] h-[20px] shrink-0" />
-            <span className="text-[14px] text-[#2b3038] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>3 Bed</span>
-          </div>
-          <div className="flex items-center gap-[6px] sm:gap-[8px]">
-            <img src={iconBath} alt="" className="w-[20px] h-[20px] shrink-0" />
-            <span className="text-[14px] text-[#2b3038] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>2.5 Bath</span>
-          </div>
+          {listing.areaSqft !== null && (
+            <div className="flex items-center gap-[6px] sm:gap-[8px]">
+              <img src={iconSqft} alt="" className="w-[20px] h-[20px] shrink-0" />
+              <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
+                {formatArea(listing.areaSqft)}
+              </span>
+            </div>
+          )}
+          {listing.bedrooms !== null && (
+            <div className="flex items-center gap-[6px] sm:gap-[8px]">
+              <img src={iconBed} alt="" className="w-[20px] h-[20px] shrink-0" />
+              <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
+                {formatBeds(listing.bedrooms)}
+              </span>
+            </div>
+          )}
+          {listing.bathrooms !== null && (
+            <div className="flex items-center gap-[6px] sm:gap-[8px]">
+              <img src={iconBath} alt="" className="w-[20px] h-[20px] shrink-0" />
+              <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
+                {formatBaths(listing.bathrooms)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
 /* ─── Hero / Profile Card ─── */
-function ProfileHero({ profile, onEditClick }: { profile: Profile; onEditClick: () => void }) {
+function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; onEditClick: () => void; savedCount: number }) {
   const displayName = profile.fullName?.trim() || profile.email;
   const joinedLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(profile.createdAt);
   const locationLabel = [profile.city, profile.country].filter(Boolean).join(", ");
@@ -366,7 +449,7 @@ function ProfileHero({ profile, onEditClick }: { profile: Profile; onEditClick: 
             style={{ fontFamily: montserrat }}
           >
             <Bookmark size={16} strokeWidth={1.8} />
-            3 Saved Properties
+            {savedCount} {savedCount === 1 ? "Saved Property" : "Saved Properties"}
           </span>
 
           <span
@@ -388,94 +471,103 @@ function ProfileHero({ profile, onEditClick }: { profile: Profile; onEditClick: 
 const tabs = ["Saved Properties", "My Contracts", "Scheduled tours"] as const;
 type Tab = (typeof tabs)[number];
 
-function SavedPropertiesSection() {
+function SavedPropertiesSection({
+  listings,
+  isLoading,
+  onRemove,
+}: {
+  listings: SavedListing[];
+  isLoading: boolean;
+  onRemove: (id: string) => void;
+}) {
   const [activeTab, setActiveTab] = useState<Tab>("Saved Properties");
-  const savedPhotos = propPhotos.slice(0, 6);
 
   return (
     <section className="mx-auto max-w-[1440px] px-4 py-[32px] sm:px-6 sm:py-[40px] lg:px-[76px] lg:py-[48px]">
+      {/* Tab bar */}
       <div className="flex flex-col">
-  <div className="flex w-full items-center gap-[4px] overflow-x-auto pb-[2px] sm:gap-[8px]">
-    {tabs.map((tab) => {
-      const isActive = tab === activeTab;
+        <div className="flex w-full items-center gap-[4px] overflow-x-auto pb-[2px] sm:gap-[8px]">
+          {tabs.map((tab) => {
+            const isActive = tab === activeTab;
+            const TabIcon =
+              tab === "Saved Properties" ? Heart : tab === "My Contracts" ? FileText : MapPin;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex shrink-0 items-center gap-[6px] rounded-tl-[8px] rounded-tr-[8px] px-[12px] py-[8px] transition-colors sm:gap-[8px] sm:px-[16px] lg:px-[20px] lg:py-[9px] ${
+                  isActive ? "bg-[#f3f4f6] border-b-2 border-[#6889ae]" : ""
+                }`}
+              >
+                <TabIcon
+                  size={20}
+                  strokeWidth={1.8}
+                  className={isActive ? "text-[#15385f]" : "text-[#6a7282]"}
+                />
+                <span
+                  className={`whitespace-nowrap text-[14px] leading-[22px] sm:text-[16px] lg:text-[18px] ${
+                    isActive ? "text-[#15385f] font-medium" : "text-[#6a7282]"
+                  }`}
+                  style={{ fontFamily: poppins }}
+                >
+                  {tab}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="h-px bg-[#e5e7eb] w-full" />
+      </div>
 
-      const TabIcon =
-        tab === "Saved Properties"
-          ? Heart
-          : tab === "My Contracts"
-            ? FileText
-            : MapPin;
-
-      return (
-        <button
-          key={tab}
-          onClick={() => setActiveTab(tab)}
-          className={`flex shrink-0 items-center gap-[6px] rounded-tl-[8px] rounded-tr-[8px] px-[12px] py-[8px] transition-colors sm:gap-[8px] sm:px-[16px] lg:px-[20px] lg:py-[9px] ${
-            isActive
-              ? "bg-[#f3f4f6] border-b-2 border-[#6889ae]"
-              : ""
-          }`}
-        >
-          <TabIcon
-            size={20}
-            strokeWidth={1.8}
-            className={isActive ? "text-[#15385f]" : "text-[#6a7282]"}
-          />
-
-          <span
-            className={`whitespace-nowrap text-[14px] leading-[22px] tracking-[-0.14px] sm:text-[16px] sm:leading-[24px] lg:text-[18px] lg:leading-[26px] lg:tracking-[-0.18px] ${
-              isActive
-                ? "text-[#15385f] font-medium"
-                : "text-[#6a7282]"
-            }`}
-            style={{ fontFamily: poppins }}
-          >
-            {tab}
-          </span>
-        </button>
-      );
-    })}
-  </div>
-
-  <div className="h-px bg-[#e5e7eb] w-full" />
-</div>
-
+      {/* Tab content */}
       <div className="mt-[20px] sm:mt-[24px]">
         {activeTab === "Saved Properties" && (
-          <div className="flex flex-col gap-[24px]">
-            <div className="grid grid-cols-1 gap-[24px] md:grid-cols-2 lg:grid-cols-3">
-              {savedPhotos.slice(0, 3).map((photo, i) => <PropertyCard key={i} photo={photo} />)}
-            </div>
-            <div className="grid grid-cols-1 gap-[24px] md:grid-cols-2 lg:grid-cols-3">
-              {savedPhotos.slice(3, 6).map((photo, i) => <PropertyCard key={i + 3} photo={photo} />)}
-            </div>
-          </div>
+          <>
+            {isLoading ? (
+              <div className="grid grid-cols-1 gap-[24px] md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex flex-col gap-4 animate-pulse">
+                    <div className="h-[260px] w-full rounded-[16px] bg-[#eef1f5]" />
+                    <div className="h-5 w-2/3 rounded bg-[#eef1f5]" />
+                    <div className="h-4 w-1/2 rounded bg-[#eef1f5]" />
+                  </div>
+                ))}
+              </div>
+            ) : listings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f3f4f6]">
+                  <Heart size={28} className="text-[#d1d5dc]" />
+                </div>
+                <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
+                  No saved properties yet.{" "}
+                  <Link href="/listings" className="text-[#1a4878] hover:underline">
+                    Browse listings
+                  </Link>
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-[24px] md:grid-cols-2 lg:grid-cols-3">
+                {listings.map((listing) => (
+                  <SavedCard key={listing.id} listing={listing} onRemove={onRemove} />
+                ))}
+              </div>
+            )}
+          </>
         )}
         {activeTab === "My Contracts" && (
           <div className="flex items-center justify-center h-[300px]">
-            <p className="text-[#6a7282] text-[16px]" style={{ fontFamily: montserrat }}>No contracts found.</p>
+            <p className="text-[#6a7282] text-[16px]" style={{ fontFamily: montserrat }}>
+              No contracts found.
+            </p>
           </div>
         )}
         {activeTab === "Scheduled tours" && (
           <div className="flex items-center justify-center h-[300px]">
-            <p className="text-[#6a7282] text-[16px]" style={{ fontFamily: montserrat }}>No scheduled tours.</p>
+            <p className="text-[#6a7282] text-[16px]" style={{ fontFamily: montserrat }}>
+              No scheduled tours.
+            </p>
           </div>
         )}
-      </div>
-    </section>
-  );
-}
-
-/* ─── Recently Viewed ─── */
-function RecentlyViewed() {
-  const recentPhotos = propPhotos.slice(0, 3);
-  return (
-    <section className="mx-auto flex max-w-[1440px] flex-col gap-[28px] px-4 py-[32px] sm:gap-[36px] sm:px-6 sm:py-[40px] lg:gap-[48px] lg:px-[76px] lg:py-[48px]">
-      <p className="text-center text-[30px] font-semibold leading-[40px] tracking-[-0.3px] text-[#0d2138] sm:text-[38px] sm:leading-[48px] lg:text-[44px] lg:leading-[56px] lg:tracking-[-0.44px]" style={{ fontFamily: poppins }}>
-        Recently Viewed
-      </p>
-      <div className="grid grid-cols-1 gap-[24px] md:grid-cols-2 lg:grid-cols-3 lg:gap-[27px]">
-        {recentPhotos.map((photo, i) => <PropertyCard key={i} photo={photo} />)}
       </div>
     </section>
   );
@@ -486,6 +578,37 @@ export function UserProfilePageContent({ profile: initialProfile }: { profile: P
   const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const savedKey = queryKeys.savedListingsPage();
+
+  const { data, isLoading } = useQuery({
+    queryKey: savedKey,
+    queryFn: async () => {
+      const res = await fetch("/api/saved-listings/list");
+      if (!res.ok) return { listings: [] as SavedListing[] };
+      return res.json() as Promise<{ listings: SavedListing[] }>;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+  const displayListings = data?.listings ?? [];
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => fetch(`/api/saved-listings/${id}`, { method: "DELETE" }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: savedKey });
+      const previous = queryClient.getQueryData<{ listings: SavedListing[] }>(savedKey);
+      queryClient.setQueryData<{ listings: SavedListing[] }>(savedKey, (old) => ({
+        listings: (old?.listings ?? []).filter((l) => l.id !== id),
+      }));
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(savedKey, context.previous);
+    },
+  });
+
+  const handleRemove = (id: string) => removeMutation.mutate(id);
 
   const handleSaved = (updated: Profile) => {
     setProfile(updated);
@@ -494,11 +617,22 @@ export function UserProfilePageContent({ profile: initialProfile }: { profile: P
 
   return (
     <>
-      <ProfileHero profile={profile} onEditClick={() => setIsEditOpen(true)} />
-      <SavedPropertiesSection />
-      <RecentlyViewed />
+      <ProfileHero
+        profile={profile}
+        onEditClick={() => setIsEditOpen(true)}
+        savedCount={displayListings.length}
+      />
+      <SavedPropertiesSection
+        listings={displayListings}
+        isLoading={isLoading}
+        onRemove={handleRemove}
+      />
       {isEditOpen && (
-        <EditProfileModal profile={profile} onClose={() => setIsEditOpen(false)} onSaved={handleSaved} />
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setIsEditOpen(false)}
+          onSaved={handleSaved}
+        />
       )}
     </>
   );

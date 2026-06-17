@@ -1,68 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
-  Search,
-  Plus,
-  Share2,
-  FileText,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  ChevronDown,
-  Filter,
-  MoreVertical,
+  Search, Plus, Share2, FileText, CheckCircle2, Clock,
+  DollarSign, ChevronDown, Filter, MoreVertical, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import {
-  AddContractModal,
-  type NewContract,
-  type ContractType,
-  type ContractStatus,
-} from "./components/AddContractModal";
+import { ContractType, ContractStatus } from "@/generated/prisma/enums";
+import type { ContractDto } from "@/features/crm/types/crm-dto";
+import { useDashboardContractsQuery } from "@/hooks/queries/useDashboardContractsQuery";
+import { useCreateContractMutation } from "@/hooks/mutations/useCrmMutations";
+import { AddContractModal, type NewContract } from "./components/AddContractModal";
 import { ContractFilterPopover } from "./components/ContractFilterPopover";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Badges ────────────────────────────────────────────────────────────────────
 
-type MockContract = {
-  id: number;
-  contractId: string;
-  property: string;
-  customer: string;
-  type: ContractType;
-  value: string;
-  status: ContractStatus;
+const TYPE_STYLE: Record<string, { bg: string; text: string }> = {
+  SALE:          { bg: "#fef3c6", text: "#bb4d00" },
+  RENT:          { bg: "#dff2fe", text: "#0069a8" },
+  SALE_AND_RENT: { bg: "#f8fafc", text: "#4b729e" },
 };
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-
-const MOCK_CONTRACTS: MockContract[] = [
-  { id: 1, contractId: "CON-2025-001", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Sale",        value: "$625,000", status: "Active"    },
-  { id: 2, contractId: "CON-2025-002", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Rent",        value: "$625,000", status: "Pending"   },
-  { id: 3, contractId: "CON-2025-003", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Sale",        value: "$625,000", status: "Completed" },
-  { id: 4, contractId: "CON-2025-004", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Sale",        value: "$625,000", status: "Active"    },
-  { id: 5, contractId: "CON-2025-005", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Sale & Rent", value: "$625,000", status: "Pending"   },
-  { id: 6, contractId: "CON-2025-006", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Sale",        value: "$625,000", status: "Active"    },
-  { id: 7, contractId: "CON-2025-007", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Rent",        value: "$625,000", status: "Completed" },
-  { id: 8, contractId: "CON-2025-008", property: "Sierra Lakeview Estate", customer: "Robert Johnson", type: "Sale",        value: "$625,000", status: "Active"    },
-];
-
-// ── Stat card ─────────────────────────────────────────────────────────────────
-
-type StatCardProps = {
-  label: string;
-  value: string;
-  trend: string;
-  iconBg: string;
-  icon: React.ReactNode;
+const TYPE_LABEL: Record<string, string> = {
+  SALE: "Sale", RENT: "Rent", SALE_AND_RENT: "Sale & Rent",
 };
 
-function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
+const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  ACTIVE:    { bg: "#dcfce7", text: "#008236" },
+  PENDING:   { bg: "#fef3c6", text: "#e17100" },
+  COMPLETED: { bg: "#dff2fe", text: "#0069a8" },
+  DRAFT:     { bg: "#f3f4f6", text: "#6b7280" },
+  CANCELLED: { bg: "#fee2e2", text: "#dc2626" },
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Active", PENDING: "Pending", COMPLETED: "Completed",
+  DRAFT: "Draft", CANCELLED: "Cancelled",
+};
+
+function Badge({ label, bg, text }: { label: string; bg: string; text: string }) {
+  return (
+    <span
+      className="inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap"
+      style={{ backgroundColor: bg, color: text, ...mont }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function StatCard({ label, value, trend, iconBg, icon }: {
+  label: string; value: string; trend: string; iconBg: string; icon: React.ReactNode;
+}) {
   return (
     <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
       <div className="flex items-start justify-between gap-7">
@@ -79,75 +74,64 @@ function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
   );
 }
 
-// ── Badges ────────────────────────────────────────────────────────────────────
-
-const TYPE_STYLE: Record<ContractType, { bg: string; text: string }> = {
-  Sale:          { bg: "#fef3c6", text: "#bb4d00" },
-  Rent:          { bg: "#dff2fe", text: "#0069a8" },
-  "Sale & Rent": { bg: "#f8fafc", text: "#4b729e" },
-};
-
-const STATUS_STYLE: Record<ContractStatus, { bg: string; text: string }> = {
-  Active:    { bg: "#dcfce7", text: "#008236" },
-  Pending:   { bg: "#fef3c6", text: "#e17100" },
-  Completed: { bg: "#dff2fe", text: "#0069a8" },
-};
-
-function Badge({ label, style }: { label: string; style: { bg: string; text: string } }) {
-  return (
-    <span
-      className="inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap"
-      style={{ backgroundColor: style.bg, color: style.text, ...mont }}
-    >
-      {label}
-    </span>
-  );
+function fmtValue(n: number | null) {
+  if (n === null) return "—";
+  return `$${n.toLocaleString("en-US")}`;
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-type ContractsPageProps = {
-  role: Role;
-};
-
-export function ContractsPage({ role }: ContractsPageProps) {
+export function ContractsPage({ role }: { role: Role }) {
   const [showModal, setShowModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "All">("All");
-  const [contracts, setContracts] = useState<MockContract[]>(MOCK_CONTRACTS);
+
+  const { data, isLoading, isError } = useDashboardContractsQuery();
+  const createMutation = useCreateContractMutation();
 
   const canCreate = hasPermission(role, "contracts:create");
 
-  const filtered = contracts.filter((c) => {
-    const matchesSearch =
-      !search ||
-      c.contractId.toLowerCase().includes(search.toLowerCase()) ||
-      c.property.toLowerCase().includes(search.toLowerCase()) ||
-      c.customer.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || c.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const contracts = useMemo(() => data?.contracts ?? [], [data]);
+  const metrics = data?.metrics;
 
-  function handleCreate(input: NewContract) {
-    setContracts((prev) => [
-      {
-        id: Math.max(0, ...prev.map((c) => c.id)) + 1,
-        contractId: `CON-2025-${String(prev.length + 1).padStart(3, "0")}`,
-        property: input.listing || input.title || "—",
-        customer: input.participants[0]?.name ?? "—",
-        type: input.type,
-        value: "$0",
-        status: input.status,
-      },
-      ...prev,
-    ]);
-    setShowModal(false);
-  }
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return contracts.filter((c) => {
+      const matchesSearch =
+        !q ||
+        c.contractId.toLowerCase().includes(q) ||
+        (c.propertyTitle ?? "").toLowerCase().includes(q) ||
+        (c.contactName ?? "").toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "All" || c.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [contracts, search, statusFilter]);
 
-  function handleApplyFilters() {
-    // Filters are UI-only for now; wire to the query layer when /api/contracts exists.
-    setShowFilter(false);
+  async function handleCreate(input: NewContract) {
+    const typeMap: Record<string, ContractType> = {
+      Sale: ContractType.SALE,
+      Rent: ContractType.RENT,
+      "Sale & Rent": ContractType.SALE_AND_RENT,
+    };
+    const statusMap: Record<string, ContractStatus> = {
+      Active: ContractStatus.ACTIVE,
+      Pending: ContractStatus.PENDING,
+      Completed: ContractStatus.COMPLETED,
+    };
+
+    try {
+      await createMutation.mutateAsync({
+        title: input.title || "Untitled Contract",
+        type: typeMap[input.type] ?? ContractType.SALE,
+        status: statusMap[input.status] ?? ContractStatus.ACTIVE,
+        terms: input.terms || undefined,
+      });
+      toast.success("Contract created");
+      setShowModal(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create contract");
+    }
   }
 
   return (
@@ -159,23 +143,12 @@ export function ContractsPage({ role }: ContractsPageProps) {
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage and track all property contracts</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f9fafb] transition-colors"
-            style={mont}
-          >
-            <Share2 size={16} />
-            Export
+          <button type="button" className="flex items-center gap-2 h-10 px-4 bg-white border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f9fafb] transition-colors" style={mont}>
+            <Share2 size={16} /> Export
           </button>
           {canCreate && (
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
-              style={mont}
-            >
-              <Plus size={16} />
-              Add Contract
+            <button type="button" onClick={() => setShowModal(true)} className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors" style={mont}>
+              <Plus size={16} /> Add Contract
             </button>
           )}
         </div>
@@ -183,54 +156,21 @@ export function ContractsPage({ role }: ContractsPageProps) {
 
       {/* Stat cards */}
       <div className="flex flex-wrap gap-3.5">
-        <StatCard
-          label="Total Contracts"
-          value={String(contracts.length)}
-          trend="↑ 2 new this month"
-          iconBg="#e0e7ff"
-          icon={<FileText size={18} className="text-[#6366f1]" />}
-        />
-        <StatCard
-          label="Active"
-          value={String(contracts.filter((c) => c.status === "Active").length)}
-          trend="↑ +12.5% from last month"
-          iconBg="#d1fae5"
-          icon={<CheckCircle2 size={18} className="text-[#10b981]" />}
-        />
-        <StatCard
-          label="Pending"
-          value={String(contracts.filter((c) => c.status === "Pending").length)}
-          trend="↑ +18.2% from last month"
-          iconBg="#fef3c7"
-          icon={<Clock size={18} className="text-[#f59e0b]" />}
-        />
-        <StatCard
-          label="Total Value"
-          value="$4.5M"
-          trend="↑ +0.3 from last month"
-          iconBg="#fff7ed"
-          icon={<DollarSign size={18} className="text-[#f97316]" />}
-        />
+        <StatCard label="Total Contracts" value={isLoading ? "—" : String(metrics?.total ?? 0)} trend="Live from database" iconBg="#e0e7ff" icon={<FileText size={18} className="text-[#6366f1]" />} />
+        <StatCard label="Active" value={isLoading ? "—" : String(metrics?.active ?? 0)} trend="Currently active" iconBg="#d1fae5" icon={<CheckCircle2 size={18} className="text-[#10b981]" />} />
+        <StatCard label="Pending" value={isLoading ? "—" : String(metrics?.pending ?? 0)} trend="Awaiting signature" iconBg="#fef3c7" icon={<Clock size={18} className="text-[#f59e0b]" />} />
+        <StatCard label="Total Value" value={isLoading ? "—" : fmtValue(metrics?.totalValue ?? null)} trend="Sum of all contracts" iconBg="#fff7ed" icon={<DollarSign size={18} className="text-[#f97316]" />} />
       </div>
 
       {/* Contracts table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-        {/* Table header / controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <h2 className="text-[16px] font-semibold text-[#0d2138]" style={mont}>All Contracts List</h2>
           <div className="flex items-center gap-3">
-            {/* Search */}
             <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[204px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search contracts..."
-                className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full"
-                style={mont}
-              />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contracts..." className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full" style={mont} />
             </div>
-            {/* Status */}
             <div className="relative">
               <select
                 value={statusFilter}
@@ -239,99 +179,94 @@ export function ContractsPage({ role }: ContractsPageProps) {
                 style={mont}
               >
                 <option value="All">Status</option>
-                <option value="Active">Active</option>
-                <option value="Pending">Pending</option>
-                <option value="Completed">Completed</option>
+                <option value={ContractStatus.ACTIVE}>Active</option>
+                <option value={ContractStatus.PENDING}>Pending</option>
+                <option value={ContractStatus.COMPLETED}>Completed</option>
+                <option value={ContractStatus.DRAFT}>Draft</option>
+                <option value={ContractStatus.CANCELLED}>Cancelled</option>
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
             </div>
-            {/* Filter */}
             <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowFilter((v) => !v)}
-                className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors"
-                style={mont}
-              >
-                Filter
-                <Filter size={16} />
+              <button type="button" onClick={() => setShowFilter((v) => !v)} className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
+                Filter <Filter size={16} />
               </button>
               {showFilter && (
-                <ContractFilterPopover
-                  resultCount={filtered.length}
-                  onApply={handleApplyFilters}
-                  onClose={() => setShowFilter(false)}
-                />
+                <ContractFilterPopover resultCount={filtered.length} onApply={() => setShowFilter(false)} onClose={() => setShowFilter(false)} />
               )}
             </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px]">
-            <thead>
-              <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
-                <th className="px-6 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[204px]" style={mont}>Contract ID</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[232px]" style={mont}>Property</th>
-                <th className="px-5 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[209px]" style={mont}>Customer</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[118px]" style={mont}>Type</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left w-[146px]" style={mont}>Value</th>
-                <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-center w-[159px]" style={mont}>Status</th>
-                <th className="w-[62px]" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((contract) => (
-                <tr key={contract.id} className="border-b border-[#e5e7eb] last:border-b-0">
-                  {/* Contract ID */}
-                  <td className="px-6 py-4 w-[204px]">
-                    <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>{contract.contractId}</span>
-                  </td>
-                  {/* Property */}
-                  <td className="px-4 py-[18px] w-[232px]">
-                    <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{contract.property}</span>
-                  </td>
-                  {/* Customer */}
-                  <td className="px-5 py-4 w-[209px]">
-                    <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{contract.customer}</span>
-                  </td>
-                  {/* Type */}
-                  <td className="px-4 py-[18px] w-[118px]">
-                    <Badge label={contract.type} style={TYPE_STYLE[contract.type]} />
-                  </td>
-                  {/* Value */}
-                  <td className="px-4 py-6 w-[146px]">
-                    <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{contract.value}</span>
-                  </td>
-                  {/* Status */}
-                  <td className="px-4 py-4 w-[159px] text-center">
-                    <Badge label={contract.status} style={STATUS_STYLE[contract.status]} />
-                  </td>
-                  {/* Actions */}
-                  <td className="px-4 py-4 w-[62px] text-center">
-                    <button
-                      type="button"
-                      title="Actions"
-                      className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                  </td>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 gap-2 text-[#6a7282]">
+            <Loader2 size={18} className="animate-spin" />
+            <span className="text-[14px]" style={mont}>Loading contracts…</span>
+          </div>
+        ) : isError ? (
+          <div className="py-10 text-center text-[14px] text-red-500" style={mont}>Failed to load contracts.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px]">
+              <thead>
+                <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
+                  <th className="px-6 py-[10px] text-[14px] font-medium text-[#6a7282] text-left" style={mont}>Contract ID</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left" style={mont}>Title</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left" style={mont}>Property</th>
+                  <th className="px-5 py-[10px] text-[14px] font-medium text-[#6a7282] text-left" style={mont}>Contact</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left" style={mont}>Type</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left" style={mont}>Value</th>
+                  <th className="px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-center" style={mont}>Status</th>
+                  <th className="w-[62px]" />
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    No contracts found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((contract: ContractDto) => {
+                  const typeStyle = TYPE_STYLE[contract.type] ?? TYPE_STYLE.SALE;
+                  const statusStyle = STATUS_STYLE[contract.status] ?? STATUS_STYLE.DRAFT;
+                  return (
+                    <tr key={contract.id} className="border-b border-[#e5e7eb] last:border-b-0">
+                      <td className="px-6 py-4">
+                        <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>{contract.contractId}</span>
+                      </td>
+                      <td className="px-4 py-[18px]">
+                        <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{contract.title}</span>
+                      </td>
+                      <td className="px-4 py-[18px]">
+                        <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{contract.propertyTitle ?? "—"}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{contract.contactName ?? "—"}</span>
+                      </td>
+                      <td className="px-4 py-[18px]">
+                        <Badge label={TYPE_LABEL[contract.type] ?? contract.type} bg={typeStyle.bg} text={typeStyle.text} />
+                      </td>
+                      <td className="px-4 py-6">
+                        <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{fmtValue(contract.value)}</span>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <Badge label={STATUS_LABEL[contract.status] ?? contract.status} bg={statusStyle.bg} text={statusStyle.text} />
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <button type="button" title="Actions" className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors">
+                          <MoreVertical size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
+                      {contracts.length === 0 ? "No contracts yet — add your first contract." : "No contracts match your search."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {/* Footer */}
         <div className="px-5 py-3 border-t border-[#f3f4f6]">
           <span className="text-[12px] font-medium text-[#6a7282]" style={mont}>
             Showing {filtered.length} of {contracts.length} contracts
@@ -340,7 +275,11 @@ export function ContractsPage({ role }: ContractsPageProps) {
       </div>
 
       {showModal && (
-        <AddContractModal onClose={() => setShowModal(false)} onCreate={handleCreate} />
+        <AddContractModal
+          onClose={() => setShowModal(false)}
+          onCreate={handleCreate}
+          isSaving={createMutation.isPending}
+        />
       )}
     </div>
   );

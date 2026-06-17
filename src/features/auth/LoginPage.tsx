@@ -11,6 +11,7 @@ import {
   sendMagicLink,
   signInWithPassword,
 } from "./actions";
+import { signInWithOAuth } from "./oauth";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -121,6 +122,17 @@ function AppleLogo() {
   );
 }
 
+function MicrosoftLogo() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="1" y="1" width="8.5" height="8.5" fill="#F25325" />
+      <rect x="10.5" y="1" width="8.5" height="8.5" fill="#80BC06" />
+      <rect x="1" y="10.5" width="8.5" height="8.5" fill="#05A6F0" />
+      <rect x="10.5" y="10.5" width="8.5" height="8.5" fill="#FEBA08" />
+    </svg>
+  );
+}
+
 function GoogleLogo() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -144,13 +156,13 @@ function GoogleLogo() {
   );
 }
 
-function MicrosoftLogo() {
+function FacebookLogo() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="1" y="1" width="8.5" height="8.5" fill="#F25325" />
-      <rect x="10.5" y="1" width="8.5" height="8.5" fill="#80BC06" />
-      <rect x="1" y="10.5" width="8.5" height="8.5" fill="#05A6F0" />
-      <rect x="10.5" y="10.5" width="8.5" height="8.5" fill="#FEBA08" />
+      <path
+        d="M20 10C20 4.477 15.523 0 10 0S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878V12.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z"
+        fill="#1877F2"
+      />
     </svg>
   );
 }
@@ -168,6 +180,10 @@ const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
     title: "Sign-in link problem",
     message: "That sign-in link is invalid or has expired. Please try again.",
   },
+  staff_use_dashboard: {
+    title: "Wrong login page",
+    message: "Staff accounts must sign in at the dashboard login page.",
+  },
 };
 
 export function LoginPageContent() {
@@ -182,6 +198,7 @@ export function LoginPageContent() {
   const [password, setPassword] = useState("");
   const [hasError, setHasError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOAuthSubmitting, setIsOAuthSubmitting] = useState(false);
   const [banner, setBanner] = useState<{
     type: "error" | "success";
     title: string;
@@ -195,6 +212,17 @@ export function LoginPageContent() {
   }) => {
     setBanner(banner);
     setTimeout(() => setBanner(null), 4000);
+  };
+
+  const handleOAuth = async (provider: "google" | "facebook") => {
+    if (isOAuthSubmitting || isSubmitting) return;
+    setIsOAuthSubmitting(true);
+    const result = await signInWithOAuth(provider);
+    if (result.error) {
+      setIsOAuthSubmitting(false);
+      flashBanner({ type: "error", title: "Sign-in failed", message: result.error });
+    }
+    // On success the SDK redirects the browser — no further action needed.
   };
 
   const handleLogin = async () => {
@@ -485,19 +513,36 @@ export function LoginPageContent() {
                   <div className="flex-1 h-px bg-[#e6e6e6]" />
                 </div>
                 <div className="flex gap-3 h-[54px]">
-                  {[
-                    <AppleLogo key="apple" />,
-                    <GoogleLogo key="google" />,
-                    <MicrosoftLogo key="ms" />,
-                  ].map((logo, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors"
-                    >
-                      {logo}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    disabled
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center opacity-40 cursor-not-allowed"
+                  >
+                    <AppleLogo />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOAuth("google")}
+                    disabled={isOAuthSubmitting || isSubmitting}
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-60"
+                  >
+                    <GoogleLogo />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOAuth("facebook")}
+                    disabled={isOAuthSubmitting || isSubmitting}
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-60"
+                  >
+                    <FacebookLogo />
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center opacity-40 cursor-not-allowed"
+                  >
+                    <MicrosoftLogo />
+                  </button>
                 </div>
               </div>
 

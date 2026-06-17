@@ -1,39 +1,52 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, DollarSign, FolderOpen, Trophy, BarChart3, Filter, Download, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  Search, Plus, DollarSign, FolderOpen, Trophy, BarChart3,
+  Filter, Download, MoreVertical, Pencil, Loader2,
+} from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import {
-  MOCK_OPPORTUNITIES,
-  STAGE_TABS,
-  type Opportunity,
-  type OppStatus,
-  STATUS_BADGE,
-} from "./opportunities-data";
+import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
+import type { OpportunityDto } from "@/features/crm/types/crm-dto";
+import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
+import { useCreateOpportunityMutation } from "@/hooks/mutations/useCrmMutations";
+import { useDashboardContactsQuery } from "@/hooks/queries/useDashboardContactsQuery";
 import { AddOpportunityModal, type NewOpportunity } from "./components/AddOpportunityModal";
 import { OpportunityFilterModal } from "./components/OpportunityFilterModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
+// ── Stage config ──────────────────────────────────────────────────────────────
 
-function StatCard({
-  label,
-  value,
-  sub,
-  trend,
-  iconBg,
-  icon,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  trend: string;
-  iconBg: string;
-  icon: React.ReactNode;
+const STAGE_TABS = ["All", "QUALIFICATION", "VISITATION", "OFFER", "NEGOTIATION", "CLOSING"] as const;
+type StageTab = (typeof STAGE_TABS)[number];
+
+const STAGE_LABEL: Record<string, string> = {
+  QUALIFICATION: "Qualification",
+  VISITATION: "Visitation",
+  OFFER: "Offer",
+  NEGOTIATION: "Negotiation",
+  CLOSING: "Closing",
+};
+
+const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
+  OPEN:        { bg: "#dbeafe", text: "#1e4f86" },
+  CLOSED_WON:  { bg: "#dcfce7", text: "#16a34a" },
+  CLOSED_LOST: { bg: "#fee2e2", text: "#dc2626" },
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  OPEN: "Open", CLOSED_WON: "Closed Won", CLOSED_LOST: "Closed Lost",
+};
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, sub, trend, iconBg, icon }: {
+  label: string; value: string; sub?: string; trend: string; iconBg: string; icon: React.ReactNode;
 }) {
   return (
     <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
@@ -65,61 +78,99 @@ function ProbabilityBar({ value }: { value: number }) {
   );
 }
 
-function StatusBadge({ status }: { status: OppStatus }) {
-  const s = STATUS_BADGE[status];
+function StatusBadge({ status }: { status: string }) {
+  const s = STATUS_BADGE[status] ?? STATUS_BADGE.OPEN;
   return (
     <span className="inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap" style={{ backgroundColor: s.bg, color: s.text, ...mont }}>
-      {status}
+      {STATUS_LABEL[status] ?? status}
     </span>
   );
 }
 
+function fmt(n: number | null) {
+  if (n === null) return "—";
+  return `$${n.toLocaleString("en-US")}`;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-type OpportunitiesPageProps = {
-  role: Role;
-};
-
-export function OpportunitiesPage({ role }: OpportunitiesPageProps) {
+export function OpportunitiesPage({ role }: { role: Role }) {
   const [showModal, setShowModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<(typeof STAGE_TABS)[number]>("All");
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(MOCK_OPPORTUNITIES);
+  const [activeTab, setActiveTab] = useState<StageTab>("All");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const { data, isLoading, isError } = useDashboardOpportunitiesQuery();
+  const { data: contactsData } = useDashboardContactsQuery();
+  const createMutation = useCreateOpportunityMutation();
 
   const canCreate = hasPermission(role, "opportunities:create");
 
-  const filtered = opportunities.filter((o) => {
-    const matchesTab = activeTab === "All" || o.stage === activeTab;
-    const matchesSearch =
-      !search ||
-      o.name.toLowerCase().includes(search.toLowerCase()) ||
-      o.propertyId.toLowerCase().includes(search.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
+  const opportunities = useMemo(() => data?.opportunities ?? [], [data]);
+  const metrics = data?.metrics;
+  const contacts = useMemo(() => contactsData?.contacts ?? [], [contactsData]);
 
-  function handleCreate(input: NewOpportunity) {
-    setOpportunities((prev) => [
-      {
-        id: Math.max(0, ...prev.map((o) => o.id)) + 1,
-        name: input.name || "Untitled Opportunity",
-        propertyId: "#1234",
-        commission: input.dealSize ? `$${Number(input.dealSize).toLocaleString("en-US")}` : "$0",
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return opportunities.filter((o) => {
+      const matchesTab = activeTab === "All" || o.stage === activeTab;
+      const matchesSearch =
+        !q ||
+        o.title.toLowerCase().includes(q) ||
+        (o.contactName ?? "").toLowerCase().includes(q) ||
+        (o.propertyTitle ?? "").toLowerCase().includes(q) ||
+        o.opportunityId.toLowerCase().includes(q);
+      return matchesTab && matchesSearch;
+    });
+  }, [opportunities, search, activeTab]);
+
+  async function handleCreate(input: NewOpportunity) {
+    // Map the modal's string stage/status to Prisma enums
+    const stageMap: Record<string, OpportunityStage> = {
+      Qualification: OpportunityStage.QUALIFICATION,
+      Visitation: OpportunityStage.VISITATION,
+      Offer: OpportunityStage.OFFER,
+      Negotiation: OpportunityStage.NEGOTIATION,
+      Closing: OpportunityStage.CLOSING,
+    };
+    const statusMap: Record<string, OpportunityStatus> = {
+      Open: OpportunityStatus.OPEN,
+      "Closed Won": OpportunityStatus.CLOSED_WON,
+      "Closed Lost": OpportunityStatus.CLOSED_LOST,
+    };
+
+    // Find the contact ID for the selected contact name
+    const matched = contacts.find((c) => c.fullName === input.contact);
+
+    try {
+      await createMutation.mutateAsync({
+        title: input.name || "Untitled Opportunity",
+        contactId: matched?.id,
+        dealType: input.dealType as "Rent" | "Sale" | undefined,
+        dealSize: input.dealSize ? Number(input.dealSize) : undefined,
+        stage: stageMap[input.stage] ?? OpportunityStage.QUALIFICATION,
+        status: statusMap[input.status] ?? OpportunityStatus.OPEN,
         probability: input.probability,
-        stage: input.stage,
-        expectedClose: input.expectedClose || "—",
-        status: input.status,
-      },
-      ...prev,
-    ]);
-    setShowModal(false);
+        commission: input.commissionAmount ? Number(input.commissionAmount) : undefined,
+        commissionUnit: input.commissionUnit as "%" | "$" | undefined,
+        paymentTerms: input.paymentTerms || undefined,
+        contractStart: input.contractStart || undefined,
+        contractEnd: input.contractEnd || undefined,
+        expectedCloseAt: input.expectedClose || undefined,
+        agentCommission: input.agentCommission || undefined,
+        notes: input.description || undefined,
+      });
+      toast.success("Opportunity created");
+      setShowModal(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create opportunity");
+    }
   }
 
-  function handleDelete(id: number) {
-    setOpportunities((prev) => prev.filter((o) => o.id !== id));
-    setOpenMenuId(null);
-  }
+  const winRate = metrics && metrics.total > 0
+    ? Math.round((metrics.closedWon / metrics.total) * 100)
+    : 0;
 
   return (
     <div className="px-6 py-5 flex flex-col gap-5">
@@ -144,17 +195,15 @@ export function OpportunitiesPage({ role }: OpportunitiesPageProps) {
 
       {/* Stat cards */}
       <div className="flex flex-wrap gap-3.5">
-        <StatCard label="Total Value" value="$2.77M" trend="↑ 2 new this month" iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
-        <StatCard label="Open" value="2" sub="$23,000" trend="↑ 2 new this month" iconBg="#e0e7ff" icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
-        <StatCard label="Won" value="2" sub="$125,000" trend="↑ 2 new this month" iconBg="#d1fae5" icon={<Trophy size={18} className="text-[#10b981]" />} />
-        <StatCard label="Win Rate" value="40%" trend="↑ 2 new this month" iconBg="#dbeafe" icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />
+        <StatCard label="Total Value" value={isLoading ? "—" : fmt(metrics?.totalValue ?? null)} trend="Live from database" iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
+        <StatCard label="Open" value={isLoading ? "—" : String(metrics?.open ?? 0)} trend="Active opportunities" iconBg="#e0e7ff" icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
+        <StatCard label="Won" value={isLoading ? "—" : String(metrics?.closedWon ?? 0)} trend="Closed successfully" iconBg="#d1fae5" icon={<Trophy size={18} className="text-[#10b981]" />} />
+        <StatCard label="Win Rate" value={isLoading ? "—" : `${winRate}%`} trend="Closed Won ÷ Total" iconBg="#dbeafe" icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />
       </div>
 
       {/* Table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-        {/* Header / controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-          {/* Stage tabs */}
           <div className="flex items-center gap-1.5 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] p-1">
             {STAGE_TABS.map((tab) => (
               <button
@@ -166,7 +215,7 @@ export function OpportunitiesPage({ role }: OpportunitiesPageProps) {
                 }`}
                 style={mont}
               >
-                {tab}
+                {tab === "All" ? "All" : STAGE_LABEL[tab]}
               </button>
             ))}
           </div>
@@ -182,104 +231,113 @@ export function OpportunitiesPage({ role }: OpportunitiesPageProps) {
               />
             </div>
             <button type="button" className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
-              Export CSV
-              <Download size={16} />
+              Export CSV <Download size={16} />
             </button>
             <button type="button" onClick={() => setShowFilter(true)} className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
-              Filter By
-              <Filter size={16} />
+              Filter By <Filter size={16} />
             </button>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px]">
-            <thead>
-              <tr className="bg-[#f9fafb] border-y border-[#e5e7eb]">
-                {["Opportunity", "Property ID", "Commission", "Probability", "Stage", "Expected Close", "Status"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-[14px] font-medium text-[#6a7282] text-left whitespace-nowrap" style={mont}>{h}</th>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 gap-2 text-[#6a7282]">
+            <Loader2 size={18} className="animate-spin" />
+            <span className="text-[14px]" style={mont}>Loading opportunities…</span>
+          </div>
+        ) : isError ? (
+          <div className="py-10 text-center text-[14px] text-red-500" style={mont}>Failed to load opportunities.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px]">
+              <thead>
+                <tr className="bg-[#f9fafb] border-y border-[#e5e7eb]">
+                  {["Opportunity", "Contact", "Deal Size", "Probability", "Stage", "Expected Close", "Status"].map((h) => (
+                    <th key={h} className="px-5 py-3 text-[14px] font-medium text-[#6a7282] text-left whitespace-nowrap" style={mont}>{h}</th>
+                  ))}
+                  <th className="px-5 py-3 w-[55px]" />
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((opp: OpportunityDto) => (
+                  <tr key={opp.id} className="border-b border-[#e5e7eb] last:border-b-0">
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>{opp.title}</span>
+                        <span className="text-[11px] text-[#99a1af]" style={mont}>{opp.opportunityId}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="text-[14px] text-[#6a7282]" style={mont}>{opp.contactName ?? "—"}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{fmt(opp.dealSize)}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <ProbabilityBar value={opp.probability} />
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#f8fafc] border border-[#e5e7eb] text-[12px] font-medium text-[#2b3038] whitespace-nowrap" style={mont}>
+                        {STAGE_LABEL[opp.stage] ?? opp.stage}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>
+                        {opp.expectedCloseAt ? new Date(opp.expectedCloseAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <StatusBadge status={opp.status} />
+                    </td>
+                    <td className="px-5 py-4 w-[55px] text-center">
+                      <div className="relative inline-block">
+                        <button
+                          type="button"
+                          onClick={() => setOpenMenuId(openMenuId === opp.id ? null : opp.id)}
+                          title="Actions"
+                          className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {openMenuId === opp.id && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
+                            <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[160px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
+                              <button
+                                type="button"
+                                onClick={() => { setShowModal(true); setOpenMenuId(null); }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
+                                style={mont}
+                              >
+                                <Pencil size={16} className="text-[#6a7282]" /> Edit
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-                <th className="px-5 py-3 w-[55px]" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((opp) => (
-                <tr key={opp.id} className="border-b border-[#e5e7eb] last:border-b-0">
-                  <td className="px-5 py-4">
-                    <span className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>{opp.name}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="text-[14px] text-[#6a7282]" style={mont}>{opp.propertyId}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{opp.commission}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <ProbabilityBar value={opp.probability} />
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#f8fafc] border border-[#e5e7eb] text-[12px] font-medium text-[#2b3038] whitespace-nowrap" style={mont}>{opp.stage}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{opp.expectedClose}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <StatusBadge status={opp.status} />
-                  </td>
-                  <td className="px-5 py-4 w-[55px] text-center">
-                    <div className="relative inline-block">
-                      <button
-                        type="button"
-                        onClick={() => setOpenMenuId(openMenuId === opp.id ? null : opp.id)}
-                        title="Actions"
-                        className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      {openMenuId === opp.id && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
-                          <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[184px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
-                            <button
-                              type="button"
-                              onClick={() => { setShowModal(true); setOpenMenuId(null); }}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
-                              style={mont}
-                            >
-                              <Pencil size={16} className="text-[#6a7282]" />
-                              Edit
-                            </button>
-                            <div className="h-px bg-[#f0f0f0]" />
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(opp.id)}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#e7000b] hover:bg-[#fff5f5] transition-colors"
-                              style={mont}
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    No opportunities found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
+                      {opportunities.length === 0 ? "No opportunities yet — create your first." : "No opportunities match your search."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {showModal && <AddOpportunityModal onClose={() => setShowModal(false)} onCreate={handleCreate} />}
+      {showModal && (
+        <AddOpportunityModal
+          onClose={() => setShowModal(false)}
+          onCreate={handleCreate}
+          contacts={contacts}
+          isSaving={createMutation.isPending}
+        />
+      )}
       {showFilter && (
         <OpportunityFilterModal
           resultCount={filtered.length}

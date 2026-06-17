@@ -30,6 +30,7 @@ type ParticipantMode = "none" | "existing" | "new";
 type AddContractModalProps = {
   onClose: () => void;
   onCreate?: (contract: NewContract) => void;
+  isSaving?: boolean;
 };
 
 const inputClass =
@@ -50,7 +51,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-export function AddContractModal({ onClose, onCreate }: AddContractModalProps) {
+export function AddContractModal({ onClose, onCreate, isSaving }: AddContractModalProps) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ContractType>("Sale");
   const [status, setStatus] = useState<ContractStatus>("Active");
@@ -516,10 +517,11 @@ export function AddContractModal({ onClose, onCreate }: AddContractModalProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
+              disabled={isSaving}
+              className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >
-              Create Contract
+              {isSaving ? "Saving…" : "Create Contract"}
             </button>
           </div>
         </form>

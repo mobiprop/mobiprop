@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { X, ChevronDown, Home, ExternalLink, Trash2 } from "lucide-react";
 
-import type { ContactType } from "../ContactsPage";
+export type ContactType = "Buyer" | "Seller";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -23,13 +23,14 @@ export type NewContact = {
 type AddContactModalProps = {
   onClose: () => void;
   onCreate?: (contact: NewContact) => void;
+  isSaving?: boolean;
 };
 
 const inputClass =
   "h-[37.5px] px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
-export function AddContactModal({ onClose, onCreate }: AddContactModalProps) {
+export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModalProps) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -270,10 +271,11 @@ export function AddContactModal({ onClose, onCreate }: AddContactModalProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
+              disabled={isSaving}
+              className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >
-              Add Contact
+              {isSaving ? "Saving…" : "Add Contact"}
             </button>
           </div>
         </form>

@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, Calendar, Search } from "lucide-react";
+import { Bell, Calendar } from "lucide-react";
 
 import { NotificationsPanel } from "./NotificationsPanel";
 import { CalendarPanel } from "./CalendarPanel";
-
-const mont = { fontFamily: "'Montserrat', sans-serif" };
+import { GlobalSearch } from "./GlobalSearch";
 
 type Panel = "notifications" | "calendar" | null;
 
@@ -33,18 +32,8 @@ export function Topbar() {
 
   return (
     <header className="h-16 shrink-0 sticky top-0 z-20 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-6">
-      {/* Search */}
-      <div className="flex items-center gap-2 w-[256px] h-9 px-3 border border-[#e5e7eb] rounded-[10px] bg-[#f8fafc]">
-        <Search size={16} className="text-[#6a7282] shrink-0" />
-        <input
-          placeholder="Search..."
-          className="flex-1 min-w-0 text-[13px] text-[#2b3038] placeholder:text-[rgba(10,10,10,0.5)] bg-transparent outline-none"
-          style={mont}
-        />
-        <kbd className="shrink-0 text-[10px] text-[#6b7280] bg-[#e5e7eb] rounded-[5px] px-1.5 py-0.5" style={mont}>
-          ⌘K
-        </kbd>
-      </div>
+      {/* Global search */}
+      <GlobalSearch />
 
       {/* Right icons */}
       <div className="flex items-center gap-6">

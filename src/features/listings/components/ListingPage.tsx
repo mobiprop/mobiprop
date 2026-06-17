@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 import { useShallow } from "zustand/react/shallow";
 import svgPaths from "./svgPaths";
 import { FiltersModal, type FiltersState } from "./FiltersModal";
@@ -13,6 +14,7 @@ import {
   type TransactionType as TransactionTypeFilter,
 } from "@/stores/useListingFilterStore";
 import type { PublicListingDto } from "../types/listing-dto";
+import { PropertyMapModal } from "@/components/maps/PropertyMapModal";
 import {
   PROPERTY_TYPE_LABELS,
   formatArea,
@@ -21,14 +23,14 @@ import {
   listingDisplayPrice,
   listingTags,
 } from "../utils/format";
+import { useSavedListings } from "@/hooks/useSavedListings";
+import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 const heroImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
 const cloudsImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
 const fallbackImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
-const mapImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.png";
 /* ─── icon helpers ─── */
 function SquareArrowIcon() {
 return (
@@ -187,24 +189,6 @@ return (
 </svg>
 );
 }
-function CloseIcon() {
-return (
-<svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-   <path
-      d="M5 5L17 17"
-      stroke="#0d2138"
-      strokeLinecap="round"
-      strokeWidth="1.6"
-      />
-   <path
-      d="M17 5L5 17"
-      stroke="#0d2138"
-      strokeLinecap="round"
-      strokeWidth="1.6"
-      />
-</svg>
-);
-}
 function MapIcon() {
 return (
 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -220,8 +204,12 @@ return (
 }
 /* ─── card component (vertical only) ─── */
 function PropertyCard({ item }: { item: PublicListingDto }) {
-const [liked, setLiked] = useState(false);
+const [loginOpen, setLoginOpen] = useState(false);
+const { isSaved, toggleSave } = useSavedListings();
+const saved = isSaved(item.listingId);
 return (
+<>
+<LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 <Link
    href={`/listings/${item.slug}`}
    className="flex flex-col gap-[20px] items-start w-full group"
@@ -251,12 +239,12 @@ return (
       {
       e.preventDefault();
       e.stopPropagation();
-      setLiked(!liked);
+      toggleSave(item.listingId, () => setLoginOpen(true));
       }}
-      aria-label={liked ? "Remove from favorites" : "Add to favorites"}
+      aria-label={saved ? "Remove from saved" : "Save property"}
       className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"
       >
-      <HeartIcon filled={liked} />
+      <HeartIcon filled={saved} />
    </button>
 </div>
 {/* Info */}
@@ -319,156 +307,8 @@ return (
    </div>
 </div>
 </Link>
+</>
 );
-}
-function PricePin({
-label,
-className = "",
-}: {
-label: string;
-className?: string;
-}) {
-return (
-<span
-  className={`absolute rounded-[6px] bg-[#4896b6] px-2 py-1 text-[10px] font-medium text-white shadow-[0_8px_18px_rgba(13,33,56,0.14)] sm:rounded-[8px] sm:px-3 sm:py-1.5 sm:text-[14px] ${className}`}
-  style={{ fontFamily: "Montserrat, sans-serif" }}
->
-  {label}
-</span>
-);
-}
-function ModalListingCard({ location }: { location: string }) {
-return (
-<div className="rounded-[12px] border border-[#d8dee8] bg-white px-4 py-4 shadow-[0_4px_18px_rgba(13,33,56,0.04)]">
-   <p
-   className="text-[18px] font-medium leading-[22px] text-[#0d2138]"
-   style={{ fontFamily: "Poppins, sans-serif" }}
-   >
-   Coastal Modern Residence
-   </p>
-   <p
-   className="mt-1 text-[14px] leading-[18px] text-[#6a7282]"
-   style={{ fontFamily: "Montserrat, sans-serif" }}
-   >
-   {location}
-   </p>
-   <p
-   className="mt-3 text-[18px] font-semibold leading-[24px] text-[#005ea4]"
-   style={{ fontFamily: "Poppins, sans-serif" }}
-   >
-   $8,500,000
-   </p>
-   <p
-   className="mt-1 text-[14px] leading-[18px] text-[#6a7282]"
-   style={{ fontFamily: "Montserrat, sans-serif" }}
-   >
-   5 Beds · 4 Baths · 4,200 sqft
-   </p>
-</div>
-);
-}
-function PropertyMapModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2138]/60 px-2 py-3 sm:px-4 sm:py-8 backdrop-blur-[1px]"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="property-map-title"
-      onMouseDown={onClose}
-    >
-      <div
-        className="relative max-h-[calc(100vh-24px)] w-full max-w-[1030px] overflow-y-auto rounded-[10px] bg-white shadow-[0_20px_60px_rgba(13,33,56,0.22)] sm:max-h-[calc(100vh-32px)] sm:rounded-[12px]"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="flex flex-col gap-3 border-b border-[#e5e7eb] px-4 py-4 sm:px-6 sm:py-5 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-2 pr-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:pr-0">
-            <h2
-              id="property-map-title"
-              className="text-[20px] font-[500] leading-[26px] text-[#0d2138] sm:text-[26px] sm:leading-[32px] lg:text-[28px]"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              Property Map
-            </h2>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                className="flex h-8 items-center gap-1.5 rounded-[7px] bg-[#285f9c] px-2.5 text-[12px] leading-none text-white sm:gap-2 sm:px-3 sm:text-[14px]"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-white sm:h-2 sm:w-2" />
-                Enable Drawing
-              </button>
-
-              <button
-                className="flex h-8 items-center gap-1.5 rounded-[7px] bg-[#4896b6] px-2.5 text-[12px] leading-none text-white sm:gap-2 sm:px-3 sm:text-[14px]"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                <span className="text-[16px] leading-none sm:text-[18px]">×</span>
-                Clear Circles
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={onClose}
-            aria-label="Close property map"
-            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#f3f6f9] sm:right-5 sm:top-5 sm:h-9 sm:w-9 md:static"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-
-        <div className="grid gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[1fr_280px]">
-          <div className="min-w-0">
-            <div className="relative h-[270px] overflow-hidden rounded-[9px] bg-[#edf6ff] sm:h-[420px] sm:rounded-[10px] lg:h-[500px]">
-              <img
-                src={mapImg}
-                alt="Map showing listing search area"
-                className="h-full w-full object-cover"
-              />
-
-              <div className="absolute left-[28%] top-[16%] h-[150px] w-[150px] rounded-full border-[3px] border-[#2f7fc8]/55 bg-[#5fb6ff]/35 sm:left-[32%] sm:top-[18%] sm:h-[260px] sm:w-[260px] sm:border-[4px]" />
-
-              <div className="absolute left-[44.5%] top-[38%] h-3.5 w-3.5 rounded-full border-[2px] border-white bg-[#1bbf86] shadow-[0_0_0_3px_rgba(27,191,134,0.2)] sm:h-4 sm:w-4 sm:border-[3px]" />
-
-              <PricePin label="$40,000" className="left-[10%] top-[24%]" />
-              <PricePin label="$40,000" className="left-[41%] top-[19%] bg-[#285f9c]" />
-              <PricePin label="$40,000" className="left-[70%] top-[27%]" />
-              <PricePin label="$40,000" className="left-[42%] top-[31%]" />
-              <PricePin label="$40,000" className="left-[60%] top-[51%]" />
-              <PricePin label="$40,000" className="left-[43%] top-[61%] bg-[#285f9c]" />
-              <PricePin label="$40,000" className="left-[16%] top-[68%]" />
-              <PricePin label="$40,000" className="left-[60%] top-[73%]" />
-              <PricePin label="$40,000" className="left-[82%] top-[61%] bg-[#285f9c]" />
-              <PricePin label="$40,000" className="left-[73%] top-[82%]" />
-            </div>
-
-            <p
-              className="mt-2 text-[12px] leading-[18px] text-[#2b3038] sm:mt-3 sm:text-[14px] sm:leading-[20px]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Enable drawing mode to search for listings by area
-            </p>
-          </div>
-
-          <aside className="flex min-w-0 flex-col">
-            <h3
-              className="mb-3 text-[17px] font-medium leading-[22px] text-[#0d2138] sm:mb-5 sm:text-[20px] sm:leading-[24px]"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              3 Listings Found
-            </h3>
-
-            <div className="flex flex-col gap-2.5 sm:gap-3">
-              <ModalListingCard location="Lisbon, Portugal" />
-              <ModalListingCard location="Montecarlo, Monaco" />
-              <ModalListingCard location="Del Rio, Texas" />
-            </div>
-          </aside>
-        </div>
-      </div>
-    </div>
-  );
 }
 /* ─── pagination ─── */
 function getPageItems(current: number, total: number): (number | "…")[] {
@@ -721,7 +561,7 @@ useEffect(() => {
 // Location input with available-location suggestions.
 const [locationInput, setLocationInput] = useState(filters.location);
 const [locationOpen, setLocationOpen] = useState(false);
-const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+const [debouncedLocation, setDebouncedLocation] = useState(filters.location);
 const locationRef = useRef<HTMLDivElement>(null);
 useEffect(() => setLocationInput(filters.location), [filters.location]);
 useEffect(() => {
@@ -733,20 +573,18 @@ useEffect(() => {
   return () => document.removeEventListener("mousedown", handler);
 }, [locationOpen]);
 useEffect(() => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => {
-    fetch(`/api/listings/locations?q=${encodeURIComponent(locationInput)}`, {
-      signal: controller.signal,
-    })
-      .then((res) => (res.ok ? res.json() : { locations: [] }))
-      .then((data) => setLocationSuggestions(data.locations ?? []))
-      .catch(() => undefined);
-  }, 250);
-  return () => {
-    controller.abort();
-    clearTimeout(timer);
-  };
+  const timer = setTimeout(() => setDebouncedLocation(locationInput), 250);
+  return () => clearTimeout(timer);
 }, [locationInput]);
+const { data: locData } = useQuery({
+  queryKey: queryKeys.locationSuggestions(debouncedLocation),
+  queryFn: () =>
+    fetch(`/api/listings/locations?q=${encodeURIComponent(debouncedLocation)}`)
+      .then((r) => (r.ok ? r.json() : { locations: [] })),
+  staleTime: 5 * 60 * 1000,
+  placeholderData: (prev: unknown) => prev,
+});
+const locationSuggestions: string[] = (locData as { locations?: string[] } | undefined)?.locations ?? [];
 
 const { data, isLoading, isError } = useListingsQuery();
 const listings: PublicListingDto[] = useMemo(() => data?.listings ?? [], [data]);
@@ -1166,8 +1004,7 @@ return (
 </section>
 ) : null}
 {isMapOpen ? (
-<PropertyMapModal onClose={() =>
-setIsMapOpen(false)} />
+  <PropertyMapModal listings={listings} onClose={() => setIsMapOpen(false)} />
 ) : null}
 {isFiltersOpen ? (
 <FiltersModal

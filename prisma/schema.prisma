@@ -183,8 +183,11 @@ model Property {
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
 
-  images    PropertyImage[]
-  amenities PropertyAmenity[]
+  images        PropertyImage[]
+  amenities     PropertyAmenity[]
+  contacts      ContactProperty[]
+  opportunities Opportunity[]
+  contracts     Contract[]
 
   @@index([status], map: "properties_status_idx")
   @@index([type], map: "properties_type_idx")
@@ -241,4 +244,161 @@ model PropertyAmenity {
 
   @@id([propertyId, amenityId])
   @@map("property_amenities")
+}
+
+// Public users saving/favoriting listings. profileId matches auth.users.id.
+// RLS: authenticated user can only read/write their own rows.
+model SavedProperty {
+  id         String   @id @default(cuid())
+  profileId  String   @map("profile_id") @db.Uuid
+  propertyId String   @map("property_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([profileId, propertyId], map: "saved_properties_unique")
+  @@index([profileId], map: "saved_properties_profile_idx")
+  @@map("saved_properties")
+}
+
+// ── CRM ────────────────────────────────────────────────────────────────────────
+
+enum ContactType {
+  BUYER
+  SELLER
+  BOTH
+}
+
+enum OpportunityStage {
+  QUALIFICATION
+  VISITATION
+  OFFER
+  NEGOTIATION
+  CLOSING
+}
+
+enum OpportunityStatus {
+  OPEN
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum ContractType {
+  SALE
+  RENT
+  SALE_AND_RENT
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+// CRM contact — a buyer, seller, or both. Linked to properties via the
+// ContactProperty join table and to pipeline records via opportunities/contracts.
+model Contact {
+  id              String      @id @default(cuid())
+  contactId       String      @unique @map("contact_id")
+  firstName       String      @map("first_name")
+  lastName        String      @map("last_name")
+  email           String?
+  phone           String?
+  location        String?
+  address         String?
+  type            ContactType @default(BUYER)
+  notes           String?
+  isDeleted       Boolean     @default(false) @map("is_deleted")
+  deletedAt       DateTime?   @map("deleted_at")
+  assignedAgentId String?     @map("assigned_agent_id") @db.Uuid
+  createdById     String?     @map("created_by_id") @db.Uuid
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  properties    ContactProperty[]
+  opportunities Opportunity[]
+  contracts     Contract[]
+
+  @@index([email], map: "contacts_email_idx")
+  @@index([type], map: "contacts_type_idx")
+  @@index([assignedAgentId], map: "contacts_agent_idx")
+  @@index([isDeleted], map: "contacts_is_deleted_idx")
+  @@map("contacts")
+}
+
+// Many-to-many: which contacts are linked to which properties, and in what role.
+model ContactProperty {
+  contactId  String @map("contact_id")
+  propertyId String @map("property_id")
+  role       String @default("BUYER")
+
+  contact  Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, propertyId])
+  @@index([propertyId], map: "contact_properties_property_idx")
+  @@map("contact_properties")
+}
+
+// CRM opportunity — tracks a deal from lead to close.
+model Opportunity {
+  id              String            @id @default(cuid())
+  opportunityId   String            @unique @map("opportunity_id")
+  title           String
+  contactId       String?           @map("contact_id")
+  propertyId      String?           @map("property_id")
+  dealType        String?           @map("deal_type")
+  dealSize        Decimal?          @map("deal_size") @db.Decimal(14, 2)
+  stage           OpportunityStage  @default(QUALIFICATION)
+  status          OpportunityStatus @default(OPEN)
+  probability     Int               @default(50)
+  commission      Decimal?          @db.Decimal(14, 2)
+  commissionUnit  String?           @map("commission_unit")
+  paymentTerms    String?           @map("payment_terms")
+  contractStart   DateTime?         @map("contract_start")
+  contractEnd     DateTime?         @map("contract_end")
+  expectedCloseAt DateTime?         @map("expected_close_at")
+  agentCommission String?           @map("agent_commission")
+  notes           String?
+  assignedAgentId String?           @map("assigned_agent_id") @db.Uuid
+  createdById     String?           @map("created_by_id") @db.Uuid
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  contact  Contact?  @relation(fields: [contactId], references: [id])
+  property Property? @relation(fields: [propertyId], references: [id])
+
+  @@index([contactId], map: "opportunities_contact_idx")
+  @@index([propertyId], map: "opportunities_property_idx")
+  @@index([status], map: "opportunities_status_idx")
+  @@map("opportunities")
+}
+
+// CRM contract — executed deal between the agency and a contact.
+model Contract {
+  id              String         @id @default(cuid())
+  contractId      String         @unique @map("contract_id")
+  title           String
+  contactId       String?        @map("contact_id")
+  propertyId      String?        @map("property_id")
+  type            ContractType   @default(SALE)
+  status          ContractStatus @default(ACTIVE)
+  value           Decimal?       @db.Decimal(14, 2)
+  startDate       DateTime?      @map("start_date")
+  endDate         DateTime?      @map("end_date")
+  signedAt        DateTime?      @map("signed_at")
+  terms           String?
+  notes           String?
+  assignedAgentId String?        @map("assigned_agent_id") @db.Uuid
+  createdById     String?        @map("created_by_id") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  contact  Contact?  @relation(fields: [contactId], references: [id])
+  property Property? @relation(fields: [propertyId], references: [id])
+
+  @@index([contactId], map: "contracts_contact_idx")
+  @@index([propertyId], map: "contracts_property_idx")
+  @@index([status], map: "contracts_status_idx")
+  @@map("contracts")
 }

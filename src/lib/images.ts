@@ -2,10 +2,10 @@ import "server-only";
 
 import sharp from "sharp";
 
-// Confirmed project decision: property images are optimized to WebP at a 2K
-// target resolution (max 2048px long edge, quality ~80) before storage.
+// Property images: WebP, 2K max long edge, q90 — high enough that agents and
+// clients see no visible compression artefacts on property detail pages.
 const MAX_DIMENSION = 2048;
-const WEBP_QUALITY = 80;
+const WEBP_QUALITY = 90;
 
 export type OptimizedImage = {
   buffer: Buffer;

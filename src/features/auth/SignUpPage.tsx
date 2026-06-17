@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { signUpWithPassword } from "./actions";
+import { signInWithOAuth } from "./oauth";
 import { AuthBanner } from "./components/AuthBanner";
 import { AuthLogo } from "./components/AuthLogo";
 
@@ -146,16 +147,32 @@ function IconArrow({ left = false }: { left?: boolean }) {
 
 function AppleLogo() {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         d="M14.357 10.69c-.013-1.612.72-2.83 2.202-3.732-.83-1.186-2.079-1.843-3.727-1.978-1.55-.13-3.23.9-3.846.9-.65 0-2.16-.86-3.33-.86-2.42.04-5.006 1.94-5.006 5.83 0 1.15.21 2.34.63 3.57.56 1.6 2.58 5.53 4.69 5.47 1.09-.026 1.86-.77 3.27-.77 1.37 0 2.08.77 3.3.77 2.13-.03 3.95-3.6 4.48-5.2-2.84-1.34-2.665-3.93-2.665-3.997zM11.68 3.36c1.22-1.46.99-2.79.91-3.36-1.01.06-2.18.69-2.85 1.46-.73.83-1.15 1.85-1.07 2.97 1.1.084 2.1-.49 3.01-1.07z"
         fill="#1a1a1a"
+      />
+    </svg>
+  );
+}
+
+function MicrosoftLogo() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="8.5" height="8.5" fill="#F25325" />
+      <rect x="10.5" y="1" width="8.5" height="8.5" fill="#80BC06" />
+      <rect x="1" y="10.5" width="8.5" height="8.5" fill="#05A6F0" />
+      <rect x="10.5" y="10.5" width="8.5" height="8.5" fill="#FEBA08" />
+    </svg>
+  );
+}
+
+function FacebookLogo() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M20 10C20 4.477 15.523 0 10 0S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878V12.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z"
+        fill="#1877F2"
       />
     </svg>
   );
@@ -190,22 +207,6 @@ function GoogleLogo() {
   );
 }
 
-function MicrosoftLogo() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect x="1" y="1" width="8.5" height="8.5" fill="#F25325" />
-      <rect x="10.5" y="1" width="8.5" height="8.5" fill="#80BC06" />
-      <rect x="1" y="10.5" width="8.5" height="8.5" fill="#05A6F0" />
-      <rect x="10.5" y="10.5" width="8.5" height="8.5" fill="#FEBA08" />
-    </svg>
-  );
-}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -216,10 +217,26 @@ export function SignUpPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOAuthSubmitting, setIsOAuthSubmitting] = useState(false);
   const [banner, setBanner] = useState<{
     title: string;
     message: string;
   } | null>(null);
+
+  const flashBanner = (title: string, message: string) => {
+    setBanner({ title, message });
+    setTimeout(() => setBanner(null), 4000);
+  };
+
+  const handleOAuth = async (provider: "google" | "facebook") => {
+    if (isOAuthSubmitting || isSubmitting) return;
+    setIsOAuthSubmitting(true);
+    const result = await signInWithOAuth(provider);
+    if (result.error) {
+      setIsOAuthSubmitting(false);
+      flashBanner("Sign-in failed", result.error);
+    }
+  };
 
   const handleSignUp = async () => {
     if (isSubmitting) return;
@@ -426,19 +443,31 @@ export function SignUpPageContent() {
                 <div className="flex gap-[12px] h-[54px]">
                   <button
                     type="button"
-                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors"
+                    disabled
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center opacity-40 cursor-not-allowed"
                   >
                     <AppleLogo />
                   </button>
                   <button
                     type="button"
-                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors"
+                    onClick={() => handleOAuth("google")}
+                    disabled={isOAuthSubmitting || isSubmitting}
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-60"
                   >
                     <GoogleLogo />
                   </button>
                   <button
                     type="button"
-                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors"
+                    onClick={() => handleOAuth("facebook")}
+                    disabled={isOAuthSubmitting || isSubmitting}
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-60"
+                  >
+                    <FacebookLogo />
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center opacity-40 cursor-not-allowed"
                   >
                     <MicrosoftLogo />
                   </button>

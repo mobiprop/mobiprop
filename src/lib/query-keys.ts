@@ -34,10 +34,13 @@ export const queryKeys = {
 
   // CRM tables
   agents: prefixed("agents"),
+  dashboardContacts: prefixed("dashboard-contacts"),
   contacts: prefixed("contacts"),
   dashboardListings: prefixed("dashboard-listings"),
   leads: prefixed("leads"),
+  dashboardOpportunities: prefixed("dashboard-opportunities"),
   opportunities: prefixed("opportunities"),
+  dashboardContracts: prefixed("dashboard-contracts"),
   contracts: prefixed("contracts"),
   locations: prefixed("locations"),
   activityLogs: prefixed("activity-logs"),
@@ -60,4 +63,13 @@ export const queryKeys = {
   // Notifications
   notifications: () => ["notifications"] as const,
   unreadNotificationsCount: () => ["unread-notifications-count"] as const,
+
+  // Dashboard global search
+  dashboardSearch: (q: string) => ["dashboard-search", q] as const,
+
+  // Saved listings page (full card data, distinct from savedListings which tracks IDs)
+  savedListingsPage: () => ["saved-listings-page"] as const,
+
+  // Location autocomplete suggestions
+  locationSuggestions: (q: string) => ["listing-locations", q] as const,
 } as const;
