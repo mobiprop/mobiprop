@@ -37,6 +37,7 @@ export type DashboardListingDto = {
   areaSqft: number | null;
   yearBuilt: number | null;
   isFeatured: boolean;
+  videoUrl: string | null;
   viewsCount: number;
   assignedAgentId: string | null;
   createdById: string | null;
@@ -82,6 +83,7 @@ export type PublicListingDto = {
   yearBuilt: number | null;
   floors: number | null;
   isFeatured: boolean;
+  videoUrl: string | null;
   publishedAt: string | null;
   amenities: AmenityKey[];
   images: ListingImageDto[];

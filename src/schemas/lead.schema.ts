@@ -37,7 +37,10 @@ export const createLeadSchema = z.object({
   lifecycleStatus: z.nativeEnum(LeadLifecycleStatus).default(LeadLifecycleStatus.NEW),
 
   // Assignment
-  assignedAgentId: z.string().uuid().optional().or(z.literal("")),
+  // .guid() (not .uuid()) — some seeded staff profiles use simplified IDs
+  // that aren't RFC4122-compliant (wrong version/variant nibble); the real
+  // existence/role check happens server-side against the profiles table.
+  assignedAgentId: z.string().guid().optional().or(z.literal("")),
 
   // Notes & scheduling
   notes: z.string().max(5000).optional(),
@@ -74,7 +77,7 @@ export const updateLeadSchema = z.object({
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>;
 
 export const assignLeadSchema = z.object({
-  agentId: z.string().uuid().nullable(),
+  agentId: z.string().guid().nullable(),
 });
 
 export type AssignLeadInput = z.infer<typeof assignLeadSchema>;
@@ -99,7 +102,7 @@ export const leadListFiltersSchema = z.object({
   temperature: z.nativeEnum(LeadTemperature).optional(),
   lifecycleStatus: z.nativeEnum(LeadLifecycleStatus).optional(),
   source: z.nativeEnum(LeadSource).optional(),
-  assignedAgentId: z.string().uuid().optional(),
+  assignedAgentId: z.string().guid().optional(),
   unassigned: z.coerce.boolean().optional(),
   isArchived: z.coerce.boolean().optional().default(false),
   scoreMin: z.coerce.number().int().min(0).max(100).optional(),

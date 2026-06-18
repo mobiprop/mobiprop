@@ -601,13 +601,14 @@ export function LeadsPage({ role }: LeadsPageProps) {
         <div className="hidden min-w-0 overflow-x-auto md:block">
           <table className="w-full min-w-[950px] table-fixed">
             <colgroup>
-              <col className="w-[15%]" />
-              <col className="w-[18%]" />
               <col className="w-[13%]" />
-              <col className="w-[14%]" />
-              <col className="w-[11%]" />
               <col className="w-[16%]" />
+              <col className="w-[11%]" />
+              <col className="w-[12%]" />
               <col className="w-[10%]" />
+              <col className="w-[14%]" />
+              <col className="w-[9%]" />
+              <col className="w-[12%]" />
               <col className="w-[3%]" />
             </colgroup>
 
@@ -621,6 +622,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                   "Budget",
                   "Score",
                   "Status",
+                  "Agent",
                 ].map((heading) => (
                   <th
                     key={heading}
@@ -637,7 +639,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               {isLoading && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-5 py-12 text-center text-[14px] text-[#69758a]"
                   >
                     Loading leads…
@@ -648,7 +650,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               {isError && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-5 py-12 text-center text-[14px] text-[#dc2626]"
                   >
                     Failed to load leads.
@@ -713,6 +715,12 @@ export function LeadsPage({ role }: LeadsPageProps) {
                       />
                     </td>
 
+                    <td className="px-5 py-3">
+                      <span className="block truncate text-[14px] text-[#34445b]">
+                        {lead.assignedAgent?.fullName ?? "—"}
+                      </span>
+                    </td>
+
                     <td
                       className="px-2 py-3 text-right"
                       onClick={(event) => event.stopPropagation()}
@@ -729,7 +737,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               {!isLoading && !isError && leads.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-5 py-12 text-center text-[14px] text-[#69758a]"
                   >
                     No leads found.
