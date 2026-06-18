@@ -243,32 +243,33 @@ export function PropertyMapModal({
 
         const OverlayClass = buildOverlayClass();
 
-        // Auto-center: average of all geo-listed properties, else Buenos Aires
-        let center: google.maps.LatLngLiteral = { lat: -34.6037, lng: -58.3816 };
-        let zoom = 12;
-        if (geoListings.length > 0) {
-          const lats = geoListings.map((l) => l.latitude as number);
-          const lngs = geoListings.map((l) => l.longitude as number);
-          center = {
-            lat: (Math.min(...lats) + Math.max(...lats)) / 2,
-            lng: (Math.min(...lngs) + Math.max(...lngs)) / 2,
-          };
-          const spread = Math.max(
-            Math.max(...lats) - Math.min(...lats),
-            Math.max(...lngs) - Math.min(...lngs),
-          );
-          zoom = spread > 1 ? 10 : spread > 0.3 ? 11 : 13;
-        }
+        // Auto-center: single listing gets a fixed neighborhood zoom; none
+        // falls back to Buenos Aires. Multiple listings use fitBounds so the
+        // zoom always fits however far apart they are (a degree-spread
+        // heuristic caps out at city-level zoom and strands pins off-screen
+        // once listings are more than ~1° apart, e.g. different countries).
+        const single = geoListings.length === 1;
+        const center: google.maps.LatLngLiteral = single
+          ? { lat: geoListings[0].latitude as number, lng: geoListings[0].longitude as number }
+          : { lat: -34.6037, lng: -58.3816 };
 
         const map = new google.maps.Map(mapContainerRef.current, {
           center,
-          zoom,
+          zoom: single ? 13 : 12,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
           gestureHandling: "greedy",
         });
         mapRef.current = map;
+
+        if (geoListings.length > 1) {
+          const bounds = new google.maps.LatLngBounds();
+          for (const listing of geoListings) {
+            bounds.extend({ lat: listing.latitude as number, lng: listing.longitude as number });
+          }
+          map.fitBounds(bounds, 48);
+        }
 
         // Place price-pin overlays for listings that have coordinates
         const overlays: typeof overlaysRef.current = [];
