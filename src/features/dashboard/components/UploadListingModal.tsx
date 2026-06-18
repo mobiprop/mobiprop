@@ -91,6 +91,7 @@ type ListingFormValues = {
   location: string;
   fullAddress: string;
   isFeatured: boolean;
+  assignedAgentId: string;
   bedrooms: string;
   bathrooms: string;
   toilets: string;
@@ -110,6 +111,7 @@ const EMPTY_VALUES: ListingFormValues = {
   location: "",
   fullAddress: "",
   isFeatured: false,
+  assignedAgentId: "",
   bedrooms: "",
   bathrooms: "",
   toilets: "",
@@ -130,6 +132,7 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     location: listing.location,
     fullAddress: listing.fullAddress,
     isFeatured: listing.isFeatured,
+    assignedAgentId: listing.assignedAgentId ?? "",
     bedrooms: listing.bedrooms?.toString() ?? "",
     bathrooms: listing.bathrooms?.toString() ?? "",
     toilets: listing.toilets?.toString() ?? "",
@@ -139,6 +142,8 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     amenities: listing.amenities,
   };
 }
+
+type AssignableAgent = { id: string; name: string; status: string };
 
 type NewImage = { file: File; preview: string };
 
@@ -151,6 +156,8 @@ type UploadListingModalProps = {
   /** When set, the modal edits this listing instead of creating a new one. */
   listing?: DashboardListingDto;
   canFeature: boolean;
+  /** listings:assign — ADMIN/MANAGER only. Hides the Assigned Agent field otherwise. */
+  canAssign: boolean;
 };
 
 /**
@@ -171,6 +178,9 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.location !== listing.location) diff.location = parsed.location;
   if (parsed.fullAddress !== listing.fullAddress) diff.fullAddress = parsed.fullAddress;
   if (parsed.isFeatured !== listing.isFeatured) diff.isFeatured = parsed.isFeatured;
+  if ((parsed.assignedAgentId ?? "") !== (listing.assignedAgentId ?? "")) {
+    diff.assignedAgentId = parsed.assignedAgentId;
+  }
   if (parsed.bedrooms !== (listing.bedrooms ?? undefined)) diff.bedrooms = parsed.bedrooms;
   if (parsed.bathrooms !== (listing.bathrooms ?? undefined)) diff.bathrooms = parsed.bathrooms;
   if (parsed.toilets !== (listing.toilets ?? undefined)) diff.toilets = parsed.toilets;
@@ -221,7 +231,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-export function UploadListingModal({ onClose, listing, canFeature }: UploadListingModalProps) {
+export function UploadListingModal({ onClose, listing, canFeature, canAssign }: UploadListingModalProps) {
   const isEdit = listing !== undefined;
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -236,6 +246,15 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
   });
   const [imagesError, setImagesError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [agents, setAgents] = useState<AssignableAgent[]>([]);
+
+  useEffect(() => {
+    if (!canAssign) return;
+    fetch("/api/dashboard/agents")
+      .then((res) => res.json())
+      .then((json) => setAgents((json.agents ?? []).filter((a: AssignableAgent) => a.status === "ACTIVE")))
+      .catch(() => undefined);
+  }, [canAssign]);
 
   const createMutation = useCreateListingMutation();
   const updateMutation = useUpdateListingMutation();
@@ -586,6 +605,22 @@ export function UploadListingModal({ onClose, listing, canFeature }: UploadListi
                 <input {...register("fullAddress")} placeholder="1234 Main Street, Downtown" className={`${inputClass} ${borderClass(!!errors.fullAddress)}`} style={mont} />
                 <FieldError message={errors.fullAddress?.message} />
               </div>
+
+              {/* Assigned Agent */}
+              {canAssign && (
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass} style={mont}>Assigned Agent</label>
+                  <div className="relative">
+                    <select {...register("assignedAgentId")} className={`w-full h-10 pl-3 pr-9 bg-[#fafbfc] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer`} style={mont}>
+                      <option value="">— Unassigned —</option>
+                      {agents.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
+                  </div>
+                </div>
+              )}
 
               {/* Featured toggle */}
               {canFeature && (

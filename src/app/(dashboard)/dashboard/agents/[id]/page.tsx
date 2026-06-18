@@ -12,5 +12,5 @@ export default async function DashboardAgentDetailPage({
 }) {
   await requireDashboardAccess("agents:view");
   const { id } = await params;
-  return <AgentDetailPage agentId={Number(id)} />;
+  return <AgentDetailPage agentId={id} />;
 }
