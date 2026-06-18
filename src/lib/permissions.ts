@@ -41,9 +41,22 @@ export type Permission =
   | "listings:feature"
   | "listings:uploadImages"
   | "leads:view"
+  | "leads:view_all"
   | "leads:create"
   | "leads:update"
+  | "leads:assign"
+  | "leads:change_status"
+  | "leads:change_score"
+  | "leads:add_note"
+  | "leads:archive"
   | "leads:convert"
+  | "leads:export"
+  | "leads:view_activity"
+  | "tours:view"
+  | "tours:view_all"
+  | "tours:create"
+  | "tours:update"
+  | "tours:assign"
   | "opportunities:view"
   | "opportunities:create"
   | "opportunities:update"
@@ -88,9 +101,22 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:feature",
     "listings:uploadImages",
     "leads:view",
+    "leads:view_all",
     "leads:create",
     "leads:update",
+    "leads:assign",
+    "leads:change_status",
+    "leads:change_score",
+    "leads:add_note",
+    "leads:archive",
     "leads:convert",
+    "leads:export",
+    "leads:view_activity",
+    "tours:view",
+    "tours:view_all",
+    "tours:create",
+    "tours:update",
+    "tours:assign",
     "opportunities:view",
     "opportunities:create",
     "opportunities:update",
@@ -124,9 +150,22 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:feature",
     "listings:uploadImages",
     "leads:view",
+    "leads:view_all",
     "leads:create",
     "leads:update",
+    "leads:assign",
+    "leads:change_status",
+    "leads:change_score",
+    "leads:add_note",
+    "leads:archive",
     "leads:convert",
+    "leads:export",
+    "leads:view_activity",
+    "tours:view",
+    "tours:view_all",
+    "tours:create",
+    "tours:update",
+    "tours:assign",
     "opportunities:view",
     "opportunities:create",
     "opportunities:update",
@@ -148,8 +187,16 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:pause",
     "listings:uploadImages",
     "leads:view",
+    "leads:create",
     "leads:update",
+    "leads:change_status",
+    "leads:change_score",
+    "leads:add_note",
     "leads:convert",
+    "leads:view_activity",
+    "tours:view",
+    "tours:create",
+    "tours:update",
     "opportunities:view",
     "opportunities:update",
     "contracts:view",

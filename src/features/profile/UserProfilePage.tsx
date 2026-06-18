@@ -12,8 +12,13 @@ import {
   BadgeCheck,
   Bookmark,
   MessageSquare,
-  Heart, FileText, MapPin
+  Heart, FileText, Calendar,
 } from "lucide-react";
+import { useMyToursQuery } from "@/hooks/queries/useDashboardToursQuery";
+import { useCancelMyTourMutation } from "@/hooks/mutations/useTourMutations";
+import type { MyTourDto } from "@/features/crm/types/crm-dto";
+import { TOUR_STATUS_BADGE } from "@/features/dashboard/ToursPage";
+import { format } from "date-fns";
 import {
   listingDisplayPrice,
   formatArea,
@@ -471,16 +476,72 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
 const tabs = ["Saved Properties", "My Contracts", "Scheduled tours"] as const;
 type Tab = (typeof tabs)[number];
 
+function TourCard({ tour, onCancel }: { tour: MyTourDto; onCancel: (id: string) => void }) {
+  const badge = TOUR_STATUS_BADGE[tour.status];
+  const isTerminal = tour.status === "COMPLETED" || tour.status === "CANCELLED" || tour.status === "NO_SHOW";
+  return (
+    <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Calendar size={16} color="#4f46e5" />
+          <span className="text-[14px] font-semibold text-[#0d2138]" style={{ fontFamily: montserrat }}>
+            {format(new Date(tour.scheduledAt), "MMM d, yyyy")}
+          </span>
+          <span className="text-[13px] text-[#6b7280]" style={{ fontFamily: montserrat }}>
+            {format(new Date(tour.scheduledAt), "h:mm a")} · {tour.durationMinutes} min
+          </span>
+        </div>
+        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.text, fontFamily: montserrat }}>
+          {badge.label}
+        </span>
+      </div>
+      {tour.property && (
+        <a href={`/listings/${tour.property.slug}`} className="flex items-start gap-3 hover:opacity-80 transition-opacity">
+          {tour.property.coverUrl && (
+            <img src={tour.property.coverUrl} alt={tour.property.title} className="w-16 h-12 rounded-[8px] object-cover shrink-0" />
+          )}
+          <div>
+            <p className="text-[13px] font-medium text-[#0d2138]" style={{ fontFamily: montserrat }}>{tour.property.title}</p>
+            <p className="text-[11px] text-[#9ca3af]" style={{ fontFamily: montserrat }}>{tour.property.location}</p>
+          </div>
+        </a>
+      )}
+      {tour.assignedAgent && (
+        <p className="text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>
+          Agent: <span className="font-medium text-[#0d2138]">{tour.assignedAgent.fullName ?? tour.assignedAgent.email}</span>
+        </p>
+      )}
+      {tour.cancellationReason && (
+        <p className="text-[12px] text-[#dc2626]" style={{ fontFamily: montserrat }}>Reason: {tour.cancellationReason}</p>
+      )}
+      {!isTerminal && (
+        <button
+          onClick={() => onCancel(tour.id)}
+          className="self-start text-[12px] text-[#dc2626] hover:underline"
+          style={{ fontFamily: montserrat }}
+        >
+          Cancel tour
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SavedPropertiesSection({
   listings,
   isLoading,
   onRemove,
+  profileId,
 }: {
   listings: SavedListing[];
   isLoading: boolean;
   onRemove: (id: string) => void;
+  profileId: string;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("Saved Properties");
+  const { data: toursData, isLoading: toursLoading } = useMyToursQuery(profileId);
+  const cancelTour = useCancelMyTourMutation(profileId);
+  const tours = toursData ?? [];
 
   return (
     <section className="mx-auto max-w-[1440px] px-4 py-[32px] sm:px-6 sm:py-[40px] lg:px-[76px] lg:py-[48px]">
@@ -490,7 +551,7 @@ function SavedPropertiesSection({
           {tabs.map((tab) => {
             const isActive = tab === activeTab;
             const TabIcon =
-              tab === "Saved Properties" ? Heart : tab === "My Contracts" ? FileText : MapPin;
+              tab === "Saved Properties" ? Heart : tab === "My Contracts" ? FileText : Calendar;
             return (
               <button
                 key={tab}
@@ -562,11 +623,33 @@ function SavedPropertiesSection({
           </div>
         )}
         {activeTab === "Scheduled tours" && (
-          <div className="flex items-center justify-center h-[300px]">
-            <p className="text-[#6a7282] text-[16px]" style={{ fontFamily: montserrat }}>
-              No scheduled tours.
-            </p>
-          </div>
+          <>
+            {toursLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <div className="animate-pulse flex flex-col gap-4 w-full max-w-lg">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="h-28 rounded-[16px] bg-[#eef1f5]" />
+                  ))}
+                </div>
+              </div>
+            ) : tours.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f3f4f6]">
+                  <Calendar size={28} className="text-[#d1d5dc]" />
+                </div>
+                <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
+                  No scheduled tours yet.{" "}
+                  <a href="/listings" className="text-[#1a4878] hover:underline">Browse listings</a> to book a visit.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 max-w-2xl">
+                {tours.map((tour) => (
+                  <TourCard key={tour.id} tour={tour} onCancel={(id) => cancelTour.mutate(id)} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
@@ -626,6 +709,7 @@ export function UserProfilePageContent({ profile: initialProfile }: { profile: P
         listings={displayListings}
         isLoading={isLoading}
         onRemove={handleRemove}
+        profileId={profile.id}
       />
       {isEditOpen && (
         <EditProfileModal

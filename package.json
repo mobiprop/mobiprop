@@ -11,6 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "prisma:generate": "prisma generate",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "deploy": "bash scripts/deploy.sh",
@@ -50,11 +52,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
+    "@vitest/coverage-v8": "^4.1.9",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "supabase": "^2.104.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }

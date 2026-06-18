@@ -4,8 +4,10 @@ import { listContacts, createContact } from "@/features/crm/contact-actions";
 
 export const runtime = "nodejs";
 
-export async function GET() {
-  const result = await listContacts();
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const search = searchParams.get("search") ?? undefined;
+  const result = await listContacts(search);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

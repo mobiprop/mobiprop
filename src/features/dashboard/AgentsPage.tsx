@@ -27,6 +27,33 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type AgentStatus = "Approved" | "Pending" | "Denied";
+type PeriodFilter = "this_week" | "this_month" | "last_month" | "all";
+
+const PERIOD_LABELS: Record<PeriodFilter, string> = {
+  this_week:  "This Week",
+  this_month: "This Month",
+  last_month: "Last Month",
+  all:        "All Time",
+};
+
+function getPeriodBounds(period: PeriodFilter): { from: Date; to: Date } | null {
+  if (period === "all") return null;
+  const now = new Date();
+  if (period === "this_week") {
+    const day = now.getDay(); // 0=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((day + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+    return { from: monday, to: now };
+  }
+  if (period === "this_month") {
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+  }
+  // last_month
+  const firstOfLast = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastOfLast  = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  return { from: firstOfLast, to: lastOfLast };
+}
 
 function mapStatus(status: AgentDto["status"]): AgentStatus {
   if (status === "ACTIVE") return "Approved";
@@ -105,6 +132,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [metrics, setMetrics] = useState<AgentMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const [period, setPeriod] = useState<PeriodFilter>("all");
 
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
@@ -148,6 +176,8 @@ export function AgentsPage({ role }: AgentsPageProps) {
     setActioningId(null);
   }
 
+  const periodBounds = getPeriodBounds(period);
+
   const filtered = agents.filter((a) => {
     const mapped = mapStatus(a.status);
     const matchesSearch =
@@ -156,7 +186,9 @@ export function AgentsPage({ role }: AgentsPageProps) {
       a.email.toLowerCase().includes(search.toLowerCase()) ||
       (a.city ?? "").toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || mapped === statusFilter;
-    return matchesSearch && matchesStatus;
+    const signedUp = new Date(a.createdAt);
+    const matchesPeriod = !periodBounds || (signedUp >= periodBounds.from && signedUp <= periodBounds.to);
+    return matchesSearch && matchesStatus && matchesPeriod;
   });
 
   return (
@@ -225,71 +257,77 @@ export function AgentsPage({ role }: AgentsPageProps) {
       </div>
 
       {/* Agents table */}
-     <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
-  {/* Header and controls */}
-  <div className="border-b border-[#f3f4f6] p-4 sm:p-5">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <h2
-        className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
-        style={mont}
-      >
-        Approve Agents
-      </h2>
+      <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
+        {/* Header and controls */}
+        <div className="border-b border-[#f3f4f6] p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <h2
+              className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
+              style={mont}
+            >
+              Approve Agents
+            </h2>
 
-      <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
-        {/* Search */}
-        <div className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 focus-within:border-[#1e4f86] sm:h-9 sm:w-[200px]">
-          <Search
-            size={16}
-            className="shrink-0 text-[#99a1af]"
-          />
+            <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
+              {/* Search */}
+              <div className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 focus-within:border-[#1e4f86] sm:h-9 sm:w-[200px]">
+                <Search
+                  size={16}
+                  className="shrink-0 text-[#99a1af]"
+                />
 
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search agents..."
-            className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[12px]"
-            style={mont}
-          />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search agents..."
+                  className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[12px]"
+                  style={mont}
+                />
+              </div>
+
+              {/* Status filter */}
+              <div className="relative min-w-0">
+                <select
+                  value={statusFilter}
+                  onChange={(e) =>
+                    setStatusFilter(e.target.value as AgentStatus | "All")
+                  }
+                  className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
+                  style={mont}
+                >
+                  <option value="All">All</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Denied">Denied</option>
+                </select>
+
+                <Filter
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
+                />
+              </div>
+
+              {/* Period */}
+              <div className="relative min-w-0">
+                <select
+                  value={period}
+                  onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
+                  className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
+                  style={mont}
+                >
+                  {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
+                    <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
+                  ))}
+                </select>
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Status filter */}
-        <div className="relative min-w-0">
-          <select
-            value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as AgentStatus | "All")
-            }
-            className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
-            style={mont}
-          >
-            <option value="All">All</option>
-            <option value="Approved">Approved</option>
-            <option value="Pending">Pending</option>
-            <option value="Denied">Denied</option>
-          </select>
-
-          <Filter
-            size={16}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
-          />
-        </div>
-
-        {/* Period */}
-        <button
-          type="button"
-          className="flex h-11 min-w-0 items-center justify-between gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#6a7282] sm:h-9 sm:text-[12px]"
-          style={mont}
-        >
-          <span className="truncate">Last Month</span>
-          <ChevronDown
-            size={16}
-            className="shrink-0 text-[#99a1af]"
-          />
-        </button>
-      </div>
-    </div>
-  </div>
 
   {/* Desktop and tablet table */}
   <div className="hidden overflow-x-auto sm:block">

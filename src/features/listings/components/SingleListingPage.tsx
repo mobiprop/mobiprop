@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
+import { ScheduleTourModal } from "./ScheduleTourModal";
 import svgPaths from "./singleListingSvgPaths";
 import type { PublicListingAgent } from "../listing-actions";
 import type { PublicListingDto } from "../types/listing-dto";
@@ -445,6 +446,7 @@ export function SingleListingPageContent({
 }) {
   const [copied, setCopied] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [tourModalOpen, setTourModalOpen] = useState(false);
   const { isSaved, toggleSave } = useSavedListings();
   const saved = isSaved(listing.listingId);
 
@@ -1192,6 +1194,7 @@ export function SingleListingPageContent({
       {/* Right: Buttons */}
       <div className="flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 lg:gap-5 w-full lg:w-[257px] justify-center">
         <button
+          onClick={() => setTourModalOpen(true)}
           className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] transition-opacity hover:opacity-90"
           style={{
             fontFamily: "Poppins, sans-serif",
@@ -1215,6 +1218,15 @@ export function SingleListingPageContent({
 
       {/* Footer spacer */}
       <div className="h-8" />
+
+      {/* Tour request modal */}
+      {tourModalOpen && (
+        <ScheduleTourModal
+          propertyId={listing.id}
+          propertyTitle={listing.title}
+          onClose={() => setTourModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

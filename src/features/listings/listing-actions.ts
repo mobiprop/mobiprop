@@ -122,6 +122,7 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
 
 function toPublicDto(property: PropertyWithRelations): PublicListingDto {
   return {
+    id: property.id,
     listingId: property.listingId,
     slug: property.slug,
     title: property.title,
@@ -394,18 +395,30 @@ export async function createListing(
 
 // ── Dashboard list + metrics ──────────────────────────────────────────────────
 
-export async function listDashboardListings(): Promise<
+export async function listDashboardListings(search?: string, limit?: number): Promise<
   ListingActionResult<{ listings: DashboardListingDto[]; metrics: DashboardListingMetrics }>
 > {
   const gate = await requirePermission("listings:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
   const scope = recordScope(gate.profile);
+  const where: import("@/generated/prisma/client").Prisma.PropertyWhereInput = {
+    ...scope,
+    ...(search && {
+      OR: [
+        { title: { contains: search, mode: "insensitive" as const } },
+        { listingId: { contains: search, mode: "insensitive" as const } },
+        { location: { contains: search, mode: "insensitive" as const } },
+      ],
+    }),
+  };
+
   const [properties, viewsAggregate] = await Promise.all([
     prisma.property.findMany({
-      where: scope,
+      where,
       include: listingInclude,
       orderBy: { createdAt: "desc" },
+      ...(limit && { take: limit }),
     }),
     prisma.property.aggregate({ where: scope, _sum: { viewsCount: true } }),
   ]);

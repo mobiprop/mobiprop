@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
+import { logActivity } from "@/lib/activity-log";
 import { UserRole, UserStatus } from "@/generated/prisma/enums";
 
 export type AgentDto = {
@@ -86,9 +87,20 @@ export async function updateAgentStatus(
     return { ok: false, error: "Agent not found.", status: 404 };
   }
 
+  const previous = agent.status;
+
   await prisma.profile.update({
     where: { id: agentId },
     data: { status: newStatus },
+  });
+
+  await logActivity({
+    actorId: auth.profile.id,
+    action: newStatus === "ACTIVE" ? "AGENT_ACTIVATED" : "AGENT_DEACTIVATED",
+    entityType: "PROFILE",
+    entityId: agentId,
+    oldValues: { status: previous },
+    newValues: { status: newStatus },
   });
 
   return { ok: true };
