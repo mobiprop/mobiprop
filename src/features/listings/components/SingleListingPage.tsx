@@ -1185,28 +1185,54 @@ export function SingleListingPageContent({
     />
 
     {/* Location Card */}
-    <div className="absolute top-3 left-3 sm:top-5 sm:left-5 bg-white rounded-[10px] p-2.5 sm:p-3 w-[190px] sm:w-[213px] max-w-[calc(100%-24px)]">
-      <p
-        className="text-[#232323] text-[12px] sm:text-[14px] mb-1 leading-[18px]"
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          fontWeight: 500,
-          letterSpacing: "-0.14px",
-        }}
-      >
-        {listing.location}
-      </p>
+    <div className="absolute top-3 left-3 sm:top-5 sm:left-5 w-[290px] max-w-[calc(100%-24px)] rounded-[14px] bg-white px-4 py-3.5 shadow-sm">
+  {/* Location Name */}
+  <p
+    className="mb-2 truncate text-[16px] leading-[22px] text-[#232323]"
+    style={{
+      fontFamily: "Montserrat, sans-serif",
+      fontWeight: 500,
+      letterSpacing: "-0.16px",
+    }}
+  >
+    {listing.location}
+  </p>
 
-      <p
-        className="text-[#5f5f5f] text-[11px] sm:text-[12px] leading-[16px]"
-        style={{
-          fontFamily: "Poppins, sans-serif",
-          letterSpacing: "-0.12px",
-        }}
-      >
-        {listing.fullAddress}
-      </p>
+  {/* Full Address */}
+  <p
+    className="mb-3 truncate text-[14px] leading-[20px] text-[#6B6B6B]"
+    style={{
+      fontFamily: "Poppins, sans-serif",
+      fontWeight: 400,
+      letterSpacing: "-0.14px",
+    }}
+  >
+    {listing.fullAddress}
+  </p>
+
+  {/* Rating and Reviews */}
+  <div className="flex items-center gap-2 whitespace-nowrap">
+    <span
+      className="text-[16px] font-medium text-[#232323]"
+      style={{ fontFamily: "Poppins, sans-serif" }}
+    >
+      5.0
+    </span>
+
+    <div className="flex items-center gap-[2px] text-[19px] leading-none text-[#F5A000]">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <span key={index}>★</span>
+      ))}
     </div>
+
+    <span
+      className="text-[14px] text-[#369BCB]"
+      style={{ fontFamily: "Poppins, sans-serif" }}
+    >
+      {(6546).toLocaleString()} reviews
+    </span>
+  </div>
+</div>
   </div>
 </div>
       ) : null}
@@ -1261,7 +1287,7 @@ export function SingleListingPageContent({
       <div className="hidden lg:block w-px bg-[#2B3038] self-stretch" />
 
       {/* Mobile Divider */}
-      <div className="block lg:hidden w-full h-px bg-white/15" />
+      <div className="block lg:hidden w-full  bg-white/15" />
       </>
       ) : null}
 

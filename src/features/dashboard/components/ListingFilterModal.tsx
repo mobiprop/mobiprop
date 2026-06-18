@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { X, Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 
-const mont = { fontFamily: "'Montserrat', sans-serif" };
+const mont = {
+  fontFamily: "'Montserrat', sans-serif",
+};
 
 export type ListingFilterValues = {
   operationTypes: string[];
@@ -15,7 +17,12 @@ export type ListingFilterValues = {
 };
 
 const OPERATION_TYPES = ["Sale", "Rent", "Both"];
-const PROPERTY_TYPES = ["Apartment", "House", "Commercial", "Land"];
+const PROPERTY_TYPES = [
+  "Apartment",
+  "House",
+  "Commercial",
+  "Land",
+];
 const BEDROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
 const STATUSES = ["Active", "Paused", "Rented", "Sold"];
 
@@ -25,39 +32,73 @@ type ListingFilterModalProps = {
   onClose: () => void;
 };
 
+type CheckboxRowProps = {
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+};
+
 function CheckboxRow({
   label,
   checked,
   onToggle,
-}: {
-  label: string;
-  checked: boolean;
-  onToggle: () => void;
-}) {
+}: CheckboxRowProps) {
   return (
-    <button type="button" onClick={onToggle} className="flex items-center gap-2.5" style={mont}>
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      onClick={onToggle}
+      className="flex min-w-0 items-center gap-2.5 text-left"
+      style={mont}
+    >
       <span
-        className={`size-[18px] rounded-[5px] border flex items-center justify-center transition-colors ${
-          checked ? "bg-[#1e4f86] border-[#1e4f86]" : "bg-white border-[#d0d0d0]"
+        className={`flex size-[19px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
+          checked
+            ? "border-[#235b96] bg-[#235b96]"
+            : "border-[#d9dde3] bg-white"
         }`}
       >
-        {checked && <Check size={12} className="text-white" />}
+        {checked && (
+          <Check
+            size={13}
+            strokeWidth={2.6}
+            className="text-white"
+          />
+        )}
       </span>
-      <span className="text-[14px] text-[#2a2a2a]">{label}</span>
+
+      <span className="whitespace-nowrap text-[14px] text-[#292929] sm:text-[15px]">
+        {label}
+      </span>
     </button>
   );
 }
 
-export function ListingFilterModal({ resultCount, onApply, onClose }: ListingFilterModalProps) {
-  const [operationTypes, setOperationTypes] = useState<string[]>(["Sale"]);
+export function ListingFilterModal({
+  resultCount,
+  onApply,
+  onClose,
+}: ListingFilterModalProps) {
+  const [operationTypes, setOperationTypes] = useState<string[]>([
+    "Sale",
+  ]);
   const [propertyTypes, setPropertyTypes] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [bedrooms, setBedrooms] = useState("Any");
   const [statuses, setStatuses] = useState<string[]>([]);
 
-  function toggle(list: string[], value: string, setter: (next: string[]) => void) {
-    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  function toggle(
+    list: string[],
+    value: string,
+    setter: (next: string[]) => void,
+  ) {
+    setter(
+      list.includes(value)
+        ? list.filter((item) => item !== value)
+        : [...list, value],
+    );
   }
 
   function clearAll() {
@@ -69,128 +110,245 @@ export function ListingFilterModal({ resultCount, onApply, onClose }: ListingFil
     setStatuses([]);
   }
 
+  function handleApply() {
+    onApply({
+      operationTypes,
+      propertyTypes,
+      minPrice,
+      maxPrice,
+      bedrooms,
+      statuses,
+    });
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5"
+      onClick={onClose}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/55" />
+
+      {/* Modal */}
       <div
-        className="relative bg-white rounded-[16px] w-full max-w-[460px] max-h-[90vh] overflow-y-auto shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="listing-filter-title"
+        onClick={(event) => event.stopPropagation()}
+        className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-[500px] flex-col overflow-hidden rounded-[18px] border border-[#dedede] bg-white shadow-2xl sm:max-h-[92vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#f0f0f0]">
-          <p className="text-[16px] font-semibold text-[#1a1a1a]" style={mont}>Filter Listings</p>
-          <div className="flex items-center gap-4">
-            <button type="button" onClick={clearAll} className="text-[12px] font-medium text-[#185fa5] hover:underline" style={mont}>
+        <div className="flex shrink-0 items-center justify-between border-b border-[#e9e9e9] px-5 py-5 sm:px-7 sm:py-6">
+          <h2
+            id="listing-filter-title"
+            className="text-[17px] font-semibold text-[#202020]"
+            style={mont}
+          >
+            Filter Listings
+          </h2>
+
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-[13px] font-semibold text-[#1265b3] transition-colors hover:text-[#0d4f8e]"
+              style={mont}
+            >
               Clear all
             </button>
-            <button type="button" onClick={onClose} className="text-[#6a7282] hover:text-[#0d2138] transition-colors">
-              <X size={18} />
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close filters"
+              className="flex size-8 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-[#f3f4f6] hover:text-[#111]"
+            >
+              <X size={20} strokeWidth={1.8} />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 flex flex-col gap-5">
-          {/* Operation type */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Operation Type</p>
-            <div className="grid grid-cols-3 gap-2">
-              {OPERATION_TYPES.map((t) => (
-                <CheckboxRow key={t} label={t} checked={operationTypes.includes(t)} onToggle={() => toggle(operationTypes, t, setOperationTypes)} />
+        <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto px-5 py-6 sm:px-7">
+          {/* Operation Type */}
+          <section className="flex flex-col gap-4">
+            <p
+              className="text-[14px] text-[#707b90]"
+              style={mont}
+            >
+              Operation Type
+            </p>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 sm:gap-x-10">
+              {OPERATION_TYPES.map((type) => (
+                <CheckboxRow
+                  key={type}
+                  label={type}
+                  checked={operationTypes.includes(type)}
+                  onToggle={() =>
+                    toggle(
+                      operationTypes,
+                      type,
+                      setOperationTypes,
+                    )
+                  }
+                />
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Property type */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Property Type</p>
-            <div className="grid grid-cols-4 gap-2">
-              {PROPERTY_TYPES.map((t) => (
-                <CheckboxRow key={t} label={t} checked={propertyTypes.includes(t)} onToggle={() => toggle(propertyTypes, t, setPropertyTypes)} />
-              ))}
-            </div>
-          </div>
+          {/* Property Type */}
+          <section className="flex flex-col gap-4">
+  <p
+    className="text-[14px] text-[#707b90]"
+    style={mont}
+  >
+    Property Type
+  </p>
 
-          {/* Price range */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Price Range</p>
-            <div className="flex items-center gap-3">
+  <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:flex sm:items-center sm:justify-between">
+    {PROPERTY_TYPES.map((type) => (
+      <CheckboxRow
+        key={type}
+        label={type}
+        checked={propertyTypes.includes(type)}
+        onToggle={() =>
+          toggle(
+            propertyTypes,
+            type,
+            setPropertyTypes,
+          )
+        }
+      />
+    ))}
+  </div>
+</section>
+
+          {/* Price Range */}
+          <section className="flex flex-col gap-4">
+            <p
+              className="text-[14px] text-[#707b90]"
+              style={mont}
+            >
+              Price Range
+            </p>
+
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2.5 sm:gap-3">
               <input
+                type="text"
                 value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
+                onChange={(event) =>
+                  setMinPrice(event.target.value)
+                }
                 placeholder="Min $"
                 inputMode="numeric"
-                className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors"
+                className="h-12 min-w-0 w-full rounded-[12px] border border-[#d8d4ce] bg-white px-4 text-[14px] text-[#292929] outline-none transition-colors placeholder:text-[#707b90] focus:border-[#235b96]"
                 style={mont}
               />
-              <span className="text-[#9a9a9a]">—</span>
+
+              <span className="text-[18px] text-[#8c95a5]">
+                —
+              </span>
+
               <input
+                type="text"
                 value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
+                onChange={(event) =>
+                  setMaxPrice(event.target.value)
+                }
                 placeholder="Max $"
                 inputMode="numeric"
-                className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors"
+                className="h-12 min-w-0 w-full rounded-[12px] border border-[#d8d4ce] bg-white px-4 text-[14px] text-[#292929] outline-none transition-colors placeholder:text-[#707b90] focus:border-[#235b96]"
                 style={mont}
               />
             </div>
-          </div>
+          </section>
 
           {/* Bedrooms */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Bedrooms</p>
-            <div className="flex flex-wrap gap-2.5">
-              {BEDROOM_OPTIONS.map((b) => (
+          <section className="flex flex-col gap-4">
+            <p
+              className="text-[14px] text-[#707b90]"
+              style={mont}
+            >
+              Bedrooms
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {BEDROOM_OPTIONS.map((bedroom) => (
                 <button
-                  key={b}
+                  key={bedroom}
                   type="button"
-                  onClick={() => setBedrooms(b)}
-                  className={`h-9 min-w-[72px] px-4 rounded-full border text-[12px] transition-colors ${
-                    bedrooms === b
-                      ? "bg-[#eff6ff] border-[#1e4f86] text-[#1e4f86] font-medium"
-                      : "bg-white border-[#d0d0d0] text-[#2a2a2a] hover:bg-[#f8fafc]"
+                  onClick={() => setBedrooms(bedroom)}
+                  className={`h-10 rounded-[12px] border px-4 text-[14px] transition-colors ${
+                    bedrooms === bedroom
+                      ? "border-[#235b96] bg-[#eff6ff] font-medium text-[#235b96]"
+                      : "border-[#d8d4ce] bg-white text-[#292929] hover:bg-[#f8fafc]"
                   }`}
                   style={mont}
                 >
-                  {b}
+                  {bedroom}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
           {/* Status */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Status</p>
-            <div className="grid grid-cols-4 gap-2">
-              {STATUSES.map((s) => (
-                <CheckboxRow key={s} label={s} checked={statuses.includes(s)} onToggle={() => toggle(statuses, s, setStatuses)} />
+          <section className="flex flex-col gap-4">
+            <p
+              className="text-[14px] text-[#707b90]"
+              style={mont}
+            >
+              Status
+            </p>
+
+            <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4 sm:gap-x-4">
+              {STATUSES.map((status) => (
+                <CheckboxRow
+                  key={status}
+                  label={status}
+                  checked={statuses.includes(status)}
+                  onToggle={() =>
+                    toggle(statuses, status, setStatuses)
+                  }
+                />
               ))}
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#f0f0f0]">
-          <span className="text-[12px] text-[#6b6b6b]" style={mont}>{resultCount} results</span>
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={clearAll}
-              className="h-9 px-4 border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#5a5a5a] bg-white hover:bg-[#f3f4f6] transition-colors"
+        <div className="shrink-0 border-t border-[#e9e9e9] bg-white px-5 py-5 sm:px-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <span
+              className="text-center text-[14px] text-[#707b90] sm:text-left"
               style={mont}
             >
-              Reset
-            </button>
-            <button
-              type="button"
-              onClick={() => onApply({ operationTypes, propertyTypes, minPrice, maxPrice, bedrooms, statuses })}
-              className="h-9 px-5 bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
-              style={mont}
-            >
-              Apply filters
-            </button>
+              {resultCount} results
+            </span>
+
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
+              <button
+                type="button"
+                onClick={clearAll}
+                className="h-12 rounded-[12px] border border-[#d8d4ce] bg-white px-6 text-[14px] font-medium text-[#707b90] transition-colors hover:bg-[#f5f5f5]"
+                style={mont}
+              >
+                Reset
+              </button>
+
+              <button
+                type="button"
+                onClick={handleApply}
+                className="h-12 rounded-[12px] bg-[#235b96] px-7 text-[14px] font-semibold text-white transition-colors hover:bg-[#1c4c80]"
+                style={mont}
+              >
+                Apply filters
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

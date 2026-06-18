@@ -35,18 +35,11 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar({
-  role,
-  fullName,
-  email,
-}: SidebarProps) {
+export function Sidebar({ role, fullName, email }: SidebarProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const initials = (fullName || email || "ST")
-    .trim()
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = (fullName || email || "ST").trim().slice(0, 2).toUpperCase();
 
   // Route change par sidebar close
   useEffect(() => {
@@ -180,8 +173,7 @@ export function Sidebar({
           {DASHBOARD_NAV.map((section) => {
             const items = section.items.filter(
               (item) =>
-                !item.permission ||
-                hasPermission(role, item.permission),
+                !item.permission || hasPermission(role, item.permission),
             );
 
             if (items.length === 0) {
@@ -189,10 +181,7 @@ export function Sidebar({
             }
 
             return (
-              <div
-                key={section.title}
-                className="flex flex-col gap-1"
-              >
+              <div key={section.title} className="flex flex-col gap-1">
                 {section.title && (
                   <p
                     className="mb-1 px-2 text-[12px] text-[#8490a3]"
@@ -203,10 +192,7 @@ export function Sidebar({
                 )}
 
                 {items.map((item) => {
-                  const active = isActive(
-                    pathname,
-                    item.href,
-                  );
+                  const active = isActive(pathname, item.href);
 
                   const Icon = item.icon;
 
@@ -218,7 +204,7 @@ export function Sidebar({
                       className={`
                         flex min-h-[44px] items-center gap-3
                         rounded-[10px] border
-                        px-3 text-[15px] font-medium
+                        px-3 text-[14px] font-medium
                         transition-colors
 
                         ${
@@ -233,15 +219,11 @@ export function Sidebar({
                         size={22}
                         strokeWidth={1.8}
                         className={`shrink-0 ${
-                          active
-                            ? "text-[#1e4f86]"
-                            : "text-[#343a40]"
+                          active ? "text-[#1e4f86]" : "text-[#343a40]"
                         }`}
                       />
 
-                      <span className="min-w-0 truncate">
-                        {item.label}
-                      </span>
+                      <span className="min-w-0 truncate">{item.label}</span>
                     </Link>
                   );
                 })}
@@ -272,10 +254,7 @@ export function Sidebar({
               {fullName || "Staff"}
             </p>
 
-            <p
-              className="truncate text-[12px] text-[#6a7282]"
-              style={mont}
-            >
+            <p className="truncate text-[12px] text-[#6a7282]" style={mont}>
               {ROLE_LABELS[role]}
             </p>
           </div>

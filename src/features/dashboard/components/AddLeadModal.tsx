@@ -194,62 +194,129 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
-      <div
-        className="relative bg-white rounded-[16px] w-full max-w-[720px] max-h-[92vh] overflow-y-auto shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#e5e7eb] sticky top-0 bg-white z-10">
-          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Add New Lead</p>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] transition-colors">
-            <X size={18} />
-          </button>
-        </div>
+return (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+    onClick={onClose}
+  >
+    {/* Overlay */}
+    <div className="absolute inset-0 bg-black/40" />
 
-        <form onSubmit={handleSubmit} className="px-6 py-6 flex flex-col gap-5">
-          {/* ── Section 1: Contact ── */}
-          <p className="text-[13px] font-semibold text-[#1e4f86] uppercase tracking-wide" style={mont}>Contact</p>
+    {/* Modal */}
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-lead-title"
+      className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-[720px] flex-col overflow-hidden rounded-[16px] bg-white shadow-xl sm:max-h-[92vh]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className="flex shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4 py-4 sm:px-6 sm:py-5">
+        <p
+          id="add-lead-title"
+          className="text-[16px] font-semibold text-[#0d2138]"
+          style={mont}
+        >
+          Add New Lead
+        </p>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close add lead modal"
+          className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        {/* Scrollable form body */}
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6">
+          {/* Section 1: Contact */}
+          <p
+            className="text-[13px] font-semibold uppercase tracking-wide text-[#1e4f86]"
+            style={mont}
+          >
+            Contact
+          </p>
 
           {/* Contact search */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className={labelCls} style={mont}>Search Existing Contact</label>
+          <div className="relative flex flex-col gap-1.5">
+            <label className={labelCls} style={mont}>
+              Search Existing Contact
+            </label>
+
             <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a7282]" />
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+              />
+
               <input
                 value={contactSearch}
-                onChange={(e) => handleContactSearch(e.target.value)}
-                onFocus={() => contacts.length > 0 && setShowContactDropdown(true)}
+                onChange={(e) =>
+                  handleContactSearch(e.target.value)
+                }
+                onFocus={() =>
+                  contacts.length > 0 &&
+                  setShowContactDropdown(true)
+                }
                 placeholder="Name, email or phone…"
-                className="h-10 w-full pl-9 pr-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+                className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                 style={mont}
               />
             </div>
+
             {showContactDropdown && contacts.length > 0 && (
-              <div className="absolute top-[72px] left-0 right-0 z-20 bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg overflow-hidden">
-                {contacts.map((c) => (
+              <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[220px] overflow-y-auto rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg">
+                {contacts.map((contact) => (
                   <button
-                    key={c.id}
+                    key={contact.id}
                     type="button"
-                    onClick={() => selectContact(c)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-[#f3f4f6] border-b border-[#f3f4f6] last:border-b-0"
+                    onClick={() => selectContact(contact)}
+                    className="w-full border-b border-[#f3f4f6] px-4 py-2.5 text-left last:border-b-0 hover:bg-[#f3f4f6]"
                   >
-                    <p className="text-[13px] font-medium text-[#0d2138]" style={mont}>{c.firstName} {c.lastName}</p>
-                    <p className="text-[11px] text-[#6a7282]" style={mont}>{c.email ?? ""} {c.phone ?? ""}</p>
+                    <p
+                      className="text-[13px] font-medium text-[#0d2138]"
+                      style={mont}
+                    >
+                      {contact.firstName} {contact.lastName}
+                    </p>
+
+                    <p
+                      className="mt-0.5 break-words text-[11px] text-[#6a7282]"
+                      style={mont}
+                    >
+                      {contact.email ?? ""}
+                      {contact.email && contact.phone ? " · " : ""}
+                      {contact.phone ?? ""}
+                    </p>
                   </button>
                 ))}
               </div>
             )}
+
             {selectedContact && (
-              <p className="text-[11px] text-[#059669]" style={mont}>Linked to existing contact: {selectedContact.contactId}</p>
+              <p
+                className="text-[11px] text-[#059669]"
+                style={mont}
+              >
+                Linked to existing contact:{" "}
+                {selectedContact.contactId}
+              </p>
             )}
           </div>
 
-          {/* Name */}
+          {/* Full name */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelCls} style={mont}>Full Name *</label>
+            <label className={labelCls} style={mont}>
+              Full Name *
+            </label>
+
             <input
               required
               value={name}
@@ -261,9 +328,12 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
           </div>
 
           {/* Email / Phone */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls} style={mont}>Email</label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label className={labelCls} style={mont}>
+                Email
+              </label>
+
               <input
                 type="email"
                 value={email}
@@ -273,8 +343,12 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
                 style={mont}
               />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls} style={mont}>Phone</label>
+
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label className={labelCls} style={mont}>
+                Phone
+              </label>
+
               <input
                 type="tel"
                 value={phone}
@@ -288,7 +362,10 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
 
           {/* Location */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelCls} style={mont}>Location</label>
+            <label className={labelCls} style={mont}>
+              Location
+            </label>
+
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -298,25 +375,58 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
             />
           </div>
 
-          {/* ── Section 2: Lead Details ── */}
-          <p className="text-[13px] font-semibold text-[#1e4f86] uppercase tracking-wide mt-1" style={mont}>Lead Details</p>
+          {/* Section 2: Lead Details */}
+          <p
+            className="mt-1 text-[13px] font-semibold uppercase tracking-wide text-[#1e4f86]"
+            style={mont}
+          >
+            Lead Details
+          </p>
 
           {/* Source / Source detail */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls} style={mont}>Lead Source *</label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label className={labelCls} style={mont}>
+                Lead Source *
+              </label>
+
               <div className="relative">
-                <select required value={source} onChange={(e) => setSource(e.target.value as LeadSource)} className={selectCls} style={mont}>
-                  {SOURCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                <select
+                  required
+                  value={source}
+                  onChange={(e) =>
+                    setSource(e.target.value as LeadSource)
+                  }
+                  className={selectCls}
+                  style={mont}
+                >
+                  {SOURCE_OPTIONS.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                />
               </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls} style={mont}>Source Detail</label>
+
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label className={labelCls} style={mont}>
+                Source Detail
+              </label>
+
               <input
                 value={sourceDetail}
-                onChange={(e) => setSourceDetail(e.target.value)}
+                onChange={(e) =>
+                  setSourceDetail(e.target.value)
+                }
                 placeholder="e.g. Zonaprop, Instagram…"
                 className={inputCls}
                 style={mont}
@@ -324,31 +434,55 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
             </div>
           </div>
 
-          {/* Property interest */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className={labelCls} style={mont}>Interested Property</label>
+          {/* Interested property */}
+          <div className="relative flex flex-col gap-1.5">
+            <label className={labelCls} style={mont}>
+              Interested Property
+            </label>
+
             <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a7282]" />
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+              />
+
               <input
                 value={listingSearch}
-                onChange={(e) => handleListingSearch(e.target.value)}
-                onFocus={() => listings.length > 0 && setShowListingDropdown(true)}
+                onChange={(e) =>
+                  handleListingSearch(e.target.value)
+                }
+                onFocus={() =>
+                  listings.length > 0 &&
+                  setShowListingDropdown(true)
+                }
                 placeholder="Search by listing ID or title…"
-                className="h-10 w-full pl-9 pr-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+                className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                 style={mont}
               />
             </div>
+
             {showListingDropdown && listings.length > 0 && (
-              <div className="absolute top-[72px] left-0 right-0 z-20 bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg overflow-hidden">
-                {listings.map((l) => (
+              <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[220px] overflow-y-auto rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg">
+                {listings.map((listing) => (
                   <button
-                    key={l.id}
+                    key={listing.id}
                     type="button"
-                    onClick={() => selectListing(l)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-[#f3f4f6] border-b border-[#f3f4f6] last:border-b-0"
+                    onClick={() => selectListing(listing)}
+                    className="w-full border-b border-[#f3f4f6] px-4 py-2.5 text-left last:border-b-0 hover:bg-[#f3f4f6]"
                   >
-                    <p className="text-[13px] font-medium text-[#0d2138]" style={mont}>{l.listingId} — {l.title}</p>
-                    <p className="text-[11px] text-[#6a7282]" style={mont}>{l.location}</p>
+                    <p
+                      className="text-[13px] font-medium text-[#0d2138]"
+                      style={mont}
+                    >
+                      {listing.listingId} — {listing.title}
+                    </p>
+
+                    <p
+                      className="mt-0.5 text-[11px] text-[#6a7282]"
+                      style={mont}
+                    >
+                      {listing.location}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -357,37 +491,69 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
 
           {/* Budget */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelCls} style={mont}>Budget Range</label>
-            <div className="grid grid-cols-3 gap-3">
+            <label className={labelCls} style={mont}>
+              Budget Range
+            </label>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_120px]">
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>Min</span>
+                <span
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]"
+                  style={mont}
+                >
+                  Min
+                </span>
+
                 <input
                   value={budgetMin}
-                  onChange={(e) => setBudgetMin(e.target.value)}
+                  onChange={(e) =>
+                    setBudgetMin(e.target.value)
+                  }
                   inputMode="numeric"
                   placeholder="0"
-                  className="h-10 w-full pl-9 pr-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+                  className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                   style={mont}
                 />
               </div>
+
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>Max</span>
+                <span
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]"
+                  style={mont}
+                >
+                  Max
+                </span>
+
                 <input
                   value={budgetMax}
-                  onChange={(e) => setBudgetMax(e.target.value)}
+                  onChange={(e) =>
+                    setBudgetMax(e.target.value)
+                  }
                   inputMode="numeric"
                   placeholder="0"
-                  className="h-10 w-full pl-9 pr-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
+                  className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                   style={mont}
                 />
               </div>
+
               <div className="relative">
-                <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={selectCls} style={mont}>
+                <select
+                  value={currency}
+                  onChange={(e) =>
+                    setCurrency(e.target.value)
+                  }
+                  className={selectCls}
+                  style={mont}
+                >
                   <option value="ARS">ARS</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                />
               </div>
             </div>
           </div>
@@ -395,102 +561,206 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
           {/* Lead score */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label className={labelCls} style={mont}>Lead Score</label>
-              <span className="text-[12px] font-semibold text-[#1e4f86]" style={mont}>{score}/100</span>
+              <label className={labelCls} style={mont}>
+                Lead Score
+              </label>
+
+              <span
+                className="text-[12px] font-semibold text-[#1e4f86]"
+                style={mont}
+              >
+                {score}/100
+              </span>
             </div>
+
             <input
               type="range"
               min={0}
               max={100}
               value={score}
-              onChange={(e) => handleScoreChange(Number(e.target.value))}
-              className="w-full h-1.5 appearance-none rounded-full cursor-pointer accent-[#1e4f86]"
-              style={{ background: `linear-gradient(to right, #1e4f86 ${score}%, #e5e7eb ${score}%)` }}
+              onChange={(e) =>
+                handleScoreChange(Number(e.target.value))
+              }
+              className="h-1.5 w-full cursor-pointer appearance-none rounded-full accent-[#1e4f86]"
+              style={{
+                background: `linear-gradient(to right, #1e4f86 ${score}%, #e5e7eb ${score}%)`,
+              }}
             />
-            <div className="flex items-center justify-between text-[11px] text-[#6a7282]" style={mont}>
-              <span>Cold (0)</span>
-              <span>Warm (40)</span>
-              <span>Hot (70+)</span>
+
+            <div
+              className="grid grid-cols-3 text-[10px] text-[#6a7282] sm:text-[11px]"
+              style={mont}
+            >
+              <span className="text-left">Cold (0)</span>
+              <span className="text-center">Warm (40)</span>
+              <span className="text-right">Hot (70+)</span>
             </div>
           </div>
 
           {/* Temperature / Status */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls} style={mont}>Temperature</label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label className={labelCls} style={mont}>
+                Temperature
+              </label>
+
               <div className="relative">
-                <select value={temperature} onChange={(e) => handleTemperatureChange(e.target.value as LeadTemperature)} className={selectCls} style={mont}>
-                  {TEMP_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                <select
+                  value={temperature}
+                  onChange={(e) =>
+                    handleTemperatureChange(
+                      e.target.value as LeadTemperature,
+                    )
+                  }
+                  className={selectCls}
+                  style={mont}
+                >
+                  {TEMP_OPTIONS.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                />
               </div>
-              {!tempManual && <p className="text-[11px] text-[#6a7282]" style={mont}>Suggested from score</p>}
+
+              {!tempManual && (
+                <p
+                  className="text-[11px] text-[#6a7282]"
+                  style={mont}
+                >
+                  Suggested from score
+                </p>
+              )}
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls} style={mont}>Lifecycle Status</label>
+
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label className={labelCls} style={mont}>
+                Lifecycle Status
+              </label>
+
               <div className="relative">
-                <select value={lifecycleStatus} onChange={(e) => setLifecycle(e.target.value as LeadLifecycleStatus)} className={selectCls} style={mont}>
-                  {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                <select
+                  value={lifecycleStatus}
+                  onChange={(e) =>
+                    setLifecycle(
+                      e.target.value as LeadLifecycleStatus,
+                    )
+                  }
+                  className={selectCls}
+                  style={mont}
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                />
               </div>
             </div>
           </div>
 
           {/* Assigned Agent */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelCls} style={mont}>Assigned Agent</label>
+            <label className={labelCls} style={mont}>
+              Assigned Agent
+            </label>
+
             <div className="relative">
-              <select value={assignedAgentId} onChange={(e) => setAgentId(e.target.value)} className={selectCls} style={mont}>
+              <select
+                value={assignedAgentId}
+                onChange={(e) =>
+                  setAgentId(e.target.value)
+                }
+                className={selectCls}
+                style={mont}
+              >
                 <option value="">— Unassigned —</option>
-                {agents.map((a) => (
-                  <option key={a.id} value={a.id}>{a.fullName ?? a.email}</option>
+
+                {agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.fullName ?? agent.email}
+                  </option>
                 ))}
               </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
+
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+              />
             </div>
           </div>
 
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelCls} style={mont}>Notes</label>
+            <label className={labelCls} style={mont}>
+              Notes
+            </label>
+
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Initial notes about this lead…"
               rows={3}
               maxLength={5000}
-              className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none"
+              className="resize-none rounded-[10px] border border-[#e5e7eb] px-3.5 py-2.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
               style={mont}
             />
           </div>
 
           {error && (
-            <p className="text-[12px] text-[#dc2626] bg-[#fee2e2] rounded-[8px] px-3 py-2" style={mont}>{error}</p>
+            <p
+              className="rounded-[8px] bg-[#fee2e2] px-3 py-2 text-[12px] text-[#dc2626]"
+              style={mont}
+            >
+              {error}
+            </p>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors"
-              style={mont}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={create.isPending}
-              className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-              style={mont}
-            >
-              {create.isPending && <Loader2 size={14} className="animate-spin" />}
-              {create.isPending ? "Creating…" : "Add Lead"}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Fixed footer actions */}
+        <div className="grid shrink-0 grid-cols-2 gap-3 border-t border-[#e5e7eb] bg-white px-4 py-4 sm:px-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-[41.5px] rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
+            style={mont}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={create.isPending}
+            className="flex h-[41.5px] items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60"
+            style={mont}
+          >
+            {create.isPending && (
+              <Loader2 size={14} className="animate-spin" />
+            )}
+
+            {create.isPending ? "Creating…" : "Add Lead"}
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
+
+
 }
