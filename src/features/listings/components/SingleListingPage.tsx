@@ -437,6 +437,106 @@ function AmenityCheckIcon() {
   );
 }
 
+// Recognizes youtube.com/watch, youtu.be, /embed/, and /shorts/ links so we
+// can derive a thumbnail (img.youtube.com) and an embeddable player URL
+// without storing anything beyond the raw link the agent pastes in.
+function getYouTubeId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return parsed.pathname.slice(1) || null;
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (parsed.pathname === "/watch") return parsed.searchParams.get("v");
+      if (parsed.pathname.startsWith("/embed/")) return parsed.pathname.split("/embed/")[1] || null;
+      if (parsed.pathname.startsWith("/shorts/")) return parsed.pathname.split("/shorts/")[1] || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; title: string }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const youtubeId = videoUrl ? getYouTubeId(videoUrl) : null;
+  const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null;
+
+  return (
+    <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-16">
+      <h2
+        className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+        style={{
+          fontFamily: "Poppins, sans-serif",
+          fontWeight: 500,
+          letterSpacing: "-0.24px",
+        }}
+      >
+        Video Preview
+      </h2>
+
+      <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px] bg-[#0d2138]">
+        {!videoUrl ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/60">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+              <path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M15 7h2a2 2 0 0 1 2 2v6a2 2 0 0 1-.4 1.2M17 17H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M21 8l-4 3v2l4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p style={{ fontFamily: "Montserrat, sans-serif" }} className="text-[14px] sm:text-[16px]">
+              Preview Not Available
+            </p>
+          </div>
+        ) : isPlaying ? (
+          youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+              title={`${title} — video preview`}
+              className="absolute inset-0 h-full w-full"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              src={videoUrl}
+              className="absolute inset-0 h-full w-full object-cover"
+              controls
+              autoPlay
+            />
+          )
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsPlaying(true)}
+            aria-label={`Play video preview for ${title}`}
+            className="group absolute inset-0 h-full w-full cursor-pointer"
+          >
+            {thumbnailUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={thumbnailUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1e4f86] to-[#0d2138]" />
+            )}
+
+            <div className="absolute inset-0 bg-black/15 transition-colors group-hover:bg-black/25" />
+
+            <span className="absolute left-1/2 top-1/2 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#FF0000] shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-transform group-hover:scale-105 sm:size-20">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M8 5.5v13l11-6.5-11-6.5Z" fill="white" />
+              </svg>
+            </span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function SingleListingPageContent({
   listing,
   agent,
@@ -1059,8 +1159,9 @@ export function SingleListingPageContent({
       </div>
       ) : null}
 
-      {/* Video Preview: listings have no video support yet — per spec the
-          section is hidden entirely when a listing has no video. */}
+      {/* Video Preview — always shown; falls back to "Preview Not Available"
+          when the listing has no video set. */}
+      <VideoPreviewSection videoUrl={listing.videoUrl} title={listing.title} />
 
       {/* On the Map — hidden until the listing has geocoded coordinates */}
       {listing.latitude !== null && listing.longitude !== null ? (

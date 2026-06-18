@@ -118,6 +118,7 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
     areaSqft: property.areaSqft,
     yearBuilt: property.yearBuilt,
     isFeatured: property.isFeatured,
+    videoUrl: property.videoUrl,
     viewsCount: property.viewsCount,
     assignedAgentId: property.assignedAgentId,
     createdById: property.createdById,
@@ -157,6 +158,7 @@ function toPublicDto(property: PropertyWithRelations): PublicListingDto {
     yearBuilt: property.yearBuilt,
     floors: property.floors,
     isFeatured: property.isFeatured,
+    videoUrl: property.videoUrl,
     publishedAt: property.publishedAt?.toISOString() ?? null,
     amenities: property.amenities.map((a) => a.amenity.key as AmenityKey),
     images: property.images.map(toImageDto),
@@ -342,6 +344,7 @@ export async function createListing(
             areaSqft: data.areaSqft,
             yearBuilt: data.yearBuilt,
             isFeatured: data.isFeatured,
+            videoUrl: data.videoUrl || null,
             assignedAgentId: data.assignedAgentId || null,
             createdById: profile.id,
             updatedById: profile.id,
@@ -488,7 +491,10 @@ export async function updateListing(
     return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
   }
 
-  const { amenities, assignedAgentId: assignedAgentIdInput, ...fields } = data;
+  const { amenities, assignedAgentId: assignedAgentIdInput, videoUrl: videoUrlInput, ...fields } = data;
+
+  // "" means "clear the video" — store null rather than an empty string.
+  const videoUrl = videoUrlInput === undefined ? undefined : videoUrlInput === "" ? null : videoUrlInput;
 
   let assignedAgentId: string | null | undefined;
   if (assignedAgentIdInput !== undefined && assignedAgentIdInput !== (existing.assignedAgentId ?? "")) {
@@ -519,6 +525,7 @@ export async function updateListing(
     data: {
       ...fields,
       ...(assignedAgentId !== undefined ? { assignedAgentId } : {}),
+      ...(videoUrl !== undefined ? { videoUrl } : {}),
       ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
       updatedById: profile.id,
       ...(data.status === PropertyStatus.ACTIVE && !existing.publishedAt
@@ -551,6 +558,10 @@ export async function updateListing(
   if (assignedAgentId !== undefined && assignedAgentId !== existing.assignedAgentId) {
     oldValues.assignedAgentId = existing.assignedAgentId;
     newValues.assignedAgentId = assignedAgentId;
+  }
+  if (videoUrl !== undefined && videoUrl !== existing.videoUrl) {
+    oldValues.videoUrl = existing.videoUrl;
+    newValues.videoUrl = videoUrl;
   }
   if (amenities !== undefined) {
     const beforeKeys = existing.amenities.map((a) => a.amenity.key).sort();

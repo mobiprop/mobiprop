@@ -78,7 +78,12 @@ export const listingBaseSchema = z.object({
   isFeatured: z.boolean().default(false),
   // Empty string from the dropdown means "unassigned"; only ADMIN/MANAGER
   // (listings:assign) may set this — enforced in listing-actions.ts.
-  assignedAgentId: z.string().uuid().optional().or(z.literal("")),
+  // .guid() (not .uuid()) — some seeded staff profiles use simplified IDs
+  // that aren't RFC4122-compliant (wrong version/variant nibble); the real
+  // existence/role check happens server-side against the profiles table.
+  assignedAgentId: z.string().guid().optional().or(z.literal("")),
+  // YouTube/Vimeo/direct video link shown above the map on the public page.
+  videoUrl: z.string().trim().url("Enter a valid video URL").optional().or(z.literal("")),
 
   // Step 2 — Listing Details
   bedrooms: requiredCount("Bedrooms"),
@@ -146,4 +151,5 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
   0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "location", "fullAddress", "isFeatured", "assignedAgentId"],
   1: ["bedrooms", "bathrooms", "toilets", "areaSqft", "yearBuilt", "description", "amenities"],
+  2: ["videoUrl"],
 };
