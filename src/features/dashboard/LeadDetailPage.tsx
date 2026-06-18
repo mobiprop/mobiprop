@@ -3,46 +3,95 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, Flame, Target, User, Building2, Phone, Mail,
-  MapPin, Calendar, DollarSign, Activity, MessageSquare,
-  RefreshCw, Archive, ArchiveRestore, ExternalLink, Loader2,
-  Plus, Clock,
+  Activity,
+  Archive,
+  ArchiveRestore,
+  ArrowLeft,
+  Building2,
+  Calendar,
+  Clock,
+  DollarSign,
+  ExternalLink,
+  Flame,
+  Loader2,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Plus,
+  Target,
+  User,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 import type { Role } from "@/lib/permissions";
 import { hasPermission } from "@/lib/permissions";
-import { LeadTemperature, LeadLifecycleStatus, LeadSource } from "@/generated/prisma/enums";
-import { useLeadDetailQuery, useLeadNotesQuery, useLeadActivitiesQuery } from "@/hooks/queries/useDashboardLeadsQuery";
 import {
-  useUpdateLeadMutation,
-  useArchiveLeadMutation,
-  useRestoreLeadMutation,
-  useConvertLeadMutation,
+  LeadLifecycleStatus,
+  LeadSource,
+  LeadTemperature,
+} from "@/generated/prisma/enums";
+import {
+  useLeadActivitiesQuery,
+  useLeadDetailQuery,
+  useLeadNotesQuery,
+} from "@/hooks/queries/useDashboardLeadsQuery";
+import {
   useAddLeadNoteMutation,
+  useArchiveLeadMutation,
+  useConvertLeadMutation,
+  useRestoreLeadMutation,
+  useUpdateLeadMutation,
 } from "@/hooks/mutations/useLeadMutations";
-import type { LeadDto, LeadActivityDto } from "@/features/crm/types/crm-dto";
+import type {
+  LeadActivityDto,
+  LeadDto,
+} from "@/features/crm/types/crm-dto";
 import { scoreColor } from "./LeadsPage";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const TEMP_BADGE: Record<LeadTemperature, { bg: string; text: string; label: string }> = {
+const TEMP_BADGE: Record<
+  LeadTemperature,
+  { bg: string; text: string; label: string }
+> = {
   COLD: { bg: "#e0f2fe", text: "#0284c7", label: "Cold" },
   WARM: { bg: "#fef3c7", text: "#d97706", label: "Warm" },
-  HOT:  { bg: "#fee2e2", text: "#dc2626", label: "Hot"  },
+  HOT: { bg: "#fee2e2", text: "#dc2626", label: "Hot" },
 };
 
-const LIFECYCLE_BADGE: Record<LeadLifecycleStatus, { bg: string; text: string; label: string }> = {
-  NEW:         { bg: "#e0e7ff", text: "#4f46e5", label: "New"         },
-  CONTACTED:   { bg: "#d1fae5", text: "#059669", label: "Contacted"   },
-  FOLLOW_UP:   { bg: "#fef3c7", text: "#d97706", label: "Follow Up"   },
-  QUALIFIED:   { bg: "#dcfce7", text: "#16a34a", label: "Qualified"   },
-  UNQUALIFIED: { bg: "#f3f4f6", text: "#6b7280", label: "Unqualified" },
-  CONVERTED:   { bg: "#d1fae5", text: "#065f46", label: "Converted"   },
-  CLOSED:      { bg: "#fee2e2", text: "#dc2626", label: "Closed"      },
+const LIFECYCLE_BADGE: Record<
+  LeadLifecycleStatus,
+  { bg: string; text: string; label: string }
+> = {
+  NEW: { bg: "#e0e7ff", text: "#4f46e5", label: "New" },
+  CONTACTED: {
+    bg: "#d1fae5",
+    text: "#059669",
+    label: "Contacted",
+  },
+  FOLLOW_UP: {
+    bg: "#fef3c7",
+    text: "#d97706",
+    label: "Follow Up",
+  },
+  QUALIFIED: {
+    bg: "#dcfce7",
+    text: "#16a34a",
+    label: "Qualified",
+  },
+  UNQUALIFIED: {
+    bg: "#f3f4f6",
+    text: "#6b7280",
+    label: "Unqualified",
+  },
+  CONVERTED: {
+    bg: "#d1fae5",
+    text: "#065f46",
+    label: "Converted",
+  },
+  CLOSED: { bg: "#fee2e2", text: "#dc2626", label: "Closed" },
 };
 
 const SOURCE_LABELS: Partial<Record<LeadSource, string>> = {
@@ -80,64 +129,193 @@ const ACTIVITY_LABELS: Record<string, string> = {
   LEAD_RESTORED: "Lead restored",
 };
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+type ContactSummary = {
+  id?: string;
+  contactId?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+};
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+type AgentSummary = {
+  id?: string;
+  fullName?: string | null;
+  email?: string | null;
+};
+
+type ListingSummary = {
+  id?: string;
+  listingId?: string | null;
+  title?: string | null;
+  location?: string | null;
+};
+
+type LeadDetailView = Omit<LeadDto, "contact" | "assignedAgent"> & {
+  contact?: ContactSummary | null;
+  assignedAgent?: AgentSummary | null;
+  sourceDetail?: string | null;
+  followUpAt?: string | Date | null;
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+  interestedListing?: ListingSummary | null;
+  listing?: ListingSummary | null;
+  convertedOpportunity?: {
+    id?: string;
+    title?: string | null;
+  } | null;
+};
+
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-      <div className="px-5 py-4 border-b border-[#f3f4f6]">
-        <h3 className="text-[14px] font-semibold text-[#0d2138]" style={mont}>{title}</h3>
+    <section className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
+      <div className="flex items-center gap-2 border-b border-[#f3f4f6] px-4 py-4 sm:px-5">
+        {icon}
+        <h3
+          className="text-[14px] font-semibold text-[#0d2138]"
+          style={mont}
+        >
+          {title}
+        </h3>
       </div>
-      <div className="px-5 py-4">{children}</div>
+      <div className="px-4 py-4 sm:px-5">{children}</div>
+    </section>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-1 border-b border-[#f3f4f6] py-3 last:border-b-0 sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-3">
+      <span
+        className="text-[14px] font-medium text-[#6a7282]"
+        style={mont}
+      >
+        {label}
+      </span>
+      <span
+        className="min-w-0 break-words text-[14px] text-[#0d2138]"
+        style={mont}
+      >
+        {value || "—"}
+      </span>
     </div>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+function Badge({
+  label,
+  background,
+  color,
+}: {
+  label: string;
+  background: string;
+  color: string;
+}) {
   return (
-    <div className="flex items-start gap-3 py-2 border-b border-[#f9fafb] last:border-b-0">
-      <span className="text-[12px] font-medium text-[#6a7282] w-[130px] shrink-0 pt-0.5" style={mont}>{label}</span>
-      <span className="text-[13px] text-[#0d2138] flex-1" style={mont}>{value || "—"}</span>
-    </div>
+    <span
+      className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-[7px] px-3 text-[14px] font-medium"
+      style={{ backgroundColor: background, color, ...mont }}
+    >
+      {label}
+    </span>
   );
 }
 
 function formatBudget(lead: LeadDto): string {
   if (!lead.budgetMin && !lead.budgetMax) return "—";
-  const fmt = (n: number) =>
-    n >= 1_000_000 ? `${lead.currency} ${(n / 1_000_000).toFixed(1)}M` : `${lead.currency} ${(n / 1000).toFixed(0)}K`;
-  if (lead.budgetMin && lead.budgetMax) return `${fmt(lead.budgetMin)} – ${fmt(lead.budgetMax)}`;
-  if (lead.budgetMax) return `up to ${fmt(lead.budgetMax)}`;
-  return `from ${fmt(lead.budgetMin!)}`;
+
+  const formatAmount = (value: number) => {
+    if (value >= 1_000_000) {
+      return `${lead.currency} ${(value / 1_000_000).toFixed(1)}M`;
+    }
+
+    return `${lead.currency} ${(value / 1_000).toFixed(0)}K`;
+  };
+
+  if (lead.budgetMin && lead.budgetMax) {
+    return `${formatAmount(lead.budgetMin)} – ${formatAmount(
+      lead.budgetMax,
+    )}`;
+  }
+
+  if (lead.budgetMax) return `Up to ${formatAmount(lead.budgetMax)}`;
+  return `From ${formatAmount(lead.budgetMin!)}`;
 }
 
-// ── Activity feed ─────────────────────────────────────────────────────────────
+function formatDateValue(
+  value: string | Date | null | undefined,
+  pattern = "MMM d, yyyy",
+): string {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return format(date, pattern);
+}
 
 function ActivityFeed({ leadId }: { leadId: string }) {
-  const { data: activities, isLoading } = useLeadActivitiesQuery(leadId);
+  const { data: activities, isLoading } =
+    useLeadActivitiesQuery(leadId);
 
   if (isLoading) {
-    return <p className="text-[13px] text-[#6a7282] py-2" style={mont}>Loading activity…</p>;
+    return (
+      <p className="py-2 text-[14px] text-[#6a7282]" style={mont}>
+        Loading activity…
+      </p>
+    );
   }
 
   if (!activities || activities.length === 0) {
-    return <p className="text-[13px] text-[#6a7282] py-2" style={mont}>No activity recorded yet.</p>;
+    return (
+      <p className="py-2 text-[14px] text-[#6a7282]" style={mont}>
+        No activity recorded yet.
+      </p>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {activities.map((a: LeadActivityDto) => (
-        <div key={a.id} className="flex items-start gap-3">
-          <div className="size-7 rounded-full bg-[#e0e7ff] flex items-center justify-center shrink-0 mt-0.5">
-            <Activity size={13} className="text-[#4f46e5]" />
+    <div className="flex flex-col gap-4">
+      {activities.map((activity: LeadActivityDto) => (
+        <div key={activity.id} className="flex items-start gap-3">
+          <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e0e7ff]">
+            <Activity size={14} className="text-[#4f46e5]" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] text-[#0d2138]" style={mont}>
-              {ACTIVITY_LABELS[a.type] ?? a.type}
-              {a.actorName && <span className="text-[#6a7282]"> by {a.actorName}</span>}
+
+          <div className="min-w-0 flex-1">
+            <p
+              className="break-words text-[14px] text-[#0d2138]"
+              style={mont}
+            >
+              {ACTIVITY_LABELS[activity.type] ?? activity.type}
+              {activity.actorName && (
+                <span className="text-[#6a7282]">
+                  {" "}
+                  by {activity.actorName}
+                </span>
+              )}
             </p>
-            <p className="text-[11px] text-[#99a1af]" style={mont}>
-              {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
+
+            <p className="mt-0.5 text-[11px] text-[#99a1af]" style={mont}>
+              {formatDistanceToNow(new Date(activity.createdAt), {
+                addSuffix: true,
+              })}
             </p>
           </div>
         </div>
@@ -146,17 +324,26 @@ function ActivityFeed({ leadId }: { leadId: string }) {
   );
 }
 
-// ── Notes section ─────────────────────────────────────────────────────────────
-
-function NotesSection({ leadId, role, isArchived }: { leadId: string; role: Role; isArchived: boolean }) {
+function NotesSection({
+  leadId,
+  role,
+  isArchived,
+}: {
+  leadId: string;
+  role: Role;
+  isArchived: boolean;
+}) {
   const { data: notes, isLoading } = useLeadNotesQuery(leadId);
   const addNote = useAddLeadNoteMutation(leadId);
   const [content, setContent] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const canAdd = hasPermission(role, "leads:add_note") && !isArchived;
+
+  const canAdd =
+    hasPermission(role, "leads:add_note") && !isArchived;
 
   async function handleAdd() {
     if (!content.trim()) return;
+
     await addNote.mutateAsync({ content: content.trim() });
     setContent("");
     setShowForm(false);
@@ -164,47 +351,72 @@ function NotesSection({ leadId, role, isArchived }: { leadId: string; role: Role
 
   return (
     <div className="flex flex-col gap-3">
-      {isLoading && <p className="text-[13px] text-[#6a7282]" style={mont}>Loading notes…</p>}
-      {notes?.map((n) => (
-        <div key={n.id} className="p-3 bg-[#f9fafb] rounded-[10px]">
-          <p className="text-[13px] text-[#0d2138] whitespace-pre-wrap" style={mont}>{n.content}</p>
-          <p className="text-[11px] text-[#99a1af] mt-1.5" style={mont}>
-            {n.authorName ?? "Unknown"} · {format(new Date(n.createdAt), "MMM d, yyyy 'at' h:mm a")}
+      {isLoading && (
+        <p className="text-[14px] text-[#6a7282]" style={mont}>
+          Loading notes…
+        </p>
+      )}
+
+      {notes?.map((note) => (
+        <div key={note.id} className="rounded-[10px] bg-[#f9fafb] p-3">
+          <p
+            className="whitespace-pre-wrap break-words text-[14px] text-[#0d2138]"
+            style={mont}
+          >
+            {note.content}
+          </p>
+          <p className="mt-1.5 text-[11px] text-[#99a1af]" style={mont}>
+            {note.authorName ?? "Unknown"} ·{" "}
+            {format(
+              new Date(note.createdAt),
+              "MMM d, yyyy 'at' h:mm a",
+            )}
           </p>
         </div>
       ))}
+
       {!notes?.length && !isLoading && (
-        <p className="text-[13px] text-[#6a7282]" style={mont}>No notes yet.</p>
+        <p className="text-[14px] text-[#6a7282]" style={mont}>
+          No notes yet.
+        </p>
       )}
-      {canAdd && (
-        showForm ? (
+
+      {canAdd &&
+        (showForm ? (
           <div className="flex flex-col gap-2">
             <textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(event) => setContent(event.target.value)}
               placeholder="Write a note…"
               rows={3}
               maxLength={5000}
-              className="w-full px-3 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] resize-none"
+              className="w-full resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2.5 text-[14px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
               style={mont}
             />
-            <div className="flex gap-2">
+
+            <div className="grid grid-cols-2 gap-2 sm:flex">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
-                className="px-4 h-8 border border-[#e5e7eb] rounded-[8px] text-[12px] text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
+                onClick={() => {
+                  setContent("");
+                  setShowForm(false);
+                }}
+                className="h-9 rounded-[8px] border border-[#e5e7eb] px-4 text-[14px] text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
                 style={mont}
               >
                 Cancel
               </button>
+
               <button
                 type="button"
                 onClick={handleAdd}
                 disabled={addNote.isPending || !content.trim()}
-                className="px-4 h-8 bg-[#1e4f86] rounded-[8px] text-[12px] text-white hover:bg-[#1b487a] disabled:opacity-60 transition-colors flex items-center gap-1.5"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-[8px] bg-[#1e4f86] px-4 text-[14px] text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60"
                 style={mont}
               >
-                {addNote.isPending && <Loader2 size={12} className="animate-spin" />}
+                {addNote.isPending && (
+                  <Loader2 size={12} className="animate-spin" />
+                )}
                 Save Note
               </button>
             </div>
@@ -213,76 +425,131 @@ function NotesSection({ leadId, role, isArchived }: { leadId: string; role: Role
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 h-8 px-3 border border-dashed border-[#d1d5db] rounded-[8px] text-[12px] text-[#6a7282] hover:border-[#1e4f86] hover:text-[#1e4f86] transition-colors w-fit"
+            className="flex h-9 w-fit items-center gap-2 rounded-[8px] border border-dashed border-[#d1d5db] px-3 text-[14px] text-[#6a7282] transition-colors hover:border-[#1e4f86] hover:text-[#1e4f86]"
             style={mont}
           >
             <Plus size={13} />
             Add Note
           </button>
-        )
-      )}
+        ))}
     </div>
   );
 }
 
-// ── Convert modal ─────────────────────────────────────────────────────────────
-
-function ConvertModal({ leadId, leadName, onClose }: { leadId: string; leadName: string; onClose: () => void }) {
+function ConvertModal({
+  leadId,
+  leadName,
+  onClose,
+}: {
+  leadId: string;
+  leadName: string;
+  onClose: () => void;
+}) {
   const [title, setTitle] = useState(`Opportunity from ${leadName}`);
   const [notes, setNotes] = useState("");
-  const convert = useConvertLeadMutation(leadId);
   const [error, setError] = useState("");
+  const convert = useConvertLeadMutation(leadId);
 
   async function handleConvert() {
     setError("");
+
     try {
-      await convert.mutateAsync({ title, notes: notes || undefined });
+      await convert.mutateAsync({
+        title: title.trim(),
+        notes: notes.trim() || undefined,
+      });
       onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to convert");
+    } catch (errorValue) {
+      setError(
+        errorValue instanceof Error
+          ? errorValue.message
+          : "Failed to convert",
+      );
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative bg-white rounded-[16px] w-full max-w-[480px] shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-6 py-5 border-b border-[#e5e7eb]">
-          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Convert to Opportunity</p>
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="convert-modal-title"
+        className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[16px] bg-white shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="border-b border-[#e5e7eb] px-4 py-4 sm:px-6 sm:py-5">
+          <p
+            id="convert-modal-title"
+            className="text-[16px] font-semibold text-[#0d2138]"
+            style={mont}
+          >
+            Convert to Opportunity
+          </p>
         </div>
-        <div className="px-6 py-5 flex flex-col gap-4">
+
+        <div className="flex flex-col gap-4 overflow-y-auto px-4 py-5 sm:px-6">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Opportunity Title</label>
+            <label
+              className="text-[14px] font-medium text-[#1f2937]"
+              style={mont}
+            >
+              Opportunity Title
+            </label>
             <input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86]"
+              onChange={(event) => setTitle(event.target.value)}
+              className="h-10 rounded-[10px] border border-[#e5e7eb] px-3.5 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86]"
               style={mont}
             />
           </div>
+
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Notes</label>
+            <label
+              className="text-[14px] font-medium text-[#1f2937]"
+              style={mont}
+            >
+              Notes
+            </label>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(event) => setNotes(event.target.value)}
               rows={3}
-              className="px-3 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86] resize-none"
+              className="resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2.5 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86]"
               style={mont}
             />
           </div>
-          {error && <p className="text-[12px] text-[#dc2626]" style={mont}>{error}</p>}
-          <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 h-10 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#6b7280] hover:bg-[#f3f4f6]" style={mont}>
+
+          {error && (
+            <p className="text-[14px] text-[#dc2626]" style={mont}>
+              {error}
+            </p>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-10 rounded-[10px] border border-[#e5e7eb] text-[14px] text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
+              style={mont}
+            >
               Cancel
             </button>
+
             <button
               type="button"
               onClick={handleConvert}
               disabled={convert.isPending || !title.trim()}
-              className="flex-1 h-10 bg-[#1e4f86] rounded-[10px] text-[12px] text-white hover:bg-[#1b487a] disabled:opacity-60 flex items-center justify-center gap-1.5"
+              className="flex h-10 items-center justify-center gap-1.5 rounded-[10px] bg-[#1e4f86] text-[14px] text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60"
               style={mont}
             >
-              {convert.isPending && <Loader2 size={13} className="animate-spin" />}
+              {convert.isPending && (
+                <Loader2 size={13} className="animate-spin" />
+              )}
               Convert
             </button>
           </div>
@@ -292,16 +559,18 @@ function ConvertModal({ leadId, leadName, onClose }: { leadId: string; leadName:
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-
 type LeadDetailPageProps = {
   leadId: string;
   role: Role;
 };
 
-export function LeadDetailPage({ leadId, role }: LeadDetailPageProps) {
+export function LeadDetailPage({
+  leadId,
+  role,
+}: LeadDetailPageProps) {
   const router = useRouter();
-  const { data: lead, isLoading, isError } = useLeadDetailQuery(leadId);
+  const { data: leadData, isLoading, isError } =
+    useLeadDetailQuery(leadId);
   const update = useUpdateLeadMutation(leadId);
   const archive = useArchiveLeadMutation();
   const restore = useRestoreLeadMutation();
@@ -309,450 +578,518 @@ export function LeadDetailPage({ leadId, role }: LeadDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="px-6 py-10 flex items-center justify-center gap-2 text-[#6a7282]" style={mont}>
-        <Loader2 size={18} className="animate-spin" /> Loading lead…
+      <div
+        className="flex items-center justify-center gap-2 px-4 py-12 text-[#6a7282] sm:px-6"
+        style={mont}
+      >
+        <Loader2 size={18} className="animate-spin" />
+        Loading lead…
       </div>
     );
   }
 
-  if (isError || !lead) {
+  if (isError || !leadData) {
     return (
-      <div className="px-6 py-10 text-center">
-        <p className="text-[14px] text-[#dc2626]" style={mont}>Lead not found or access denied.</p>
-        <button type="button" onClick={() => router.back()} className="mt-3 text-[13px] text-[#1e4f86] hover:underline" style={mont}>
+      <div className="px-4 py-12 text-center sm:px-6">
+        <p className="text-[14px] text-[#dc2626]" style={mont}>
+          Lead not found or access denied.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="mt-3 text-[14px] text-[#1e4f86] hover:underline"
+          style={mont}
+        >
           Go back
         </button>
       </div>
     );
   }
 
-  const temp = TEMP_BADGE[lead.temperature];
+  const lead = leadData as LeadDetailView;
+  const temperature = TEMP_BADGE[lead.temperature];
   const lifecycle = LIFECYCLE_BADGE[lead.lifecycleStatus];
-  const canUpdate = hasPermission(role, "leads:update") && !lead.isArchived;
+  const score = Math.max(0, Math.min(100, lead.score ?? 0));
+  const listing = lead.interestedListing ?? lead.listing;
+  const contactName =
+    lead.contact?.fullName ??
+    [lead.contact?.firstName, lead.contact?.lastName]
+      .filter(Boolean)
+      .join(" ");
+
+  const canUpdate =
+    hasPermission(role, "leads:update") && !lead.isArchived;
   const canArchive = hasPermission(role, "leads:archive");
-  const canConvert = hasPermission(role, "leads:convert") && !lead.isArchived && !lead.convertedOpportunityId;
+  const canConvert =
+    hasPermission(role, "leads:convert") &&
+    !lead.isArchived &&
+    !lead.convertedOpportunityId;
+
+  function updateTemperature(value: LeadTemperature) {
+    update.mutate(
+      { temperature: value } as Parameters<typeof update.mutate>[0],
+    );
+  }
+
+  function updateLifecycle(value: LeadLifecycleStatus) {
+    update.mutate(
+      { lifecycleStatus: value } as Parameters<typeof update.mutate>[0],
+    );
+  }
+
+  function handleArchiveToggle() {
+    if (lead.isArchived) {
+      restore.mutate(lead.id);
+      return;
+    }
+
+    archive.mutate(lead.id);
+  }
+
+  const archivePending = archive.isPending || restore.isPending;
 
   return (
-    <div className="px-6 py-5 flex flex-col gap-5">
+    <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5">
       {/* Back */}
       <button
         type="button"
-        onClick={() => router.push("/dashboard/leads")}
-        className="flex items-center gap-1.5 text-[13px] text-[#6a7282] hover:text-[#0d2138] transition-colors w-fit"
+        onClick={() => router.back()}
+        className="flex w-fit items-center gap-2 text-[14px] font-medium text-[#6a7282] transition-colors hover:text-[#1e4f86]"
         style={mont}
       >
-        <ArrowLeft size={15} />
-        All Leads
+        <ArrowLeft size={16} />
+        Back to leads
       </button>
 
       {/* Header */}
-      <div className="bg-white border border-[#f3f4f6] rounded-[14px] px-6 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[12px] font-medium text-[#6a7282]" style={mont}>{lead.leadNumber}</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[12px] font-medium" style={{ backgroundColor: temp.bg, color: temp.text, ...mont }}>
-                <Flame size={11} className="mr-1" />{temp.label}
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[12px] font-medium" style={{ backgroundColor: lifecycle.bg, color: lifecycle.text, ...mont }}>
-                {lifecycle.label}
-              </span>
+      <div className="flex flex-col gap-4 rounded-[14px] border border-[#f3f4f6] bg-white p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-[12px] bg-[#e0e7ff] sm:size-12">
+            <User size={21} className="text-[#4f46e5]" />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1
+                className="min-w-0 break-words text-[20px] font-semibold leading-7 text-[#0d2138] sm:text-[22px]"
+                style={poppins}
+              >
+                {lead.submittedName || contactName || "Unnamed Lead"}
+              </h1>
+
               {lead.isArchived && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[12px] font-medium bg-[#f3f4f6] text-[#6b7280]" style={mont}>
+                <span
+                  className="rounded-[6px] bg-[#f3f4f6] px-2 py-1 text-[11px] font-medium text-[#6b7280]"
+                  style={mont}
+                >
                   Archived
                 </span>
               )}
             </div>
-            <h1 className="text-[22px] font-semibold text-[#0d2138]" style={poppins}>{lead.submittedName}</h1>
-            <div className="flex items-center gap-4 flex-wrap">
-              {(lead.submittedEmail ?? lead.contact.email) && (
-                <span className="flex items-center gap-1.5 text-[13px] text-[#6a7282]" style={mont}>
-                  <Mail size={13} />{lead.submittedEmail ?? lead.contact.email}
-                </span>
-              )}
-              {(lead.submittedPhone ?? lead.contact.phone) && (
-                <span className="flex items-center gap-1.5 text-[13px] text-[#6a7282]" style={mont}>
-                  <Phone size={13} />{lead.submittedPhone ?? lead.contact.phone}
-                </span>
-              )}
-              {(lead.submittedLocation ?? lead.contact.location) && (
-                <span className="flex items-center gap-1.5 text-[13px] text-[#6a7282]" style={mont}>
-                  <MapPin size={13} />{lead.submittedLocation ?? lead.contact.location}
-                </span>
-              )}
-            </div>
-          </div>
 
-          {/* Score */}
-          <div className="flex flex-col items-center gap-1">
-            <div className="size-14 rounded-full border-4 flex items-center justify-center" style={{ borderColor: scoreColor(lead.score) }}>
-              <span className="text-[16px] font-bold" style={{ color: scoreColor(lead.score), ...poppins }}>{lead.score}</span>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className="text-[14px] font-medium text-[#1e4f86]"
+                style={mont}
+              >
+                {lead.leadNumber}
+              </span>
+              <span className="text-[14px] text-[#6a7282]" style={mont}>
+                {SOURCE_LABELS[lead.source] ?? lead.source}
+              </span>
+              <span className="text-[14px] text-[#6a7282]" style={mont}>
+                Created {formatDateValue(lead.createdAt)}
+              </span>
             </div>
-            <span className="text-[11px] text-[#6a7282]" style={mont}>Score</span>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Badge
+                label={temperature.label}
+                background={temperature.bg}
+                color={temperature.text}
+              />
+              <Badge
+                label={lifecycle.label}
+                background={lifecycle.bg}
+                color={lifecycle.text}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 mt-5 pt-4 border-t border-[#f3f4f6]">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end">
           {canConvert && (
             <button
               type="button"
               onClick={() => setShowConvert(true)}
-              className="flex items-center gap-2 h-9 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[13px] font-medium hover:bg-[#1b487a] transition-colors"
+              className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a]"
               style={mont}
             >
-              <RefreshCw size={14} />
-              Convert to Opportunity
+              <ExternalLink size={15} />
+              Convert
             </button>
           )}
-          {lead.convertedOpportunityId && (
-            <div className="flex items-center gap-2 h-9 px-4 bg-[#d1fae5] text-[#065f46] rounded-[10px] text-[13px] font-medium" style={mont}>
-              <ExternalLink size={14} />
-              Converted
-            </div>
-          )}
-          {canArchive && !lead.isArchived && (
+
+          {canArchive && (
             <button
               type="button"
-              onClick={() => archive.mutate(lead.id)}
-              disabled={archive.isPending}
-              className="flex items-center gap-2 h-9 px-4 border border-[#e5e7eb] text-[#6a7282] rounded-[10px] text-[13px] font-medium hover:bg-[#f3f4f6] disabled:opacity-50 transition-colors"
+              onClick={handleArchiveToggle}
+              disabled={archivePending}
+              className="flex h-10 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-4 text-[14px] font-medium text-[#6a7282] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-60"
               style={mont}
             >
-              <Archive size={14} />
-              Archive
-            </button>
-          )}
-          {canArchive && lead.isArchived && (
-            <button
-              type="button"
-              onClick={() => restore.mutate(lead.id)}
-              disabled={restore.isPending}
-              className="flex items-center gap-2 h-9 px-4 border border-[#e5e7eb] text-[#059669] rounded-[10px] text-[13px] font-medium hover:bg-[#f0fdf4] disabled:opacity-50 transition-colors"
-              style={mont}
-            >
-              <ArchiveRestore size={14} />
-              Restore
+              {archivePending ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : lead.isArchived ? (
+                <ArchiveRestore size={15} />
+              ) : (
+                <Archive size={15} />
+              )}
+              {lead.isArchived ? "Restore" : "Archive"}
             </button>
           )}
         </div>
       </div>
 
-      {/* Body: two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left (2/3) */}
-        <div className="lg:col-span-2 flex flex-col gap-5">
-          {/* Overview */}
-          <Section title="Overview">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-              <div>
-                <InfoRow label="Lead Source" value={SOURCE_LABELS[lead.source] ?? lead.source} />
-                {lead.sourceDetail && <InfoRow label="Source Detail" value={lead.sourceDetail} />}
-                <InfoRow label="Budget" value={formatBudget(lead)} />
-                <InfoRow
-                  label="Follow-up"
-                  value={lead.nextFollowUpAt ? (
-                    <span className="flex items-center gap-1.5">
-                      <Clock size={12} />
-                      {format(new Date(lead.nextFollowUpAt), "MMM d, yyyy")}
-                    </span>
-                  ) : null}
-                />
-                <InfoRow
-                  label="Last Contacted"
-                  value={lead.lastContactedAt ? format(new Date(lead.lastContactedAt), "MMM d, yyyy") : null}
-                />
-              </div>
-              <div>
-                <InfoRow label="Temperature" value={
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[12px] font-medium" style={{ backgroundColor: temp.bg, color: temp.text, ...mont }}>
-                    {temp.label}
-                  </span>
-                } />
-                <InfoRow label="Status" value={
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[6px] text-[12px] font-medium" style={{ backgroundColor: lifecycle.bg, color: lifecycle.text, ...mont }}>
-                    {lifecycle.label}
-                  </span>
-                } />
-                <InfoRow label="Assigned Agent" value={lead.assignedAgent?.fullName ?? "—"} />
-                <InfoRow label="Created" value={format(new Date(lead.createdAt), "MMM d, yyyy")} />
-                <InfoRow label="Updated" value={formatDistanceToNow(new Date(lead.updatedAt), { addSuffix: true })} />
-              </div>
-            </div>
-            {lead.notes && (
-              <div className="mt-3 p-3 bg-[#f9fafb] rounded-[10px]">
-                <p className="text-[11px] font-medium text-[#6a7282] mb-1" style={mont}>Initial Notes</p>
-                <p className="text-[13px] text-[#0d2138] whitespace-pre-wrap" style={mont}>{lead.notes}</p>
-              </div>
-            )}
-          </Section>
-
-          {/* Property */}
-          {lead.primaryListing ? (
-            <Section title="Interested Property">
-              <div className="flex gap-4 items-start">
-                {lead.primaryListing.coverUrl && (
-                  <img
-                    src={lead.primaryListing.coverUrl}
-                    alt={lead.primaryListing.title}
-                    className="w-28 h-20 object-cover rounded-[8px] shrink-0"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-[#1e4f86]" style={mont}>{lead.primaryListing.listingId}</p>
-                  <p className="text-[14px] font-semibold text-[#0d2138] mt-0.5" style={mont}>{lead.primaryListing.title}</p>
-                  <p className="text-[12px] text-[#6a7282] mt-0.5 flex items-center gap-1" style={mont}>
-                    <MapPin size={11} />{lead.primaryListing.location}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2 flex-wrap">
-                    <span className="text-[12px] px-2 py-0.5 bg-[#f3f4f6] rounded-[6px] text-[#6a7282]" style={mont}>
-                      {lead.primaryListing.type}
-                    </span>
-                    <span className="text-[12px] px-2 py-0.5 bg-[#f3f4f6] rounded-[6px] text-[#6a7282]" style={mont}>
-                      {lead.primaryListing.status}
-                    </span>
-                    {lead.primaryListing.salePrice && (
-                      <span className="text-[12px] font-medium text-[#0d2138] flex items-center gap-1" style={mont}>
-                        <DollarSign size={11} />
-                        {lead.primaryListing.salePrice.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                  <a
-                    href={`/dashboard/listings/${lead.primaryListing.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 flex items-center gap-1.5 text-[12px] text-[#1e4f86] hover:underline w-fit"
-                    style={mont}
-                  >
-                    <ExternalLink size={12} />
-                    Open Listing
-                  </a>
-                </div>
-              </div>
-            </Section>
-          ) : (
-            <Section title="Interested Property">
-              <p className="text-[13px] text-[#6a7282]" style={mont}>No property linked to this lead.</p>
-            </Section>
-          )}
-
-          {/* Notes */}
-          <Section title="Notes">
-            <NotesSection leadId={leadId} role={role} isArchived={lead.isArchived} />
-          </Section>
-
-          {/* Activity */}
-          {hasPermission(role, "leads:view_activity") && (
-            <Section title="Activity History">
-              <ActivityFeed leadId={leadId} />
-            </Section>
-          )}
-        </div>
-
-        {/* Right (1/3) */}
-        <div className="flex flex-col gap-5">
-          {/* Contact */}
-          <Section title="Contact">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <div className="size-10 rounded-full bg-[#e0e7ff] flex items-center justify-center shrink-0">
-                  <User size={16} className="text-[#4f46e5]" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>{lead.contact.fullName}</p>
-                  <p className="text-[12px] text-[#6a7282]" style={mont}>{lead.contact.contactId}</p>
-                </div>
-              </div>
-              {lead.contact.email && (
-                <div className="flex items-center gap-2 text-[12px] text-[#6a7282]" style={mont}>
-                  <Mail size={12} /> {lead.contact.email}
-                </div>
-              )}
-              {lead.contact.phone && (
-                <div className="flex items-center gap-2 text-[12px] text-[#6a7282]" style={mont}>
-                  <Phone size={12} /> {lead.contact.phone}
-                </div>
-              )}
-              {lead.contact.location && (
-                <div className="flex items-center gap-2 text-[12px] text-[#6a7282]" style={mont}>
-                  <MapPin size={12} /> {lead.contact.location}
-                </div>
-              )}
-              <a
-                href={`/dashboard/contacts/${lead.contactId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-[12px] text-[#1e4f86] hover:underline w-fit mt-1"
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-[14px] border border-[#f3f4f6] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[14px] text-[#6a7282]" style={mont}>
+                Lead Score
+              </p>
+              <p
+                className="mt-2 text-[22px] font-semibold text-[#0d2138]"
                 style={mont}
               >
-                <ExternalLink size={12} />
-                Open Contact
-              </a>
+                {score}/100
+              </p>
             </div>
-          </Section>
-
-          {/* Assigned Agent */}
-          <Section title="Assigned Agent">
-            {lead.assignedAgent ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  {lead.assignedAgent.avatarUrl ? (
-                    <img src={lead.assignedAgent.avatarUrl} alt={lead.assignedAgent.fullName ?? ""} className="size-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="size-10 rounded-full bg-[#e0f2fe] flex items-center justify-center shrink-0">
-                      <User size={16} className="text-[#0284c7]" />
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>{lead.assignedAgent.fullName ?? "—"}</p>
-                    <p className="text-[12px] text-[#6a7282]" style={mont}>{lead.assignedAgent.email}</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <p className="text-[13px] text-[#6a7282]" style={mont}>No agent assigned.</p>
-              </div>
-            )}
-          </Section>
-
-          {/* Quick facts */}
-          <Section title="Quick Facts">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#6a7282]" style={mont}>Score</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-20 h-1.5 rounded-full bg-[#e5e7eb] overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${lead.score}%`, backgroundColor: scoreColor(lead.score) }} />
-                  </div>
-                  <span className="text-[12px] font-medium text-[#0d2138]" style={mont}>{lead.score}/100</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#6a7282]" style={mont}>Budget</span>
-                <span className="text-[12px] font-medium text-[#0d2138]" style={mont}>{formatBudget(lead)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-[#6a7282]" style={mont}>Source</span>
-                <span className="text-[12px] font-medium text-[#0d2138]" style={mont}>{SOURCE_LABELS[lead.source] ?? lead.source}</span>
-              </div>
+            <div className="flex size-9 items-center justify-center rounded-[10px] bg-[#e0f2fe]">
+              <Target size={18} className="text-[#0284c7]" />
             </div>
+          </div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#e5e7eb]">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${score}%`,
+                backgroundColor: scoreColor(score),
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-[14px] border border-[#f3f4f6] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[14px] text-[#6a7282]" style={mont}>
+                Budget
+              </p>
+              <p
+                className="mt-2 truncate text-[16px] font-semibold text-[#0d2138]"
+                style={mont}
+              >
+                {formatBudget(lead)}
+              </p>
+            </div>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#d1fae5]">
+              <DollarSign size={18} className="text-[#059669]" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[14px] border border-[#f3f4f6] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[14px] text-[#6a7282]" style={mont}>
+                Temperature
+              </p>
+              <p
+                className="mt-2 text-[16px] font-semibold"
+                style={{ color: temperature.text, ...mont }}
+              >
+                {temperature.label}
+              </p>
+            </div>
+            <div
+              className="flex size-9 shrink-0 items-center justify-center rounded-[10px]"
+              style={{ backgroundColor: temperature.bg }}
+            >
+              <Flame size={18} style={{ color: temperature.text }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[14px] border border-[#f3f4f6] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[14px] text-[#6a7282]" style={mont}>
+                Follow-up
+              </p>
+              <p
+                className="mt-2 truncate text-[16px] font-semibold text-[#0d2138]"
+                style={mont}
+              >
+                {formatDateValue(lead.followUpAt)}
+              </p>
+            </div>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#fef3c7]">
+              <Calendar size={18} className="text-[#d97706]" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-5">
+        <div className="flex min-w-0 flex-col gap-4">
+          <Section
+            title="Contact Information"
+            icon={<User size={16} className="text-[#1e4f86]" />}
+          >
+            <InfoRow
+              label="Full Name"
+              value={lead.submittedName || contactName}
+            />
+            <InfoRow
+              label="Email"
+              value={
+                lead.submittedEmail ?? lead.contact?.email ?? "—"
+              }
+            />
+            <InfoRow
+              label="Phone"
+              value={
+                lead.submittedPhone ?? lead.contact?.phone ?? "—"
+              }
+            />
+            <InfoRow
+              label="Location"
+              value={
+                lead.submittedLocation ??
+                lead.contact?.location ??
+                "—"
+              }
+            />
+            <InfoRow
+              label="Linked Contact"
+              value={
+                lead.contact?.contactId ??
+                lead.contact?.id ??
+                "Not linked"
+              }
+            />
           </Section>
 
-          {/* Opportunity */}
-          <Section title="Opportunity">
-            {lead.convertedOpportunityId ? (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-[#059669]">
-                  <Building2 size={14} />
-                  <span className="text-[13px] font-medium" style={mont}>Converted</span>
-                </div>
-                <p className="text-[12px] text-[#6a7282]" style={mont}>
-                  Converted {lead.convertedAt ? format(new Date(lead.convertedAt), "MMM d, yyyy") : ""}
-                </p>
-                <a
-                  href={`/dashboard/opportunities/${lead.convertedOpportunityId}`}
-                  className="flex items-center gap-1.5 text-[12px] text-[#1e4f86] hover:underline w-fit"
-                  style={mont}
-                >
-                  <ExternalLink size={12} />
-                  Open Opportunity
-                </a>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <p className="text-[13px] text-[#6a7282]" style={mont}>Not yet converted.</p>
-                {canConvert && (
-                  <button
-                    type="button"
-                    onClick={() => setShowConvert(true)}
-                    className="flex items-center gap-1.5 text-[12px] text-[#1e4f86] hover:underline w-fit"
+          <Section
+            title="Lead Details"
+            icon={<Building2 size={16} className="text-[#1e4f86]" />}
+          >
+            <InfoRow
+              label="Source"
+              value={SOURCE_LABELS[lead.source] ?? lead.source}
+            />
+            <InfoRow label="Source Detail" value={lead.sourceDetail} />
+            <InfoRow label="Budget" value={formatBudget(lead)} />
+            <InfoRow
+              label="Assigned Agent"
+              value={
+                lead.assignedAgent?.fullName ??
+                lead.assignedAgent?.email ??
+                "Unassigned"
+              }
+            />
+            <InfoRow
+              label="Created"
+              value={formatDateValue(
+                lead.createdAt,
+                "MMM d, yyyy 'at' h:mm a",
+              )}
+            />
+            <InfoRow
+              label="Last Updated"
+              value={formatDateValue(
+                lead.updatedAt,
+                "MMM d, yyyy 'at' h:mm a",
+              )}
+            />
+          </Section>
+
+          {listing && (
+            <Section
+              title="Interested Property"
+              icon={<Building2 size={16} className="text-[#1e4f86]" />}
+            >
+              <div className="flex flex-col gap-3 rounded-[10px] bg-[#f9fafb] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p
+                    className="text-[14px] font-semibold text-[#0d2138]"
                     style={mont}
                   >
-                    <RefreshCw size={12} />
-                    Convert to Opportunity
+                    {listing.title ?? "Property"}
+                  </p>
+                  <p
+                    className="mt-1 text-[14px] text-[#1e4f86]"
+                    style={mont}
+                  >
+                    {listing.listingId ?? "—"}
+                  </p>
+                  {listing.location && (
+                    <p
+                      className="mt-1 flex items-center gap-1 text-[14px] text-[#6a7282]"
+                      style={mont}
+                    >
+                      <MapPin size={12} />
+                      {listing.location}
+                    </p>
+                  )}
+                </div>
+
+                {listing.id && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(`/dashboard/listings/${listing.id}`)
+                    }
+                    className="flex h-9 items-center justify-center gap-2 rounded-[9px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f3f4f6]"
+                    style={mont}
+                  >
+                    View Listing
+                    <ExternalLink size={14} />
                   </button>
                 )}
               </div>
-            )}
-          </Section>
-
-          {/* Update score / temperature quick panel */}
-          {canUpdate && (
-            <Section title="Update Lead">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Score (0–100)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    defaultValue={lead.score}
-                    onBlur={(e) => {
-                      const val = Math.min(100, Math.max(0, Number(e.target.value)));
-                      if (val !== lead.score) update.mutate({ score: val });
-                    }}
-                    className="h-9 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86]"
-                    style={mont}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Status</label>
-                  <select
-                    defaultValue={lead.lifecycleStatus}
-                    onChange={(e) => update.mutate({ lifecycleStatus: e.target.value as LeadLifecycleStatus })}
-                    className="h-9 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
-                    style={mont}
-                  >
-                    {Object.entries(LIFECYCLE_BADGE).map(([k, v]) => (
-                      <option key={k} value={k}>{v.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Temperature</label>
-                  <select
-                    defaultValue={lead.temperature}
-                    onChange={(e) => update.mutate({ temperature: e.target.value as LeadTemperature })}
-                    className="h-9 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
-                    style={mont}
-                  >
-                    {Object.entries(TEMP_BADGE).map(([k, v]) => (
-                      <option key={k} value={k}>{v.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-medium text-[#1f2937] flex items-center gap-1.5" style={mont}>
-                    <Calendar size={12} /> Follow-up Date
-                  </label>
-                  <input
-                    type="date"
-                    defaultValue={lead.nextFollowUpAt ? format(new Date(lead.nextFollowUpAt), "yyyy-MM-dd") : ""}
-                    onBlur={(e) => {
-                      const val = e.target.value;
-                      update.mutate({ nextFollowUpAt: val ? new Date(val).toISOString() : null });
-                    }}
-                    className="h-9 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86]"
-                    style={mont}
-                  />
-                </div>
-                {update.isPending && (
-                  <p className="text-[11px] text-[#6a7282] flex items-center gap-1" style={mont}>
-                    <Loader2 size={11} className="animate-spin" /> Saving…
-                  </p>
-                )}
-              </div>
             </Section>
           )}
+
+          <Section
+            title="Notes"
+            icon={<MessageSquare size={16} className="text-[#1e4f86]" />}
+          >
+            <NotesSection
+              leadId={lead.id}
+              role={role}
+              isArchived={lead.isArchived}
+            />
+          </Section>
         </div>
+
+        <aside className="flex min-w-0 flex-col gap-4">
+          <Section
+            title="Status & Assignment"
+            icon={<Target size={16} className="text-[#1e4f86]" />}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label
+                  className="text-[14px] font-medium text-[#6a7282]"
+                  style={mont}
+                >
+                  Temperature
+                </label>
+                <select
+                  value={lead.temperature}
+                  disabled={!canUpdate || update.isPending}
+                  onChange={(event) =>
+                    updateTemperature(
+                      event.target.value as LeadTemperature,
+                    )
+                  }
+                  className="h-10 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#99a1af]"
+                  style={mont}
+                >
+                  {Object.values(LeadTemperature).map((value) => (
+                    <option key={value} value={value}>
+                      {TEMP_BADGE[value].label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  className="text-[14px] font-medium text-[#6a7282]"
+                  style={mont}
+                >
+                  Lifecycle Status
+                </label>
+                <select
+                  value={lead.lifecycleStatus}
+                  disabled={!canUpdate || update.isPending}
+                  onChange={(event) =>
+                    updateLifecycle(
+                      event.target.value as LeadLifecycleStatus,
+                    )
+                  }
+                  className="h-10 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#99a1af]"
+                  style={mont}
+                >
+                  {Object.values(LeadLifecycleStatus).map((value) => (
+                    <option key={value} value={value}>
+                      {LIFECYCLE_BADGE[value].label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {update.isPending && (
+                <p
+                  className="flex items-center gap-1.5 text-[11px] text-[#6a7282]"
+                  style={mont}
+                >
+                  <Loader2 size={12} className="animate-spin" />
+                  Saving changes…
+                </p>
+              )}
+            </div>
+          </Section>
+
+          <Section
+            title="Quick Contact"
+            icon={<Phone size={16} className="text-[#1e4f86]" />}
+          >
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              {(lead.submittedEmail ?? lead.contact?.email) && (
+                <a
+                  href={`mailto:${
+                    lead.submittedEmail ?? lead.contact?.email
+                  }`}
+                  className="flex h-10 items-center gap-2 rounded-[9px] border border-[#e5e7eb] px-3 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f3f4f6]"
+                  style={mont}
+                >
+                  <Mail size={15} />
+                  Email Lead
+                </a>
+              )}
+
+              {(lead.submittedPhone ?? lead.contact?.phone) && (
+                <a
+                  href={`tel:${lead.submittedPhone ?? lead.contact?.phone}`}
+                  className="flex h-10 items-center gap-2 rounded-[9px] border border-[#e5e7eb] px-3 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f3f4f6]"
+                  style={mont}
+                >
+                  <Phone size={15} />
+                  Call Lead
+                </a>
+              )}
+            </div>
+          </Section>
+
+          <Section
+            title="Timeline"
+            icon={<Clock size={16} className="text-[#1e4f86]" />}
+          >
+            <ActivityFeed leadId={lead.id} />
+          </Section>
+        </aside>
       </div>
 
       {showConvert && (
         <ConvertModal
-          leadId={leadId}
-          leadName={lead.submittedName}
+          leadId={lead.id}
+          leadName={lead.submittedName || contactName || "Lead"}
           onClose={() => setShowConvert(false)}
         />
       )}
