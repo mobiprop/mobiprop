@@ -237,7 +237,9 @@ function Badge({
   );
 }
 
-function formatBudget(lead: LeadDto): string {
+function formatBudget(
+  lead: Pick<LeadDto, "budgetMin" | "budgetMax" | "currency">,
+): string {
   if (!lead.budgetMin && !lead.budgetMax) return "—";
 
   const formatAmount = (value: number) => {

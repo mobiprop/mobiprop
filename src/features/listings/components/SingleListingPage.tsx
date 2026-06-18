@@ -1216,7 +1216,7 @@ export function SingleListingPageContent({
       className="text-[16px] font-medium text-[#232323]"
       style={{ fontFamily: "Poppins, sans-serif" }}
     >
-      {listing.rating ?? "5.0"}
+      5.0
     </span>
 
     <div className="flex items-center gap-[2px] text-[19px] leading-none text-[#F5A000]">
@@ -1229,7 +1229,7 @@ export function SingleListingPageContent({
       className="text-[14px] text-[#369BCB]"
       style={{ fontFamily: "Poppins, sans-serif" }}
     >
-      {(listing.reviewCount ?? 6546).toLocaleString()} reviews
+      {(6546).toLocaleString()} reviews
     </span>
   </div>
 </div>
