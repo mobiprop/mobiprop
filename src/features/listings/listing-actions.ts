@@ -22,7 +22,7 @@ import {
   LISTING_IMAGE_MIME_TYPES,
   type AmenityKey,
 } from "@/schemas/listing.schema";
-import { PropertyStatus, UserRole } from "@/generated/prisma/enums";
+import { PropertyStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 import type { Prisma, Profile } from "@/generated/prisma/client";
 
 import type {
@@ -45,6 +45,15 @@ function forbidden(): ListingActionError {
 
 function notFound(): ListingActionError {
   return { ok: false, error: "Listing not found.", status: 404 };
+}
+
+/** Confirms an assignee is a real, active staff profile (not USER-role). */
+async function validateAssignee(agentId: string): Promise<ListingActionError | null> {
+  const agent = await prisma.profile.findUnique({ where: { id: agentId }, select: { status: true, role: true } });
+  if (!agent || agent.role === UserRole.USER || agent.status !== UserStatus.ACTIVE) {
+    return { ok: false, error: "Selected agent is not an active staff member.", status: 422 };
+  }
+  return null;
 }
 
 // ── Record-level access ───────────────────────────────────────────────────────
@@ -274,6 +283,14 @@ export async function createListing(
     return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
   }
 
+  if (data.assignedAgentId && !hasPermission(profile.role, "listings:assign")) {
+    return { ok: false, error: "You don't have permission to assign a listing agent.", status: 403 };
+  }
+  if (data.assignedAgentId) {
+    const assigneeError = await validateAssignee(data.assignedAgentId);
+    if (assigneeError) return assigneeError;
+  }
+
   if (files.length === 0 && data.status !== PropertyStatus.DRAFT) {
     return { ok: false, error: "At least one image is required to publish a listing.", status: 400 };
   }
@@ -325,6 +342,7 @@ export async function createListing(
             areaSqft: data.areaSqft,
             yearBuilt: data.yearBuilt,
             isFeatured: data.isFeatured,
+            assignedAgentId: data.assignedAgentId || null,
             createdById: profile.id,
             updatedById: profile.id,
             publishedAt: data.status === PropertyStatus.ACTIVE ? new Date() : null,
@@ -470,7 +488,21 @@ export async function updateListing(
     return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
   }
 
-  const { amenities, ...fields } = data;
+  const { amenities, assignedAgentId: assignedAgentIdInput, ...fields } = data;
+
+  let assignedAgentId: string | null | undefined;
+  if (assignedAgentIdInput !== undefined && assignedAgentIdInput !== (existing.assignedAgentId ?? "")) {
+    if (!hasPermission(profile.role, "listings:assign")) {
+      return { ok: false, error: "You don't have permission to assign a listing agent.", status: 403 };
+    }
+    if (assignedAgentIdInput === "") {
+      assignedAgentId = null;
+    } else {
+      const assigneeError = await validateAssignee(assignedAgentIdInput);
+      if (assigneeError) return assigneeError;
+      assignedAgentId = assignedAgentIdInput;
+    }
+  }
 
   // Re-geocode when the address changed (best-effort, never blocks the save).
   const addressChanged =
@@ -486,6 +518,7 @@ export async function updateListing(
     where: { id },
     data: {
       ...fields,
+      ...(assignedAgentId !== undefined ? { assignedAgentId } : {}),
       ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
       updatedById: profile.id,
       ...(data.status === PropertyStatus.ACTIVE && !existing.publishedAt
@@ -514,6 +547,10 @@ export async function updateListing(
       oldValues[key] = normalize(before);
       newValues[key] = normalize(after);
     }
+  }
+  if (assignedAgentId !== undefined && assignedAgentId !== existing.assignedAgentId) {
+    oldValues.assignedAgentId = existing.assignedAgentId;
+    newValues.assignedAgentId = assignedAgentId;
   }
   if (amenities !== undefined) {
     const beforeKeys = existing.amenities.map((a) => a.amenity.key).sort();

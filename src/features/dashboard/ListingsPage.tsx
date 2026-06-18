@@ -124,6 +124,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
   const canPause = hasPermission(role, "listings:pause");
   const canFeature = hasPermission(role, "listings:feature");
   const canDelete = hasPermission(role, "listings:delete");
+  const canAssign = hasPermission(role, "listings:assign");
 
   const listings = useMemo(() => data?.listings ?? [], [data]);
   const metrics = data?.metrics;
@@ -532,6 +533,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
           <UploadListingModal
             onClose={() => setShowUpload(false)}
             canFeature={canFeature}
+            canAssign={canAssign}
           />
         )}
 
@@ -540,6 +542,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
             listing={editListing}
             onClose={() => setEditListing(null)}
             canFeature={canFeature}
+            canAssign={canAssign}
           />
         )}
 

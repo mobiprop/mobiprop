@@ -102,6 +102,7 @@ type ListingFormValues = {
   location: string;
   fullAddress: string;
   isFeatured: boolean;
+  assignedAgentId: string;
   bedrooms: string;
   bathrooms: string;
   toilets: string;
@@ -121,6 +122,7 @@ const EMPTY_VALUES: ListingFormValues = {
   location: "",
   fullAddress: "",
   isFeatured: false,
+  assignedAgentId: "",
   bedrooms: "",
   bathrooms: "",
   toilets: "",
@@ -141,6 +143,7 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     location: listing.location,
     fullAddress: listing.fullAddress,
     isFeatured: listing.isFeatured,
+    assignedAgentId: listing.assignedAgentId ?? "",
     bedrooms: listing.bedrooms?.toString() ?? "",
     bathrooms: listing.bathrooms?.toString() ?? "",
     toilets: listing.toilets?.toString() ?? "",
@@ -150,6 +153,8 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     amenities: listing.amenities,
   };
 }
+
+type AssignableAgent = { id: string; name: string; status: string };
 
 type NewImage = {
   file: File;
@@ -165,6 +170,8 @@ type UploadListingModalProps = {
   onClose: () => void;
   listing?: DashboardListingDto;
   canFeature: boolean;
+  /** listings:assign — ADMIN/MANAGER only. Hides the Assigned Agent field otherwise. */
+  canAssign: boolean;
 };
 
 /**
@@ -185,6 +192,9 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.location !== listing.location) diff.location = parsed.location;
   if (parsed.fullAddress !== listing.fullAddress) diff.fullAddress = parsed.fullAddress;
   if (parsed.isFeatured !== listing.isFeatured) diff.isFeatured = parsed.isFeatured;
+  if ((parsed.assignedAgentId ?? "") !== (listing.assignedAgentId ?? "")) {
+    diff.assignedAgentId = parsed.assignedAgentId;
+  }
   if (parsed.bedrooms !== (listing.bedrooms ?? undefined)) diff.bedrooms = parsed.bedrooms;
   if (parsed.bathrooms !== (listing.bathrooms ?? undefined)) diff.bathrooms = parsed.bathrooms;
   if (parsed.toilets !== (listing.toilets ?? undefined)) diff.toilets = parsed.toilets;
@@ -267,6 +277,7 @@ export function UploadListingModal({
   onClose,
   listing,
   canFeature,
+  canAssign,
 }: UploadListingModalProps) {
   const isEdit = listing !== undefined;
   const titleId = useId();
@@ -284,6 +295,15 @@ export function UploadListingModal({
   });
   const [imagesError, setImagesError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [agents, setAgents] = useState<AssignableAgent[]>([]);
+
+  useEffect(() => {
+    if (!canAssign) return;
+    fetch("/api/dashboard/agents")
+      .then((res) => res.json())
+      .then((json) => setAgents((json.agents ?? []).filter((a: AssignableAgent) => a.status === "ACTIVE")))
+      .catch(() => undefined);
+  }, [canAssign]);
 
   const createMutation = useCreateListingMutation();
   const updateMutation = useUpdateListingMutation();
@@ -953,6 +973,39 @@ export function UploadListingModal({
                       <FieldError message={errors.fullAddress?.message} />
                     </div>
                   </div>
+
+                  {canAssign && (
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <label
+                        htmlFor="listing-assigned-agent"
+                        className={labelClass}
+                        style={mont}
+                      >
+                        Assigned Agent
+                      </label>
+
+                      <div className="relative min-w-0">
+                        <select
+                          id="listing-assigned-agent"
+                          {...register("assignedAgentId")}
+                          className={selectClass}
+                          style={mont}
+                        >
+                          <option value="">— Unassigned —</option>
+                          {agents.map((agent) => (
+                            <option key={agent.id} value={agent.id}>
+                              {agent.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        <ChevronDown
+                          size={18}
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {canFeature && (
                     <div className="flex min-w-0 items-start justify-between gap-4 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4 sm:items-center">

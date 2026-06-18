@@ -76,6 +76,9 @@ export const listingBaseSchema = z.object({
   location: z.string().trim().min(2, "Location is required"),
   fullAddress: z.string().trim().min(5, "Full address is required"),
   isFeatured: z.boolean().default(false),
+  // Empty string from the dropdown means "unassigned"; only ADMIN/MANAGER
+  // (listings:assign) may set this — enforced in listing-actions.ts.
+  assignedAgentId: z.string().uuid().optional().or(z.literal("")),
 
   // Step 2 — Listing Details
   bedrooms: requiredCount("Bedrooms"),
@@ -141,6 +144,6 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 // Field groups used by the modal to validate one step at a time
 // (react-hook-form `trigger(...)` before allowing Next Step).
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
-  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "location", "fullAddress", "isFeatured"],
+  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "location", "fullAddress", "isFeatured", "assignedAgentId"],
   1: ["bedrooms", "bathrooms", "toilets", "areaSqft", "yearBuilt", "description", "amenities"],
 };

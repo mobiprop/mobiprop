@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -9,273 +9,72 @@ import {
   DollarSign,
   Eye,
   Handshake,
+  Loader2,
   Mail,
   MapPin,
   Phone,
   Search,
 } from "lucide-react";
 
-const mont = {
-  fontFamily: "'Montserrat', sans-serif",
-};
+import { useAgentDetailQuery } from "@/hooks/queries/useAgentDetailQuery";
+import {
+  TYPE_LABELS,
+  STATUS_LABELS,
+  TYPE_BADGE,
+  STATUS_BADGE,
+} from "./listings-data";
+import type { PropertyType, PropertyStatus } from "@/generated/prisma/enums";
 
-const poppins = {
-  fontFamily: "'Poppins', sans-serif",
-};
+const mont = { fontFamily: "'Montserrat', sans-serif" };
+const poppins = { fontFamily: "'Poppins', sans-serif" };
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+const priceFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
-type PropertyType =
-  | "Apartment"
-  | "House"
-  | "Commercial"
-  | "Villa";
+function formatPrice(salePrice: number | null, rentPrice: number | null): string {
+  const sale = salePrice !== null ? `$${priceFormat.format(salePrice)}` : null;
+  const rent = rentPrice !== null ? `$${priceFormat.format(rentPrice)}/mo` : null;
+  if (sale && rent) return `${sale} · ${rent}`;
+  return sale ?? rent ?? "—";
+}
 
-type PropertyStatus =
-  | "Active"
-  | "Inactive"
-  | "Paused"
-  | "Rented";
-
-type AssignedProperty = {
-  id: string;
-  name: string;
-  type: PropertyType;
-  location: string;
-  price: string;
-  status: PropertyStatus;
-};
-
-type AgentDetail = {
-  id: number;
-  name: string;
-  role: string;
-  status: "Active" | "Inactive";
-  email: string;
-  phone: string;
-  location: string;
-  avatar?: string | null;
-  totalListings: number;
-  totalRevenue: string;
-  agentEarnings: string;
-  earningsTrend: string;
-  totalDeals: number;
-  openDeals: number;
-  properties: AssignedProperty[];
-};
-
-type AgentDetailPageProps = {
-  agentId: number;
-};
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-
-const MOCK_AGENTS: Record<number, AgentDetail> = {
-  1: {
-    id: 1,
-    name: "Michael Rodriguez",
-    role: "Agent",
-    status: "Active",
-    email: "michael.r@ulrich.com",
-    phone: "+54 11 4567-8901",
-    location: "La Plata, Argentina",
-    avatar: null,
-    totalListings: 45,
-    totalRevenue: "$485K",
-    agentEarnings: "$4K",
-    earningsTrend: "+18%",
-    totalDeals: 23,
-    openDeals: 8,
-    properties: [
-      {
-        id: "LST-0001",
-        name: "Modern Downtown Apartment",
-        type: "Apartment",
-        location: "Buenos Aires",
-        price: "$450,000",
-        status: "Active",
-      },
-      {
-        id: "LST-0002",
-        name: "Family House with Garden",
-        type: "House",
-        location: "La Plata",
-        price: "$620,000",
-        status: "Active",
-      },
-      {
-        id: "LST-0003",
-        name: "Luxury Penthouse",
-        type: "Apartment",
-        location: "Buenos Aires",
-        price: "$890,000",
-        status: "Inactive",
-      },
-      {
-        id: "LST-0004",
-        name: "Commercial Office Space",
-        type: "Commercial",
-        location: "Córdoba",
-        price: "$3,500/mo",
-        status: "Paused",
-      },
-      {
-        id: "LST-0005",
-        name: "Beachfront Villa",
-        type: "House",
-        location: "Mar del Plata",
-        price: "$1,200,000",
-        status: "Rented",
-      },
-    ],
-  },
-};
-
-const DEFAULT_AGENT: AgentDetail = {
-  id: 0,
-  name: "Thomas Fletcher",
-  role: "Property Specialist",
-  status: "Active",
-  email: "thomas.f@ulrich.com",
-  phone: "+54 11 4567-8901",
-  location: "La Plata, Argentina",
-  avatar: null,
-  totalListings: 45,
-  totalRevenue: "$485K",
-  agentEarnings: "$4K",
-  earningsTrend: "+18%",
-  totalDeals: 23,
-  openDeals: 8,
-  properties: [
-    {
-      id: "LST-0001",
-      name: "Modern Downtown Apartment",
-      type: "Apartment",
-      location: "Buenos Aires",
-      price: "$450,000",
-      status: "Active",
-    },
-    {
-      id: "LST-0002",
-      name: "Family House with Garden",
-      type: "House",
-      location: "La Plata",
-      price: "$620,000",
-      status: "Active",
-    },
-    {
-      id: "LST-0003",
-      name: "Luxury Penthouse",
-      type: "Apartment",
-      location: "Buenos Aires",
-      price: "$890,000",
-      status: "Inactive",
-    },
-    {
-      id: "LST-0004",
-      name: "Commercial Office Space",
-      type: "Commercial",
-      location: "Córdoba",
-      price: "$3,500/mo",
-      status: "Paused",
-    },
-    {
-      id: "LST-0005",
-      name: "Beachfront Villa",
-      type: "House",
-      location: "Mar del Plata",
-      price: "$1,200,000",
-      status: "Rented",
-    },
-  ],
-};
-
-// ── Badge styles ──────────────────────────────────────────────────────────────
-
-const TYPE_STYLE: Record<
-  PropertyType,
-  { background: string; text: string }
-> = {
-  Apartment: {
-    background: "#ffedd4",
-    text: "#bb4d00",
-  },
-  House: {
-    background: "#dff2fe",
-    text: "#0069a8",
-  },
-  Commercial: {
-    background: "#dcfce7",
-    text: "#00786f",
-  },
-  Villa: {
-    background: "#ede9fe",
-    text: "#6d28d9",
-  },
-};
-
-const STATUS_STYLE: Record<
-  PropertyStatus,
-  { background: string; text: string }
-> = {
-  Active: {
-    background: "#ecfdf5",
-    text: "#00a63e",
-  },
-  Inactive: {
-    background: "#ffc9c9",
-    text: "#e7000b",
-  },
-  Paused: {
-    background: "#fef3c6",
-    text: "#e17100",
-  },
-  Rented: {
-    background: "#f1f5f9",
-    text: "#1e4f86",
-  },
-};
+function mapRole(role: "ADMIN" | "MANAGER" | "AGENT"): string {
+  if (role === "ADMIN") return "Administrator";
+  if (role === "MANAGER") return "Manager";
+  return "Property Specialist";
+}
 
 // ── Badge components ──────────────────────────────────────────────────────────
 
-function TypeBadge({
-  type,
-}: {
-  type: PropertyType;
-}) {
-  const badgeStyle = TYPE_STYLE[type];
+function TypeBadge({ type }: { type: string }) {
+  const badgeStyle = TYPE_BADGE[type as PropertyType];
 
   return (
     <span
       className="inline-flex items-center whitespace-nowrap rounded-[6px] px-3 py-1 text-[12px] font-medium"
       style={{
-        backgroundColor: badgeStyle.background,
+        backgroundColor: badgeStyle.bg,
         color: badgeStyle.text,
         ...mont,
       }}
     >
-      {type}
+      {TYPE_LABELS[type as PropertyType]}
     </span>
   );
 }
 
-function StatusBadge({
-  status,
-}: {
-  status: PropertyStatus;
-}) {
-  const badgeStyle = STATUS_STYLE[status];
+function StatusBadge({ status }: { status: string }) {
+  const badgeStyle = STATUS_BADGE[status as PropertyStatus];
 
   return (
     <span
       className="inline-flex items-center whitespace-nowrap rounded-[6px] px-3 py-1 text-[12px] font-medium"
       style={{
-        backgroundColor: badgeStyle.background,
+        backgroundColor: badgeStyle.bg,
         color: badgeStyle.text,
         ...mont,
       }}
     >
-      {status}
+      {STATUS_LABELS[status as PropertyStatus]}
     </span>
   );
 }
@@ -287,16 +86,9 @@ type StatCardProps = {
   icon: ReactNode;
   value: string | number;
   label: string;
-  trend?: string;
 };
 
-function StatCard({
-  iconBackground,
-  icon,
-  value,
-  label,
-  trend,
-}: StatCardProps) {
+function StatCard({ iconBackground, icon, value, label }: StatCardProps) {
   return (
     <article className="flex min-h-[138px] min-w-0 flex-col rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.02)] sm:p-5">
       <span
@@ -307,23 +99,12 @@ function StatCard({
       </span>
 
       <div className="mt-3 min-w-0">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-2">
-          <p
-            className="min-w-0 truncate text-[24px] font-semibold leading-8 text-[#0d2138]"
-            style={poppins}
-          >
-            {value}
-          </p>
-
-          {trend && (
-            <span
-              className="shrink-0 text-[14px] font-medium text-[#00a63e]"
-              style={mont}
-            >
-              {trend}
-            </span>
-          )}
-        </div>
+        <p
+          className="min-w-0 truncate text-[24px] font-semibold leading-8 text-[#0d2138]"
+          style={poppins}
+        >
+          {value}
+        </p>
 
         <p
           className="mt-0.5 text-[14px] leading-5 text-[#6a7282]"
@@ -338,17 +119,61 @@ function StatCard({
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export function AgentDetailPage({
-  agentId,
-}: AgentDetailPageProps) {
-  const agent =
-    MOCK_AGENTS[agentId] ?? {
-      ...DEFAULT_AGENT,
-      id: agentId,
-    };
+type AgentDetailPageProps = {
+  agentId: string;
+};
 
-  const [propertySearch, setPropertySearch] =
-    useState("");
+export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
+  const { data: agent, isLoading, isError } = useAgentDetailQuery(agentId);
+  const [propertySearch, setPropertySearch] = useState("");
+
+  const normalizedSearch = propertySearch.trim().toLowerCase();
+
+  const filteredProperties = useMemo(() => {
+    if (!agent) return [];
+    if (!normalizedSearch) return agent.properties;
+
+    return agent.properties.filter((property) =>
+      [
+        property.listingId,
+        property.title,
+        TYPE_LABELS[property.type as PropertyType],
+        property.location,
+        STATUS_LABELS[property.status as PropertyStatus],
+        formatPrice(property.salePrice, property.rentPrice),
+      ].some((value) => value.toLowerCase().includes(normalizedSearch)),
+    );
+  }, [agent, normalizedSearch]);
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex items-center justify-center gap-2 px-6 py-10 text-[#6a7282]"
+        style={mont}
+      >
+        <Loader2 size={18} className="animate-spin" />
+        Loading agent…
+      </div>
+    );
+  }
+
+  if (isError || !agent) {
+    return (
+      <div className="px-6 py-10 text-center">
+        <p className="text-[14px] text-[#dc2626]" style={mont}>
+          Agent not found or access denied.
+        </p>
+
+        <Link
+          href="/dashboard/agents"
+          className="mt-3 inline-block text-[13px] text-[#1e4f86] hover:underline"
+          style={mont}
+        >
+          Back to Agents
+        </Link>
+      </div>
+    );
+  }
 
   const initials = agent.name
     .split(" ")
@@ -358,28 +183,7 @@ export function AgentDetailPage({
     .slice(0, 2)
     .toUpperCase();
 
-  const normalizedSearch = propertySearch
-    .trim()
-    .toLowerCase();
-
-  const filteredProperties =
-    agent.properties.filter((property) => {
-      if (!normalizedSearch) return true;
-
-      return [
-        property.id,
-        property.name,
-        property.type,
-        property.location,
-        property.price,
-        property.status,
-      ].some((value) =>
-        value.toLowerCase().includes(normalizedSearch),
-      );
-    });
-
-  const isAgentActive =
-    agent.status === "Active";
+  const isAgentActive = agent.status === "ACTIVE";
 
   return (
     <main className="min-h-full bg-[#f8fafc] px-3 py-4 sm:px-4 sm:py-5 lg:px-5">
@@ -390,11 +194,7 @@ export function AgentDetailPage({
           className="inline-flex w-fit items-center gap-1.5 text-[14px] font-medium text-[#6a7282] transition-colors hover:text-[#0d2138]"
           style={mont}
         >
-          <ArrowLeft
-            size={16}
-            className="shrink-0"
-          />
-
+          <ArrowLeft size={16} className="shrink-0" />
           <span>Back to Agents</span>
         </Link>
 
@@ -405,18 +205,10 @@ export function AgentDetailPage({
             <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
               {/* Avatar */}
               <div
-                className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#e5e7eb] bg-[#1e4f86] text-[18px] font-semibold text-white sm:size-[70px] sm:text-[20px]"
+                className="flex size-16 shrink-0 items-center justify-center rounded-full border border-[#e5e7eb] bg-[#1e4f86] text-[18px] font-semibold text-white sm:size-[70px] sm:text-[20px]"
                 style={mont}
               >
-                {agent.avatar ? (
-                  <img
-                    src={agent.avatar}
-                    alt={`${agent.name} profile`}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
+                {initials}
               </div>
 
               {/* Name and details */}
@@ -439,13 +231,11 @@ export function AgentDetailPage({
                   >
                     <span
                       className={`mr-1 size-1.5 rounded-full ${
-                        isAgentActive
-                          ? "bg-[#00c950]"
-                          : "bg-[#ef4444]"
+                        isAgentActive ? "bg-[#00c950]" : "bg-[#ef4444]"
                       }`}
                     />
 
-                    {agent.status}
+                    {isAgentActive ? "Active" : "Inactive"}
                   </span>
                 </div>
 
@@ -453,7 +243,7 @@ export function AgentDetailPage({
                   className="mt-1 text-[14px] text-[#6a7282]"
                   style={mont}
                 >
-                  {agent.role}
+                  {mapRole(agent.role)}
                 </p>
 
                 {/* Contact information */}
@@ -467,9 +257,7 @@ export function AgentDetailPage({
                       className="mt-0.5 shrink-0 text-[#6a7282]"
                     />
 
-                    <span className="break-all">
-                      {agent.email}
-                    </span>
+                    <span className="break-all">{agent.email}</span>
                   </span>
 
                   <span
@@ -481,9 +269,7 @@ export function AgentDetailPage({
                       className="shrink-0 text-[#6a7282]"
                     />
 
-                    <span>
-                      {agent.phone || "—"}
-                    </span>
+                    <span>{agent.phone || "—"}</span>
                   </span>
 
                   <span
@@ -495,9 +281,7 @@ export function AgentDetailPage({
                       className="mt-0.5 shrink-0 text-[#6a7282]"
                     />
 
-                    <span className="break-words">
-                      {agent.location || "—"}
-                    </span>
+                    <span className="break-words">{agent.city || "—"}</span>
                   </span>
                 </div>
               </div>
@@ -512,10 +296,7 @@ export function AgentDetailPage({
             >
               <span>Current Month</span>
 
-              <ChevronDown
-                size={16}
-                className="shrink-0"
-              />
+              <ChevronDown size={16} className="shrink-0" />
             </button>
           </div>
         </section>
@@ -544,7 +325,7 @@ export function AgentDetailPage({
                 className="text-[#10b981]"
               />
             }
-            value={agent.totalRevenue}
+            value={`$${priceFormat.format(agent.totalRevenue)}`}
             label="Total Revenue"
           />
 
@@ -557,9 +338,8 @@ export function AgentDetailPage({
                 className="text-[#f59e0b]"
               />
             }
-            value={agent.agentEarnings}
-            label="Agent Earnings"
-            trend={agent.earningsTrend}
+            value={agent.totalDeals}
+            label="Total Deals"
           />
 
           <StatCard
@@ -606,9 +386,7 @@ export function AgentDetailPage({
               <input
                 type="search"
                 value={propertySearch}
-                onChange={(event) =>
-                  setPropertySearch(event.target.value)
-                }
+                onChange={(event) => setPropertySearch(event.target.value)}
                 placeholder="Search properties..."
                 aria-label="Search assigned properties"
                 className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af]"
@@ -643,77 +421,74 @@ export function AgentDetailPage({
               </thead>
 
               <tbody>
-                {filteredProperties.map(
-                  (property) => (
-                    <tr
-                      key={property.id}
-                      className="border-t border-[#edf0f3] transition-colors hover:bg-[#fafbfc]"
-                    >
-                      <td className="px-4 py-3.5">
-                        <span
-                          className="whitespace-nowrap text-[14px] font-semibold text-[#1e4f86]"
-                          style={mont}
-                        >
-                          {property.id}
-                        </span>
-                      </td>
+                {filteredProperties.map((property) => (
+                  <tr
+                    key={property.id}
+                    className="border-t border-[#edf0f3] transition-colors hover:bg-[#fafbfc]"
+                  >
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="whitespace-nowrap text-[14px] font-semibold text-[#1e4f86]"
+                        style={mont}
+                      >
+                        {property.listingId}
+                      </span>
+                    </td>
 
-                      <td className="px-4 py-3.5">
-                        <span
-                          className="whitespace-nowrap text-[14px] font-medium text-[#2b3038]"
-                          style={mont}
-                        >
-                          {property.name}
-                        </span>
-                      </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="whitespace-nowrap text-[14px] font-medium text-[#2b3038]"
+                        style={mont}
+                      >
+                        {property.title}
+                      </span>
+                    </td>
 
-                      <td className="px-4 py-3.5">
-                        <TypeBadge
-                          type={property.type}
+                    <td className="px-4 py-3.5">
+                      <TypeBadge type={property.type} />
+                    </td>
+
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="flex items-center gap-1.5 whitespace-nowrap text-[14px] text-[#6a7282]"
+                        style={mont}
+                      >
+                        <MapPin
+                          size={14}
+                          className="shrink-0 text-[#7b8493]"
                         />
-                      </td>
 
-                      <td className="px-4 py-3.5">
-                        <span
-                          className="flex items-center gap-1.5 whitespace-nowrap text-[14px] text-[#6a7282]"
-                          style={mont}
-                        >
-                          <MapPin
-                            size={14}
-                            className="shrink-0 text-[#7b8493]"
-                          />
+                        {property.location}
+                      </span>
+                    </td>
 
-                          {property.location}
-                        </span>
-                      </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="whitespace-nowrap text-[14px] font-medium text-[#0d2138]"
+                        style={mont}
+                      >
+                        {formatPrice(property.salePrice, property.rentPrice)}
+                      </span>
+                    </td>
 
-                      <td className="px-4 py-3.5">
-                        <span
-                          className="whitespace-nowrap text-[14px] font-medium text-[#0d2138]"
-                          style={mont}
-                        >
-                          {property.price}
-                        </span>
-                      </td>
+                    <td className="px-4 py-3.5">
+                      <StatusBadge status={property.status} />
+                    </td>
 
-                      <td className="px-4 py-3.5">
-                        <StatusBadge
-                          status={property.status}
-                        />
-                      </td>
-
-                      <td className="px-4 py-3.5 text-right">
-                        <button
-                          type="button"
-                          aria-label={`View ${property.name}`}
-                          className="inline-flex size-9 items-center justify-center rounded-[8px] text-[#99a1af] transition-colors hover:bg-[#f3f4f6] hover:text-[#1e4f86]"
-                        >
-                          <Eye size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ),
-                )}
+                    <td className="px-4 py-3.5 text-right">
+                      <a
+                        href={`/listings/${property.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View public listing"
+                        aria-label={`View ${property.title}`}
+                        className="inline-flex size-9 items-center justify-center rounded-[8px] text-[#99a1af] transition-colors hover:bg-[#f3f4f6] hover:text-[#1e4f86]"
+                      >
+                        <Eye size={16} />
+                      </a>
+                    </td>
+                  </tr>
+                ))}
 
                 {filteredProperties.length === 0 && (
                   <tr>
@@ -745,21 +520,19 @@ export function AgentDetailPage({
                         className="text-[14px] font-semibold text-[#1e4f86]"
                         style={mont}
                       >
-                        {property.id}
+                        {property.listingId}
                       </p>
 
                       <h3
                         className="mt-1.5 break-words text-[14px] font-semibold leading-5 text-[#0d2138]"
                         style={mont}
                       >
-                        {property.name}
+                        {property.title}
                       </h3>
                     </div>
 
                     <div className="shrink-0">
-                      <StatusBadge
-                        status={property.status}
-                      />
+                      <StatusBadge status={property.status} />
                     </div>
                   </div>
 
@@ -774,9 +547,7 @@ export function AgentDetailPage({
                       </p>
 
                       <div className="mt-2">
-                        <TypeBadge
-                          type={property.type}
-                        />
+                        <TypeBadge type={property.type} />
                       </div>
                     </div>
 
@@ -792,7 +563,7 @@ export function AgentDetailPage({
                         className="mt-2 truncate text-[14px] font-semibold text-[#0d2138]"
                         style={mont}
                       >
-                        {property.price}
+                        {formatPrice(property.salePrice, property.rentPrice)}
                       </p>
                     </div>
                   </div>
@@ -822,9 +593,10 @@ export function AgentDetailPage({
                   </div>
 
                   {/* View button */}
-                  <button
-                    type="button"
-                    aria-label={`View ${property.name}`}
+                  <a
+                    href={`/listings/${property.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#dbe3ec] bg-white text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f8fafc]"
                     style={mont}
                   >
@@ -834,7 +606,7 @@ export function AgentDetailPage({
                     />
 
                     View Property
-                  </button>
+                  </a>
                 </article>
               ))
             ) : (
