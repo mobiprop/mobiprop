@@ -13,7 +13,10 @@ export const createContractSchema = z.object({
   endDate: z.string().optional(),
   terms: z.string().max(5000).optional(),
   notes: z.string().max(2000).optional(),
-  assignedAgentId: z.string().uuid().optional(),
+  // .guid() (not .uuid()) — some seeded staff profiles use simplified IDs
+  // that aren't RFC4122-compliant (wrong version/variant nibble); the real
+  // existence/role check happens server-side against the profiles table.
+  assignedAgentId: z.string().guid().optional(),
 });
 
 export type CreateContractInput = z.infer<typeof createContractSchema>;

@@ -338,7 +338,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
           <table className="w-full min-w-[1100px]">
             <thead>
               <tr className="bg-[#f9fafb] border-y border-[#e5e7eb]">
-                {["Lead #", "Name", "Contact", "Source", "Location", "Budget", "Score", "Temp", "Status", "Agent"].map((h) => (
+                {[ "Name", "Contact", "Source", "Location", "Budget", "Score",  "Status", "Agent"].map((h) => (
                   <th key={h} className="px-4 py-3 text-[13px] font-medium text-[#6a7282] text-left whitespace-nowrap" style={mont}>{h}</th>
                 ))}
                 <th className="px-4 py-3 w-[48px]" />
@@ -361,9 +361,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                   className="border-b border-[#e5e7eb] last:border-b-0 hover:bg-[#f9fafb] cursor-pointer transition-colors"
                   onClick={() => handleView(lead.id)}
                 >
-                  <td className="px-4 py-3">
-                    <span className="text-[13px] font-medium text-[#1e4f86] whitespace-nowrap" style={mont}>{lead.leadNumber}</span>
-                  </td>
+                 
                   <td className="px-4 py-3">
                     <span className="text-[13px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{lead.submittedName}</span>
                   </td>
@@ -392,9 +390,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <TempBadge temperature={lead.temperature} />
                   </td>
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                    <LifecycleBadge status={lead.lifecycleStatus} />
-                  </td>
+              
                   <td className="px-4 py-3">
                     <span className="text-[13px] text-[#6a7282] whitespace-nowrap" style={mont}>
                       {lead.assignedAgent?.fullName ?? "—"}

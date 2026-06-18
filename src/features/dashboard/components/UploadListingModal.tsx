@@ -103,6 +103,7 @@ type ListingFormValues = {
   fullAddress: string;
   isFeatured: boolean;
   assignedAgentId: string;
+  videoUrl: string;
   bedrooms: string;
   bathrooms: string;
   toilets: string;
@@ -123,6 +124,7 @@ const EMPTY_VALUES: ListingFormValues = {
   fullAddress: "",
   isFeatured: false,
   assignedAgentId: "",
+  videoUrl: "",
   bedrooms: "",
   bathrooms: "",
   toilets: "",
@@ -144,6 +146,7 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     fullAddress: listing.fullAddress,
     isFeatured: listing.isFeatured,
     assignedAgentId: listing.assignedAgentId ?? "",
+    videoUrl: listing.videoUrl ?? "",
     bedrooms: listing.bedrooms?.toString() ?? "",
     bathrooms: listing.bathrooms?.toString() ?? "",
     toilets: listing.toilets?.toString() ?? "",
@@ -194,6 +197,9 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.isFeatured !== listing.isFeatured) diff.isFeatured = parsed.isFeatured;
   if ((parsed.assignedAgentId ?? "") !== (listing.assignedAgentId ?? "")) {
     diff.assignedAgentId = parsed.assignedAgentId;
+  }
+  if ((parsed.videoUrl ?? "") !== (listing.videoUrl ?? "")) {
+    diff.videoUrl = parsed.videoUrl;
   }
   if (parsed.bedrooms !== (listing.bedrooms ?? undefined)) diff.bedrooms = parsed.bedrooms;
   if (parsed.bathrooms !== (listing.bathrooms ?? undefined)) diff.bathrooms = parsed.bathrooms;
@@ -1201,6 +1207,36 @@ export function UploadListingModal({
               {/* Step 3: Images */}
               {step === 2 && (
                 <>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <label
+                      htmlFor="listing-video-url"
+                      className={labelClass}
+                      style={mont}
+                    >
+                      Video URL
+                    </label>
+
+                    <input
+                      id="listing-video-url"
+                      {...register("videoUrl")}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      className={`${inputClass} ${borderClass(
+                        Boolean(errors.videoUrl),
+                      )}`}
+                      style={mont}
+                    />
+
+                    <FieldError message={errors.videoUrl?.message} />
+
+                    <p
+                      className="text-[12px] leading-5 text-[#9ca3af]"
+                      style={mont}
+                    >
+                      Optional. Shown as a video preview above the map on the
+                      public listing page.
+                    </p>
+                  </div>
+
                   <div className="flex min-w-0 flex-col gap-2">
                     <label className={labelClass} style={mont}>
                       Listing Images <span className="text-[#e7000b]">*</span>

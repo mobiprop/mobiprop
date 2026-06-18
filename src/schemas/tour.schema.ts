@@ -38,7 +38,10 @@ export const createTourSchema = z.object({
   contactId: z.string().optional(),
   propertyId: z.string().optional(),
   leadId: z.string().optional(),
-  assignedAgentId: z.string().uuid().optional().or(z.literal("")),
+  // .guid() (not .uuid()) — some seeded staff profiles use simplified IDs
+  // that aren't RFC4122-compliant (wrong version/variant nibble); the real
+  // existence/role check happens server-side against the profiles table.
+  assignedAgentId: z.string().guid().optional().or(z.literal("")),
   scheduledAt: z.string().datetime({ offset: true }),
   durationMinutes: z.coerce.number().int().min(15).max(480).default(60),
   source: z.enum(["PUBLIC_REQUEST", "DASHBOARD_CREATED"]).default("DASHBOARD_CREATED"),
@@ -83,7 +86,7 @@ export type UpdateTourStatusInput = z.infer<typeof updateTourStatusSchema>;
 // ── Assign agent ──────────────────────────────────────────────────────────────
 
 export const assignTourSchema = z.object({
-  agentId: z.string().uuid().nullable(),
+  agentId: z.string().guid().nullable(),
 });
 
 export type AssignTourInput = z.infer<typeof assignTourSchema>;
@@ -93,7 +96,7 @@ export type AssignTourInput = z.infer<typeof assignTourSchema>;
 export const tourListFiltersSchema = z.object({
   search: z.string().optional(),
   status: z.nativeEnum(TourStatus).optional(),
-  assignedAgentId: z.string().uuid().optional(),
+  assignedAgentId: z.string().guid().optional(),
   unassigned: z.coerce.boolean().optional(),
   propertyId: z.string().optional(),
   fromDate: z.string().datetime({ offset: true }).optional(),
