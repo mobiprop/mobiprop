@@ -257,171 +257,457 @@ export function AgentsPage({ role }: AgentsPageProps) {
       </div>
 
       {/* Agents table */}
-      <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-        {/* Table header / controls */}
-        <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <h2 className="text-[14px] font-medium text-[#0d2138] sm:text-[16px]" style={mont}>Approve Agents</h2>
-          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
-            {/* Search */}
-            <div className="col-span-2 flex h-9 min-w-0 items-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 sm:col-span-1 sm:w-[200px]">
-              <Search size={14} className="text-[#6a7282] shrink-0" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search agents..."
-                className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#6a7282]"
-                style={mont}
-              />
-            </div>
-            {/* Status filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as AgentStatus | "All")}
-                className="h-9 pl-3 pr-8 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
-                style={mont}
-              >
-                <option value="All">All</option>
-                <option value="Approved">Approved</option>
-                <option value="Pending">Pending</option>
-                <option value="Denied">Denied</option>
-              </select>
-              <Filter size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
-            </div>
-            {/* Period */}
-            <div className="relative">
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
-                className="h-9 pl-3 pr-8 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
-                style={mont}
-              >
-                {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
-                  <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
+      <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
+        {/* Header and controls */}
+        <div className="border-b border-[#f3f4f6] p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <h2
+              className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
+              style={mont}
+            >
+              Approve Agents
+            </h2>
+
+            <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
+              {/* Search */}
+              <div className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 focus-within:border-[#1e4f86] sm:h-9 sm:w-[200px]">
+                <Search
+                  size={16}
+                  className="shrink-0 text-[#99a1af]"
+                />
+
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search agents..."
+                  className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[12px]"
+                  style={mont}
+                />
+              </div>
+
+              {/* Status filter */}
+              <div className="relative min-w-0">
+                <select
+                  value={statusFilter}
+                  onChange={(e) =>
+                    setStatusFilter(e.target.value as AgentStatus | "All")
+                  }
+                  className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
+                  style={mont}
+                >
+                  <option value="All">All</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Denied">Denied</option>
+                </select>
+
+                <Filter
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
+                />
+              </div>
+
+              {/* Period */}
+              <div className="relative min-w-0">
+                <select
+                  value={period}
+                  onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
+                  className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
+                  style={mont}
+                >
+                  {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
+                    <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
+                  ))}
+                </select>
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead>
-              <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
-                {["Agents", "Role", "Contact", "Location", "Sign Up Date", "Status", "Actions"].map((h) => (
-                  <th
-                    key={h}
-                    className={`px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left ${h === "Status" || h === "Actions" ? "text-center" : ""}`}
+  {/* Desktop and tablet table */}
+  <div className="hidden overflow-x-auto sm:block">
+    <table className="w-full min-w-[800px]">
+      <thead>
+        <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
+          {[
+            "Agents",
+            "Role",
+            "Contact",
+            "Location",
+            "Sign Up Date",
+            "Status",
+            "Actions",
+          ].map((heading) => (
+            <th
+              key={heading}
+              className={`px-4 py-[10px] text-left text-[14px] font-medium text-[#6a7282] ${
+                heading === "Status" || heading === "Actions"
+                  ? "text-center"
+                  : ""
+              }`}
+              style={mont}
+            >
+              {heading}
+            </th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {loading ? (
+          <tr>
+            <td
+              colSpan={7}
+              className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
+              style={mont}
+            >
+              Loading agents…
+            </td>
+          </tr>
+        ) : (
+          filtered.map((agent) => {
+            const mappedStatus = mapStatus(agent.status);
+            const isActioned =
+              mappedStatus === "Approved" || mappedStatus === "Denied";
+            const isActioning = actioningId === agent.id;
+
+            return (
+              <tr
+                key={agent.id}
+                className="border-b border-[#e5e7eb] transition-colors last:border-b-0 hover:bg-[#fcfcfd]"
+              >
+                <td className="w-[220px] px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white"
+                      style={mont}
+                    >
+                      {agent.name
+                        .split(" ")
+                        .map((name) => name[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+
+                    <Link
+                      href={`/dashboard/agents/${agent.id}`}
+                      className="whitespace-nowrap text-[14px] font-medium text-[#1e4f86] hover:underline"
+                      style={mont}
+                    >
+                      {agent.name}
+                    </Link>
+                  </div>
+                </td>
+
+                <td className="w-[172px] px-4 py-4">
+                  <span
+                    className="whitespace-nowrap text-[14px] font-medium text-[#6a7282]"
                     style={mont}
                   >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    Loading agents…
-                  </td>
-                </tr>
-              ) : filtered.map((agent) => {
-                const mappedStatus = mapStatus(agent.status);
-                const isActioned = mappedStatus === "Approved" || mappedStatus === "Denied";
-                const isActioning = actioningId === agent.id;
-                return (
-                  <tr key={agent.id} className="border-b border-[#e5e7eb] last:border-b-0">
-                    {/* Name */}
-                    <td className="px-4 py-4 w-[220px]">
-                      <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-full bg-[#1e4f86] text-white flex items-center justify-center text-[11px] font-semibold shrink-0" style={mont}>
-                          {agent.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                        </div>
-                        <Link
-                          href={`/dashboard/agents/${agent.id}`}
-                          className="text-[14px] font-medium text-[#1e4f86] whitespace-nowrap hover:underline"
-                          style={mont}
-                        >
-                          {agent.name}
-                        </Link>
-                      </div>
-                    </td>
-                    {/* Role */}
-                    <td className="px-4 py-4 w-[172px]">
-                      <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap" style={mont}>{mapRole(agent.role)}</span>
-                    </td>
-                    {/* Contact */}
-                    <td className="px-4 py-4 w-[200px]">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[14px] text-[#0d2138] whitespace-nowrap" style={mont}>{agent.email}</span>
-                        <span className="text-[12px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.phone ?? "—"}</span>
-                      </div>
-                    </td>
-                    {/* Location */}
-                    <td className="px-4 py-4 w-[136px]">
-                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{agent.city ?? "—"}</span>
-                    </td>
-                    {/* Sign Up Date */}
-                    <td className="px-4 py-4 w-[144px]">
-                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{formatDate(agent.createdAt)}</span>
-                    </td>
-                    {/* Status */}
-                    <td className="px-4 py-4 w-[144px] text-center">
-                      <StatusBadge status={mappedStatus} />
-                    </td>
-                    {/* Actions */}
-                    <td className="px-4 py-4 w-[134px] text-center">
-                      {isActioning ? (
-                        <span className="text-[12px] text-[#99a1af]" style={mont}>…</span>
-                      ) : isActioned ? (
-                        <span className="text-[14px] text-[#6a7282]" style={mont}>{mappedStatus}</span>
-                      ) : canApprove ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            type="button"
-                            title="Approve"
-                            onClick={() => handleApprove(agent.id)}
-                            className="size-8 flex items-center justify-center border border-[#7bf1a8] rounded-[8px] bg-white hover:bg-[#f5fffa] transition-colors"
-                          >
-                            <Check size={14} className="text-[#00aa4f]" />
-                          </button>
-                          <button
-                            type="button"
-                            title="Deny"
-                            onClick={() => handleDeny(agent.id)}
-                            className="size-8 flex items-center justify-center border border-[#ffa2a2] rounded-[8px] bg-white hover:bg-[#fff5f5] transition-colors"
-                          >
-                            <X size={14} className="text-[#fb2c36]" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-[12px] text-[#99a1af]" style={mont}>—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    No agents found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    {mapRole(agent.role)}
+                  </span>
+                </td>
 
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-[#f3f4f6]">
-          <span className="text-[12px] font-medium text-[#6a7282]" style={mont}>
-            Showing {filtered.length} of {agents.length} agents
-          </span>
-        </div>
+                <td className="w-[200px] px-4 py-4">
+                  <div className="flex flex-col gap-1">
+                    <span
+                      className="whitespace-nowrap text-[14px] text-[#0d2138]"
+                      style={mont}
+                    >
+                      {agent.email}
+                    </span>
+
+                    <span
+                      className="whitespace-nowrap text-[12px] text-[#6a7282]"
+                      style={mont}
+                    >
+                      {agent.phone ?? "—"}
+                    </span>
+                  </div>
+                </td>
+
+                <td className="w-[136px] px-4 py-4">
+                  <span
+                    className="whitespace-nowrap text-[14px] text-[#6a7282]"
+                    style={mont}
+                  >
+                    {agent.city ?? "—"}
+                  </span>
+                </td>
+
+                <td className="w-[144px] px-4 py-4">
+                  <span
+                    className="whitespace-nowrap text-[14px] text-[#6a7282]"
+                    style={mont}
+                  >
+                    {formatDate(agent.createdAt)}
+                  </span>
+                </td>
+
+                <td className="w-[144px] px-4 py-4 text-center">
+                  <StatusBadge status={mappedStatus} />
+                </td>
+
+                <td className="w-[134px] px-4 py-4 text-center">
+                  {isActioning ? (
+                    <span
+                      className="text-[14px] text-[#99a1af]"
+                      style={mont}
+                    >
+                      Updating…
+                    </span>
+                  ) : isActioned ? (
+                    <span
+                      className="text-[14px] text-[#6a7282]"
+                      style={mont}
+                    >
+                      {mappedStatus}
+                    </span>
+                  ) : canApprove ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        title="Approve"
+                        aria-label={`Approve ${agent.name}`}
+                        onClick={() => handleApprove(agent.id)}
+                        className="flex size-8 items-center justify-center rounded-[8px] border border-[#7bf1a8] bg-white transition-colors hover:bg-[#f5fffa]"
+                      >
+                        <Check size={14} className="text-[#00aa4f]" />
+                      </button>
+
+                      <button
+                        type="button"
+                        title="Deny"
+                        aria-label={`Deny ${agent.name}`}
+                        onClick={() => handleDeny(agent.id)}
+                        className="flex size-8 items-center justify-center rounded-[8px] border border-[#ffa2a2] bg-white transition-colors hover:bg-[#fff5f5]"
+                      >
+                        <X size={14} className="text-[#fb2c36]" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span
+                      className="text-[14px] text-[#99a1af]"
+                      style={mont}
+                    >
+                      —
+                    </span>
+                  )}
+                </td>
+              </tr>
+            );
+          })
+        )}
+
+        {!loading && filtered.length === 0 && (
+          <tr>
+            <td
+              colSpan={7}
+              className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
+              style={mont}
+            >
+              No agents found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+
+  {/* Mobile cards */}
+  <div className="bg-[#f8fafc] p-3 sm:hidden">
+    {loading ? (
+      <div
+        className="rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-10 text-center text-[14px] text-[#6a7282]"
+        style={mont}
+      >
+        Loading agents…
       </div>
+    ) : filtered.length === 0 ? (
+      <div
+        className="rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-10 text-center text-[14px] text-[#6a7282]"
+        style={mont}
+      >
+        No agents found.
+      </div>
+    ) : (
+      <div className="flex flex-col gap-3">
+        {filtered.map((agent) => {
+          const mappedStatus = mapStatus(agent.status);
+          const isActioned =
+            mappedStatus === "Approved" || mappedStatus === "Denied";
+          const isActioning = actioningId === agent.id;
+
+          return (
+            <article
+              key={agent.id}
+              className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
+            >
+              {/* Agent top details */}
+              <div className="flex items-start justify-between gap-3 p-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
+                    style={mont}
+                  >
+                    {agent.name
+                      .split(" ")
+                      .map((name) => name[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+
+                  <div className="min-w-0">
+                    <Link
+                      href={`/dashboard/agents/${agent.id}`}
+                      className="block truncate text-[14px] font-semibold text-[#1e4f86] hover:underline"
+                      style={mont}
+                    >
+                      {agent.name}
+                    </Link>
+
+                    <p
+                      className="mt-1 truncate text-[14px] text-[#6a7282]"
+                      style={mont}
+                    >
+                      {mapRole(agent.role)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <StatusBadge status={mappedStatus} />
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className="mx-4 rounded-[10px] bg-[#f8fafc] p-3">
+                <p
+                  className="text-[14px] text-[#99a1af]"
+                  style={mont}
+                >
+                  Contact
+                </p>
+
+                <p
+                  className="mt-1.5 break-all text-[14px] font-medium text-[#0d2138]"
+                  style={mont}
+                >
+                  {agent.email}
+                </p>
+
+                <p
+                  className="mt-1.5 text-[14px] text-[#6a7282]"
+                  style={mont}
+                >
+                  {agent.phone ?? "Phone not available"}
+                </p>
+              </div>
+
+              {/* Other details */}
+              <div className="grid grid-cols-2 gap-3 p-4">
+                <div className="min-w-0">
+                  <p
+                    className="text-[14px] text-[#99a1af]"
+                    style={mont}
+                  >
+                    Location
+                  </p>
+
+                  <p
+                    className="mt-1.5 truncate text-[14px] font-medium text-[#4b5563]"
+                    style={mont}
+                  >
+                    {agent.city ?? "—"}
+                  </p>
+                </div>
+
+                <div className="min-w-0">
+                  <p
+                    className="text-[14px] text-[#99a1af]"
+                    style={mont}
+                  >
+                    Sign Up Date
+                  </p>
+
+                  <p
+                    className="mt-1.5 truncate text-[14px] font-medium text-[#4b5563]"
+                    style={mont}
+                  >
+                    {formatDate(agent.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Mobile actions */}
+              <div className="border-t border-[#f3f4f6] p-4">
+                {isActioning ? (
+                  <div
+                    className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
+                    style={mont}
+                  >
+                    Updating…
+                  </div>
+                ) : isActioned ? (
+                  <div
+                    className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
+                    style={mont}
+                  >
+                    Agent {mappedStatus}
+                  </div>
+                ) : canApprove ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleApprove(agent.id)}
+                      className="flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#7bf1a8] bg-[#f5fffa] text-[14px] font-semibold text-[#00aa4f] transition-colors active:scale-[0.99]"
+                      style={mont}
+                    >
+                      <Check size={17} />
+                      Approve
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeny(agent.id)}
+                      className="flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#ffa2a2] bg-[#fff5f5] text-[14px] font-semibold text-[#fb2c36] transition-colors active:scale-[0.99]"
+                      style={mont}
+                    >
+                      <X size={17} />
+                      Deny
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] text-[#99a1af]"
+                    style={mont}
+                  >
+                    No actions available
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </div>
+
+  {/* Footer */}
+  <div className="border-t border-[#f3f4f6] bg-white px-4 py-4 sm:px-5 sm:py-3">
+    <p
+      className="text-center text-[14px] font-medium text-[#6a7282] sm:text-left sm:text-[12px]"
+      style={mont}
+    >
+      Showing {filtered.length} of {agents.length} agents
+    </p>
+  </div>
+</div>
 
       {showModal && <AddAgentModal onClose={() => setShowModal(false)} />}
     </div>

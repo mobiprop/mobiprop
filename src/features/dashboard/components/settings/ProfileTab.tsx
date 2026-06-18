@@ -99,90 +99,239 @@ export function ProfileTab({ profile }: ProfileTabProps) {
     }
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <p className="text-[16px] font-medium text-[#0d2138]" style={mont}>Profile Settings</p>
+ const labelClass =
+  "text-[14px] font-medium leading-5 text-[#202938]";
 
-      <div className="flex items-center gap-4">
-        <div className="relative size-20 shrink-0 rounded-full overflow-hidden bg-[#e8f0fe] flex items-center justify-center">
+const inputClass =
+  "h-[42px] w-full min-w-0 rounded-[10px] border border-[#ccd4df] bg-white px-3.5 text-[14px] text-[#2b3038] outline-none transition-all placeholder:text-[#8d97a6] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 disabled:cursor-not-allowed disabled:bg-[#fafbfc] disabled:text-[#7b8493]";
+
+return (
+  <div className="flex w-full min-w-0 flex-col">
+    {/* Title */}
+    <h1
+      className="text-[14px] font-semibold leading-7 text-[#0d2138] sm:text-[16px]"
+      style={mont}
+    >
+      Profile Settings
+    </h1>
+
+    {/* Profile information */}
+    <div className="mt-5 flex min-w-0 flex-col items-start gap-4 sm:mt-6 sm:flex-row sm:items-center sm:gap-5">
+      {/* Avatar */}
+      <div className="relative shrink-0">
+        <div className="flex size-[78px] items-center justify-center overflow-hidden rounded-full bg-[#e8f0fe] sm:size-[90px]">
           {avatarPreview ? (
-            <img src={avatarPreview} alt="" className="size-full object-cover" />
+            <img
+              src={avatarPreview}
+              alt={`${profile.fullName ?? "User"} profile`}
+              className="size-full object-cover"
+            />
           ) : (
-            <span className="text-[24px] font-semibold text-[#1e4f86]" style={poppins}>
-              {(profile.fullName ?? profile.email).charAt(0).toUpperCase()}
+            <span
+              className="text-[24px] font-semibold text-[#1e4f86]"
+              style={poppins}
+            >
+              {(profile.fullName ?? profile.email ?? "U")
+                .charAt(0)
+                .toUpperCase()}
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-0 right-0 size-7 rounded-full bg-[#1e4f86] border-2 border-white flex items-center justify-center text-white hover:bg-[#1b487a] transition-colors"
+        </div>
+
+        {/* Camera button */}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Change profile picture"
+          className="absolute -bottom-0.5 -right-0.5 flex size-8 items-center justify-center rounded-full border-[3px] border-white bg-white text-[#1e4f86] shadow-[0_1px_4px_rgba(15,23,42,0.16)] transition-colors hover:bg-[#eff6ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
+        >
+          <Camera size={14} strokeWidth={2} />
+        </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      </div>
+
+      {/* Name and email */}
+      <div className="min-w-0 flex-1">
+        <p
+          className="break-words text-[16px] font-semibold leading-7 text-[#1e4f86] sm:text-[20px] sm:leading-8"
+          style={poppins}
+        >
+          {profile.fullName ?? "—"}
+        </p>
+
+        <p
+          className="mt-1 break-all text-[14px] leading-5 text-[#6a7282] sm:text-[14px]"
+          style={mont}
+        >
+          {profile.email}
+        </p>
+      </div>
+    </div>
+
+    {/* Form */}
+    <form
+      onSubmit={handleSubmit}
+      className="mt-7 flex min-w-0 flex-col gap-4 sm:mt-8 sm:gap-5"
+    >
+      {/* First and last name */}
+      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-[18px]">
+        <div className="flex min-w-0 flex-col gap-2">
+          <label
+            htmlFor="profile-first-name"
+            className={labelClass}
+            style={mont}
           >
-            <Camera size={13} />
-          </button>
+            First Name
+          </label>
+
           <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            className="hidden"
-            onChange={handleFileChange}
+            id="profile-first-name"
+            type="text"
+            value={firstName}
+            onChange={(event) =>
+              setFirstName(event.target.value)
+            }
+            placeholder="Enter first name"
+            autoComplete="given-name"
+            className={inputClass}
+            style={mont}
           />
         </div>
-        <div className="flex flex-col">
-          <p className="text-[20px] font-medium text-[#1e4f86]" style={poppins}>{profile.fullName ?? "—"}</p>
-          <p className="text-[14px] text-[#6a7282]" style={mont}>{profile.email}</p>
+
+        <div className="flex min-w-0 flex-col gap-2">
+          <label
+            htmlFor="profile-last-name"
+            className={labelClass}
+            style={mont}
+          >
+            Last Name
+          </label>
+
+          <input
+            id="profile-last-name"
+            type="text"
+            value={lastName}
+            onChange={(event) =>
+              setLastName(event.target.value)
+            }
+            placeholder="Enter last name"
+            autoComplete="family-name"
+            className={inputClass}
+            style={mont}
+          />
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 flex flex-col gap-2">
-            <label className={labelClass} style={mont}>First Name</label>
-            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={mont} />
-          </div>
-          <div className="flex-1 flex flex-col gap-2">
-            <label className={labelClass} style={mont}>Last Name</label>
-            <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={mont} />
-          </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className={labelClass} style={mont}>Email</label>
-          <input
-            value={profile.email}
-            disabled
-            className={`${inputClass} bg-[#f8fafc] text-[#6a7282] cursor-not-allowed`}
-            style={mont}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className={labelClass} style={mont}>Phone</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} style={mont} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className={labelClass} style={mont}>Bio</label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            rows={4}
-            className="px-3.5 py-2.5 bg-white border border-[#d1d5dc] rounded-[10px] text-[12px] text-[#0a0a0a] outline-none focus:border-[#1e4f86] transition-colors resize-none h-24"
-            style={mont}
-          />
-        </div>
+      {/* Email */}
+      <div className="flex min-w-0 flex-col gap-2">
+        <label
+          htmlFor="profile-email"
+          className={labelClass}
+          style={mont}
+        >
+          Email
+        </label>
 
-        {error && <p className="text-[12px] text-[#dc2626]" style={mont}>{error}</p>}
-        {success && <p className="text-[12px] text-[#10b981]" style={mont}>Profile updated successfully.</p>}
+        <input
+          id="profile-email"
+          type="email"
+          value={profile.email}
+          disabled
+          className={inputClass}
+          style={mont}
+        />
+      </div>
 
-        <div>
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="h-9 px-4 inline-flex items-center gap-2 bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
-            style={mont}
-          >
-            <Save size={14} />
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
+      {/* Phone */}
+      <div className="flex min-w-0 flex-col gap-2">
+        <label
+          htmlFor="profile-phone"
+          className={labelClass}
+          style={mont}
+        >
+          Phone
+        </label>
+
+        <input
+          id="profile-phone"
+          type="tel"
+          value={phone}
+          onChange={(event) =>
+            setPhone(event.target.value)
+          }
+          placeholder="+54 11 5555-1234"
+          autoComplete="tel"
+          className={inputClass}
+          style={mont}
+        />
+      </div>
+
+      {/* Bio */}
+      <div className="flex min-w-0 flex-col gap-2">
+        <label
+          htmlFor="profile-bio"
+          className={labelClass}
+          style={mont}
+        >
+          Bio
+        </label>
+
+        <textarea
+          id="profile-bio"
+          value={bio}
+          onChange={(event) =>
+            setBio(event.target.value)
+          }
+          rows={5}
+          placeholder="Write a short bio..."
+          className="min-h-[85px] w-full min-w-0 resize-y rounded-[10px] border border-[#ccd4df] bg-white px-3.5 py-3 text-[14px] leading-6 text-[#2b3038] outline-none transition-all placeholder:text-[#8d97a6] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 sm:min-h-[110px]"
+          style={mont}
+        />
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <div
+          role="alert"
+          className="rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-[14px] leading-5 text-[#dc2626]"
+          style={mont}
+        >
+          {error}
         </div>
-      </form>
-    </div>
-  );
+      )}
+
+      {/* Success message */}
+      {success && (
+        <div
+          role="status"
+          className="rounded-[10px] border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-[14px] leading-5 text-[#008236]"
+          style={mont}
+        >
+          Profile updated successfully.
+        </div>
+      )}
+
+      {/* Save button */}
+      <div className="pt-1 sm:pt-0">
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="inline-flex h-[41px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#245c98] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1e4f86] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          style={mont}
+        >
+          <Save size={16} className="shrink-0" />
+
+          {isSaving ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
+    </form>
+  </div>
+);
 }

@@ -30,45 +30,134 @@ type SettingsPageProps = {
 export function SettingsPage({ profile }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
-  return (
-    <div className="px-6 py-5 flex flex-col gap-5">
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>Settings</h1>
-        <p className="text-[14px] text-[#6a7282]" style={mont}>Manage your account and preferences</p>
+ return (
+  <main className="min-h-full bg-[#f8fafc] px-4 py-4 sm:px-5 sm:py-5 lg:px-6">
+    <div className="flex min-w-0 flex-col gap-5">
+      {/* Page heading */}
+      <div className="flex flex-col gap-1">
+        <h1
+          className="text-[20px] font-semibold leading-8 text-[#0d2138]"
+          style={poppins}
+        >
+          Settings
+        </h1>
+
+        <p
+          className="text-[14px] leading-5 text-[#6a7282]"
+          style={mont}
+        >
+          Manage your account and preferences
+        </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-3.5">
-        <nav className="bg-white border border-[#e5e7eb] rounded-[12px] p-3 flex flex-row lg:flex-col flex-wrap gap-1 lg:w-[242px] lg:shrink-0">
+      {/* Settings layout */}
+      <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start">
+        {/* Settings navigation */}
+        <nav
+          role="tablist"
+          aria-label="Settings navigation"
+          className="
+            flex w-full min-w-0 gap-2 overflow-x-auto
+            rounded-[14px] border border-[#e5e7eb]
+            bg-white p-3
+            shadow-[0_1px_2px_rgba(15,23,42,0.02)]
+
+            sm:grid sm:grid-cols-2 sm:overflow-visible
+            md:grid-cols-3
+
+            lg:sticky lg:top-5 lg:flex
+            lg:w-[274px] lg:shrink-0
+            lg:flex-col lg:gap-1.5
+            lg:p-3
+          "
+        >
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+
             return (
               <button
                 key={tab.id}
+                id={`settings-tab-${tab.id}`}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`settings-panel-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2.5 h-[45px] px-4 rounded-[10px] text-[14px] transition-colors ${
-                  isActive
-                    ? "bg-[#eff6ff] border border-[#b9c8d9] text-[#1e4f86] font-medium"
-                    : "border border-transparent text-[#6a7282] hover:bg-[#f8fafc]"
-                }`}
+                className={`
+                  flex h-11 min-w-[145px] shrink-0
+                  items-center justify-center gap-3
+                  whitespace-nowrap rounded-[11px]
+                  border px-4 text-[14px]
+                  transition-all duration-200
+
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-[#1e4f86]/25
+
+                  sm:min-w-0 sm:w-full
+                  lg:h-[52px] lg:justify-start
+
+                  ${
+                    isActive
+                      ? "border-[#b9cde5] bg-[#eff6ff] font-semibold text-[#1e4f86]"
+                      : "border-transparent bg-white font-medium text-[#6a7282] hover:bg-[#f8fafc] hover:text-[#0d2138]"
+                  }
+                `}
                 style={mont}
               >
-                <Icon size={18} />
-                {tab.label}
+                <Icon
+                  size={19}
+                  strokeWidth={isActive ? 2.1 : 1.8}
+                  className="shrink-0"
+                />
+
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="flex-1 bg-white border border-[#e5e5e5] rounded-[12px] p-6">
-          {activeTab === "profile" && <ProfileTab profile={profile} />}
-          {activeTab === "security" && <SecurityTab profile={profile} />}
-          {activeTab === "notifications" && <NotificationsTab profile={profile} />}
-          {activeTab === "privacy" && <PrivacyTab />}
-          {activeTab === "preferences" && <PreferencesTab profile={profile} />}
-        </div>
+        {/* Settings content */}
+        <section
+          id={`settings-panel-${activeTab}`}
+          role="tabpanel"
+          aria-labelledby={`settings-tab-${activeTab}`}
+          className="
+            min-w-0 flex-1
+            rounded-[14px]
+            border border-[#e5e7eb]
+            bg-white
+            p-4
+            shadow-[0_1px_2px_rgba(15,23,42,0.02)]
+            sm:p-5
+            md:p-6
+            lg:px-7
+            lg:py-7
+          "
+        >
+          <div className="min-w-0">
+            {activeTab === "profile" && (
+              <ProfileTab profile={profile} />
+            )}
+
+            {activeTab === "security" && (
+              <SecurityTab profile={profile} />
+            )}
+
+            {activeTab === "notifications" && (
+              <NotificationsTab profile={profile} />
+            )}
+
+            {activeTab === "privacy" && <PrivacyTab />}
+
+            {activeTab === "preferences" && (
+              <PreferencesTab profile={profile} />
+            )}
+          </div>
+        </section>
       </div>
     </div>
-  );
+  </main>
+);
 }

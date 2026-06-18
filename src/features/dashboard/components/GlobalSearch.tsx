@@ -265,7 +265,7 @@ export function GlobalSearch() {
   const showDropdown = open && query.length >= 2;
 
   return (
-    <div ref={containerRef} className="relative w-[256px]">
+    <div ref={containerRef} className="relative w-[200px] sm:w-[256px]">
       <div className={`flex items-center gap-2 h-9 px-3 border rounded-[10px] bg-[#f8fafc] transition-colors ${open ? "border-[#1e4f86]" : "border-[#e5e7eb]"}`}>
         {isFetching && query.length >= 2
           ? <Loader2 size={15} className="text-[#6a7282] shrink-0 animate-spin" />

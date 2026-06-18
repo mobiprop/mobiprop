@@ -1,16 +1,16 @@
 import {
-  LayoutDashboard,
-  MessageSquare,
-  Users,
-  Contact,
+  House,
+  Mail,
+  UsersRound,
+  ContactRound,
   FileText,
   Building2,
-  UserPlus,
-  Briefcase,
+  TrendingUp,
+  Target,
   Plug,
   MapPin,
   Settings,
-  HelpCircle,
+  CircleHelp,
   CalendarCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -21,8 +21,9 @@ export type DashboardNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-  // Permission required to see this item. Items without a permission are always
-  // shown to dashboard users (e.g. Help Center).
+
+  // Permission required to see this item.
+  // Items without permission are always shown.
   permission?: Permission;
 };
 
@@ -31,34 +32,97 @@ export type DashboardNavSection = {
   items: DashboardNavItem[];
 };
 
-// Grouped to match the Figma sidebar: Main Menu / Management / Preferences.
 export const DASHBOARD_NAV: DashboardNavSection[] = [
   {
     title: "Main Menu",
     items: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, permission: "dashboard:view" },
-      { label: "Messages", href: "/dashboard/messages", icon: MessageSquare, permission: "messages:view" },
+      {
+        label: "Dashboard",
+        href: "/dashboard",
+        icon: House,
+        permission: "dashboard:view",
+      },
+      {
+        label: "Messages",
+        href: "/dashboard/messages",
+        icon: Mail,
+        permission: "messages:view",
+      },
     ],
   },
   {
     title: "Management",
     items: [
-      { label: "Agents", href: "/dashboard/agents", icon: Users, permission: "agents:view" },
-      { label: "Contacts", href: "/dashboard/contacts", icon: Contact, permission: "contacts:view" },
-      { label: "Contracts", href: "/dashboard/contracts", icon: FileText, permission: "contracts:view" },
-      { label: "Listings", href: "/dashboard/listings", icon: Building2, permission: "listings:view" },
-      { label: "Leads", href: "/dashboard/leads", icon: UserPlus, permission: "leads:view" },
-      { label: "Tours", href: "/dashboard/tours", icon: CalendarCheck, permission: "tours:view" },
-      { label: "Opportunities", href: "/dashboard/opportunities", icon: Briefcase, permission: "opportunities:view" },
+      {
+        label: "Agents",
+        href: "/dashboard/agents",
+        icon: UsersRound,
+        permission: "agents:view",
+      },
+      {
+        label: "Contacts",
+        href: "/dashboard/contacts",
+        icon: ContactRound,
+        permission: "contacts:view",
+      },
+      {
+        label: "Contracts",
+        href: "/dashboard/contracts",
+        icon: FileText,
+        permission: "contracts:view",
+      },
+      {
+        label: "Listings",
+        href: "/dashboard/listings",
+        icon: Building2,
+        permission: "listings:view",
+      },
+      {
+        label: "Leads",
+        href: "/dashboard/leads",
+        icon: TrendingUp,
+        permission: "leads:view",
+      },
+      {
+        label: "Tours",
+        href: "/dashboard/tours",
+        icon: CalendarCheck,
+        permission: "tours:view",
+      },
+      {
+        label: "Opportunities",
+        href: "/dashboard/opportunities",
+        icon: Target,
+        permission: "opportunities:view",
+      },
     ],
   },
   {
     title: "Preferences",
     items: [
-      { label: "Integrations", href: "/dashboard/integrations", icon: Plug, permission: "integrations:view" },
-      { label: "Locations", href: "/dashboard/locations", icon: MapPin, permission: "locations:view" },
-      { label: "Settings", href: "/dashboard/settings", icon: Settings, permission: "settings:view" },
-      { label: "Help Center", href: "/dashboard/help", icon: HelpCircle },
+      {
+        label: "Integrations",
+        href: "/dashboard/integrations",
+        icon: Plug,
+        permission: "integrations:view",
+      },
+      {
+        label: "Locations",
+        href: "/dashboard/locations",
+        icon: MapPin,
+        permission: "locations:view",
+      },
+      {
+        label: "Settings",
+        href: "/dashboard/settings",
+        icon: Settings,
+        permission: "settings:view",
+      },
+      {
+        label: "Help Center",
+        href: "/dashboard/help",
+        icon: CircleHelp,
+      },
     ],
   },
 ];

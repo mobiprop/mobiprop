@@ -10,7 +10,9 @@ import { DASHBOARD_NAV } from "@/config/dashboard-nav";
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
 
-const mont = { fontFamily: "'Montserrat', sans-serif" };
+const mont = {
+  fontFamily: "'Montserrat', sans-serif",
+};
 
 const ROLE_LABELS: Record<Role, string> = {
   ADMIN: "Admin",
@@ -26,12 +28,18 @@ type SidebarProps = {
 };
 
 function isActive(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === "/dashboard";
+  if (href === "/dashboard") {
+    return pathname === "/dashboard";
+  }
 
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar({ role, fullName, email }: SidebarProps) {
+export function Sidebar({
+  role,
+  fullName,
+  email,
+}: SidebarProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -40,16 +48,17 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
     .slice(0, 2)
     .toUpperCase();
 
-  // Route change hone par sidebar close ho jayega
+  // Route change par sidebar close
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
 
-  // Drawer open hone par background scroll disable
+  // Sidebar open ho to body scroll disable
   useEffect(() => {
     if (!sidebarOpen) return;
 
     const previousOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
 
     return () => {
@@ -57,7 +66,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
     };
   }, [sidebarOpen]);
 
-  // Escape press karne par sidebar close
+  // Escape key par sidebar close
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -93,7 +102,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
           lg:hidden
         "
       >
-        <Menu size={21} strokeWidth={1.8} />
+        <Menu size={22} strokeWidth={1.8} />
       </button>
 
       {/* Mobile and tablet overlay */}
@@ -115,11 +124,12 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
         `}
       />
 
+      {/* Sidebar */}
       <aside
         id="dashboard-sidebar"
         className={`
           fixed inset-y-0 left-0 z-50
-          flex h-dvh w-[280px] max-w-[86vw]
+          flex h-full w-[280px] max-w-[86vw]
           shrink-0 flex-col
           border-r border-[#e5e7eb]
           bg-white shadow-xl
@@ -161,31 +171,43 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
               lg:hidden
             "
           >
-            <X size={20} strokeWidth={1.8} />
+            <X size={21} strokeWidth={1.8} />
           </button>
         </div>
 
-        {/* Nav */}
+        {/* Navigation */}
         <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-4">
           {DASHBOARD_NAV.map((section) => {
             const items = section.items.filter(
               (item) =>
-                !item.permission || hasPermission(role, item.permission),
+                !item.permission ||
+                hasPermission(role, item.permission),
             );
 
-            if (items.length === 0) return null;
+            if (items.length === 0) {
+              return null;
+            }
 
             return (
-              <div key={section.title} className="flex flex-col gap-1">
-                <p
-                  className="mb-1 px-2 text-[11px] text-[#99a1af] sm:text-[12px]"
-                  style={mont}
-                >
-                  {section.title}
-                </p>
+              <div
+                key={section.title}
+                className="flex flex-col gap-1"
+              >
+                {section.title && (
+                  <p
+                    className="mb-1 px-2 text-[12px] text-[#8490a3]"
+                    style={mont}
+                  >
+                    {section.title}
+                  </p>
+                )}
 
                 {items.map((item) => {
-                  const active = isActive(pathname, item.href);
+                  const active = isActive(
+                    pathname,
+                    item.href,
+                  );
+
                   const Icon = item.icon;
 
                   return (
@@ -194,28 +216,26 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
                       className={`
-                        flex min-h-[42px] items-center gap-3
+                        flex min-h-[44px] items-center gap-3
                         rounded-[10px] border
-                        px-3 text-[14px] font-medium
+                        px-3 text-[15px] font-medium
                         transition-colors
-
-                        lg:min-h-[35px] lg:px-2
 
                         ${
                           active
                             ? "border-[#b9c8d9] bg-[#eff6ff] text-[#1e4f86]"
-                            : "border-transparent text-[#2b3038] hover:bg-[#f9fafb]"
+                            : "border-transparent text-[#343a40] hover:bg-[#f9fafb]"
                         }
                       `}
                       style={mont}
                     >
                       <Icon
-                        size={18}
-                        strokeWidth={1.75}
+                        size={22}
+                        strokeWidth={1.8}
                         className={`shrink-0 ${
                           active
                             ? "text-[#1e4f86]"
-                            : "text-[#6a7282]"
+                            : "text-[#343a40]"
                         }`}
                       />
 
@@ -274,7 +294,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                 hover:text-[#e7000b]
               "
             >
-              <LogOut size={18} strokeWidth={1.8} />
+              <LogOut size={19} strokeWidth={1.8} />
             </button>
           </form>
         </div>

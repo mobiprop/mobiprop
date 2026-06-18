@@ -55,7 +55,7 @@ export function NotificationsTab({ profile }: NotificationsTabProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-[16px] font-medium text-[#0d2138]" style={mont}>Notification Preferences</p>
+      <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Notification Preferences</p>
 
       {error && <p className="text-[12px] text-[#dc2626]" style={mont}>{error}</p>}
 
