@@ -53,6 +53,8 @@ model Profile {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
+  pushSubscriptions PushSubscription[]
+
   @@map("profiles")
 }
 
@@ -111,12 +113,103 @@ model Notification {
   body        String
   entityType  String?   @map("entity_type")
   entityId    String?   @map("entity_id")
+  // Same-origin internal path the in-app row / push click should open.
+  actionUrl   String?   @map("action_url")
+  // Profile id of the user who triggered the event (null for system events).
+  actorId     String?   @map("actor_id") @db.Uuid
+  metadata    Json?
+  // Idempotency key for scheduled / fan-out events (e.g. CONTRACT_EXPIRING:{id}:30d).
+  dedupeKey   String?   @unique @map("dedupe_key")
   readAt      DateTime? @map("read_at")
+  // Set when the recipient dismisses the row from their list (kept for audit).
+  dismissedAt DateTime? @map("dismissed_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  deliveries  NotificationDelivery[]
+
   @@index([recipientId, readAt], map: "notifications_recipient_read_idx")
+  @@index([recipientId, dismissedAt], map: "notifications_recipient_dismissed_idx")
   @@index([createdAt], map: "notifications_created_at_idx")
   @@map("notifications")
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  EMAIL
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+// A browser/device push subscription. One user may have many (one per
+// browser/device). endpoint + keys are sensitive; the table is server-only
+// (RLS deny-all) and reached exclusively through authenticated route handlers.
+model PushSubscription {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id") @db.Uuid
+
+  endpoint      String    @unique
+  p256dh        String
+  auth          String
+
+  userAgent     String?   @map("user_agent")
+  browser       String?
+  platform      String?
+  deviceLabel   String?   @map("device_label")
+
+  isActive      Boolean   @default(true) @map("is_active")
+  failureCount  Int       @default(0) @map("failure_count")
+  lastUsedAt    DateTime? @map("last_used_at")
+  lastSuccessAt DateTime? @map("last_success_at")
+  lastFailureAt DateTime? @map("last_failure_at")
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user          Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries    NotificationDelivery[]
+
+  @@index([userId, isActive], map: "push_subscriptions_user_active_idx")
+  @@map("push_subscriptions")
+}
+
+// Per-channel delivery attempt for a notification. Server-only audit record;
+// retained even after a subscription is deactivated.
+model NotificationDelivery {
+  id             String                     @id @default(cuid())
+
+  notificationId String                     @map("notification_id")
+  subscriptionId String?                    @map("subscription_id")
+
+  channel        NotificationChannel
+  status         NotificationDeliveryStatus
+
+  attemptCount   Int                        @default(0) @map("attempt_count")
+  lastAttemptAt  DateTime?                  @map("last_attempt_at")
+  nextAttemptAt  DateTime?                  @map("next_attempt_at")
+  deliveredAt    DateTime?                  @map("delivered_at")
+
+  providerStatus Int?                       @map("provider_status")
+  errorCode      String?                    @map("error_code")
+  errorMessage   String?                    @map("error_message")
+
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  notification   Notification               @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  subscription   PushSubscription?          @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([notificationId], map: "notification_deliveries_notification_idx")
+  @@index([subscriptionId], map: "notification_deliveries_subscription_idx")
+  @@index([status, createdAt], map: "notification_deliveries_status_created_idx")
+  @@index([status, nextAttemptAt], map: "notification_deliveries_retry_idx")
+  @@map("notification_deliveries")
 }
 
 enum PropertyType {

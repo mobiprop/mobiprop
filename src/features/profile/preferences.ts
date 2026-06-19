@@ -17,8 +17,14 @@ export type NotificationPreferences = {
 /** Staff-facing toggles edited from /dashboard/settings → Notifications. */
 export type DashboardNotificationPreferences = {
   emailEnabled: boolean;
+  /** Master switch for browser push (per-category toggles below still apply). */
+  pushEnabled: boolean;
   newMessages: boolean;
   newLeads: boolean;
+  leadAssignments: boolean;
+  tourUpdates: boolean;
+  listingUpdates: boolean;
+  opportunityUpdates: boolean;
   contractUpdates: boolean;
   weeklyReports: boolean;
   marketingUpdates: boolean;
@@ -56,8 +62,13 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
   },
   dashboardNotifications: {
     emailEnabled: true,
+    pushEnabled: false,
     newMessages: true,
     newLeads: true,
+    leadAssignments: true,
+    tourUpdates: true,
+    listingUpdates: true,
+    opportunityUpdates: true,
     contractUpdates: true,
     weeklyReports: false,
     marketingUpdates: false,
