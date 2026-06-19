@@ -146,22 +146,12 @@ type AgentSummary = {
   email?: string | null;
 };
 
-type ListingSummary = {
-  id?: string;
-  listingId?: string | null;
-  title?: string | null;
-  location?: string | null;
-};
-
 type LeadDetailView = Omit<LeadDto, "contact" | "assignedAgent"> & {
   contact?: ContactSummary | null;
   assignedAgent?: AgentSummary | null;
   sourceDetail?: string | null;
-  followUpAt?: string | Date | null;
   createdAt?: string | Date | null;
   updatedAt?: string | Date | null;
-  interestedListing?: ListingSummary | null;
-  listing?: ListingSummary | null;
   convertedOpportunity?: {
     id?: string;
     title?: string | null;
@@ -612,7 +602,7 @@ export function LeadDetailPage({
   const temperature = TEMP_BADGE[lead.temperature];
   const lifecycle = LIFECYCLE_BADGE[lead.lifecycleStatus];
   const score = Math.max(0, Math.min(100, lead.score ?? 0));
-  const listing = lead.interestedListing ?? lead.listing;
+  const listing = lead.primaryListing;
   const contactName =
     lead.contact?.fullName ??
     [lead.contact?.firstName, lead.contact?.lastName]
@@ -834,7 +824,7 @@ export function LeadDetailPage({
                 className="mt-2 truncate text-[16px] font-semibold text-[#0d2138]"
                 style={mont}
               >
-                {formatDateValue(lead.followUpAt)}
+                {formatDateValue(lead.nextFollowUpAt)}
               </p>
             </div>
             <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#fef3c7]">
