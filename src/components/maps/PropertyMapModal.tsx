@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
+import { useSavedListings } from "@/hooks/useSavedListings";
+import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
 import {
   listingDisplayPrice,
+  listingTags,
   formatBeds,
   formatBaths,
   formatArea,
@@ -39,7 +42,10 @@ function pointInPolygon(lat: number, lng: number, path: google.maps.LatLng[]): b
 
 /* ─── price-pin overlay ─── */
 
-type PinOverlay = google.maps.OverlayView & { setSelected(v: boolean): void };
+type PinOverlay = google.maps.OverlayView & {
+  setSelected(v: boolean): void;
+  getAnchorRect(): DOMRect | null;
+};
 type PinOverlayCtor = new (
   pos: google.maps.LatLngLiteral,
   label: string,
@@ -100,6 +106,17 @@ function buildOverlayClass(): PinOverlayCtor {
         this.el.style.left = `${pt.x}px`;
         this.el.style.top = `${pt.y}px`;
       }
+    }
+
+    /**
+     * Real on-screen position of the rendered bubble, post-transform. Used
+     * to anchor the React-rendered popup card, which lives outside Google's
+     * own overlay pane (so `fromLatLngToDivPixel` alone isn't enough — that
+     * pane carries its own CSS transform that this sidesteps entirely by
+     * reading the already-correct rendered position directly).
+     */
+    getAnchorRect(): DOMRect | null {
+      return this.el?.getBoundingClientRect() ?? null;
     }
 
     onRemove() {
@@ -179,6 +196,134 @@ function SidebarCard({
   );
 }
 
+/* ─── on-map property card (shown when a price pin is clicked) ─── */
+
+function MapPinIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 22s7-7.58 7-12A7 7 0 0 0 5 10c0 4.42 7 12 7 12Z"
+        stroke="#0d2138"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="10" r="2.4" stroke="#0d2138" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function MapCardHeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill={filled ? "#ef4444" : "none"}>
+      <path
+        d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
+        stroke={filled ? "#ef4444" : "#6a7282"}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MapPropertyCard({
+  item,
+  position,
+  onUnauth,
+}: {
+  item: PublicListingDto;
+  position: { x: number; y: number };
+  onUnauth: () => void;
+}) {
+  const { isSaved, toggleSave } = useSavedListings();
+  const saved = isSaved(item.listingId);
+
+  // Anchored above the pin by default; flips below when the pin sits too
+  // close to the top of the map for the card to fit (e.g. a wide fitBounds
+  // view), so it never renders off-screen.
+  const CARD_HEIGHT_ESTIMATE = 280;
+  const placeBelow = position.y < CARD_HEIGHT_ESTIMATE;
+  const transform = placeBelow ? "translate(-50%, 14px)" : "translate(-50%, calc(-100% - 14px))";
+
+  return (
+    <div
+      className="absolute z-10 w-[220px] max-w-[calc(100%-16px)] sm:w-[260px]"
+      style={{ left: position.x, top: position.y, transform }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <Link
+        href={`/listings/${item.slug}`}
+        className="block overflow-hidden rounded-[12px] bg-white shadow-[0_12px_28px_rgba(13,33,56,0.3)]"
+      >
+        <div className="relative h-[110px] w-full sm:h-[140px]">
+          <img
+            src={item.coverImageUrl ?? fallbackImg}
+            alt={item.title}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+
+          <div className="absolute left-2 top-2 flex gap-1">
+            {listingTags(item).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-white/90 px-2 py-[2px] text-[10px] font-medium text-[#0d2138]"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleSave(item.listingId, onUnauth);
+            }}
+            aria-label={saved ? "Remove from saved" : "Save property"}
+            className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-white shadow-sm"
+          >
+            <MapCardHeartIcon filled={saved} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1.5 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <p
+              className="min-w-0 truncate text-[13px] font-medium text-[#0d2138]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              {item.title}
+            </p>
+            <p
+              className="shrink-0 text-[13px] font-medium text-[#0d2138]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              {listingDisplayPrice(item)}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <MapPinIcon />
+            <p
+              className="min-w-0 truncate text-[12px] text-[#0d2138]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {item.location}
+            </p>
+          </div>
+
+          <p className="text-[12px] text-[#2b3038]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+            {[formatArea(item.areaSqft), formatBeds(item.bedrooms), formatBaths(item.bathrooms)]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
 /* ─── close icon ─── */
 
 function CloseIcon() {
@@ -200,21 +345,25 @@ export function PropertyMapModal({
   onClose: () => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapWrapperRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const overlaysRef = useRef<{ slug: string; listing: PublicListingDto; overlay: PinOverlay }[]>([]);
   const activeShapeRef = useRef<google.maps.Circle | google.maps.Polygon | null>(null);
   const drawListenersRef = useRef<google.maps.MapsEventListener[]>([]);
+  const boundsListenerRef = useRef<google.maps.MapsEventListener | null>(null);
 
   // Mirrors selectedListing state — used in overlay callbacks to avoid stale closures.
   const selectedSlugRef = useRef<string | null>(null);
 
   const [selectedListing, setSelectedListing] = useState<PublicListingDto | null>(null);
+  const [cardPosition, setCardPosition] = useState<{ x: number; y: number } | null>(null);
   const [sidebarListings, setSidebarListings] = useState<PublicListingDto[]>(listings);
   const [drawType, setDrawType] = useState<"circle" | "freehand" | null>(null);
   const [hasShape, setHasShape] = useState(false);
   const isDrawMode = drawType !== null;
   const [mapReady, setMapReady] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const geoListings = listings.filter((l) => l.latitude != null && l.longitude != null);
 
@@ -284,6 +433,11 @@ export function PropertyMapModal({
         }
         overlaysRef.current = overlays;
 
+        // Keep the popup card glued to its pin through every pan/zoom.
+        boundsListenerRef.current = google.maps.event.addListener(map, "bounds_changed", () => {
+          updateCardPosition();
+        });
+
         setMapReady(true);
       })
       .catch(() => {
@@ -294,6 +448,10 @@ export function PropertyMapModal({
       cancelled = true;
       for (const { overlay } of overlaysRef.current) overlay.setMap(null);
       overlaysRef.current = [];
+      if (boundsListenerRef.current) {
+        google.maps.event.removeListener(boundsListenerRef.current);
+        boundsListenerRef.current = null;
+      }
       stopDrawingListeners();
       removeActiveShape();
       mapRef.current = null;
@@ -302,6 +460,26 @@ export function PropertyMapModal({
   }, []);
 
   /* ─── pin selection ─── */
+
+  /** Recomputes the on-map card's pixel position from the selected pin's
+   *  current projection — call after selecting and on every pan/zoom. */
+  function updateCardPosition() {
+    const slug = selectedSlugRef.current;
+    const entry = slug ? overlaysRef.current.find((o) => o.slug === slug) : undefined;
+    const anchorRect = entry?.overlay.getAnchorRect();
+    const wrapperRect = mapWrapperRef.current?.getBoundingClientRect();
+    if (!anchorRect || !wrapperRect) {
+      setCardPosition(null);
+      return;
+    }
+    // Convert the pin's real on-screen position into coordinates local to
+    // our own wrapper div, since the pin itself renders inside Google's
+    // overlay pane (a different coordinate space — see getAnchorRect).
+    setCardPosition({
+      x: anchorRect.left + anchorRect.width / 2 - wrapperRect.left,
+      y: anchorRect.bottom - wrapperRect.top,
+    });
+  }
 
   function handlePinClick(slug: string) {
     for (const { overlay } of overlaysRef.current) overlay.setSelected(false);
@@ -314,6 +492,7 @@ export function PropertyMapModal({
       entry?.overlay.setSelected(true);
       setSelectedListing(entry?.listing ?? null);
     }
+    updateCardPosition();
   }
 
   /* ─── shape management ─── */
@@ -491,6 +670,7 @@ export function PropertyMapModal({
     for (const { overlay } of overlaysRef.current) overlay.setSelected(false);
     selectedSlugRef.current = null;
     setSelectedListing(null);
+    setCardPosition(null);
   }
 
   /* ─── render ─── */
@@ -577,7 +757,7 @@ export function PropertyMapModal({
         {/* Body */}
         <div className="grid gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-5 lg:grid-cols-[1fr_280px]">
           {/* Map */}
-          <div className="min-w-0">
+          <div className="relative min-w-0" ref={mapWrapperRef}>
             <div
               className="relative h-[270px] overflow-hidden rounded-[9px] bg-[#edf6ff] sm:h-[420px] sm:rounded-[10px] lg:h-[500px]"
               style={{ cursor: isDrawMode ? "crosshair" : undefined }}
@@ -595,6 +775,17 @@ export function PropertyMapModal({
                 <div ref={mapContainerRef} className="h-full w-full" />
               )}
             </div>
+
+            {/* On-map card for the clicked pin — rendered outside the map's
+                own overflow-hidden so it never gets clipped near the edges.
+                Same coordinate origin as the map div above (no offset between them). */}
+            {selectedListing && cardPosition ? (
+              <MapPropertyCard
+                item={selectedListing}
+                position={cardPosition}
+                onUnauth={() => setLoginOpen(true)}
+              />
+            ) : null}
 
             <p
               className="mt-2 text-[12px] leading-[18px] text-[#6a7282] sm:mt-3 sm:text-[13px] sm:leading-[20px]"
@@ -650,6 +841,7 @@ export function PropertyMapModal({
                           selectedListing?.slug === item.slug ? null : item;
                         selectedSlugRef.current = toggled?.slug ?? null;
                         setSelectedListing(toggled);
+                        setCardPosition(null);
                       }
                     }}
                   />
@@ -677,6 +869,8 @@ export function PropertyMapModal({
           </aside>
         </div>
       </div>
+
+      <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </div>
   );
 }
