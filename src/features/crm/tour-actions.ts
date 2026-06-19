@@ -689,14 +689,12 @@ export async function requestPublicTour(
     newValues: { tourNumber, source: "PUBLIC_REQUEST" },
   });
 
-  // Best-effort: alert the listing's assigned agent of the new tour request.
-  if (assignedAgentId) {
-    await notifyTourRequested({
-      tourId: tour.id,
-      assignedAgentId,
-      actorId: null,
-    });
-  }
+  // Best-effort: alert the assigned agent (if any) and all admins/managers.
+  await notifyTourRequested({
+    tourId: tour.id,
+    assignedAgentId,
+    actorId: null,
+  });
 
   return { ok: true, tour: { id: tour.id, tourNumber: tour.tourNumber, scheduledAt: tour.scheduledAt.toISOString() } };
 }
