@@ -199,6 +199,31 @@ async function findOrCreateLead(opts: {
   });
   if (existing) return { leadId: existing.id, wasCreated: false };
 
+  // Pull listing context so the lead isn't left ambiguous: source detail/url
+  // point back at the listing, and budget defaults to its price since a tour
+  // request is anchored to one specific property (no budget field on the
+  // public form).
+  let sourceDetail: string | null = null;
+  let sourceUrl: string | null = null;
+  let budgetMin: number | null = null;
+  let budgetMax: number | null = null;
+
+  if (propertyId) {
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { title: true, slug: true, salePrice: true, rentPrice: true },
+    });
+    if (property) {
+      sourceDetail = `Tour requested for: ${property.title}`;
+      sourceUrl = `/listings/${property.slug}`;
+      const price = property.salePrice ?? property.rentPrice;
+      if (price) {
+        budgetMin = Number(price);
+        budgetMax = Number(price);
+      }
+    }
+  }
+
   // Generate lead number
   const [numRow] = await prisma.$queryRaw<{ max: number | null }[]>`
     SELECT MAX(CAST(SUBSTRING(lead_number FROM 5) AS INTEGER)) AS max FROM leads
@@ -216,6 +241,10 @@ async function findOrCreateLead(opts: {
       submittedEmail: submittedEmail ?? null,
       submittedPhone: submittedPhone ?? null,
       source: "SCHEDULED_TOUR",
+      sourceDetail,
+      sourceUrl,
+      budgetMin,
+      budgetMax,
     },
     select: { id: true },
   });
