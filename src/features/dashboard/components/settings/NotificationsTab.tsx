@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { PushNotificationSettings } from "@/features/notifications/components/push-notification-settings";
 import { updateDashboardNotificationPreferences } from "@/features/profile/actions";
 import {
   resolvePreferences,
@@ -18,8 +19,13 @@ const NOTIFICATION_ITEMS: {
   description: string;
 }[] = [
   { id: "emailEnabled", title: "Email Notifications", description: "Receive email updates about your activity" },
+  { id: "pushEnabled", title: "Push Notifications", description: "Master switch for browser push on your devices" },
   { id: "newMessages", title: "New Messages", description: "Get notified when you receive a new message" },
   { id: "newLeads", title: "New Leads", description: "Alert when a new lead is added" },
+  { id: "leadAssignments", title: "Lead Assignments", description: "When a lead is assigned or reassigned to you" },
+  { id: "tourUpdates", title: "Tour Updates", description: "Tour requests, confirmations, and changes" },
+  { id: "listingUpdates", title: "Listing Updates", description: "When a listing is assigned or changes status" },
+  { id: "opportunityUpdates", title: "Opportunity Updates", description: "Pipeline stage and outcome changes" },
   { id: "contractUpdates", title: "Contract Updates", description: "Notifications about contract changes" },
   { id: "weeklyReports", title: "Weekly Reports", description: "Receive weekly performance reports" },
   { id: "marketingUpdates", title: "Marketing Updates", description: "Updates about new features and products" },
@@ -58,6 +64,8 @@ export function NotificationsTab({ profile }: NotificationsTabProps) {
       <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Notification Preferences</p>
 
       {error && <p className="text-[12px] text-[#dc2626]" style={mont}>{error}</p>}
+
+      <PushNotificationSettings />
 
       <div className="flex flex-col gap-3">
         {NOTIFICATION_ITEMS.map((item) => (

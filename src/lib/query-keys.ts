@@ -72,6 +72,9 @@ export const queryKeys = {
   notifications: () => ["notifications"] as const,
   unreadNotificationsCount: () => ["unread-notifications-count"] as const,
 
+  // Web push
+  pushStatus: () => ["push", "status"] as const,
+
   // Dashboard global search
   dashboardSearch: (q: string) => ["dashboard-search", q] as const,
 

@@ -6,6 +6,7 @@ import { Bell, Calendar } from "lucide-react";
 import { NotificationsPanel } from "./NotificationsPanel";
 import { CalendarPanel } from "./CalendarPanel";
 import { GlobalSearch } from "./GlobalSearch";
+import { useUnreadCountQuery } from "@/features/notifications/queries/use-notifications";
 
 type Panel = "notifications" | "calendar" | null;
 
@@ -13,6 +14,7 @@ export function Topbar() {
   const [open, setOpen] = useState<Panel>(null);
   const bellRef = useRef<HTMLDivElement>(null);
   const calRef = useRef<HTMLDivElement>(null);
+  const { data: unreadCount = 0 } = useUnreadCountQuery();
 
   function toggle(panel: Panel) {
     setOpen((prev) => (prev === panel ? null : panel));
@@ -47,7 +49,14 @@ export function Topbar() {
             className={`relative flex size-9 items-center justify-center rounded-[9px] transition-colors ${open === "notifications" ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"}`}
           >
             <Bell size={20} className="sm:size-[22px]" />
-            <span className="absolute right-[7px] top-[6px] size-2 rounded-full border-2 border-white bg-[#fb2c36]" />
+            {unreadCount > 0 && (
+              <span
+                aria-label={`${unreadCount} unread notifications`}
+                className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-white bg-[#fb2c36] px-1 text-[9px] font-semibold leading-none text-white"
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
           {open === "notifications" && (
             <div className="fixed inset-x-3 top-[72px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-[44px]">

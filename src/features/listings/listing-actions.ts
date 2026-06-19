@@ -7,6 +7,7 @@ import type { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity-log";
 import { notifyAdmins } from "@/lib/notifications";
+import { notifyListingAssigned } from "@/features/notifications/server/notify-events";
 import { hasPermission } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
 import { geocodeAddress } from "@/lib/maps";
@@ -592,6 +593,18 @@ export async function updateListing(
       },
       profile.id,
     );
+  }
+
+  // Best-effort: notify the agent when the listing's assigned agent changes.
+  if (
+    property.assignedAgentId &&
+    property.assignedAgentId !== existing.assignedAgentId
+  ) {
+    await notifyListingAssigned({
+      propertyId: property.id,
+      assignedAgentId: property.assignedAgentId,
+      actorId: profile.id,
+    });
   }
 
   return { ok: true, listing: toDashboardDto(property) };

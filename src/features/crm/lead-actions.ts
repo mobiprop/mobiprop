@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
+import { notifyLeadAssigned } from "@/features/notifications/server/notify-events";
 import { LeadTemperature, LeadLifecycleStatus, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
@@ -466,6 +467,17 @@ export async function assignLead(id: string, body: unknown): Promise<CrmActionRe
       newValue: (agentId ?? null) as Prisma.InputJsonValue,
     },
   });
+
+  // Best-effort: notify the agent(s). Never affects the assignment result.
+  if (agentId || isReassign) {
+    await notifyLeadAssigned({
+      leadId: lead.id,
+      assignedAgentId: agentId,
+      previousAgentId: existing.assignedAgentId,
+      isReassign,
+      actorId: gate.profile.id,
+    });
+  }
 
   const agentMap = await buildAgentMap([lead.assignedAgentId]);
   return { ok: true, lead: await toLeadDto(lead, agentMap) };

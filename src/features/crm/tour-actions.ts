@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
+import { notifyTourRequested, notifyTourStatusChanged } from "@/features/notifications/server/notify-events";
 import { TourStatus, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
@@ -488,6 +489,15 @@ const STATUS_ACTION_MAP: Record<TourStatus, string> = {
   [TourStatus.NO_SHOW]: "TOUR_NO_SHOW",
 };
 
+// Which status transitions emit a push/in-app notification (initial set).
+const TOUR_STATUS_NOTIFICATION: Partial<
+  Record<TourStatus, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED">
+> = {
+  [TourStatus.CONFIRMED]: "TOUR_CONFIRMED",
+  [TourStatus.RESCHEDULED]: "TOUR_RESCHEDULED",
+  [TourStatus.CANCELLED]: "TOUR_CANCELLED",
+};
+
 export async function updateTourStatus(
   id: string,
   rawInput: unknown,
@@ -544,6 +554,17 @@ export async function updateTourStatus(
 
   const action = STATUS_ACTION_MAP[newStatus] as Parameters<typeof logActivity>[0]["action"];
   await logActivity({ actorId: gate.profile.id, action, entityType: "TOUR", entityId: id });
+
+  // Best-effort notification for the assigned agent on confirm/reschedule/cancel.
+  const notifyType = TOUR_STATUS_NOTIFICATION[newStatus];
+  if (notifyType) {
+    await notifyTourStatusChanged({
+      tourId: id,
+      assignedAgentId: row.assignedAgentId,
+      type: notifyType,
+      actorId: gate.profile.id,
+    });
+  }
 
   const agentMap = await buildAgentMap([row.assignedAgentId]);
   return { ok: true, tour: await toTourDto(row, agentMap) };
@@ -667,6 +688,15 @@ export async function requestPublicTour(
     entityId: tour.id,
     newValues: { tourNumber, source: "PUBLIC_REQUEST" },
   });
+
+  // Best-effort: alert the listing's assigned agent of the new tour request.
+  if (assignedAgentId) {
+    await notifyTourRequested({
+      tourId: tour.id,
+      assignedAgentId,
+      actorId: null,
+    });
+  }
 
   return { ok: true, tour: { id: tour.id, tourNumber: tour.tourNumber, scheduledAt: tour.scheduledAt.toISOString() } };
 }

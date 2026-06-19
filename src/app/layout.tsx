@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Ulrich Propiedades — Your Gateway to Prestige Properties",
   description:
     "Discover luxury homes for sale and rent. Ulrich Propiedades helps you find your perfect property.",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({

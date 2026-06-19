@@ -78,6 +78,9 @@ let db: PrismaMock;
 vi.mock("@/lib/prisma", () => ({ get prisma() { return db; } }));
 vi.mock("@/lib/activity-log", () => ({ logActivity: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/lib/notifications", () => ({ notifyAdmins: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/features/notifications/server/notify-events", () => ({
+  notifyLeadAssigned: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("@/lib/maps", () => ({ geocodeAddress: vi.fn().mockResolvedValue(null) }));
 vi.mock("@/lib/images", () => ({ optimizeListingImage: vi.fn() }));
 vi.mock("@/lib/supabase/storage", () => ({ removePropertyImages: vi.fn(), uploadPropertyImage: vi.fn() }));
