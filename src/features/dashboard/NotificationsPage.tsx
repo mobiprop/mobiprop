@@ -193,7 +193,7 @@ export function NotificationsPage() {
                         className={`mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border sm:size-11 ${
                           isUnread
                             ? "border-[#cfe0f1] bg-[#edf4fb] text-[#1e4f86]"
-                            : "border-[#e5e7eb] bg-[#f8fafc] text-[#667085]"
+                            : "border-[#e5e7eb] bg-[#f8fafc] text-[#667085]"  
                         }`}
                       >
                         <Bell size={17} aria-hidden="true" />
