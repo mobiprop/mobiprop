@@ -6,7 +6,11 @@ import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { sendAgentInvitationEmail } from "@/lib/email";
 import { logActivity } from "@/lib/activity-log";
-import { notifyAdmins } from "@/lib/notifications";
+import {
+  notifyInvitationAccepted,
+  notifyInvitationCreated,
+  notifyInvitationRevoked,
+} from "@/features/notifications/server/notify-events";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canAccessDashboard, isAdmin } from "@/lib/permissions";
@@ -139,16 +143,13 @@ export async function createAgentInvitation(
     entityId: invitation.id,
     newValues: { email, role, expiresAt: expiresAt.toISOString() },
   });
-  await notifyAdmins(
-    {
-      type: "INVITATION_CREATED",
-      title: role === "MANAGER" ? "Manager Invited" : "New Agent Invited",
-      body: `${inviter.fullName ?? inviter.email} invited ${email} to join as ${role.charAt(0) + role.slice(1).toLowerCase()}.`,
-      entityType: "AGENT_INVITATION",
-      entityId: invitation.id,
-    },
-    inviter.id,
-  );
+  await notifyInvitationCreated({
+    invitationId: invitation.id,
+    invitedEmail: email,
+    role,
+    actorId: inviter.id,
+    actorName: inviter.fullName ?? inviter.email,
+  });
 
   const inviteUrl = `${APP_URL}/invite/${rawToken}`;
   const emailResult = await sendAgentInvitationEmail({
@@ -334,12 +335,10 @@ async function recordInvitationAccepted(params: {
     entityId: profileId,
     newValues: { email, role, status: "ACTIVE" },
   });
-  await notifyAdmins({
-    type: "INVITATION_ACCEPTED",
-    title: "Invitation Accepted",
-    body: `${fullName || email} accepted their invitation and joined as ${roleLabel}.`,
-    entityType: "AGENT_INVITATION",
-    entityId: invitationId,
+  await notifyInvitationAccepted({
+    invitationId,
+    joinedName: fullName || email,
+    roleLabel,
   });
 }
 
@@ -589,16 +588,12 @@ export async function revokeInvitation(invitationId: string): Promise<RevokeInvi
     oldValues: { status: "PENDING" },
     newValues: { status: "REVOKED" },
   });
-  await notifyAdmins(
-    {
-      type: "INVITATION_REVOKED",
-      title: "Invitation Revoked",
-      body: `The invitation for ${invitation.email} was revoked by ${authz.profile.fullName ?? authz.profile.email}.`,
-      entityType: "AGENT_INVITATION",
-      entityId: invitation.id,
-    },
-    authz.profile.id,
-  );
+  await notifyInvitationRevoked({
+    invitationId: invitation.id,
+    invitedEmail: invitation.email,
+    actorId: authz.profile.id,
+    actorName: authz.profile.fullName ?? authz.profile.email,
+  });
 
   return { ok: true };
 }

@@ -32,6 +32,33 @@ export type NotificationType =
 /** Audience separation — staff-only operational events vs client-facing ones. */
 export type NotificationAudience = "STAFF" | "CLIENT";
 
+/** Delivery channels an event may use. IN_APP is always implied for any
+ * non-empty channel set (the in-app row is the source of truth). EMAIL is
+ * declared for forthcoming flows but is not yet delivered by the pipeline. */
+export type NotificationChannel = "IN_APP" | "PUSH" | "EMAIL";
+
+/**
+ * Urgency of an event. Priority is derived from the policy registry only — it
+ * is NOT stored on the Notification row. CRITICAL events bypass the per-category
+ * push toggle (they still honour the master push switch).
+ */
+export type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "CRITICAL";
+
+/**
+ * Named recipient-resolution strategies. The mapping from strategy → concrete
+ * Profile ids lives in resolve-recipients.ts; policies only reference the name,
+ * so role rules can change in one place (project guide §18).
+ */
+export type RecipientStrategy =
+  | "NONE"
+  | "ALL_ADMINS"
+  | "MANAGERS_AND_ADMINS"
+  | "ASSIGNED_AGENT_PLUS_ADMINS"
+  | "NEW_AND_PREV_AGENT_PLUS_ADMINS"
+  | "LISTING_AGENT_WITH_MANAGEMENT_FALLBACK"
+  | "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK"
+  | "CONTRACT_STAKEHOLDERS";
+
 /** Safe status shape returned by GET /api/push/status (never exposes keys). */
 export type PushStatus = {
   supported: boolean;

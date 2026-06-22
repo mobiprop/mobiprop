@@ -592,6 +592,7 @@ export async function updateTourStatus(
       assignedAgentId: row.assignedAgentId,
       type: notifyType,
       actorId: gate.profile.id,
+      occurredAt: row.updatedAt,
     });
   }
 

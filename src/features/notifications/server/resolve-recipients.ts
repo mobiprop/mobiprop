@@ -1,15 +1,25 @@
 import "server-only";
 
+import type { RecipientStrategy } from "@/features/notifications/types/notification-types";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Centralized recipient policies. Business modules describe WHAT happened; these
- * functions decide WHO is notified, so role rules can change in one place without
- * touching lead/tour/listing code (project guide §18).
+ * Centralized recipient resolution. Business modules describe WHAT happened and
+ * name a RecipientStrategy (in the policy registry); this file decides WHO is
+ * notified, so role rules change in one place without touching feature code
+ * (project guide §18).
  *
- * Each function returns a de-duplicated list of recipient Profile ids. Only
- * ACTIVE staff profiles are returned; unknown/inactive ids are dropped.
+ * Every strategy returns a de-duplicated list of ACTIVE Profile ids; unknown or
+ * inactive ids are dropped. The acting user is excluded later (per policy) at
+ * the notify-events layer.
  */
+
+export type RecipientContext = {
+  /** Currently-assigned agent (lead/listing/tour/contract owner). */
+  assignedAgentId?: string | null;
+  /** Previous agent, for reassignment events. */
+  previousAgentId?: string | null;
+};
 
 async function keepActive(ids: (string | null | undefined)[]): Promise<string[]> {
   const unique = [...new Set(ids.filter((id): id is string => !!id))];
@@ -22,10 +32,7 @@ async function keepActive(ids: (string | null | undefined)[]): Promise<string[]>
   return active.map((p) => p.id);
 }
 
-/**
- * Active profile ids for one or more roles. Used to broadcast staff events to
- * oversight roles (admins always; managers where the event warrants it).
- */
+/** Active profile ids for one or more roles. */
 async function activeIdsForRoles(roles: ("ADMIN" | "MANAGER")[]): Promise<string[]> {
   const rows = await prisma.profile.findMany({
     where: { role: { in: roles }, status: "ACTIVE" },
@@ -35,61 +42,52 @@ async function activeIdsForRoles(roles: ("ADMIN" | "MANAGER")[]): Promise<string
 }
 
 /**
- * Admins get full visibility: every staff-facing notification includes all
- * active admins, regardless of assignment. Callers still exclude the acting user
- * (no one is pinged about their own action) at the notify-events layer.
+ * Resolve a strategy to a de-duplicated list of active recipient ids.
+ *
+ * Fallback strategies notify management ONLY when no operational owner exists —
+ * an assigned agent handling the record does not also ping every admin/manager
+ * (project plan §2, §14). Oversight roles are copied explicitly via the
+ * *_PLUS_ADMINS strategies where the business wants full visibility.
  */
-function activeAdminIds(): Promise<string[]> {
-  return activeIdsForRoles(["ADMIN"]);
-}
+export async function resolveByStrategy(
+  strategy: RecipientStrategy,
+  ctx: RecipientContext,
+): Promise<string[]> {
+  switch (strategy) {
+    case "NONE":
+      return [];
 
-/** Lead assigned → the assigned agent + all active admins. */
-export async function resolveLeadAssignedRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId, ...(await activeAdminIds())]);
-}
+    case "ALL_ADMINS":
+      return activeIdsForRoles(["ADMIN"]);
 
-/** Lead reassigned → the new agent, the previous agent, + all active admins. */
-export async function resolveLeadReassignedRecipients(input: {
-  assignedAgentId: string | null;
-  previousAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([
-    input.assignedAgentId,
-    input.previousAgentId,
-    ...(await activeAdminIds()),
-  ]);
-}
+    case "MANAGERS_AND_ADMINS":
+      return activeIdsForRoles(["ADMIN", "MANAGER"]);
 
-/** Tour requested → assigned agent (if any) + all active admins & managers. */
-export async function resolveTourRequestedRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId, ...(await activeIdsForRoles(["ADMIN", "MANAGER"]))]);
-}
+    case "ASSIGNED_AGENT_PLUS_ADMINS":
+      return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN"]))]);
 
-/**
- * Tour status change → the assigned agent + all active admins. The submitting
- * client is tracked by email snapshot (not necessarily a Profile), so client
- * push is out of scope until accounts are linked; in-app/email can cover them.
- */
-export async function resolveTourStatusRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId, ...(await activeAdminIds())]);
-}
+    case "NEW_AND_PREV_AGENT_PLUS_ADMINS":
+      return keepActive([
+        ctx.assignedAgentId,
+        ctx.previousAgentId,
+        ...(await activeIdsForRoles(["ADMIN"])),
+      ]);
 
-/** Listing assigned → the newly assigned agent + all active admins. */
-export async function resolveListingAssignedRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId, ...(await activeAdminIds())]);
-}
+    case "LISTING_AGENT_WITH_MANAGEMENT_FALLBACK":
+    case "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK": {
+      const agent = await keepActive([ctx.assignedAgentId]);
+      if (agent.length > 0) return agent;
+      // No operational owner → escalate to management.
+      return activeIdsForRoles(["ADMIN", "MANAGER"]);
+    }
 
-/** Contract expiring → assigned agent plus all active managers/admins. */
-export async function resolveContractExpiringRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId, ...(await activeIdsForRoles(["ADMIN", "MANAGER"]))]);
+    case "CONTRACT_STAKEHOLDERS":
+      return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN", "MANAGER"]))]);
+
+    default: {
+      // Exhaustiveness guard — a new strategy must be handled here.
+      const _never: never = strategy;
+      return _never;
+    }
+  }
 }

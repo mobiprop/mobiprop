@@ -1,6 +1,6 @@
 import "server-only";
 
-import { audienceAllowsRole, getEventDef } from "@/features/notifications/server/notification-events";
+import { audienceAllowsRole, getPolicy } from "@/features/notifications/server/notification-events";
 import { decideChannels } from "@/features/notifications/server/notification-policies";
 import {
   processPushDeliveriesForNotification,
@@ -43,8 +43,13 @@ export type CreateNotificationResult =
 export async function createNotification(
   input: CreateNotificationInput,
 ): Promise<CreateNotificationResult> {
-  const def = getEventDef(input.type);
-  if (!def) return { ok: false, error: `Unknown notification type: ${input.type}` };
+  const policy = getPolicy(input.type);
+  if (!policy) return { ok: false, error: `Unknown notification type: ${input.type}` };
+
+  // Activity-log-only events (no channels) must never create a notification row.
+  if (policy.channels.length === 0) {
+    return { ok: true, skipped: true, reason: "activity_only" };
+  }
 
   if (input.actionUrl && !isInternalUrl(input.actionUrl)) {
     return { ok: false, error: "actionUrl must be a same-origin internal path" };
@@ -57,7 +62,7 @@ export async function createNotification(
   if (!recipient || recipient.status !== "ACTIVE") {
     return { ok: true, skipped: true, reason: "recipient_inactive_or_missing" };
   }
-  if (!audienceAllowsRole(def.audience, recipient.role)) {
+  if (!audienceAllowsRole(policy.audience, recipient.role)) {
     return { ok: true, skipped: true, reason: "audience_mismatch" };
   }
 

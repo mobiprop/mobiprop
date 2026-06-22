@@ -6,8 +6,12 @@ import type { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity-log";
-import { notifyAdmins } from "@/lib/notifications";
-import { notifyListingAssigned } from "@/features/notifications/server/notify-events";
+import {
+  notifyListingAssigned,
+  notifyListingCreated,
+  notifyListingDeleted,
+  notifyListingStatusChanged,
+} from "@/features/notifications/server/notify-events";
 import { hasPermission } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
 import { geocodeAddress } from "@/lib/maps";
@@ -395,16 +399,13 @@ export async function createListing(
       },
     });
     await logOptimizationFallbacks(profile.id, property.id, uploaded);
-    await notifyAdmins(
-      {
-        type: "LISTING_CREATED",
-        title: "New listing created",
-        body: `${profile.fullName ?? profile.email} created "${property.title}" (${property.listingId}).`,
-        entityType: "PROPERTY",
-        entityId: property.id,
-      },
-      profile.id,
-    );
+    await notifyListingCreated({
+      propertyId: property.id,
+      title: property.title,
+      listingId: property.listingId,
+      actorId: profile.id,
+      actorName: profile.fullName ?? profile.email,
+    });
 
     return { ok: true, listing: toDashboardDto(property) };
   } catch (error) {
@@ -583,16 +584,14 @@ export async function updateListing(
   });
 
   if (oldValues.status !== undefined) {
-    await notifyAdmins(
-      {
-        type: "LISTING_STATUS_CHANGED",
-        title: "Listing status changed",
-        body: `${profile.fullName ?? profile.email} changed "${property.title}" (${property.listingId}) to ${property.status}.`,
-        entityType: "PROPERTY",
-        entityId: property.id,
-      },
-      profile.id,
-    );
+    await notifyListingStatusChanged({
+      propertyId: property.id,
+      title: property.title,
+      listingId: property.listingId,
+      status: String(property.status),
+      actorId: profile.id,
+      actorName: profile.fullName ?? profile.email,
+    });
   }
 
   // Best-effort: notify the agent when the listing's assigned agent changes.
@@ -647,16 +646,14 @@ export async function setListingStatus(
     oldValues: { status: existing.status },
     newValues: { status: property.status },
   });
-  await notifyAdmins(
-    {
-      type: "LISTING_STATUS_CHANGED",
-      title: "Listing status changed",
-      body: `${profile.fullName ?? profile.email} changed "${property.title}" (${property.listingId}) to ${property.status}.`,
-      entityType: "PROPERTY",
-      entityId: id,
-    },
-    profile.id,
-  );
+  await notifyListingStatusChanged({
+    propertyId: id,
+    title: property.title,
+    listingId: property.listingId,
+    status: String(property.status),
+    actorId: profile.id,
+    actorName: profile.fullName ?? profile.email,
+  });
 
   return { ok: true, listing: toDashboardDto(property) };
 }
@@ -724,16 +721,13 @@ export async function deleteListing(id: string): Promise<ListingActionResult<obj
       imageCount: existing.images.length,
     },
   });
-  await notifyAdmins(
-    {
-      type: "LISTING_DELETED",
-      title: "Listing deleted",
-      body: `${profile.fullName ?? profile.email} deleted "${existing.title}" (${existing.listingId}).`,
-      entityType: "PROPERTY",
-      entityId: id,
-    },
-    profile.id,
-  );
+  await notifyListingDeleted({
+    propertyId: id,
+    title: existing.title,
+    listingId: existing.listingId,
+    actorId: profile.id,
+    actorName: profile.fullName ?? profile.email,
+  });
 
   return { ok: true };
 }
