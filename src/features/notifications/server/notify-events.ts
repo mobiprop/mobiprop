@@ -314,6 +314,7 @@ export function notifyLeadAssigned(input: {
 
 export function notifyTourRequested(input: {
   tourId: string;
+  leadId: string | null;
   assignedAgentId: string | null;
   actorId: string | null;
 }): Promise<void> {
@@ -325,7 +326,7 @@ export function notifyTourRequested(input: {
         recipientContext: { assignedAgentId: input.assignedAgentId },
         entityType: "TOUR",
         entityId: input.tourId,
-        actionUrl: `/dashboard/tours/${input.tourId}`,
+        actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
         // customer-safe: no submitter name / contact details in the body.
         content: { title: "New tour request", body: "A customer requested a property visit." },
       }),
@@ -341,6 +342,7 @@ const TOUR_STATUS_CONTENT: Partial<Record<NotificationType, NotificationContent>
 
 export function notifyTourStatusChanged(input: {
   tourId: string;
+  leadId: string | null;
   assignedAgentId: string | null;
   type: Extract<NotificationType, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED">;
   actorId: string | null;
@@ -360,7 +362,7 @@ export function notifyTourStatusChanged(input: {
         dedupeDiscriminator: String(input.occurredAt.getTime()),
         entityType: "TOUR",
         entityId: input.tourId,
-        actionUrl: `/dashboard/tours/${input.tourId}`,
+        actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
         content,
       }),
     "notifyTourStatusChanged",

@@ -16,7 +16,7 @@ import {
 } from "@/features/listings/utils/format";
 
 const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.webp";
 
 function MarkerIcon() {
   return (

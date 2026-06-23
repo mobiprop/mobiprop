@@ -4,7 +4,7 @@ import { useState } from "react";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const testimonialPerson =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/jay.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/jay.webp";
 
 const testimonials = [
   {

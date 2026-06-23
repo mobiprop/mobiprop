@@ -1,6 +1,6 @@
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const personImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whyexpert.png";
+const personImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whyexpert.webp";
 
 const stats = [
   {

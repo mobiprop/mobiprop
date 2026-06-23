@@ -190,7 +190,7 @@ return (
               {/* Price */}
               <td className="px-5 py-4">
                 <span
-                  className="whitespace-nowrap text-[14px] font-semibold text-[#0d2138]"
+                  className="whitespace-nowrap text-[14px] font-semibold text-[#1E4F86]"
                   style={mont}
                 >
                   {formatListingPrice(listing)}
@@ -200,7 +200,7 @@ return (
               {/* Bedrooms */}
               <td className="px-5 py-4">
                 <span
-                  className="text-[14px] text-[#6a7282]"
+                  className="text-[14px] text-[#1E4F86]"
                   style={mont}
                 >
                   {listing.bedrooms ?? "—"}
@@ -210,7 +210,7 @@ return (
               {/* Operation type */}
               <td className="px-5 py-4">
                 <span
-                  className="whitespace-nowrap text-[14px] text-[#6a7282]"
+                  className="whitespace-nowrap text-[14px] text-[#1E4F86]"
                   style={mont}
                 >
                   {OPERATION_LABELS[listing.operationType]}

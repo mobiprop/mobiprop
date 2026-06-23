@@ -17,9 +17,9 @@ import {
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
 
 const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.webp";
 const agentImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/emily.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/emily.webp";
 const footerBgImg =
   "/assets/figma-temp/SingleListingPage/3fba757107af3080a480784b8edf8f9a8a4c4646.png";
 
@@ -769,8 +769,6 @@ export function SingleListingPageContent({
             ) : null}
           </div>
         </div>
-
-        {/* Share Bar */}
         {/* Share Bar */}
         <div className="mt-5 sm:mt-6 pb-6 border-b border-[#e5e7eb] flex flex-wrap items-center gap-3 sm:gap-4">
           <span

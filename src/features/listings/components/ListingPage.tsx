@@ -26,11 +26,11 @@ import {
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 const heroImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const cloudsImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.png";
+"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.webp";
 const fallbackImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
+"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
 /* ─── icon helpers ─── */
 function SquareArrowIcon() {
 return (

@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import {
   X,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Star,
   Upload,
   Loader2,
   SquareParking,
@@ -59,6 +62,7 @@ import {
   useAddListingImagesMutation,
   useRemoveListingImageMutation,
   useSetListingCoverMutation,
+  useReorderListingImagesMutation,
 } from "@/hooks/mutations/useUpdateListingMutation";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import type { ListingInput } from "@/schemas/listing.schema";
@@ -166,8 +170,16 @@ type NewImage = {
 
 type CoverChoice =
   | { existingId: string }
-  | { newIndex: number }
+  | { newKey: string }
   | null;
+
+/** Moves the item at `from` to `to`, shifting everything in between. */
+function reorderArray<T>(array: T[], from: number, to: number): T[] {
+  const next = [...array];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
 
 type UploadListingModalProps = {
   onClose: () => void;
@@ -316,18 +328,25 @@ export function UploadListingModal({
   const addImagesMutation = useAddListingImagesMutation();
   const removeImageMutation = useRemoveListingImageMutation();
   const setCoverMutation = useSetListingCoverMutation();
+  const reorderImagesMutation = useReorderListingImagesMutation();
 
   const [existingImages, setExistingImages] = useState(
     listing?.images ?? [],
   );
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+  const initialExistingOrderRef = useRef(
+    (listing?.images ?? []).map((image) => image.id),
+  );
+  const dragExistingIndexRef = useRef<number | null>(null);
+  const dragNewIndexRef = useRef<number | null>(null);
 
   const isSubmitting =
     createMutation.isPending ||
     updateMutation.isPending ||
     addImagesMutation.isPending ||
     removeImageMutation.isPending ||
-    setCoverMutation.isPending;
+    setCoverMutation.isPending ||
+    reorderImagesMutation.isPending;
 
   const {
     register,
@@ -479,17 +498,43 @@ export function UploadListingModal({
       current.filter((_, imageIndex) => imageIndex !== index),
     );
 
-    setCover((currentCover) => {
-      if (!currentCover || !("newIndex" in currentCover)) {
-        return currentCover;
-      }
+    setCover((currentCover) =>
+      currentCover &&
+      "newKey" in currentCover &&
+      currentCover.newKey === selectedImage.preview
+        ? null
+        : currentCover,
+    );
+  }
 
-      if (index === currentCover.newIndex) return null;
-
-      return index < currentCover.newIndex
-        ? { newIndex: currentCover.newIndex - 1 }
-        : currentCover;
+  function moveExistingImage(index: number, direction: -1 | 1) {
+    setExistingImages((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      return reorderArray(current, index, target);
     });
+  }
+
+  function moveNewImage(index: number, direction: -1 | 1) {
+    setNewImages((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      return reorderArray(current, index, target);
+    });
+  }
+
+  function handleExistingDrop(targetIndex: number) {
+    const fromIndex = dragExistingIndexRef.current;
+    dragExistingIndexRef.current = null;
+    if (fromIndex === null || fromIndex === targetIndex) return;
+    setExistingImages((current) => reorderArray(current, fromIndex, targetIndex));
+  }
+
+  function handleNewDrop(targetIndex: number) {
+    const fromIndex = dragNewIndexRef.current;
+    dragNewIndexRef.current = null;
+    if (fromIndex === null || fromIndex === targetIndex) return;
+    setNewImages((current) => reorderArray(current, fromIndex, targetIndex));
   }
 
   function removeExistingImage(imageId: string) {
@@ -566,8 +611,26 @@ export function UploadListingModal({
           );
         }
 
+        // Phase 2b — persist reordering of existing images. Runs after removals
+        // since the reorder endpoint requires the id list to exactly match what
+        // remains on the listing.
+        const currentExistingOrder = existingImages.map((image) => image.id);
+        const survivingInitialOrder = initialExistingOrderRef.current.filter(
+          (id) => !removedImageIds.includes(id),
+        );
+        const existingOrderChanged = currentExistingOrder.some(
+          (id, index) => id !== survivingInitialOrder[index],
+        );
+        if (existingOrderChanged) {
+          await reorderImagesMutation.mutateAsync({
+            id: listing.id,
+            imageIds: currentExistingOrder,
+          });
+        }
+
         // Phase 3 — set cover last so neither adds nor removes can override it.
-        // Map new-image index → the actual DB id from the add result.
+        // Map the chosen new-image (by its stable preview key) → the actual DB
+        // id from the add result, in the same order they were uploaded.
         const addedImages = addResult
           ? [...addResult.listing.images]
               .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -580,7 +643,7 @@ export function UploadListingModal({
               ? cover.existingId
               : undefined
             : cover
-              ? addedImages[cover.newIndex]?.id
+              ? addedImages[newImages.findIndex((image) => image.preview === cover.newKey)]?.id
               : undefined;
 
         if (desiredCoverId) {
@@ -592,10 +655,15 @@ export function UploadListingModal({
 
         toast.success("Listing updated");
       } else {
+        const coverIndex =
+          cover && "newKey" in cover
+            ? Math.max(0, newImages.findIndex((image) => image.preview === cover.newKey))
+            : 0;
+
         await createMutation.mutateAsync({
           data: parsed,
           images: newImages.map((i) => i.file),
-          coverIndex: cover && "newIndex" in cover ? cover.newIndex : 0,
+          coverIndex,
         });
 
         toast.success("Listing created");
@@ -622,14 +690,10 @@ export function UploadListingModal({
     "existingId" in cover &&
     cover.existingId === id;
 
-  const newCoverIndex =
-    cover === null
-      ? isEdit
-        ? -1
-        : 0
-      : "newIndex" in cover
-        ? cover.newIndex
-        : -1;
+  const isNewCover = (image: NewImage) =>
+    cover !== null && "newKey" in cover
+      ? cover.newKey === image.preview
+      : cover === null && !isEdit && newImages[0] === image;
 
   function handleBackdropMouseDown(
     event: ReactMouseEvent<HTMLDivElement>,
@@ -1335,10 +1399,19 @@ export function UploadListingModal({
                       </p>
 
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                        {existingImages.map((image) => (
+                        {existingImages.map((image, index) => (
                           <div
                             key={image.id}
-                            className={`group relative aspect-square overflow-hidden rounded-[10px] border bg-[#f3f4f6] ${
+                            draggable={!isSubmitting}
+                            onDragStart={() => {
+                              dragExistingIndexRef.current = index;
+                            }}
+                            onDragOver={(event) => event.preventDefault()}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              handleExistingDrop(index);
+                            }}
+                            className={`group relative aspect-square cursor-grab overflow-hidden rounded-[10px] border bg-[#f3f4f6] active:cursor-grabbing ${
                               isExistingCover(image.id)
                                 ? "border-[#1e4f86] ring-2 ring-[#1e4f86]/15"
                                 : "border-[#e5e7eb]"
@@ -1348,21 +1421,26 @@ export function UploadListingModal({
                             <img
                               src={image.url}
                               alt={image.altText ?? "Listing image"}
-                              className="size-full cursor-pointer object-cover"
-                              onClick={() =>
-                                setCover({ existingId: image.id })
-                              }
-                              title="Click to set as cover"
+                              draggable={false}
+                              className="size-full object-cover"
                             />
 
-                            {isExistingCover(image.id) && (
-                              <span
-                                className="absolute left-2 top-2 rounded-[6px] bg-[#1e4f86] px-2 py-1 text-[11px] font-medium text-white"
-                                style={mont}
-                              >
-                                Cover
-                              </span>
-                            )}
+                            <button
+                              type="button"
+                              title={isExistingCover(image.id) ? "Cover image" : "Set as cover"}
+                              aria-pressed={isExistingCover(image.id)}
+                              onClick={() => setCover({ existingId: image.id })}
+                              disabled={isSubmitting}
+                              className={`absolute left-2 top-2 flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed ${
+                                isExistingCover(image.id)
+                                  ? "bg-[#1e4f86] text-white"
+                                  : "bg-black/55 text-white opacity-100 hover:bg-black/70 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                              }`}
+                              style={mont}
+                            >
+                              <Star size={12} className={isExistingCover(image.id) ? "fill-white" : ""} />
+                              {isExistingCover(image.id) ? "Cover" : "Set cover"}
+                            </button>
 
                             <button
                               type="button"
@@ -1374,9 +1452,42 @@ export function UploadListingModal({
                             >
                               <X size={15} />
                             </button>
+
+                            {existingImages.length > 1 && (
+                              <div className="absolute inset-x-2 bottom-2 flex items-center justify-between opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                                <button
+                                  type="button"
+                                  title="Move left"
+                                  aria-label="Move image left"
+                                  onClick={() => moveExistingImage(index, -1)}
+                                  disabled={isSubmitting || index === 0}
+                                  className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
+                                >
+                                  <ChevronLeft size={14} />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  title="Move right"
+                                  aria-label="Move image right"
+                                  onClick={() => moveExistingImage(index, 1)}
+                                  disabled={isSubmitting || index === existingImages.length - 1}
+                                  className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
+                                >
+                                  <ChevronRight size={14} />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
+
+                      <p
+                        className="text-[12px] leading-5 text-[#9ca3af]"
+                        style={mont}
+                      >
+                        Drag a photo or use the arrows to reorder. Click the star to set the cover photo.
+                      </p>
                     </div>
                   )}
 
@@ -1395,8 +1506,17 @@ export function UploadListingModal({
                         {newImages.map((image, index) => (
                           <div
                             key={image.preview}
-                            className={`group relative aspect-square overflow-hidden rounded-[10px] border bg-[#f3f4f6] ${
-                              index === newCoverIndex
+                            draggable={!isSubmitting}
+                            onDragStart={() => {
+                              dragNewIndexRef.current = index;
+                            }}
+                            onDragOver={(event) => event.preventDefault()}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              handleNewDrop(index);
+                            }}
+                            className={`group relative aspect-square cursor-grab overflow-hidden rounded-[10px] border bg-[#f3f4f6] active:cursor-grabbing ${
+                              isNewCover(image)
                                 ? "border-[#1e4f86] ring-2 ring-[#1e4f86]/15"
                                 : "border-[#e5e7eb]"
                             }`}
@@ -1405,29 +1525,63 @@ export function UploadListingModal({
                             <img
                               src={image.preview}
                               alt={`Upload ${index + 1}`}
-                              className="size-full cursor-pointer object-cover"
-                              onClick={() => setCover({ newIndex: index })}
-                              title="Click to set as cover"
+                              draggable={false}
+                              className="size-full object-cover"
                             />
 
-                            {index === newCoverIndex && (
-                              <span
-                                className="absolute left-2 top-2 rounded-[6px] bg-[#1e4f86] px-2 py-1 text-[11px] font-medium text-white"
-                                style={mont}
-                              >
-                                Cover
-                              </span>
-                            )}
+                            <button
+                              type="button"
+                              title={isNewCover(image) ? "Cover image" : "Set as cover"}
+                              aria-pressed={isNewCover(image)}
+                              onClick={() => setCover({ newKey: image.preview })}
+                              disabled={isSubmitting}
+                              className={`absolute left-2 top-2 flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed ${
+                                isNewCover(image)
+                                  ? "bg-[#1e4f86] text-white"
+                                  : "bg-black/55 text-white opacity-100 hover:bg-black/70 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                              }`}
+                              style={mont}
+                            >
+                              <Star size={12} className={isNewCover(image) ? "fill-white" : ""} />
+                              {isNewCover(image) ? "Cover" : "Set cover"}
+                            </button>
 
                             <button
                               type="button"
                               title="Remove image"
                               aria-label={`Remove upload ${index + 1}`}
                               onClick={() => removeNewImage(index)}
-                              className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-100 transition-opacity hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                              disabled={isSubmitting}
+                              className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-100 transition-opacity hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
                             >
                               <X size={15} />
                             </button>
+
+                            {newImages.length > 1 && (
+                              <div className="absolute inset-x-2 bottom-2 flex items-center justify-between opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                                <button
+                                  type="button"
+                                  title="Move left"
+                                  aria-label="Move image left"
+                                  onClick={() => moveNewImage(index, -1)}
+                                  disabled={isSubmitting || index === 0}
+                                  className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
+                                >
+                                  <ChevronLeft size={14} />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  title="Move right"
+                                  aria-label="Move image right"
+                                  onClick={() => moveNewImage(index, 1)}
+                                  disabled={isSubmitting || index === newImages.length - 1}
+                                  className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
+                                >
+                                  <ChevronRight size={14} />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1436,7 +1590,7 @@ export function UploadListingModal({
                         className="text-[12px] leading-5 text-[#9ca3af]"
                         style={mont}
                       >
-                        Click an image to mark it as the cover.
+                        Drag a photo or use the arrows to reorder. Click the star to set the cover photo.
                       </p>
                     </div>
                   )}

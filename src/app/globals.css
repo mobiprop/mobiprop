@@ -71,3 +71,16 @@ body {
   display: flex;
   align-items: flex-start;
 }
+
+@keyframes global-loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.animate-global-loading-bar {
+  animation: global-loading-bar 1.1s ease-in-out infinite;
+}

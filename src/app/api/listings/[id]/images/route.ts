@@ -4,6 +4,7 @@ import {
   addListingImages,
   removeListingImage,
   setListingCoverImage,
+  reorderListingImages,
 } from "@/features/listings/listing-actions";
 
 export const runtime = "nodejs";
@@ -58,6 +59,26 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 
   const result = await setListingCoverImage(id, imageId);
+  if (!result.ok) {
+    return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+  }
+
+  return NextResponse.json({ success: true, listing: result.listing });
+}
+
+/** Staff (listings:uploadImages): persist a new image order. Body: { imageIds: string[] }. */
+export async function PUT(request: Request, { params }: Context) {
+  const { id } = await params;
+  const body = await request.json().catch(() => null);
+  const imageIds =
+    Array.isArray(body?.imageIds) && body.imageIds.every((value: unknown) => typeof value === "string")
+      ? (body.imageIds as string[])
+      : null;
+  if (!imageIds) {
+    return NextResponse.json({ success: false, error: "imageIds must be an array of strings" }, { status: 400 });
+  }
+
+  const result = await reorderListingImages(id, imageIds);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

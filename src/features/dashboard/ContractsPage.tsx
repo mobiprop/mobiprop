@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
-  Search, Plus, Share2, FileText, CheckCircle2, Clock,
-  DollarSign, ChevronDown, Filter, MoreVertical, Loader2,
+  Search, Plus, Share2, Building2, TrendingUp, DollarSign, Banknote,
+  ChevronDown, Filter, MoreVertical, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -156,10 +156,10 @@ export function ContractsPage({ role }: { role: Role }) {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
-        <StatCard label="Total Contracts" value={isLoading ? "—" : String(metrics?.total ?? 0)} trend="Live from database" iconBg="#e0e7ff" icon={<FileText size={18} className="text-[#6366f1]" />} />
-        <StatCard label="Active" value={isLoading ? "—" : String(metrics?.active ?? 0)} trend="Currently active" iconBg="#d1fae5" icon={<CheckCircle2 size={18} className="text-[#10b981]" />} />
-        <StatCard label="Pending" value={isLoading ? "—" : String(metrics?.pending ?? 0)} trend="Awaiting signature" iconBg="#fef3c7" icon={<Clock size={18} className="text-[#f59e0b]" />} />
-        <StatCard label="Total Value" value={isLoading ? "—" : fmtValue(metrics?.totalValue ?? null)} trend="Sum of all contracts" iconBg="#fff7ed" icon={<DollarSign size={18} className="text-[#f97316]" />} />
+        <StatCard label="Total Contracts" value={isLoading ? "—" : String(metrics?.total ?? 0)} trend="Live from database" iconBg="#e0e7ff" icon={<Building2 size={18} strokeWidth={1.8} className="text-[#6366f1]" />} />
+        <StatCard label="Active" value={isLoading ? "—" : String(metrics?.active ?? 0)} trend="Currently active" iconBg="#d1fae5" icon={<TrendingUp size={18} strokeWidth={1.8} className="text-[#10b981]" />} />
+        <StatCard label="Pending" value={isLoading ? "—" : String(metrics?.pending ?? 0)} trend="Awaiting signature" iconBg="#fef3c7" icon={<DollarSign size={18} strokeWidth={1.8} className="text-[#f59e0b]" />} />
+        <StatCard label="Total Value" value={isLoading ? "—" : fmtValue(metrics?.totalValue ?? null)} trend="Sum of all contracts" iconBg="#fff7ed" icon={<Banknote size={18} strokeWidth={1.8} className="text-[#f97316]" />} />
       </div>
 
       {/* Contracts table */}

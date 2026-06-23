@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Search,
   Plus,
@@ -14,6 +15,10 @@ import {
   Check,
   X,
   Mail,
+  Medal,
+  Handshake,
+  Star,
+  Trash2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -136,6 +141,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
 
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
+  const canDelete = hasPermission(role, "agents:delete");
   const canViewInvitations = hasPermission(role, "invitations:view");
 
   const fetchAgents = useCallback(async () => {
@@ -165,15 +171,44 @@ export function AgentsPage({ role }: AgentsPageProps) {
     setActioningId(null);
   }
 
+  // Declining a pending/invited agent means they were never approved in the
+  // first place, so there's no account to keep around — remove it outright
+  // instead of just flipping status to INACTIVE.
   async function handleDeny(agentId: string) {
     setActioningId(agentId);
-    await fetch(`/api/dashboard/agents/${agentId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "INACTIVE" }),
-    });
-    await fetchAgents();
-    setActioningId(null);
+    try {
+      const res = await fetch(`/api/dashboard/agents/${agentId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        toast.error(data?.error ?? "Failed to decline agent.");
+        return;
+      }
+      toast.success("Agent declined and removed.");
+      await fetchAgents();
+    } finally {
+      setActioningId(null);
+    }
+  }
+
+  async function handleDelete(agent: AgentDto) {
+    const confirmed = window.confirm(
+      `Delete ${agent.name}? This permanently removes their account and cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setActioningId(agent.id);
+    try {
+      const res = await fetch(`/api/dashboard/agents/${agent.id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        toast.error(data?.error ?? "Failed to delete agent.");
+        return;
+      }
+      toast.success("Agent deleted.");
+      await fetchAgents();
+    } finally {
+      setActioningId(null);
+    }
   }
 
   const periodBounds = getPeriodBounds(period);
@@ -225,36 +260,64 @@ export function AgentsPage({ role }: AgentsPageProps) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
-        <StatCard
-          label="Total Agents"
-          value={metrics ? String(metrics.total) : "—"}
-          trend={metrics ? `${metrics.active} active` : "Loading…"}
-          iconBg="#e0e7ff"
-          icon={<Users size={16} className="text-[#6366f1]" />}
-        />
-        <StatCard
-          label="Pending Approval"
-          value={metrics ? String(metrics.pending) : "—"}
-          trend={metrics ? `${metrics.total - metrics.pending} already reviewed` : "Loading…"}
-          iconBg="#ecfdf5"
-          icon={<Briefcase size={18} className="text-[#10b981]" />}
-        />
-        <StatCard
-          label="Active Agents"
-          value={metrics ? String(metrics.active) : "—"}
-          trend={metrics ? `${metrics.inactive} inactive` : "Loading…"}
-          iconBg="#fef3c7"
-          icon={<DollarSign size={18} className="text-[#f59e0b]" />}
-        />
-        <StatCard
-          label="Total Staff"
-          value={metrics ? String(metrics.total) : "—"}
-          trend="Agents + Managers + Admins"
-          iconBg="#fff7ed"
-          icon={<Building2 size={18} className="text-[#f97316]" />}
-        />
-      </div>
+     {/* Stat cards */}
+<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
+  <StatCard
+    label="Total Agents"
+    value={metrics ? String(metrics.total) : "—"}
+    trend="↑ 2 new this month"
+    iconBg="#e7ebff"
+    icon={
+      <Medal
+        size={17}
+        strokeWidth={1.8}
+        className="text-[#6274f5]"
+      />
+    }
+  />
+
+  <StatCard
+    label="Active Deals"
+    value="108"
+    trend="↑ +12.5% from last month"
+    iconBg="#e6faf3"
+    icon={
+      <Handshake
+        size={18}
+        strokeWidth={1.8}
+        className="text-[#08bd87]"
+      />
+    }
+  />
+
+  <StatCard
+    label="Total Revenue"
+    value="$2.21m"
+    trend="↑ +18.2% from last month"
+    iconBg="#fff1c7"
+    icon={
+      <DollarSign
+        size={18}
+        strokeWidth={1.8}
+        className="text-[#ff9700]"
+      />
+    }
+  />
+
+  <StatCard
+    label="Total Listings"
+    value="19"
+    trend="↑ +0.3 from last month"
+    iconBg="#fff2e8"
+    icon={
+      <Star
+        size={18}
+        strokeWidth={1.8}
+        className="text-[#ff7214]"
+      />
+    }
+  />
+</div>
 
       {/* Agents table */}
       <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
@@ -462,12 +525,24 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       Updating…
                     </span>
                   ) : isActioned ? (
-                    <span
-                      className="text-[14px] text-[#6a7282]"
-                      style={mont}
-                    >
-                      {mappedStatus}
-                    </span>
+                    canDelete ? (
+                      <button
+                        type="button"
+                        title="Delete"
+                        aria-label={`Delete ${agent.name}`}
+                        onClick={() => handleDelete(agent)}
+                        className="flex size-8 items-center justify-center rounded-[8px] border border-[#ffa2a2] bg-white transition-colors hover:bg-[#fff5f5]"
+                      >
+                        <Trash2 size={14} className="text-[#fb2c36]" />
+                      </button>
+                    ) : (
+                      <span
+                        className="text-[14px] text-[#6a7282]"
+                        style={mont}
+                      >
+                        {mappedStatus}
+                      </span>
+                    )
                   ) : canApprove ? (
                     <div className="flex items-center justify-center gap-2">
                       <button
@@ -654,12 +729,24 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     Updating…
                   </div>
                 ) : isActioned ? (
-                  <div
-                    className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
-                    style={mont}
-                  >
-                    Agent {mappedStatus}
-                  </div>
+                  canDelete ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(agent)}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#ffa2a2] bg-[#fff5f5] text-[14px] font-semibold text-[#fb2c36] transition-colors active:scale-[0.99]"
+                      style={mont}
+                    >
+                      <Trash2 size={17} />
+                      Delete Agent
+                    </button>
+                  ) : (
+                    <div
+                      className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
+                      style={mont}
+                    >
+                      Agent {mappedStatus}
+                    </div>
+                  )
                 ) : canApprove ? (
                   <div className="grid grid-cols-2 gap-3">
                     <button

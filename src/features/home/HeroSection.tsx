@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const heroImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.webp";
 
 function LocationIcon() {
   return (

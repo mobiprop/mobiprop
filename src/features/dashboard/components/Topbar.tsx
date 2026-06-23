@@ -46,18 +46,24 @@ export function Topbar() {
             onClick={() => toggle("notifications")}
             aria-label="Open notifications"
             aria-expanded={open === "notifications"}
-            className={`relative flex size-9 items-center justify-center rounded-[9px] transition-colors ${open === "notifications" ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"}`}
+            className={`relative flex size-9 items-center justify-center overflow-visible rounded-[9px] transition-colors ${
+              open === "notifications"
+                ? "bg-[#eff6ff] text-[#1e4f86]"
+                : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+            }`}
           >
             <Bell size={20} className="sm:size-[22px]" />
+
             {unreadCount > 0 && (
               <span
                 aria-label={`${unreadCount} unread notifications`}
-                className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-white bg-[#fb2c36] px-1 text-[9px] font-semibold leading-none text-white"
+                className="pointer-events-none absolute right-0 top-0 z-10 flex h-[17px] min-w-[17px] translate-x-[30%] -translate-y-[30%] items-center justify-center rounded-full border-2 border-white bg-[#fb2c36] px-[3px] text-[9px] font-bold leading-none text-white shadow-sm"
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </button>
+
           {open === "notifications" && (
             <div className="fixed inset-x-3 top-[72px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-[44px]">
               <NotificationsPanel onClose={() => setOpen(null)} />
@@ -72,10 +78,15 @@ export function Topbar() {
             onClick={() => toggle("calendar")}
             aria-label="Open calendar"
             aria-expanded={open === "calendar"}
-            className={`flex size-9 items-center justify-center rounded-[9px] transition-colors ${open === "calendar" ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"}`}
+            className={`flex size-9 items-center justify-center rounded-[9px] transition-colors ${
+              open === "calendar"
+                ? "bg-[#eff6ff] text-[#1e4f86]"
+                : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+            }`}
           >
             <Calendar size={20} className="sm:size-[22px]" />
           </button>
+
           {open === "calendar" && (
             <div className="fixed inset-x-3 top-[72px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-[44px]">
               <CalendarPanel onClose={() => setOpen(null)} />
