@@ -14,10 +14,23 @@ const labelCls = "text-[12px] font-medium text-[#1f2937]";
 type Agent = { id: string; fullName: string | null; email: string };
 type Listing = { id: string; listingId: string; title: string; location: string };
 
+type InitialValues = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  propertyId?: string;
+  propertyTitle?: string;
+  propertyListingId?: string;
+  propertyLocation?: string;
+  agentId?: string;
+};
+
 type Props = {
   role: Role;
   onClose: () => void;
   onCreated: (id: string) => void;
+  leadId?: string;
+  initialValues?: InitialValues;
 };
 
 // Minimum datetime string for input[type=datetime-local] (now + 1 hour)
@@ -26,18 +39,27 @@ function minDatetimeLocal() {
   return d.toISOString().slice(0, 16);
 }
 
-export function AddTourModal({ onClose, onCreated }: Props) {
+export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Props) {
   const create = useCreateTourMutation();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(initialValues?.name ?? "");
+  const [email, setEmail] = useState(initialValues?.email ?? "");
+  const [phone, setPhone] = useState(initialValues?.phone ?? "");
   const [message, setMessage] = useState("");
   const [scheduledAt, setScheduledAt] = useState(minDatetimeLocal());
   const [duration, setDuration] = useState(60);
-  const [agentId, setAgentId] = useState("");
+  const [agentId, setAgentId] = useState(initialValues?.agentId ?? "");
   const [listingSearch, setListingSearch] = useState("");
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(
+    initialValues?.propertyId
+      ? {
+          id: initialValues.propertyId,
+          listingId: initialValues.propertyListingId ?? "",
+          title: initialValues.propertyTitle ?? "",
+          location: initialValues.propertyLocation ?? "",
+        }
+      : null,
+  );
   const [listings, setListings] = useState<Listing[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [error, setError] = useState("");
@@ -76,6 +98,7 @@ export function AddTourModal({ onClose, onCreated }: Props) {
         submittedPhone: phone.trim() || undefined,
         submittedMessage: message.trim() || undefined,
         propertyId: selectedListing?.id,
+        leadId,
         assignedAgentId: agentId || undefined,
         scheduledAt: new Date(scheduledAt).toISOString(),
         durationMinutes: duration,

@@ -15,7 +15,7 @@ import {
   assignTourSchema,
   tourListFiltersSchema,
 } from "@/schemas/tour.schema";
-import type { TourDto, TourMetrics, MyTourDto } from "./types/crm-dto";
+import type { TourDto, MyTourDto } from "./types/crm-dto";
 
 export type TourActionError = { ok: false; error: string; status: number };
 export type TourActionResult<T> = ({ ok: true } & T) | TourActionError;
@@ -252,30 +252,6 @@ async function findOrCreateLead(opts: {
   return { leadId: lead.id, wasCreated: true };
 }
 
-// ── Metrics ───────────────────────────────────────────────────────────────────
-
-export async function getTourMetrics(): Promise<TourActionResult<{ metrics: TourMetrics }>> {
-  const gate = await requirePermission("tours:view");
-  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
-
-  const now = new Date();
-  const [total, requested, confirmed, completed, cancelled, upcoming] = await Promise.all([
-    prisma.tour.count(),
-    prisma.tour.count({ where: { status: TourStatus.REQUESTED } }),
-    prisma.tour.count({ where: { status: TourStatus.CONFIRMED } }),
-    prisma.tour.count({ where: { status: TourStatus.COMPLETED } }),
-    prisma.tour.count({ where: { status: TourStatus.CANCELLED } }),
-    prisma.tour.count({
-      where: {
-        scheduledAt: { gte: now },
-        status: { in: [TourStatus.REQUESTED, TourStatus.CONFIRMED, TourStatus.RESCHEDULED] },
-      },
-    }),
-  ]);
-
-  return { ok: true, metrics: { total, requested, confirmed, completed, cancelled, upcoming } };
-}
-
 // ── List (dashboard) ──────────────────────────────────────────────────────────
 
 export async function listTours(
@@ -288,7 +264,7 @@ export async function listTours(
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid filters", status: 422 };
 
-  const { search, status, assignedAgentId, unassigned, propertyId, fromDate, toDate, upcoming, sortBy, page, limit } =
+  const { search, status, assignedAgentId, unassigned, propertyId, leadId, fromDate, toDate, upcoming, sortBy, page, limit } =
     parsed.data;
 
   const scope = tourRecordScope(gate.profile);
@@ -316,6 +292,7 @@ export async function listTours(
     ...(assignedAgentId && { assignedAgentId }),
     ...(unassigned && { assignedAgentId: null }),
     ...(propertyId && { propertyId }),
+    ...(leadId && { leadId }),
     ...(fromDate && { scheduledAt: { gte: new Date(fromDate) } }),
     ...(toDate && { scheduledAt: { lte: new Date(toDate) } }),
     ...(upcoming && {
@@ -589,6 +566,7 @@ export async function updateTourStatus(
   if (notifyType) {
     await notifyTourStatusChanged({
       tourId: id,
+      leadId: row.leadId,
       assignedAgentId: row.assignedAgentId,
       type: notifyType,
       actorId: gate.profile.id,
@@ -722,6 +700,7 @@ export async function requestPublicTour(
   if (assignedAgentId) {
     await notifyTourRequested({
       tourId: tour.id,
+      leadId,
       assignedAgentId,
       actorId: null,
     });

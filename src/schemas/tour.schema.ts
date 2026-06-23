@@ -99,6 +99,7 @@ export const tourListFiltersSchema = z.object({
   assignedAgentId: z.string().guid().optional(),
   unassigned: z.coerce.boolean().optional(),
   propertyId: z.string().optional(),
+  leadId: z.string().optional(),
   fromDate: z.string().datetime({ offset: true }).optional(),
   toDate: z.string().datetime({ offset: true }).optional(),
   upcoming: z.coerce.boolean().optional(),

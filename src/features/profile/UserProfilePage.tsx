@@ -17,7 +17,7 @@ import {
 import { useMyToursQuery } from "@/hooks/queries/useDashboardToursQuery";
 import { useCancelMyTourMutation } from "@/hooks/mutations/useTourMutations";
 import type { MyTourDto } from "@/features/crm/types/crm-dto";
-import { TOUR_STATUS_BADGE } from "@/features/dashboard/ToursPage";
+import { TOUR_STATUS_BADGE } from "@/features/crm/tour-status-badge";
 import { format } from "date-fns";
 import {
   listingDisplayPrice,

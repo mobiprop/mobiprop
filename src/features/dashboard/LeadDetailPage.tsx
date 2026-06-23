@@ -48,6 +48,7 @@ import type {
   LeadDto,
 } from "@/features/crm/types/crm-dto";
 import { scoreColor } from "./LeadsPage";
+import { LeadTourSection } from "./components/LeadTourSection";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -955,6 +956,13 @@ export function LeadDetailPage({
               </div>
             </Section>
           )}
+
+          <Section
+            title="Scheduled Tour"
+            icon={<Calendar size={16} className="text-[#1e4f86]" />}
+          >
+            <LeadTourSection lead={lead} role={role} />
+          </Section>
 
           <Section
             title="Notes"

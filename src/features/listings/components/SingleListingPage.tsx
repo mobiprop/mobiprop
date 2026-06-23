@@ -769,8 +769,6 @@ export function SingleListingPageContent({
             ) : null}
           </div>
         </div>
-
-        {/* Share Bar */}
         {/* Share Bar */}
         <div className="mt-5 sm:mt-6 pb-6 border-b border-[#e5e7eb] flex flex-wrap items-center gap-3 sm:gap-4">
           <span

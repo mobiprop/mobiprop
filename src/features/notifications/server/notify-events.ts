@@ -90,6 +90,7 @@ export function notifyLeadAssigned(input: {
 
 export function notifyTourRequested(input: {
   tourId: string;
+  leadId: string | null;
   assignedAgentId: string | null;
   actorId: string | null;
 }): Promise<void> {
@@ -104,7 +105,7 @@ export function notifyTourRequested(input: {
       body: "A new property tour has been requested.",
       entityType: "TOUR",
       entityId: input.tourId,
-      actionUrl: `/dashboard/tours/${input.tourId}`,
+      actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
       actorId: input.actorId ?? undefined,
     });
   }, "notifyTourRequested");
@@ -118,6 +119,7 @@ const TOUR_STATUS_CONTENT: Partial<Record<NotificationType, { title: string; bod
 
 export function notifyTourStatusChanged(input: {
   tourId: string;
+  leadId: string | null;
   assignedAgentId: string | null;
   type: Extract<NotificationType, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED">;
   actorId: string | null;
@@ -136,7 +138,7 @@ export function notifyTourStatusChanged(input: {
       body: content.body,
       entityType: "TOUR",
       entityId: input.tourId,
-      actionUrl: `/dashboard/tours/${input.tourId}`,
+      actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
       actorId: input.actorId ?? undefined,
     });
   }, "notifyTourStatusChanged");
