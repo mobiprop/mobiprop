@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 import { FAQ } from "@/features/home/FAQ";
+import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
 
 /* ─── assets ─── */
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.webp";
-const mapImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/ContactPage/map.webp";
 const consultationBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.webp";
+
+/* Office location (used by the live map below) */
+const OFFICE = {
+  name: "Ulrich Estate",
+  address: "Rozengracht 207, 1016 LZ\nAmsterdam, Netherlands",
+  lat: 52.37403,
+  lng: 4.88103,
+};
+const OFFICE_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${OFFICE.lat},${OFFICE.lng}`;
 const iconPhone = "/assets/figma-temp/UserProfile/phone.svg";
 const iconEmail = "/assets/figma-temp/UserProfile/email.svg";
 const iconAddress = "/assets/figma-temp/UserProfile/location.svg";
@@ -330,11 +339,13 @@ function LocationSection() {
 
   {/* Map */}
   <div className="relative h-[360px] sm:h-[460px] lg:h-[609px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
-    <img
-      src={mapImg}
-      alt="Office location map"
-      className="absolute inset-0 w-full h-full object-cover"
-    />
+    <div className="absolute inset-0">
+      <PropertyLocationMap
+        latitude={OFFICE.lat}
+        longitude={OFFICE.lng}
+        title={OFFICE.name}
+      />
+    </div>
 
     {/* Location card */}
     <div className="absolute top-3 left-3 right-3 sm:top-5 sm:left-5 sm:right-auto bg-white rounded-[12px] shadow-[0_10px_7.5px_rgba(0,0,0,0.1),0_4px_3px_rgba(0,0,0,0.1)] w-auto sm:w-[288px] p-4 sm:p-5">
@@ -347,8 +358,10 @@ function LocationSection() {
         </p>
 
         <div className="flex gap-2 shrink-0">
-          <button
-            type="button"
+          <a
+            href={OFFICE_DIRECTIONS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="Get directions"
             className="w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] bg-[#f3f4f6] rounded-[8px] sm:rounded-[9px] flex items-center justify-center hover:bg-[#e5e7eb] transition-colors"
           >
@@ -366,7 +379,7 @@ function LocationSection() {
                 d="M17 8l4 4-4 4M3 12h18"
               />
             </svg>
-          </button>
+          </a>
 
           <button
             type="button"
