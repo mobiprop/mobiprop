@@ -1,15 +1,25 @@
 import "server-only";
 
+import type { RecipientStrategy } from "@/features/notifications/types/notification-types";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Centralized recipient policies. Business modules describe WHAT happened; these
- * functions decide WHO is notified, so role rules can change in one place without
- * touching lead/tour/listing code (project guide §18).
+ * Centralized recipient resolution. Business modules describe WHAT happened and
+ * name a RecipientStrategy (in the policy registry); this file decides WHO is
+ * notified, so role rules change in one place without touching feature code
+ * (project guide §18).
  *
- * Each function returns a de-duplicated list of recipient Profile ids. Only
- * ACTIVE staff profiles are returned; unknown/inactive ids are dropped.
+ * Every strategy returns a de-duplicated list of ACTIVE Profile ids; unknown or
+ * inactive ids are dropped. The acting user is excluded later (per policy) at
+ * the notify-events layer.
  */
+
+export type RecipientContext = {
+  /** Currently-assigned agent (lead/listing/tour/contract owner). */
+  assignedAgentId?: string | null;
+  /** Previous agent, for reassignment events. */
+  previousAgentId?: string | null;
+};
 
 async function keepActive(ids: (string | null | undefined)[]): Promise<string[]> {
   const unique = [...new Set(ids.filter((id): id is string => !!id))];
@@ -22,53 +32,62 @@ async function keepActive(ids: (string | null | undefined)[]): Promise<string[]>
   return active.map((p) => p.id);
 }
 
-/** Lead assigned → the assigned agent. */
-export function resolveLeadAssignedRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId]);
-}
-
-/** Lead reassigned → the new agent (and the previous agent, where present). */
-export function resolveLeadReassignedRecipients(input: {
-  assignedAgentId: string | null;
-  previousAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId, input.previousAgentId]);
-}
-
-/** Tour requested → the assigned listing agent (manager fan-out can be added later). */
-export function resolveTourRequestedRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId]);
+/** Active profile ids for one or more roles. */
+async function activeIdsForRoles(roles: ("ADMIN" | "MANAGER")[]): Promise<string[]> {
+  const rows = await prisma.profile.findMany({
+    where: { role: { in: roles }, status: "ACTIVE" },
+    select: { id: true },
+  });
+  return rows.map((r) => r.id);
 }
 
 /**
- * Tour status change → the assigned agent. The submitting client is tracked by
- * email snapshot (not necessarily a Profile), so client push is out of scope
- * until accounts are linked; in-app/email can cover them later.
+ * Resolve a strategy to a de-duplicated list of active recipient ids.
+ *
+ * Fallback strategies notify management ONLY when no operational owner exists —
+ * an assigned agent handling the record does not also ping every admin/manager
+ * (project plan §2, §14). Oversight roles are copied explicitly via the
+ * *_PLUS_ADMINS strategies where the business wants full visibility.
  */
-export function resolveTourStatusRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId]);
-}
+export async function resolveByStrategy(
+  strategy: RecipientStrategy,
+  ctx: RecipientContext,
+): Promise<string[]> {
+  switch (strategy) {
+    case "NONE":
+      return [];
 
-/** Listing assigned → the newly assigned agent. */
-export function resolveListingAssignedRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  return keepActive([input.assignedAgentId]);
-}
+    case "ALL_ADMINS":
+      return activeIdsForRoles(["ADMIN"]);
 
-/** Contract expiring → assigned agent plus all active managers/admins. */
-export async function resolveContractExpiringRecipients(input: {
-  assignedAgentId: string | null;
-}): Promise<string[]> {
-  const staff = await prisma.profile.findMany({
-    where: { role: { in: ["ADMIN", "MANAGER"] }, status: "ACTIVE" },
-    select: { id: true },
-  });
-  return keepActive([input.assignedAgentId, ...staff.map((s) => s.id)]);
+    case "MANAGERS_AND_ADMINS":
+      return activeIdsForRoles(["ADMIN", "MANAGER"]);
+
+    case "ASSIGNED_AGENT_PLUS_ADMINS":
+      return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN"]))]);
+
+    case "NEW_AND_PREV_AGENT_PLUS_ADMINS":
+      return keepActive([
+        ctx.assignedAgentId,
+        ctx.previousAgentId,
+        ...(await activeIdsForRoles(["ADMIN"])),
+      ]);
+
+    case "LISTING_AGENT_WITH_MANAGEMENT_FALLBACK":
+    case "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK": {
+      const agent = await keepActive([ctx.assignedAgentId]);
+      if (agent.length > 0) return agent;
+      // No operational owner → escalate to management.
+      return activeIdsForRoles(["ADMIN", "MANAGER"]);
+    }
+
+    case "CONTRACT_STAKEHOLDERS":
+      return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN", "MANAGER"]))]);
+
+    default: {
+      // Exhaustiveness guard — a new strategy must be handled here.
+      const _never: never = strategy;
+      return _never;
+    }
+  }
 }

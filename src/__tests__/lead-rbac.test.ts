@@ -77,7 +77,6 @@ let db: PrismaMock;
 
 vi.mock("@/lib/prisma", () => ({ get prisma() { return db; } }));
 vi.mock("@/lib/activity-log", () => ({ logActivity: vi.fn().mockResolvedValue(undefined) }));
-vi.mock("@/lib/notifications", () => ({ notifyAdmins: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/features/notifications/server/notify-events", () => ({
   notifyLeadAssigned: vi.fn().mockResolvedValue(undefined),
 }));

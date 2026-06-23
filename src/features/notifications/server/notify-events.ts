@@ -1,13 +1,10 @@
 import "server-only";
 
 import { createNotification } from "@/features/notifications/server/create-notification";
-import { notifyRecipients } from "@/features/notifications/server/create-notification";
+import { getPolicy } from "@/features/notifications/server/notification-events";
 import {
-  resolveLeadAssignedRecipients,
-  resolveLeadReassignedRecipients,
-  resolveListingAssignedRecipients,
-  resolveTourRequestedRecipients,
-  resolveTourStatusRecipients,
+  resolveByStrategy,
+  type RecipientContext,
 } from "@/features/notifications/server/resolve-recipients";
 import type { NotificationType } from "@/features/notifications/types/notification-types";
 
@@ -16,14 +13,13 @@ import type { NotificationType } from "@/features/notifications/types/notificati
  * their transaction commits; everything here is best-effort and never throws
  * (a push/notification failure must not fail the business operation).
  *
- * Recipient policy lives in resolve-recipients.ts; content/wording lives here.
- * The acting user is always excluded — no one needs to be pinged about their
- * own action.
+ * Channel, priority, recipient strategy, actor-exclusion and dedupe all come
+ * from the policy registry (notification-events.ts) via `dispatchNotification`.
+ * Feature actions must NOT make channel/recipient decisions themselves — they
+ * only describe the event and supply display content.
  */
 
-function withoutActor(ids: string[], actorId: string | null | undefined): string[] {
-  return ids.filter((id) => id !== actorId);
-}
+type NotificationContent = { title: string; body: string };
 
 async function safe(run: () => Promise<void>, label: string): Promise<void> {
   try {
@@ -32,6 +28,254 @@ async function safe(run: () => Promise<void>, label: string): Promise<void> {
     console.error(`[notifications] ${label} failed`, error);
   }
 }
+
+/**
+ * Single entry point for every staff/business notification. Resolves recipients
+ * from the event's policy, applies actor exclusion, derives a per-recipient
+ * dedupe key when the policy requires idempotency, and fans out best-effort.
+ *
+ * `content` may be static or a function of the recipient (e.g. the new vs.
+ * previous agent on a reassignment).
+ */
+export async function dispatchNotification(input: {
+  type: NotificationType;
+  actorId: string | null;
+  recipientContext?: RecipientContext;
+  entityType?: string;
+  entityId?: string;
+  actionUrl?: string;
+  content:
+    | NotificationContent
+    | ((ctx: { recipientId: string; isAssignedAgent: boolean }) => NotificationContent);
+  metadata?: Record<string, unknown>;
+  /**
+   * Occurrence discriminator folded into the dedupe key. Use a value that is
+   * STABLE for one logical event but DIFFERENT across genuine repeats — e.g. the
+   * assigned agent id (assignment events) or the record's updatedAt epoch
+   * (recurring status changes). Without it, a second legitimate reschedule /
+   * reassignment to a constant recipient would be wrongly suppressed.
+   */
+  dedupeDiscriminator?: string;
+}): Promise<void> {
+  const policy = getPolicy(input.type);
+  // Unknown or activity-log-only events create no notification.
+  if (!policy || policy.channels.length === 0) return;
+
+  const ctx = input.recipientContext ?? {};
+  let recipients = await resolveByStrategy(policy.recipientStrategy, ctx);
+  if (policy.excludeActor && input.actorId) {
+    recipients = recipients.filter((id) => id !== input.actorId);
+  }
+  const unique = [...new Set(recipients.filter(Boolean))];
+
+  await Promise.all(
+    unique.map(async (recipientId) => {
+      const content =
+        typeof input.content === "function"
+          ? input.content({
+              recipientId,
+              isAssignedAgent: recipientId === ctx.assignedAgentId,
+            })
+          : input.content;
+
+      // Per-recipient idempotency key (only when the policy requires it and we
+      // have a stable entity to key on). Repeated submissions / retries / fan-out
+      // races resolve to a no-op via the unique dedupeKey.
+      const dedupeKey =
+        policy.deduplicate && input.entityId
+          ? [input.type, input.entityId, input.dedupeDiscriminator ?? "", recipientId].join(":")
+          : undefined;
+
+      try {
+        await createNotification({
+          type: input.type,
+          recipientId,
+          title: content.title,
+          body: content.body,
+          entityType: input.entityType,
+          entityId: input.entityId,
+          actionUrl: input.actionUrl,
+          actorId: input.actorId ?? undefined,
+          metadata: input.metadata,
+          dedupeKey,
+        });
+      } catch (error) {
+        console.error("[notifications] createNotification failed", input.type, error);
+      }
+    }),
+  );
+}
+
+// ── Invitations (replaces the legacy notifyAdmins path) ───────────────────────
+
+export function notifyInvitationCreated(input: {
+  invitationId: string;
+  invitedEmail: string;
+  role: string;
+  actorId: string | null;
+  actorName: string;
+}): Promise<void> {
+  const roleLabel = input.role.charAt(0) + input.role.slice(1).toLowerCase();
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "INVITATION_CREATED",
+        actorId: input.actorId,
+        entityType: "AGENT_INVITATION",
+        entityId: input.invitationId,
+        content: {
+          title: input.role === "MANAGER" ? "Manager invited" : "New agent invited",
+          body: `${input.actorName} invited ${input.invitedEmail} to join as ${roleLabel}.`,
+        },
+      }),
+    "notifyInvitationCreated",
+  );
+}
+
+export function notifyInvitationAccepted(input: {
+  invitationId: string;
+  joinedName: string;
+  roleLabel: string;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "INVITATION_ACCEPTED",
+        actorId: null,
+        entityType: "AGENT_INVITATION",
+        entityId: input.invitationId,
+        content: {
+          title: "Invitation accepted",
+          body: `${input.joinedName} accepted their invitation and joined as ${input.roleLabel}.`,
+        },
+      }),
+    "notifyInvitationAccepted",
+  );
+}
+
+export function notifyInvitationRevoked(input: {
+  invitationId: string;
+  invitedEmail: string;
+  actorId: string | null;
+  actorName: string;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "INVITATION_REVOKED",
+        actorId: input.actorId,
+        entityType: "AGENT_INVITATION",
+        entityId: input.invitationId,
+        content: {
+          title: "Invitation revoked",
+          body: `The invitation for ${input.invitedEmail} was revoked by ${input.actorName}.`,
+        },
+      }),
+    "notifyInvitationRevoked",
+  );
+}
+
+// ── Listings ──────────────────────────────────────────────────────────────────
+
+export function notifyListingCreated(input: {
+  propertyId: string;
+  title: string;
+  listingId: string;
+  actorId: string | null;
+  actorName: string;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "LISTING_CREATED",
+        actorId: input.actorId,
+        entityType: "PROPERTY",
+        entityId: input.propertyId,
+        actionUrl: "/dashboard/listings",
+        content: {
+          title: "New listing created",
+          body: `${input.actorName} created "${input.title}" (${input.listingId}).`,
+        },
+      }),
+    "notifyListingCreated",
+  );
+}
+
+export function notifyListingStatusChanged(input: {
+  propertyId: string;
+  title: string;
+  listingId: string;
+  status: string;
+  actorId: string | null;
+  actorName: string;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "LISTING_STATUS_CHANGED",
+        actorId: input.actorId,
+        entityType: "PROPERTY",
+        entityId: input.propertyId,
+        actionUrl: "/dashboard/listings",
+        content: {
+          title: "Listing status changed",
+          body: `${input.actorName} changed "${input.title}" (${input.listingId}) to ${input.status}.`,
+        },
+      }),
+    "notifyListingStatusChanged",
+  );
+}
+
+export function notifyListingDeleted(input: {
+  propertyId: string;
+  title: string;
+  listingId: string;
+  actorId: string | null;
+  actorName: string;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "LISTING_DELETED",
+        actorId: input.actorId,
+        entityType: "PROPERTY",
+        entityId: input.propertyId,
+        actionUrl: "/dashboard/listings",
+        content: {
+          title: "Listing deleted",
+          body: `${input.actorName} deleted "${input.title}" (${input.listingId}).`,
+        },
+      }),
+    "notifyListingDeleted",
+  );
+}
+
+export function notifyListingAssigned(input: {
+  propertyId: string;
+  assignedAgentId: string | null;
+  actorId: string | null;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "LISTING_ASSIGNED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        dedupeDiscriminator: input.assignedAgentId ?? "unassigned",
+        entityType: "PROPERTY",
+        entityId: input.propertyId,
+        // No per-listing detail route exists yet; deep-link to the listings list.
+        actionUrl: "/dashboard/listings",
+        content: ({ isAssignedAgent }) =>
+          isAssignedAgent
+            ? { title: "Listing assigned to you", body: "A listing has been assigned to you." }
+            : { title: "Listing reassigned", body: "A listing was assigned to an agent." },
+      }),
+    "notifyListingAssigned",
+  );
+}
+
+// ── Leads ───────────────────────────────────────────────────────────────────
 
 export function notifyLeadAssigned(input: {
   leadId: string;
@@ -42,51 +286,31 @@ export function notifyLeadAssigned(input: {
 }): Promise<void> {
   const actionUrl = `/dashboard/leads/${input.leadId}`;
 
-  return safe(async () => {
-    if (input.isReassign) {
-      const recipients = withoutActor(
-        await resolveLeadReassignedRecipients({
+  return safe(
+    () =>
+      dispatchNotification({
+        type: input.isReassign ? "LEAD_REASSIGNED" : "LEAD_ASSIGNED",
+        actorId: input.actorId,
+        recipientContext: {
           assignedAgentId: input.assignedAgentId,
           previousAgentId: input.previousAgentId,
-        }),
-        input.actorId,
-      );
-
-      await Promise.all(
-        recipients.map((recipientId) => {
-          const isNewAgent = recipientId === input.assignedAgentId;
-          return createNotification({
-            type: "LEAD_REASSIGNED",
-            recipientId,
-            title: isNewAgent ? "Lead assigned to you" : "Lead reassigned",
-            body: isNewAgent
-              ? "A lead has been assigned to you."
-              : "A lead you managed was reassigned to another agent.",
-            entityType: "LEAD",
-            entityId: input.leadId,
-            actionUrl,
-            actorId: input.actorId ?? undefined,
-          });
-        }),
-      );
-      return;
-    }
-
-    const recipients = withoutActor(
-      await resolveLeadAssignedRecipients({ assignedAgentId: input.assignedAgentId }),
-      input.actorId,
-    );
-    await notifyRecipients(recipients, {
-      type: "LEAD_ASSIGNED",
-      title: "Lead assigned to you",
-      body: "A new lead has been assigned to you.",
-      entityType: "LEAD",
-      entityId: input.leadId,
-      actionUrl,
-      actorId: input.actorId ?? undefined,
-    });
-  }, "notifyLeadAssigned");
+        },
+        // Keyed by the (new) assigned agent so reassignment to a different agent
+        // is a distinct event, while a retry of the same assignment is a no-op.
+        dedupeDiscriminator: input.assignedAgentId ?? "unassigned",
+        entityType: "LEAD",
+        entityId: input.leadId,
+        actionUrl,
+        content: ({ isAssignedAgent }) =>
+          isAssignedAgent
+            ? { title: "Lead assigned to you", body: "A new lead has been assigned to you." }
+            : { title: "Lead reassigned", body: "A lead you managed was reassigned to another agent." },
+      }),
+    "notifyLeadAssigned",
+  );
 }
+
+// ── Tours ─────────────────────────────────────────────────────────────────────
 
 export function notifyTourRequested(input: {
   tourId: string;
@@ -94,24 +318,23 @@ export function notifyTourRequested(input: {
   assignedAgentId: string | null;
   actorId: string | null;
 }): Promise<void> {
-  return safe(async () => {
-    const recipients = withoutActor(
-      await resolveTourRequestedRecipients({ assignedAgentId: input.assignedAgentId }),
-      input.actorId,
-    );
-    await notifyRecipients(recipients, {
-      type: "TOUR_REQUESTED",
-      title: "New tour requested",
-      body: "A new property tour has been requested.",
-      entityType: "TOUR",
-      entityId: input.tourId,
-      actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
-      actorId: input.actorId ?? undefined,
-    });
-  }, "notifyTourRequested");
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "TOUR_REQUESTED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        entityType: "TOUR",
+        entityId: input.tourId,
+        actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
+        // customer-safe: no submitter name / contact details in the body.
+        content: { title: "New tour request", body: "A customer requested a property visit." },
+      }),
+    "notifyTourRequested",
+  );
 }
 
-const TOUR_STATUS_CONTENT: Partial<Record<NotificationType, { title: string; body: string }>> = {
+const TOUR_STATUS_CONTENT: Partial<Record<NotificationType, NotificationContent>> = {
   TOUR_CONFIRMED: { title: "Tour confirmed", body: "A property tour has been confirmed." },
   TOUR_RESCHEDULED: { title: "Tour rescheduled", body: "A property tour has been rescheduled." },
   TOUR_CANCELLED: { title: "Tour cancelled", body: "A property tour has been cancelled." },
@@ -123,46 +346,25 @@ export function notifyTourStatusChanged(input: {
   assignedAgentId: string | null;
   type: Extract<NotificationType, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED">;
   actorId: string | null;
+  /** The tour's updatedAt — makes each genuine status change a distinct event
+   * for dedupe (a retry shares it; a second reschedule does not). */
+  occurredAt: Date;
 }): Promise<void> {
   const content = TOUR_STATUS_CONTENT[input.type];
   if (!content) return Promise.resolve();
 
-  return safe(async () => {
-    const recipients = withoutActor(
-      await resolveTourStatusRecipients({ assignedAgentId: input.assignedAgentId }),
-      input.actorId,
-    );
-    await notifyRecipients(recipients, {
-      type: input.type,
-      title: content.title,
-      body: content.body,
-      entityType: "TOUR",
-      entityId: input.tourId,
-      actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
-      actorId: input.actorId ?? undefined,
-    });
-  }, "notifyTourStatusChanged");
-}
-
-export function notifyListingAssigned(input: {
-  propertyId: string;
-  assignedAgentId: string | null;
-  actorId: string | null;
-}): Promise<void> {
-  return safe(async () => {
-    const recipients = withoutActor(
-      await resolveListingAssignedRecipients({ assignedAgentId: input.assignedAgentId }),
-      input.actorId,
-    );
-    await notifyRecipients(recipients, {
-      type: "LISTING_ASSIGNED",
-      title: "Listing assigned to you",
-      body: "A listing has been assigned to you.",
-      entityType: "PROPERTY",
-      entityId: input.propertyId,
-      // No per-listing detail route exists yet; deep-link to the listings list.
-      actionUrl: "/dashboard/listings",
-      actorId: input.actorId ?? undefined,
-    });
-  }, "notifyListingAssigned");
+  return safe(
+    () =>
+      dispatchNotification({
+        type: input.type,
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        dedupeDiscriminator: String(input.occurredAt.getTime()),
+        entityType: "TOUR",
+        entityId: input.tourId,
+        actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
+        content,
+      }),
+    "notifyTourStatusChanged",
+  );
 }

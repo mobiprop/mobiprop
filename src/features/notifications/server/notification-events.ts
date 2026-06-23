@@ -1,61 +1,173 @@
 import "server-only";
 
-import type { NotificationAudience, NotificationType } from "@/features/notifications/types/notification-types";
+import type {
+  NotificationAudience,
+  NotificationChannel,
+  NotificationPriority,
+  NotificationType,
+  RecipientStrategy,
+} from "@/features/notifications/types/notification-types";
 import type { DashboardNotificationPreferences } from "@/features/profile/preferences";
 
 /**
- * Static catalog describing how each event routes. `category` is the preference
- * toggle (in staff `dashboardNotifications`) that gates the PUSH channel;
- * `critical` events always create the in-app row regardless of preferences.
+ * Centralized notification policy registry — the single source of truth for how
+ * each event routes: which channels it may use, its priority, who receives it,
+ * whether the actor is excluded, whether it must be deduplicated, and whether
+ * its content must stay customer-safe.
  *
- * Keep recipient logic OUT of here — that lives in resolve-recipients.ts.
+ * Channel decisions must NOT be spread across lead/listing/tour/invitation
+ * actions — those call the thin triggers in notify-events.ts, which read this
+ * registry. Recipient resolution lives in resolve-recipients.ts (this file only
+ * names the strategy).
+ *
+ * Notes:
+ * - `channels: []` means activity-log-only — no notification row is created.
+ * - `pushCategory` is the staff preference toggle that gates PUSH; `null` means
+ *   always-on (e.g. invitations, which never push anyway).
+ * - CRITICAL priority bypasses the category toggle (still honours the master
+ *   push switch). Priority is derived here only — never stored on the row.
+ * - EMAIL may appear in `channels` for forthcoming flows, but the delivery
+ *   pipeline does not send email yet (invitation/auth emails are sent directly
+ *   by their own modules).
  */
-export type NotificationEventDef = {
+export type NotificationPolicy = {
+  channels: NotificationChannel[];
+  priority: NotificationPriority;
+  recipientStrategy: RecipientStrategy;
+  /** Roles allowed to receive this event (defence-in-depth in createNotification). */
   audience: NotificationAudience | "ANY";
-  /** Preference key gating push, or null for always-on (e.g. invitations). */
-  category: keyof DashboardNotificationPreferences | null;
-  critical: boolean;
+  /** Preference key gating PUSH, or null for always-on. */
+  pushCategory: keyof DashboardNotificationPreferences | null;
+  /** Skip notifying the user who triggered the event. */
+  excludeActor: boolean;
+  /** Require an idempotency dedupeKey when fanning out. */
+  deduplicate: boolean;
+  /** Content (esp. the push body) must not leak private customer data. */
+  customerSafe: boolean;
 };
 
-export const NOTIFICATION_EVENTS: Record<NotificationType, NotificationEventDef> = {
-  INVITATION_CREATED: { audience: "STAFF", category: null, critical: true },
-  INVITATION_ACCEPTED: { audience: "STAFF", category: null, critical: true },
-  INVITATION_REVOKED: { audience: "STAFF", category: null, critical: true },
-  INVITATION_RESENT: { audience: "STAFF", category: null, critical: false },
+const STAFF = "STAFF" as const;
+const ANY = "ANY" as const;
 
-  LISTING_CREATED: { audience: "STAFF", category: "listingUpdates", critical: false },
-  LISTING_ASSIGNED: { audience: "STAFF", category: "listingUpdates", critical: false },
-  LISTING_STATUS_CHANGED: { audience: "STAFF", category: "listingUpdates", critical: false },
-  LISTING_FEATURED_CHANGED: { audience: "STAFF", category: "listingUpdates", critical: false },
-  LISTING_DELETED: { audience: "STAFF", category: "listingUpdates", critical: false },
+export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy> = {
+  // ── Invitations — in-app audit to admins; the invite/welcome email is sent
+  //    directly by staff-actions, so EMAIL is not a pipeline channel here. ──
+  INVITATION_CREATED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ALL_ADMINS",
+    audience: STAFF, pushCategory: null, excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  INVITATION_ACCEPTED: {
+    channels: ["IN_APP"], priority: "LOW", recipientStrategy: "ALL_ADMINS",
+    audience: STAFF, pushCategory: null, excludeActor: false, deduplicate: false, customerSafe: false,
+  },
+  INVITATION_REVOKED: {
+    channels: ["IN_APP"], priority: "LOW", recipientStrategy: "ALL_ADMINS",
+    audience: STAFF, pushCategory: null, excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  INVITATION_RESENT: {
+    channels: ["IN_APP"], priority: "LOW", recipientStrategy: "ALL_ADMINS",
+    audience: STAFF, pushCategory: null, excludeActor: true, deduplicate: false, customerSafe: false,
+  },
 
-  LEAD_CREATED: { audience: "STAFF", category: "newLeads", critical: false },
-  LEAD_ASSIGNED: { audience: "STAFF", category: "leadAssignments", critical: false },
-  LEAD_REASSIGNED: { audience: "STAFF", category: "leadAssignments", critical: false },
-  LEAD_BECAME_HOT: { audience: "STAFF", category: "leadAssignments", critical: false },
-  LEAD_CONVERTED: { audience: "STAFF", category: "leadAssignments", critical: false },
+  // ── Listings ──
+  LISTING_CREATED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "MANAGERS_AND_ADMINS",
+    audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  LISTING_ASSIGNED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  LISTING_STATUS_CHANGED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "MANAGERS_AND_ADMINS",
+    audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  LISTING_FEATURED_CHANGED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  LISTING_DELETED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "MANAGERS_AND_ADMINS",
+    audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
 
-  TOUR_REQUESTED: { audience: "STAFF", category: "tourUpdates", critical: false },
-  TOUR_CONFIRMED: { audience: "ANY", category: "tourUpdates", critical: false },
-  TOUR_RESCHEDULED: { audience: "ANY", category: "tourUpdates", critical: false },
-  TOUR_CANCELLED: { audience: "ANY", category: "tourUpdates", critical: false },
+  // ── Leads ──
+  LEAD_CREATED: {
+    channels: [], priority: "LOW", recipientStrategy: "NONE",
+    audience: STAFF, pushCategory: null, excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  LEAD_ASSIGNED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "leadAssignments", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  LEAD_REASSIGNED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "NEW_AND_PREV_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "leadAssignments", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  LEAD_BECAME_HOT: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "leadAssignments", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  LEAD_CONVERTED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "newLeads", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
 
-  OPPORTUNITY_STAGE_CHANGED: { audience: "STAFF", category: "opportunityUpdates", critical: false },
-  OPPORTUNITY_WON: { audience: "STAFF", category: "opportunityUpdates", critical: false },
-  OPPORTUNITY_LOST: { audience: "STAFF", category: "opportunityUpdates", critical: false },
+  // ── Tours — public request is externally initiated (push-worthy, customer-safe). ──
+  TOUR_REQUESTED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK",
+    audience: STAFF, pushCategory: "tourUpdates", excludeActor: false, deduplicate: true, customerSafe: true,
+  },
+  TOUR_CONFIRMED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: ANY, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: true,
+  },
+  TOUR_RESCHEDULED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: ANY, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: true,
+  },
+  TOUR_CANCELLED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: ANY, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: true,
+  },
 
-  CONTRACT_CREATED: { audience: "STAFF", category: "contractUpdates", critical: false },
-  CONTRACT_EXPIRING: { audience: "STAFF", category: "contractUpdates", critical: true },
-  CONTRACT_EXPIRED: { audience: "STAFF", category: "contractUpdates", critical: true },
+  // ── Opportunities (policies defined; module does not emit these yet). ──
+  OPPORTUNITY_STAGE_CHANGED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "opportunityUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  OPPORTUNITY_WON: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "opportunityUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  OPPORTUNITY_LOST: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "opportunityUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+
+  // ── Contracts (policies defined; module does not emit these yet). The two
+  //    expiry events are CRITICAL so push bypasses the category toggle. ──
+  CONTRACT_CREATED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "contractUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  },
+  CONTRACT_EXPIRING: {
+    channels: ["IN_APP", "PUSH"], priority: "CRITICAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "contractUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  },
+  CONTRACT_EXPIRED: {
+    channels: ["IN_APP", "PUSH"], priority: "CRITICAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "contractUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  },
 };
 
-export function getEventDef(type: NotificationType): NotificationEventDef | null {
-  return NOTIFICATION_EVENTS[type] ?? null;
+export function getPolicy(type: NotificationType): NotificationPolicy | null {
+  return NOTIFICATION_POLICIES[type] ?? null;
 }
 
 /** True when the recipient's role is allowed to receive this event's audience. */
 export function audienceAllowsRole(
-  audience: NotificationEventDef["audience"],
+  audience: NotificationPolicy["audience"],
   role: "ADMIN" | "MANAGER" | "AGENT" | "USER",
 ): boolean {
   if (audience === "ANY") return true;
