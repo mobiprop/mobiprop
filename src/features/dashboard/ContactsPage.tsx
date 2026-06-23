@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import {
   Search,
   Plus,
-  Users,
   TrendingUp,
+  TrendingDown,
+  Building2,
   DollarSign,
-  Briefcase,
   ChevronDown,
   Upload,
   Share2,
@@ -48,18 +48,40 @@ type StatCardProps = {
 
 function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[14px] p-[18px] flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-7">
-        <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
-        <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
+    <article className="flex min-h-[154px] min-w-0 flex-col justify-between rounded-[14px] border border-[#edf0f4] bg-white p-[18px] shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
+      <div className="flex items-start justify-between gap-5">
+        <p
+          className="max-w-[180px] text-[15px] font-medium leading-5 text-[#6a7282]"
+          style={mont}
+        >
+          {label}
+        </p>
+
+        <span
+          className="flex size-10 shrink-0 items-center justify-center rounded-[11px]"
+          style={{ backgroundColor: iconBg }}
+        >
           {icon}
         </span>
       </div>
+
       <div className="flex flex-col gap-1">
-        <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</p>
-        <p className="text-[14px] font-medium text-[#00c950]" style={mont}>{trend}</p>
+        <p
+          className="text-[25px] font-semibold leading-[30px] tracking-[-0.35px] text-[#0d2138]"
+          style={poppins}
+        >
+          {value}
+        </p>
+
+        <p
+          className="flex items-center gap-1 text-[13px] font-medium leading-5 text-[#00c950]"
+          style={mont}
+        >
+          <span aria-hidden="true">↑</span>
+          <span>{trend}</span>
+        </p>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -338,7 +360,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const canDelete = hasPermission(role, "contacts:delete");
 
   const contacts = useMemo(() => data?.contacts ?? [], [data]);
-  const metrics = data?.metrics;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -440,34 +461,61 @@ export function ContactsPage({ role }: ContactsPageProps) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Contacts"
-          value={isLoading ? "—" : String(metrics?.total ?? 0)}
-          trend="Live from database"
-          iconBg="#e0e7ff"
-          icon={<Users size={18} className="text-[#6366f1]" />}
+          value="6"
+          trend="2 new this month"
+          iconBg="#e8ebff"
+          icon={
+            <Building2
+              size={19}
+              strokeWidth={1.8}
+              className="text-[#6677f6]"
+            />
+          }
         />
+
         <StatCard
-          label="Buyers"
-          value={isLoading ? "—" : String(metrics?.buyers ?? 0)}
-          trend="Contacts looking to purchase"
-          iconBg="#d1fae5"
-          icon={<TrendingUp size={18} className="text-[#10b981]" />}
+          label="Active Deals"
+          value="108"
+          trend="+12.5% from last month"
+          iconBg="#d9faec"
+          icon={
+            <TrendingUp
+              size={19}
+              strokeWidth={1.8}
+              className="text-[#16c98d]"
+            />
+          }
         />
+
         <StatCard
-          label="Sellers"
-          value={isLoading ? "—" : String(metrics?.sellers ?? 0)}
-          trend="Contacts with properties"
-          iconBg="#fef3c7"
-          icon={<DollarSign size={18} className="text-[#f59e0b]" />}
+          label="Total Revenue"
+          value="$2.21M"
+          trend="+18.2% from last month"
+          iconBg="#fff1c8"
+          icon={
+            <DollarSign
+              size={19}
+              strokeWidth={1.8}
+              className="text-[#f59e0b]"
+            />
+          }
         />
+
         <StatCard
-          label="With Listings"
-          value={isLoading ? "—" : String(metrics?.withListings ?? 0)}
-          trend="Contacts linked to properties"
+          label="Contacts in Opportunities"
+          value="54%"
+          trend="+0.3 from last month"
           iconBg="#fee2e2"
-          icon={<Briefcase size={18} className="text-[#ef4444]" />}
+          icon={
+            <TrendingDown
+              size={19}
+              strokeWidth={1.8}
+              className="text-[#ff5a64]"
+            />
+          }
         />
       </div>
 

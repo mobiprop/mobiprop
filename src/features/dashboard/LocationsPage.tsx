@@ -475,45 +475,75 @@ export function LocationsPage({ role }: LocationsPageProps) {
             {/* Map + Property Distribution */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5">
               {/* Map */}
-              <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden flex flex-col">
-                <div className="px-4 py-3.5 border-b border-[#f0f0f0] flex items-center gap-2">
-                  <Map size={16} className="text-[#0d2138]" />
+              <div className="overflow-hidden rounded-[24px] border border-[#dfe3e8] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+                {/* Header */}
+                <div className="flex h-[76px] items-center border-b border-[#e5e7eb] px-7">
+                  <Map
+                    size={25}
+                    strokeWidth={1.8}
+                    className="shrink-0 text-[#1e5b96]"
+                  />
+
                   <p
-                    className="text-[14px] font-semibold text-[#0d2138]"
+                    className="ml-3 text-[16px] font-semibold text-[#10233f]"
                     style={mont}
                   >
                     Location Map
                   </p>
-                  <Send size={14} className="ml-auto text-[#6a7282]" />
+
+                  <Send
+                    size={23}
+                    strokeWidth={1.7}
+                    className="ml-auto text-[#6a7282]"
+                  />
                 </div>
-                <div className="relative flex-1 min-h-[220px] bg-gradient-to-br from-[#e8f4ea] via-[#eef6ec] to-[#fbf6e9]">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="size-10 rounded-full bg-[#1e4f86] flex items-center justify-center shadow-lg">
-                      <MapPin size={20} className="text-white" />
-                    </span>
+
+                {/* Map */}
+                <div
+                  className="relative h-[420px] w-full overflow-hidden bg-[#e8efe7] bg-cover bg-center"
+                  style={{
+                    backgroundImage: "url('/images/location-map.png')",
+                  }}
+                >
+                  {/* Center location marker */}
+                  <div className="absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2">
+                    <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#43a0c3] shadow-[0_8px_18px_rgba(15,23,42,0.25)]">
+                      <MapPin
+                        size={38}
+                        strokeWidth={2}
+                        className="text-white"
+                      />
+
+                      <span className="absolute -bottom-[41px] left-1/2 h-[42px] w-[6px] -translate-x-1/2 bg-[#43a0c3]" />
+                    </div>
                   </div>
+
+                  {/* Zoom controls */}
+                  <div className="absolute right-5 top-5 flex flex-col gap-2">
+                    <button
+                      type="button"
+                      aria-label="Zoom in"
+                      className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] border border-[#e5e7eb] bg-white text-[#6a7282] shadow-[0_2px_6px_rgba(15,23,42,0.18)] transition hover:bg-[#f8fafc]"
+                    >
+                      <Plus size={16} strokeWidth={2.5} />
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label="Zoom out"
+                      className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px] border border-[#e5e7eb] bg-white text-[#6a7282] shadow-[0_2px_6px_rgba(15,23,42,0.18)] transition hover:bg-[#f8fafc]"
+                    >
+                      <Minus size={16} strokeWidth={2.5} />
+                    </button>
+                  </div>
+
+                  {/* Coordinates */}
                   <div
-                    className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-white/90 text-[11px] text-[#6b7280]"
+                    className="absolute bottom-5 left-5 rounded-[16px] border border-[#e5e7eb] bg-white px-5 py-3 text-[11px] font-medium text-[#6a7282] shadow-[0_2px_8px_rgba(15,23,42,0.18)]"
                     style={mont}
                   >
                     {selected.coordinates.lat.toFixed(4)},{" "}
                     {selected.coordinates.lng.toFixed(4)}
-                  </div>
-                  <div className="absolute bottom-3 right-3 flex flex-col gap-1.5">
-                    <button
-                      type="button"
-                      aria-label="Zoom in"
-                      className="size-7 rounded-[8px] bg-white shadow flex items-center justify-center text-[#6b7280]"
-                    >
-                      <Plus size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Zoom out"
-                      className="size-7 rounded-[8px] bg-white shadow flex items-center justify-center text-[#6b7280]"
-                    >
-                      <Minus size={14} />
-                    </button>
                   </div>
                 </div>
               </div>
