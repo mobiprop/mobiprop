@@ -29,6 +29,7 @@ const mockPrismaProfile = {
   findUnique: vi.fn(),
   update: vi.fn(),
   findMany: vi.fn(),
+  delete: vi.fn(),
 };
 
 vi.mock("@/lib/prisma", () => ({
@@ -50,7 +51,7 @@ beforeEach(() => {
   };
 });
 
-const { updateAgentStatus } = await import("@/features/agents/agent-actions");
+const { updateAgentStatus, deleteAgent } = await import("@/features/agents/agent-actions");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. updateAgentStatus logs activity
@@ -114,5 +115,59 @@ describe("updateAgentStatus — no cascade to leads/listings", () => {
       where: { id: AGENT_ID },
       data: { status: "INACTIVE" },
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. deleteAgent
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("deleteAgent", () => {
+  it("deletes the profile row and logs AGENT_DELETED", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({
+      id: AGENT_ID,
+      role: "AGENT",
+      status: "PENDING",
+      email: "agent@test.com",
+    });
+    mockPrismaProfile.delete.mockResolvedValue({ id: AGENT_ID });
+
+    const res = await deleteAgent(AGENT_ID);
+    expect(res.ok).toBe(true);
+
+    expect(mockPrismaProfile.delete).toHaveBeenCalledOnce();
+    expect(mockPrismaProfile.delete.mock.calls[0][0]).toMatchObject({ where: { id: AGENT_ID } });
+
+    expect(mockLogActivity).toHaveBeenCalledOnce();
+    const [call] = mockLogActivity.mock.calls;
+    expect(call[0].action).toBe("AGENT_DELETED");
+    expect(call[0].entityId).toBe(AGENT_ID);
+    expect(call[0].actorId).toBe(ADMIN_ID);
+  });
+
+  it("returns 404 for USER role (not an agent)", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "USER", status: "ACTIVE" });
+
+    const res = await deleteAgent(AGENT_ID);
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(404);
+    expect(mockPrismaProfile.delete).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when the agent does not exist", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue(null);
+
+    const res = await deleteAgent(AGENT_ID);
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(404);
+    expect(mockPrismaProfile.delete).not.toHaveBeenCalled();
+  });
+
+  it("refuses to let an admin delete their own account", async () => {
+    const res = await deleteAgent(ADMIN_ID);
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(400);
+    expect(mockPrismaProfile.findUnique).not.toHaveBeenCalled();
+    expect(mockPrismaProfile.delete).not.toHaveBeenCalled();
   });
 });

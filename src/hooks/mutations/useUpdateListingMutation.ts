@@ -97,3 +97,13 @@ export function useRemoveListingImageMutation() {
     onSuccess: invalidate,
   });
 }
+
+/** Persist a new image order (PUT /api/listings/[id]/images). */
+export function useReorderListingImagesMutation() {
+  const invalidate = useListingInvalidation();
+  return useMutation({
+    mutationFn: ({ id, imageIds }: { id: string; imageIds: string[] }) =>
+      requestJson(`/api/listings/${id}/images`, "PUT", { imageIds }),
+    onSuccess: invalidate,
+  });
+}

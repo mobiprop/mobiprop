@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getAgentDetail, updateAgentStatus } from "@/features/agents/agent-actions";
+import { deleteAgent, getAgentDetail, updateAgentStatus } from "@/features/agents/agent-actions";
 
 export const runtime = "nodejs";
 
@@ -29,6 +29,18 @@ export async function PATCH(
   }
 
   const result = await updateAgentStatus(id, newStatus);
+  if (!result.ok) {
+    return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+  }
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const result = await deleteAgent(id);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

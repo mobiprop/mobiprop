@@ -872,6 +872,47 @@ export async function setListingCoverImage(
   return { ok: true, listing: toDashboardDto(property) };
 }
 
+/** Staff (listings:uploadImages): persist a new display order for a listing's images. */
+export async function reorderListingImages(
+  id: string,
+  imageIds: string[],
+): Promise<ListingActionResult<{ listing: DashboardListingDto }>> {
+  const gate = await requirePermission("listings:uploadImages");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+  const { profile } = gate;
+
+  const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
+  if (!existing) return notFound();
+  if (!canManageRecord(profile, existing)) return forbidden();
+
+  const existingIds = new Set(existing.images.map((i) => i.id));
+  const isCompleteReorder =
+    imageIds.length === existing.images.length &&
+    new Set(imageIds).size === imageIds.length &&
+    imageIds.every((imageId) => existingIds.has(imageId));
+
+  if (!isCompleteReorder) {
+    return { ok: false, error: "Image order must include every image exactly once.", status: 400 };
+  }
+
+  await prisma.$transaction(
+    imageIds.map((imageId, index) =>
+      prisma.propertyImage.update({ where: { id: imageId }, data: { sortOrder: index } }),
+    ),
+  );
+
+  await logActivity({
+    actorId: profile.id,
+    action: "PROPERTY_IMAGES_REORDERED",
+    entityType: "PROPERTY",
+    entityId: id,
+    newValues: { order: imageIds },
+  });
+
+  const property = await prisma.property.findUniqueOrThrow({ where: { id }, include: listingInclude });
+  return { ok: true, listing: toDashboardDto(property) };
+}
+
 // ── Public listings (no auth — ACTIVE only, safe fields only) ─────────────────
 
 export type PublicListingFilters = {

@@ -15,6 +15,7 @@ export type Permission =
   | "agents:create"
   | "agents:update"
   | "agents:deactivate"
+  | "agents:delete"
   | "agents:invite"
   // Invitation management (list/resend/revoke) is ADMIN-only in phase 1.
   // Future option (needs client sign-off): grant MANAGER "agents:invite" to let
@@ -82,6 +83,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "agents:create",
     "agents:update",
     "agents:deactivate",
+    "agents:delete",
     "agents:invite",
     "invitations:view",
     "invitations:resend",

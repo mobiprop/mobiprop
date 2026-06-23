@@ -106,6 +106,36 @@ export async function updateAgentStatus(
   return { ok: true };
 }
 
+type DeleteAgentResult =
+  | { ok: true }
+  | { ok: false; error: string; status: number };
+
+export async function deleteAgent(agentId: string): Promise<DeleteAgentResult> {
+  const auth = await requirePermission("agents:delete");
+  if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
+
+  if (agentId === auth.profile.id) {
+    return { ok: false, error: "You cannot delete your own account.", status: 400 };
+  }
+
+  const agent = await prisma.profile.findUnique({ where: { id: agentId } });
+  if (!agent || agent.role === UserRole.USER) {
+    return { ok: false, error: "Agent not found.", status: 404 };
+  }
+
+  await prisma.profile.delete({ where: { id: agentId } });
+
+  await logActivity({
+    actorId: auth.profile.id,
+    action: "AGENT_DELETED",
+    entityType: "PROFILE",
+    entityId: agentId,
+    oldValues: { email: agent.email, role: agent.role, status: agent.status },
+  });
+
+  return { ok: true };
+}
+
 export type AssignedPropertySummary = {
   id: string;
   listingId: string;
