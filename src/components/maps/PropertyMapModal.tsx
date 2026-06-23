@@ -134,7 +134,7 @@ function buildOverlayClass(): PinOverlayCtor {
 /* ─── sidebar listing card ─── */
 
 const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
 
 function SidebarCard({
   item,

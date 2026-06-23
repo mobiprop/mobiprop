@@ -29,8 +29,8 @@ import {
 
 /* ─── assets ─── */
 const clouds =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.png";
-const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.webp";
+const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const iconEmail = "/assets/figma-temp/UserProfile/email.svg";
 const iconPhone = "/assets/figma-temp/UserProfile/phone.svg";
 const iconMap = "/assets/figma-temp/UserProfile/location.svg";
@@ -80,7 +80,7 @@ type SavedListing = {
 };
 
 const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
 
 /* ─── Real Saved Property Card ─── */
 function SavedCard({

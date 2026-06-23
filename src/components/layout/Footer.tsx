@@ -2,7 +2,7 @@ import Link from "next/link";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const footerBg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/footerbackground.png";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/footerbackground.webp";
 
 const navLinks = [
   { label: "Home", href: "/" },
