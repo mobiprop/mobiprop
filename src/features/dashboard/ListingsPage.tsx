@@ -78,7 +78,7 @@ function StatCard({
 
       <div className="mt-5 min-w-0">
         <p
-          className="truncate text-[24px] font-semibold leading-8 text-[#0d2138]"
+          className="truncate text-[24px] font-semibold leading-8 text-[#1B487A]"
           style={poppins}
         >
           {value}
