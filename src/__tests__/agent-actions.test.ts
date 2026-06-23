@@ -17,7 +17,6 @@ vi.mock("react", async (importOriginal) => {
 
 const mockLogActivity = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/activity-log", () => ({ logActivity: mockLogActivity }));
-vi.mock("@/lib/notifications", () => ({ notifyAdmins: vi.fn() }));
 
 let mockRequirePermissionResult: Record<string, unknown> = {};
 
