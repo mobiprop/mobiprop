@@ -17,7 +17,7 @@ scripts/deploy.sh
 # next.js
 /.next/
 /out/
-
+docs
 # production
 /build
 
