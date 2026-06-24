@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { X, Calendar, Loader2, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Calendar, Clock, Loader2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 
 import { useRequestTourMutation } from "@/hooks/mutations/useTourMutations";
+import { CalendarPanel } from "@/features/dashboard/components/CalendarPanel";
+import { TimePanel } from "@/features/dashboard/components/TimePanel";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -12,9 +14,27 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 const inputCls =
   "h-11 px-4 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] placeholder:text-[#9ca3af] outline-none focus:border-[#1e4f86] transition-colors w-full bg-white";
 
-function minDatetimeLocal() {
-  const d = new Date(Date.now() + 60 * 60 * 1000);
-  return d.toISOString().slice(0, 16);
+function defaultSchedule() {
+  return new Date(Date.now() + 60 * 60 * 1000);
+}
+
+function timeString(d: Date) {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+const TIME_FMT = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+
+function formatTimeLabel(time: string) {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date(2000, 0, 1, h || 0, m || 0);
+  return TIME_FMT.format(d);
 }
 
 type Props = {
@@ -30,10 +50,32 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
-  const [scheduledAt, setScheduledAt] = useState(minDatetimeLocal());
+  const initialSchedule = defaultSchedule();
+  const [scheduledDate, setScheduledDate] = useState<Date>(initialSchedule);
+  const [scheduledTime, setScheduledTime] = useState(timeString(initialSchedule));
+  const [openPanel, setOpenPanel] = useState<"date" | "time" | null>(null);
+  const calRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(60);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<{ tourNumber: string; scheduledAt: string } | null>(null);
+
+  // Close the date/time popover on outside click
+  useEffect(() => {
+    if (!openPanel) return;
+    const onDown = (e: MouseEvent) => {
+      if (calRef.current && !calRef.current.contains(e.target as Node)) setOpenPanel(null);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [openPanel]);
+
+  // Combine the picked date with the time field into a single Date
+  function buildScheduledAt(): Date {
+    const [h, m] = scheduledTime.split(":").map(Number);
+    const d = new Date(scheduledDate);
+    d.setHours(h || 0, m || 0, 0, 0);
+    return d;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +83,9 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
 
     if (!name.trim()) { setError("Your name is required."); return; }
     if (!email.trim() && !phone.trim()) { setError("Please provide at least an email or phone number."); return; }
-    if (!scheduledAt) { setError("Please choose a date and time."); return; }
-    if (new Date(scheduledAt) <= new Date()) { setError("Please choose a future date and time."); return; }
+    if (!scheduledTime) { setError("Please choose a time."); return; }
+    const scheduledAt = buildScheduledAt();
+    if (scheduledAt <= new Date()) { setError("Please choose a future date and time."); return; }
 
     try {
       const result = await mutation.mutateAsync({
@@ -51,7 +94,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
         submittedPhone: phone.trim() || undefined,
         submittedMessage: message.trim() || undefined,
         propertyId,
-        scheduledAt: new Date(scheduledAt).toISOString(),
+        scheduledAt: scheduledAt.toISOString(),
         durationMinutes: duration,
       });
       setSuccess({ tourNumber: result.tourNumber, scheduledAt: result.scheduledAt });
@@ -63,10 +106,10 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-[20px] shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="relative bg-white rounded-[20px] shadow-2xl w-full max-w-md">
         {/* Header */}
         <div
-          className="px-6 pt-6 pb-4"
+          className="px-6 pt-6 pb-4 rounded-t-[20px] overflow-hidden"
           style={{ background: "linear-gradient(135deg, #0d2138 0%, #1e4f86 100%)" }}
         >
           <div className="flex items-center justify-between">
@@ -147,35 +190,66 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                 </div>
               </div>
 
-              {/* Date + Duration */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Preferred Date & Time *</label>
-                  <input
-                    type="datetime-local"
-                    className={inputCls}
+              {/* Preferred date + time */}
+              <div ref={calRef} className="grid grid-cols-2 gap-3">
+                <div className="relative flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Preferred Date *</label>
+                  <button
+                    type="button"
+                    onClick={() => setOpenPanel((p) => (p === "date" ? null : "date"))}
+                    className={`${inputCls} flex items-center justify-between gap-2 text-left ${openPanel === "date" ? "border-[#1e4f86]" : ""}`}
                     style={mont}
-                    value={scheduledAt}
-                    min={minDatetimeLocal()}
-                    onChange={(e) => setScheduledAt(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Duration</label>
-                  <select
-                    className="h-11 px-3 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
-                    style={mont}
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
                   >
-                    <option value={30}>30 min</option>
-                    <option value={45}>45 min</option>
-                    <option value={60}>1 hour</option>
-                    <option value={90}>1.5 hours</option>
-                    <option value={120}>2 hours</option>
-                  </select>
+                    <span className="truncate">{DATE_FMT.format(scheduledDate)}</span>
+                    <Calendar size={15} color="#6a7282" className="shrink-0" />
+                  </button>
+                  {openPanel === "date" && (
+                    <CalendarPanel
+                      align="left"
+                      value={scheduledDate}
+                      minDate={new Date()}
+                      onSelect={(d) => { setScheduledDate(d); setOpenPanel(null); }}
+                      onClose={() => setOpenPanel(null)}
+                    />
+                  )}
                 </div>
+                <div className="relative flex flex-col gap-1.5">
+                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Time *</label>
+                  <button
+                    type="button"
+                    onClick={() => setOpenPanel((p) => (p === "time" ? null : "time"))}
+                    className={`${inputCls} flex items-center justify-between gap-2 text-left ${openPanel === "time" ? "border-[#1e4f86]" : ""}`}
+                    style={mont}
+                  >
+                    <span className="truncate">{formatTimeLabel(scheduledTime)}</span>
+                    <Clock size={15} color="#6a7282" className="shrink-0" />
+                  </button>
+                  {openPanel === "time" && (
+                    <TimePanel
+                      align="right"
+                      value={scheduledTime}
+                      onSelect={setScheduledTime}
+                      onClose={() => setOpenPanel(null)}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Duration */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Duration</label>
+                <select
+                  className="h-11 px-3 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
+                  style={mont}
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                >
+                  <option value={30}>30 min</option>
+                  <option value={45}>45 min</option>
+                  <option value={60}>1 hour</option>
+                  <option value={90}>1.5 hours</option>
+                  <option value={120}>2 hours</option>
+                </select>
               </div>
 
               {/* Message */}

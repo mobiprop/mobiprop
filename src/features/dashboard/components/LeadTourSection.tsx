@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   AlertTriangle,
   Calendar,
   CheckCircle2,
+  Clock,
   Loader2,
   Plus,
   RefreshCw,
@@ -23,8 +24,110 @@ import {
 import { TOUR_STATUS_BADGE } from "@/features/crm/tour-status-badge";
 import type { LeadDto, TourDto } from "@/features/crm/types/crm-dto";
 import { AddTourModal } from "./AddTourModal";
+import { CalendarPanel } from "./CalendarPanel";
+import { TimePanel } from "./TimePanel";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
+
+function timeString(d: Date) {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+const TIME_FMT = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+
+// Shared date+time picker using the dashboard calendar and a matching time panel.
+function DateTimePicker({
+  value,
+  onChange,
+  minDate,
+}: {
+  value: Date | null;
+  onChange: (d: Date) => void;
+  minDate?: Date;
+}) {
+  const [openPanel, setOpenPanel] = useState<"date" | "time" | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const time = value ? timeString(value) : "";
+
+  useEffect(() => {
+    if (!openPanel) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpenPanel(null);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [openPanel]);
+
+  function pickDate(d: Date) {
+    const next = new Date(d);
+    const [h, m] = (time || "09:00").split(":").map(Number);
+    next.setHours(h || 0, m || 0, 0, 0);
+    onChange(next);
+    setOpenPanel(null);
+  }
+
+  function pickTime(t: string) {
+    const [h, m] = t.split(":").map(Number);
+    const base = value ? new Date(value) : new Date();
+    base.setHours(h || 0, m || 0, 0, 0);
+    onChange(base);
+  }
+
+  return (
+    <div ref={ref} className="flex items-center gap-2">
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpenPanel((p) => (p === "date" ? null : "date"))}
+          className={`flex h-9 min-w-[150px] items-center justify-between gap-2 border rounded-[8px] px-3 text-[12px] text-[#0d2138] bg-white transition-colors ${openPanel === "date" ? "border-[#1e4f86]" : "border-[#e5e7eb]"}`}
+          style={mont}
+        >
+          <span className={value ? "" : "text-[#9ca3af]"}>
+            {value ? DATE_FMT.format(value) : "Select date"}
+          </span>
+          <Calendar size={13} color="#6a7282" className="shrink-0" />
+        </button>
+        {openPanel === "date" && (
+          <CalendarPanel
+            align="left"
+            value={value}
+            minDate={minDate}
+            onSelect={pickDate}
+            onClose={() => setOpenPanel(null)}
+          />
+        )}
+      </div>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpenPanel((p) => (p === "time" ? null : "time"))}
+          className={`flex h-9 min-w-[100px] items-center justify-between gap-2 border rounded-[8px] px-3 text-[12px] text-[#0d2138] bg-white transition-colors ${openPanel === "time" ? "border-[#1e4f86]" : "border-[#e5e7eb]"}`}
+          style={mont}
+        >
+          <span className={value ? "" : "text-[#9ca3af]"}>
+            {value ? TIME_FMT.format(value) : "Time"}
+          </span>
+          <Clock size={13} color="#6a7282" className="shrink-0" />
+        </button>
+        {openPanel === "time" && (
+          <TimePanel
+            align="right"
+            value={time}
+            onSelect={pickTime}
+            onClose={() => setOpenPanel(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 function StatusBadge({ status }: { status: TourStatus }) {
   const b = TOUR_STATUS_BADGE[status];
@@ -87,7 +190,7 @@ const VALID_NEXT: Partial<Record<TourStatus, TourStatus[]>> = {
 function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
   const [selected, setSelected] = useState<TourStatus | null>(null);
   const [note, setNote] = useState("");
-  const [newDate, setNewDate] = useState("");
+  const [newDate, setNewDate] = useState<Date | null>(null);
   const statusMutation = useUpdateTourStatusMutation(tour.id);
   const canUpdate = hasPermission(role, "tours:update");
 
@@ -96,17 +199,21 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
 
   const handleApply = async () => {
     if (!selected) return;
-    await statusMutation.mutateAsync({
-      status: selected,
-      confirmationNote: selected === TourStatus.CONFIRMED ? note || undefined : undefined,
-      rescheduleNote: selected === TourStatus.RESCHEDULED ? note || undefined : undefined,
-      cancellationReason: selected === TourStatus.CANCELLED ? note || undefined : undefined,
-      completionNote: selected === TourStatus.COMPLETED ? note || undefined : undefined,
-      scheduledAt: selected === TourStatus.RESCHEDULED && newDate ? new Date(newDate).toISOString() : undefined,
-    });
-    setSelected(null);
-    setNote("");
-    setNewDate("");
+    try {
+      await statusMutation.mutateAsync({
+        status: selected,
+        confirmationNote: selected === TourStatus.CONFIRMED ? note || undefined : undefined,
+        rescheduleNote: selected === TourStatus.RESCHEDULED ? note || undefined : undefined,
+        cancellationReason: selected === TourStatus.CANCELLED ? note || undefined : undefined,
+        completionNote: selected === TourStatus.COMPLETED ? note || undefined : undefined,
+        scheduledAt: selected === TourStatus.RESCHEDULED && newDate ? newDate.toISOString() : undefined,
+      });
+      setSelected(null);
+      setNote("");
+      setNewDate(null);
+    } catch {
+      // surfaced via statusMutation.isError below
+    }
   };
 
   return (
@@ -148,13 +255,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
               >
                 New Date &amp; Time
               </label>
-              <input
-                type="datetime-local"
-                value={newDate}
-                onChange={(e) => setNewDate(e.target.value)}
-                className="border border-[#e5e7eb] rounded-[8px] px-3 py-2 text-[13px] text-[#0d2138] outline-none focus:border-[#0d2138]"
-                style={mont}
-              />
+              <DateTimePicker value={newDate} onChange={setNewDate} minDate={new Date()} />
             </div>
           )}
           <textarea
@@ -200,7 +301,8 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
 
 function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState<Date | null>(null);
+  const [error, setError] = useState("");
   const updateMutation = useUpdateTourMutation(tour.id);
   const canUpdate = hasPermission(role, "tours:update");
 
@@ -211,17 +313,28 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
 
   if (!canUpdate || isTerminal) return null;
 
+  const startEditing = () => {
+    setValue(new Date(tour.scheduledAt));
+    setError("");
+    setEditing(true);
+  };
+
   const handleSave = async () => {
     if (!value) return;
-    await updateMutation.mutateAsync({ scheduledAt: new Date(value).toISOString() });
-    setEditing(false);
+    setError("");
+    try {
+      await updateMutation.mutateAsync({ scheduledAt: value.toISOString() });
+      setEditing(false);
+    } catch (err) {
+      setError((err as Error).message ?? "Failed to update tour");
+    }
   };
 
   if (!editing) {
     return (
       <button
         type="button"
-        onClick={() => setEditing(true)}
+        onClick={startEditing}
         className="self-start text-[11px] text-[#4f46e5] hover:underline"
         style={mont}
       >
@@ -231,31 +344,30 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="datetime-local"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        className="border border-[#e5e7eb] rounded-[6px] px-2 py-1 text-[12px] outline-none focus:border-[#0d2138]"
-        style={mont}
-      />
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={!value || updateMutation.isPending}
-        className="text-[12px] font-semibold text-white bg-[#0d2138] px-3 py-1 rounded-[6px] disabled:opacity-40"
-        style={mont}
-      >
-        Save
-      </button>
-      <button
-        type="button"
-        onClick={() => setEditing(false)}
-        className="text-[12px] text-[#6b7280]"
-        style={mont}
-      >
-        Cancel
-      </button>
+    <div className="flex flex-col gap-2">
+      <DateTimePicker value={value} onChange={setValue} minDate={new Date()} />
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!value || updateMutation.isPending}
+          className="text-[12px] font-semibold text-white bg-[#0d2138] px-3 py-1 rounded-[6px] disabled:opacity-40"
+          style={mont}
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={() => { setEditing(false); setError(""); }}
+          className="text-[12px] text-[#6b7280]"
+          style={mont}
+        >
+          Cancel
+        </button>
+      </div>
+      {error && (
+        <p className="text-[12px] text-red-500" style={mont}>{error}</p>
+      )}
     </div>
   );
 }

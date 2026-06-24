@@ -169,7 +169,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
+    <section className="rounded-[14px] border border-[#f3f4f6] bg-white">
       <div className="flex items-center gap-2 border-b border-[#f3f4f6] px-4 py-4 sm:px-5">
         {icon}
         <h3
