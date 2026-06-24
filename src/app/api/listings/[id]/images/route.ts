@@ -12,19 +12,16 @@ export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 
 /**
- * Staff (listings:uploadImages): add images to an existing listing.
- * Multipart form with `images` files. Optimized to WebP/2K before storage.
+ * Staff (listings:uploadImages): add images to an existing listing. JSON body
+ * { images: descriptors } for objects already uploaded directly to storage via
+ * POST /api/listings/[id]/images/uploads. The bytes never pass through this
+ * function, so there is no request-body size limit.
  */
 export async function POST(request: Request, { params }: Context) {
   const { id } = await params;
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return NextResponse.json({ success: false, error: "Invalid form data" }, { status: 400 });
-  }
+  const body = await request.json().catch(() => null);
 
-  const files = formData.getAll("images").filter((f): f is File => f instanceof File);
-
-  const result = await addListingImages(id, files);
+  const result = await addListingImages(id, body?.images);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

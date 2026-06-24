@@ -34,10 +34,56 @@ export type AmenityKey = (typeof AMENITY_OPTIONS)[number]["key"];
 const AMENITY_KEYS = AMENITY_OPTIONS.map((a) => a.key) as [AmenityKey, ...AmenityKey[]];
 
 // Image upload constraints (mirrored client-side for previews and enforced
-// server-side before optimization/storage).
-export const LISTING_IMAGE_MAX_BYTES = 10 * 1024 * 1024; // 10MB per file (pre-optimization)
-export const LISTING_IMAGE_MAX_COUNT = 24;
+// server-side). Images upload directly to storage via signed URLs (the
+// serverless function never receives the bytes), so the only ceiling is this
+// per-file cap and the storage bucket's fileSizeLimit — not Vercel's ~4.5MB
+// request-body limit.
+export const LISTING_IMAGE_MAX_BYTES = 15 * 1024 * 1024; // 15MB per file (originals; converted to WebP before upload)
+export const LISTING_IMAGE_MAX_COUNT = 40;
 export const LISTING_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const imageMimeSchema = z
+  .string()
+  .refine((type) => LISTING_IMAGE_MIME_TYPES.includes(type), "Only JPG, PNG, and WebP images are allowed.");
+
+/**
+ * Request to mint signed upload tickets — sent before the browser uploads
+ * directly to storage. We validate the claimed metadata for early/friendly
+ * rejection; the authoritative size/type check happens against the stored
+ * object when the upload is confirmed.
+ */
+export const listingUploadTicketRequestSchema = z.object({
+  files: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(255),
+        type: imageMimeSchema,
+        size: z.number().int().positive().max(LISTING_IMAGE_MAX_BYTES, "An image exceeds the size limit."),
+      }),
+    )
+    .min(1, "At least one file is required.")
+    .max(LISTING_IMAGE_MAX_COUNT, `A listing can have at most ${LISTING_IMAGE_MAX_COUNT} images.`),
+});
+export type ListingUploadTicketRequest = z.infer<typeof listingUploadTicketRequestSchema>;
+
+/**
+ * One image that the browser has already uploaded to storage. `imageId` /
+ * `storagePath` are server-minted (returned in the upload ticket) and verified
+ * against actual storage objects before any DB row is written.
+ */
+export const listingImageDescriptorSchema = z.object({
+  imageId: z.uuid(),
+  storagePath: z.string().min(1).max(512),
+  originalFileName: z.string().min(1).max(255),
+  mimeType: imageMimeSchema,
+  width: z.number().int().positive().nullish(),
+  height: z.number().int().positive().nullish(),
+});
+export type ListingImageDescriptor = z.infer<typeof listingImageDescriptorSchema>;
+
+export const listingImageDescriptorsSchema = z
+  .array(listingImageDescriptorSchema)
+  .max(LISTING_IMAGE_MAX_COUNT, `A listing can have at most ${LISTING_IMAGE_MAX_COUNT} images.`);
 
 // Form inputs arrive as strings; turn "" into undefined so "required" and
 // "optional" both behave, then coerce to number.

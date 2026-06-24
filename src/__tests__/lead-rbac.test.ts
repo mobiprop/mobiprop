@@ -81,8 +81,11 @@ vi.mock("@/features/notifications/server/notify-events", () => ({
   notifyLeadAssigned: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/lib/maps", () => ({ geocodeAddress: vi.fn().mockResolvedValue(null) }));
-vi.mock("@/lib/images", () => ({ optimizeListingImage: vi.fn() }));
-vi.mock("@/lib/supabase/storage", () => ({ removePropertyImages: vi.fn(), uploadPropertyImage: vi.fn() }));
+vi.mock("@/lib/supabase/storage", () => ({
+  removePropertyImages: vi.fn(),
+  mintPropertyImageUploadTickets: vi.fn(),
+  verifyUploadedPropertyImages: vi.fn(),
+}));
 vi.mock("@/lib/email", () => ({ sendAgentInvitationEmail: vi.fn() }));
 
 // ── Auth mock ─────────────────────────────────────────────────────────────────

@@ -41,27 +41,28 @@ export async function GET(request: Request) {
 }
 
 /**
- * Staff: create a listing. Multipart form — `data` is the JSON listing fields,
- * `images` the files, `coverIndex` which image is the cover. Authorization is
- * enforced inside createListing via requirePermission("listings:create").
+ * Staff: create a listing. JSON body — `data` is the listing fields, `images`
+ * the descriptors of objects already uploaded directly to storage (under the
+ * server-issued `propertyId` from POST /api/listings/uploads), `coverIndex`
+ * which image is the cover. The image bytes never pass through this function,
+ * so there is no request-body size limit. Authorization is enforced inside
+ * createListing via requirePermission("listings:create").
  */
 export async function POST(request: Request) {
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return NextResponse.json({ success: false, error: "Invalid form data" }, { status: 400 });
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
-  let data: unknown;
-  try {
-    data = JSON.parse(String(formData.get("data") ?? "null"));
-  } catch {
-    return NextResponse.json({ success: false, error: "Invalid listing data" }, { status: 400 });
-  }
+  const propertyId = typeof body.propertyId === "string" ? body.propertyId : null;
+  const coverIndex = Number(body.coverIndex ?? 0);
 
-  const files = formData.getAll("images").filter((f): f is File => f instanceof File);
-  const coverIndex = Number(formData.get("coverIndex") ?? 0);
-
-  const result = await createListing(data, files, Number.isFinite(coverIndex) ? coverIndex : 0);
+  const result = await createListing(
+    body.data,
+    propertyId,
+    body.images,
+    Number.isFinite(coverIndex) ? coverIndex : 0,
+  );
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

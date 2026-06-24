@@ -70,6 +70,8 @@ import { TYPE_LABELS, STATUS_LABELS } from "../listings-data";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
+const MAX_IMAGE_MB = Math.round(LISTING_IMAGE_MAX_BYTES / (1024 * 1024));
+
 const STEPS = ["Basic Info", "Listing Details", "Images"] as const;
 
 const AMENITY_ICONS: Record<
@@ -473,7 +475,7 @@ export function UploadListingModal({
       }
 
       if (file.size > LISTING_IMAGE_MAX_BYTES) {
-        setImagesError(`"${file.name}" is larger than 10MB.`);
+        setImagesError(`"${file.name}" is larger than ${MAX_IMAGE_MB}MB.`);
         return;
       }
     }
@@ -583,22 +585,25 @@ export function UploadListingModal({
     // Parse again after resolver to get coerced (numeric) values.
     const parsed = createListingSchema.parse(values);
 
+    // The mutations resize + convert each image to WebP in the browser and
+    // upload it straight to storage via signed URLs, then send only small JSON
+    // to the API — so there's no request-body size limit on the upload.
+    const newFiles = newImages.map((i) => i.file);
+
     try {
       if (isEdit && listing) {
         const diff = buildUpdateDiff(listing, parsed);
         const hasFieldChanges = Object.keys(diff).length > 0;
 
-        // Phase 1 — field update and image upload are independent: run in parallel.
-        // Add new images before removing so the listing never dips below 1 image.
+        // Phase 1 — field update and image upload are independent: run in
+        // parallel. Add new images before removing so the listing never dips
+        // below 1 image.
         const [, addResult] = await Promise.all([
           hasFieldChanges
             ? updateMutation.mutateAsync({ id: listing.id, data: diff })
             : Promise.resolve(null),
-          newImages.length > 0
-            ? addImagesMutation.mutateAsync({
-                id: listing.id,
-                images: newImages.map((i) => i.file),
-              })
+          newFiles.length > 0
+            ? addImagesMutation.mutateAsync({ id: listing.id, images: newFiles })
             : Promise.resolve(null),
         ]);
 
@@ -662,7 +667,7 @@ export function UploadListingModal({
 
         await createMutation.mutateAsync({
           data: parsed,
-          images: newImages.map((i) => i.file),
+          images: newFiles,
           coverIndex,
         });
 
@@ -1370,7 +1375,7 @@ export function UploadListingModal({
                         className="text-[12px] leading-5 text-[#9ca3af]"
                         style={mont}
                       >
-                        JPG, PNG or WebP. Maximum 10MB per image.
+                        JPG, PNG or WebP. Maximum {MAX_IMAGE_MB}MB per image.
                       </p>
                     </button>
 

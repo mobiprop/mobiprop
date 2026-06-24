@@ -15,17 +15,22 @@ import {
 import { hasPermission } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
 import { geocodeAddress } from "@/lib/maps";
-import { optimizeListingImage } from "@/lib/images";
-import { removePropertyImages, uploadPropertyImage } from "@/lib/supabase/storage";
+import {
+  mintPropertyImageUploadTickets,
+  removePropertyImages,
+  verifyUploadedPropertyImages,
+  type PropertyImageUploadTicket,
+} from "@/lib/supabase/storage";
 import {
   createListingSchema,
   updateListingSchema,
   listingStatusSchema,
   listingFeaturedSchema,
-  LISTING_IMAGE_MAX_BYTES,
+  listingUploadTicketRequestSchema,
+  listingImageDescriptorsSchema,
   LISTING_IMAGE_MAX_COUNT,
-  LISTING_IMAGE_MIME_TYPES,
   type AmenityKey,
+  type ListingImageDescriptor,
 } from "@/schemas/listing.schema";
 import { PropertyStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 import type { Prisma, Profile } from "@/generated/prisma/client";
@@ -190,25 +195,79 @@ function slugify(title: string): string {
     .slice(0, 80);
 }
 
-// ── Image file validation ─────────────────────────────────────────────────────
+// ── Signed upload tickets (browser uploads directly to storage) ───────────────
 
-function validateListingFiles(files: File[], existingCount = 0): ListingActionError | null {
-  if (existingCount + files.length > LISTING_IMAGE_MAX_COUNT) {
+/** Trimmed ticket shape returned to the browser to drive the direct upload. */
+export type ClientUploadTicket = { imageId: string; storagePath: string; token: string };
+
+function toClientTickets(tickets: PropertyImageUploadTicket[]): ClientUploadTicket[] {
+  return tickets.map((t) => ({ imageId: t.imageId, storagePath: t.storagePath, token: t.token }));
+}
+
+/** Appends the underlying cause to an error message outside production only. */
+function withDevDetail(message: string, error: unknown): string {
+  if (process.env.NODE_ENV === "production") return message;
+  const detail = error instanceof Error ? error.message : String(error);
+  return `${message} (${detail})`;
+}
+
+/** Staff (listings:create): mint upload URLs for a not-yet-created listing. */
+export async function prepareNewListingUploads(
+  input: unknown,
+): Promise<ListingActionResult<{ propertyId: string; tickets: ClientUploadTicket[] }>> {
+  const gate = await requirePermission("listings:create");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const parsed = listingUploadTicketRequestSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssueMessage(parsed.error), status: 400 };
+
+  const propertyId = randomUUID();
+  try {
+    const tickets = await mintPropertyImageUploadTickets(propertyId, parsed.data.files);
+    return { ok: true, propertyId, tickets: toClientTickets(tickets) };
+  } catch (error) {
+    console.error("[listings] failed to mint upload tickets", error);
+    return {
+      ok: false,
+      error: withDevDetail("Failed to prepare image upload. Please try again.", error),
+      status: 500,
+    };
+  }
+}
+
+/** Staff (listings:uploadImages): mint upload URLs for an existing listing. */
+export async function prepareExistingListingUploads(
+  id: string,
+  input: unknown,
+): Promise<ListingActionResult<{ tickets: ClientUploadTicket[] }>> {
+  const gate = await requirePermission("listings:uploadImages");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
+  if (!existing) return notFound();
+  if (!canManageRecord(gate.profile, existing)) return forbidden();
+
+  const parsed = listingUploadTicketRequestSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstIssueMessage(parsed.error), status: 400 };
+
+  if (existing.images.length + parsed.data.files.length > LISTING_IMAGE_MAX_COUNT) {
     return { ok: false, error: `A listing can have at most ${LISTING_IMAGE_MAX_COUNT} images.`, status: 400 };
   }
-  for (const file of files) {
-    if (!LISTING_IMAGE_MIME_TYPES.includes(file.type)) {
-      return { ok: false, error: "Only JPG, PNG, and WebP images are allowed.", status: 400 };
-    }
-    if (file.size > LISTING_IMAGE_MAX_BYTES) {
-      return { ok: false, error: "Each image must be 10MB or smaller.", status: 400 };
-    }
-    if (file.size === 0) {
-      return { ok: false, error: "One of the uploaded images is empty.", status: 400 };
-    }
+
+  try {
+    const tickets = await mintPropertyImageUploadTickets(id, parsed.data.files);
+    return { ok: true, tickets: toClientTickets(tickets) };
+  } catch (error) {
+    console.error("[listings] failed to mint upload tickets", error);
+    return {
+      ok: false,
+      error: withDevDetail("Failed to prepare image upload. Please try again.", error),
+      status: 500,
+    };
   }
-  return null;
 }
+
+// ── Uploaded-image confirmation ───────────────────────────────────────────────
 
 type UploadedImage = {
   id: string;
@@ -222,9 +281,44 @@ type UploadedImage = {
   format: string;
 };
 
+function formatForMime(mimeType: string): string {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/jpeg") return "jpeg";
+  return "webp";
+}
+
 /**
- * The plan requires an audit entry whenever the WebP pipeline fell back to
- * storing a validated original (uploaded format other than webp).
+ * Confirms the browser-uploaded objects exist in storage (authoritative
+ * size/type read there, never trusted from the client) and builds the rows to
+ * persist. Order follows the descriptors so cover/sort indices stay correct.
+ */
+async function confirmUploadedImages(
+  propertyId: string,
+  descriptors: ListingImageDescriptor[],
+): Promise<UploadedImage[]> {
+  const verified = await verifyUploadedPropertyImages(
+    propertyId,
+    descriptors.map((d) => d.storagePath),
+  );
+  return descriptors.map((descriptor, index) => {
+    const object = verified[index];
+    return {
+      id: descriptor.imageId,
+      url: object.url,
+      storagePath: object.storagePath,
+      originalFileName: descriptor.originalFileName,
+      mimeType: object.mimeType,
+      sizeBytes: object.sizeBytes,
+      width: descriptor.width ?? null,
+      height: descriptor.height ?? null,
+      format: formatForMime(object.mimeType),
+    };
+  });
+}
+
+/**
+ * The plan requires an audit entry whenever an image couldn't be converted to
+ * WebP in the browser and the original format was stored instead.
  */
 async function logOptimizationFallbacks(
   actorId: string,
@@ -242,38 +336,12 @@ async function logOptimizationFallbacks(
   });
 }
 
-/** Optimize + upload each file; on failure, removes already-uploaded objects. */
-async function uploadAll(propertyId: string, files: File[]): Promise<UploadedImage[]> {
-  const uploaded: UploadedImage[] = [];
-  try {
-    for (const file of files) {
-      const optimized = await optimizeListingImage(file);
-      const imageId = randomUUID();
-      const { url, storagePath } = await uploadPropertyImage(propertyId, imageId, optimized);
-      uploaded.push({
-        id: imageId,
-        url,
-        storagePath,
-        originalFileName: file.name,
-        mimeType: optimized.mimeType,
-        sizeBytes: optimized.sizeBytes,
-        width: optimized.width,
-        height: optimized.height,
-        format: optimized.format,
-      });
-    }
-    return uploaded;
-  } catch (error) {
-    await removePropertyImages(uploaded.map((u) => u.storagePath));
-    throw error;
-  }
-}
-
 // ── Create ────────────────────────────────────────────────────────────────────
 
 export async function createListing(
   input: unknown,
-  files: File[],
+  propertyId: string | null,
+  images: unknown,
   coverIndex: number,
 ): Promise<ListingActionResult<{ listing: DashboardListingDto }>> {
   const gate = await requirePermission("listings:create");
@@ -285,6 +353,12 @@ export async function createListing(
     return { ok: false, error: firstIssueMessage(parsed.error), status: 400 };
   }
   const data = parsed.data;
+
+  const descriptorsParsed = listingImageDescriptorsSchema.safeParse(images);
+  if (!descriptorsParsed.success) {
+    return { ok: false, error: firstIssueMessage(descriptorsParsed.error), status: 400 };
+  }
+  const descriptors = descriptorsParsed.data;
 
   if (data.isFeatured && !hasPermission(profile.role, "listings:feature")) {
     return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
@@ -298,20 +372,24 @@ export async function createListing(
     if (assigneeError) return assigneeError;
   }
 
-  if (files.length === 0 && data.status !== PropertyStatus.DRAFT) {
+  if (descriptors.length === 0 && data.status !== PropertyStatus.DRAFT) {
     return { ok: false, error: "At least one image is required to publish a listing.", status: 400 };
   }
-  const fileError = validateListingFiles(files);
-  if (fileError) return fileError;
-
-  const propertyId = randomUUID();
+  // Images present means the client minted tickets under a server-issued
+  // propertyId; reuse it so the stored object paths line up. Empty galleries
+  // (drafts) just need a fresh id.
+  if (descriptors.length > 0 && !propertyId) {
+    return { ok: false, error: "Missing upload reference. Please re-add the images.", status: 400 };
+  }
+  const listingPropertyId = propertyId ?? randomUUID();
 
   let uploaded: UploadedImage[];
   try {
-    uploaded = await uploadAll(propertyId, files);
+    uploaded = await confirmUploadedImages(listingPropertyId, descriptors);
   } catch (error) {
-    console.error("[listings] image upload failed", error);
-    return { ok: false, error: "Image upload failed. Please try again.", status: 500 };
+    console.error("[listings] image confirmation failed", error);
+    await removePropertyImages(descriptors.map((d) => d.storagePath));
+    return { ok: false, error: "Image upload failed. Please try again.", status: 400 };
   }
 
   const safeCover = coverIndex >= 0 && coverIndex < uploaded.length ? coverIndex : 0;
@@ -329,7 +407,7 @@ export async function createListing(
       try {
         property = await prisma.property.create({
           data: {
-            id: propertyId,
+            id: listingPropertyId,
             listingId,
             slug: `${slugify(data.title)}-${listingId.toLowerCase()}`,
             title: data.title,
@@ -736,7 +814,7 @@ export async function deleteListing(id: string): Promise<ListingActionResult<obj
 
 export async function addListingImages(
   id: string,
-  files: File[],
+  images: unknown,
 ): Promise<ListingActionResult<{ listing: DashboardListingDto }>> {
   const gate = await requirePermission("listings:uploadImages");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
@@ -746,16 +824,24 @@ export async function addListingImages(
   if (!existing) return notFound();
   if (!canManageRecord(profile, existing)) return forbidden();
 
-  if (files.length === 0) return { ok: false, error: "No images were provided.", status: 400 };
-  const fileError = validateListingFiles(files, existing.images.length);
-  if (fileError) return fileError;
+  const descriptorsParsed = listingImageDescriptorsSchema.safeParse(images);
+  if (!descriptorsParsed.success) {
+    return { ok: false, error: firstIssueMessage(descriptorsParsed.error), status: 400 };
+  }
+  const descriptors = descriptorsParsed.data;
+
+  if (descriptors.length === 0) return { ok: false, error: "No images were provided.", status: 400 };
+  if (existing.images.length + descriptors.length > LISTING_IMAGE_MAX_COUNT) {
+    return { ok: false, error: `A listing can have at most ${LISTING_IMAGE_MAX_COUNT} images.`, status: 400 };
+  }
 
   let uploaded: UploadedImage[];
   try {
-    uploaded = await uploadAll(id, files);
+    uploaded = await confirmUploadedImages(id, descriptors);
   } catch (error) {
-    console.error("[listings] image upload failed", error);
-    return { ok: false, error: "Image upload failed. Please try again.", status: 500 };
+    console.error("[listings] image confirmation failed", error);
+    await removePropertyImages(descriptors.map((d) => d.storagePath));
+    return { ok: false, error: "Image upload failed. Please try again.", status: 400 };
   }
 
   const baseOrder = Math.max(-1, ...existing.images.map((i) => i.sortOrder)) + 1;

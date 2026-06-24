@@ -1,10 +1,25 @@
 import "server-only";
 
+import { randomUUID } from "crypto";
+
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { OptimizedImage } from "@/lib/images";
+import { LISTING_IMAGE_MAX_BYTES } from "@/schemas/listing.schema";
 
 const AVATAR_BUCKET = "avatars";
 const PROPERTY_IMAGES_BUCKET = "property-images";
+
+// Keep the bucket's hard cap in step with the per-file schema limit. Note:
+// Supabase also enforces a project-wide upload size limit (Dashboard →
+// Storage → Settings) which a bucket limit can't exceed — raise that too if
+// you need files larger than the project default.
+const PROPERTY_IMAGES_FILE_LIMIT = LISTING_IMAGE_MAX_BYTES;
+const PROPERTY_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function extensionForMime(mimeType: string): string {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  return "jpg";
+}
 
 /**
  * Uploads a new avatar for the user, replacing any existing one so a user
@@ -48,42 +63,144 @@ export async function removeAvatar(userId: string): Promise<void> {
 
 let propertyBucketReady = false;
 
-/** Creates the property-images bucket on first use (idempotent per process). */
+/**
+ * Ensures the property-images bucket exists (idempotent per process). It is
+ * public-read; writes happen via short-lived signed upload URLs minted below.
+ *
+ * Raising the bucket's fileSizeLimit/allowedMimeTypes is best-effort: Supabase
+ * rejects a bucket limit above the project-wide upload limit (Dashboard →
+ * Storage → Settings). Such a rejection must never break uploads — the bucket
+ * simply keeps whatever limit the project allows — so we log and carry on.
+ */
 async function ensurePropertyImagesBucket(): Promise<void> {
   if (propertyBucketReady) return;
 
   const supabase = createAdminClient();
-  const { error } = await supabase.storage.createBucket(PROPERTY_IMAGES_BUCKET, {
+  const desiredOptions = {
     public: true,
-    fileSizeLimit: "15MB",
-  });
-  // "already exists" is the steady state; anything else is a real failure.
+    fileSizeLimit: PROPERTY_IMAGES_FILE_LIMIT,
+    allowedMimeTypes: PROPERTY_IMAGE_MIME_TYPES,
+  };
+
+  const { data: existing } = await supabase.storage.getBucket(PROPERTY_IMAGES_BUCKET);
+  if (existing) {
+    const { error: updateError } = await supabase.storage.updateBucket(
+      PROPERTY_IMAGES_BUCKET,
+      desiredOptions,
+    );
+    if (updateError) {
+      console.error("[storage] could not raise property-images bucket limits", updateError.message);
+    }
+    propertyBucketReady = true;
+    return;
+  }
+
+  // Bucket doesn't exist — create it. If the desired fileSizeLimit exceeds the
+  // project cap, retry without an explicit limit so it still gets created.
+  let { error } = await supabase.storage.createBucket(PROPERTY_IMAGES_BUCKET, desiredOptions);
+  if (error && !/already exists/i.test(error.message)) {
+    ({ error } = await supabase.storage.createBucket(PROPERTY_IMAGES_BUCKET, {
+      public: true,
+      allowedMimeTypes: PROPERTY_IMAGE_MIME_TYPES,
+    }));
+  }
   if (error && !/already exists/i.test(error.message)) {
     throw new Error(`Failed to create ${PROPERTY_IMAGES_BUCKET} bucket: ${error.message}`);
   }
   propertyBucketReady = true;
 }
 
+export type PropertyImageUploadTicket = {
+  imageId: string;
+  storagePath: string;
+  signedUrl: string;
+  token: string;
+  originalFileName: string;
+  mimeType: string;
+};
+
 /**
- * Uploads one optimized listing image under `{propertyId}/{imageId}.{ext}`.
- * Path and name are generated server-side; client file names are never trusted.
+ * Mints one signed upload URL per file under `{propertyId}/{imageId}.{ext}`.
+ * The browser uploads directly to these paths, so the bytes never pass through
+ * the serverless function (no request-body size limit). Paths and ids are
+ * server-generated — the client never chooses where its file lands.
  */
-export async function uploadPropertyImage(
+export async function mintPropertyImageUploadTickets(
   propertyId: string,
-  imageId: string,
-  image: OptimizedImage,
-): Promise<{ url: string; storagePath: string }> {
+  files: { name: string; type: string }[],
+): Promise<PropertyImageUploadTicket[]> {
   await ensurePropertyImagesBucket();
   const supabase = createAdminClient();
 
-  const storagePath = `${propertyId}/${imageId}.${image.extension}`;
-  const { error } = await supabase.storage
-    .from(PROPERTY_IMAGES_BUCKET)
-    .upload(storagePath, image.buffer, { contentType: image.mimeType, upsert: false });
-  if (error) throw new Error(`Failed to upload listing image: ${error.message}`);
+  const tickets: PropertyImageUploadTicket[] = [];
+  for (const file of files) {
+    const imageId = randomUUID();
+    const storagePath = `${propertyId}/${imageId}.${extensionForMime(file.type)}`;
+    const { data, error } = await supabase.storage
+      .from(PROPERTY_IMAGES_BUCKET)
+      .createSignedUploadUrl(storagePath);
+    if (error || !data) {
+      throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
+    }
+    tickets.push({
+      imageId,
+      storagePath,
+      signedUrl: data.signedUrl,
+      token: data.token,
+      originalFileName: file.name,
+      mimeType: file.type,
+    });
+  }
+  return tickets;
+}
 
-  const { data } = supabase.storage.from(PROPERTY_IMAGES_BUCKET).getPublicUrl(storagePath);
-  return { url: data.publicUrl, storagePath };
+export type VerifiedPropertyImage = {
+  storagePath: string;
+  url: string;
+  sizeBytes: number;
+  mimeType: string;
+};
+
+/**
+ * Confirms that every expected object was actually uploaded under `propertyId`,
+ * reading the authoritative size + mime type from storage (never trusting the
+ * client). Returns the verified objects with their public URLs, or throws if
+ * any object is missing or violates the size/type limits.
+ */
+export async function verifyUploadedPropertyImages(
+  propertyId: string,
+  storagePaths: string[],
+): Promise<VerifiedPropertyImage[]> {
+  if (storagePaths.length === 0) return [];
+  const supabase = createAdminClient();
+
+  const { data: objects, error } = await supabase.storage
+    .from(PROPERTY_IMAGES_BUCKET)
+    .list(propertyId, { limit: 1000 });
+  if (error) throw new Error(`Failed to verify uploaded images: ${error.message}`);
+
+  const byName = new Map(objects?.map((object) => [object.name, object]) ?? []);
+
+  return storagePaths.map((storagePath) => {
+    if (!storagePath.startsWith(`${propertyId}/`)) {
+      throw new Error("Image path does not belong to this listing.");
+    }
+    const name = storagePath.slice(propertyId.length + 1);
+    const object = byName.get(name);
+    if (!object) throw new Error("An uploaded image is missing from storage.");
+
+    const sizeBytes = Number(object.metadata?.size ?? 0);
+    const mimeType = String(object.metadata?.mimetype ?? "");
+    if (!PROPERTY_IMAGE_MIME_TYPES.includes(mimeType)) {
+      throw new Error("An uploaded image has an unsupported type.");
+    }
+    if (sizeBytes <= 0 || sizeBytes > LISTING_IMAGE_MAX_BYTES) {
+      throw new Error("An uploaded image violates the size limit.");
+    }
+
+    const { data } = supabase.storage.from(PROPERTY_IMAGES_BUCKET).getPublicUrl(storagePath);
+    return { storagePath, url: data.publicUrl, sizeBytes, mimeType };
+  });
 }
 
 /** Removes the given listing image objects. Best-effort: errors are logged. */

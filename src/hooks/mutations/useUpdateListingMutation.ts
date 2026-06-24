@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
+import { uploadImagesForExistingListing } from "@/lib/client-upload";
 import type { PropertyStatus } from "@/generated/prisma/enums";
 import type { UpdateListingInput } from "@/schemas/listing.schema";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
@@ -60,14 +61,17 @@ export function useListingFeaturedMutation() {
   });
 }
 
-/** Add images to an existing listing (POST /api/listings/[id]/images). */
+/** Add images to an existing listing (uploads to storage, then POST /api/listings/[id]/images). */
 export function useAddListingImagesMutation() {
   const invalidate = useListingInvalidation();
   return useMutation({
     mutationFn: async ({ id, images }: { id: string; images: File[] }) => {
-      const formData = new FormData();
-      images.forEach((file) => formData.append("images", file));
-      const response = await fetch(`/api/listings/${id}/images`, { method: "POST", body: formData });
+      const descriptors = await uploadImagesForExistingListing(id, images);
+      const response = await fetch(`/api/listings/${id}/images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images: descriptors }),
+      });
       const data = await response.json().catch(() => null);
       if (!response.ok || !data?.success) {
         throw new Error(data?.error ?? "Failed to upload images");

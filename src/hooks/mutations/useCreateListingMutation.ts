@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
+import { uploadImagesForNewListing } from "@/lib/client-upload";
 import type { ListingInput } from "@/schemas/listing.schema";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 
@@ -15,12 +16,14 @@ async function createListing({
   images,
   coverIndex,
 }: CreateListingVariables): Promise<{ listing: DashboardListingDto }> {
-  const formData = new FormData();
-  formData.set("data", JSON.stringify(data));
-  formData.set("coverIndex", String(coverIndex));
-  images.forEach((file) => formData.append("images", file));
+  // Images upload straight to storage; only this small JSON hits the function.
+  const { propertyId, descriptors } = await uploadImagesForNewListing(images);
 
-  const response = await fetch("/api/listings", { method: "POST", body: formData });
+  const response = await fetch("/api/listings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data, propertyId, images: descriptors, coverIndex }),
+  });
   const body = await response.json().catch(() => null);
 
   if (!response.ok || !body?.success) {
