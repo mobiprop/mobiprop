@@ -81,6 +81,10 @@ export const queryKeys = {
   // Saved listings page (full card data, distinct from savedListings which tracks IDs)
   savedListingsPage: () => ["saved-listings-page"] as const,
 
-  // Location autocomplete suggestions
+  // Location autocomplete suggestions (public, Property-row-backed)
   locationSuggestions: (q: string) => ["listing-locations", q] as const,
+
+  // Dashboard "Locations" sector (DB-backed) name suggestions for the Upload
+  // Listing modal — distinct from locationSuggestions above.
+  locationNameSuggestions: () => ["location-name-suggestions"] as const,
 } as const;

@@ -11,7 +11,8 @@ export type ActivityEntityType =
   | "CONTACT"
   | "LEAD"
   | "LEAD_NOTE"
-  | "TOUR";
+  | "TOUR"
+  | "LOCATION";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -69,7 +70,10 @@ export type ActivityAction =
   | "TOUR_REASSIGNED"
   | "TOUR_UPDATED"
   | "TOUR_LEAD_CREATED"
-  | "TOUR_LEAD_REUSED";
+  | "TOUR_LEAD_REUSED"
+  | "LOCATION_CREATED"
+  | "LOCATION_UPDATED"
+  | "LOCATION_DELETED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

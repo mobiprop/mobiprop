@@ -62,21 +62,21 @@ model Profile {
 // Created by an existing staff member; the invited person completes
 // registration via /invite/[token] and the role is fixed by the invite.
 model AgentInvitation {
-  id          String            @id @default(cuid())
+  id          String           @id @default(cuid())
   email       String
   role        UserRole
-  tokenHash   String            @unique @map("token_hash")
-  invitedById String?           @map("invited_by_id") @db.Uuid
-  expiresAt   DateTime          @map("expires_at")
-  acceptedAt  DateTime?         @map("accepted_at")
-  status      InvitationStatus  @default(PENDING)
-  firstName   String?           @map("first_name")
-  lastName    String?           @map("last_name")
+  tokenHash   String           @unique @map("token_hash")
+  invitedById String?          @map("invited_by_id") @db.Uuid
+  expiresAt   DateTime         @map("expires_at")
+  acceptedAt  DateTime?        @map("accepted_at")
+  status      InvitationStatus @default(PENDING)
+  firstName   String?          @map("first_name")
+  lastName    String?          @map("last_name")
   phone       String?
   location    String?
   notes       String?
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
 
   @@index([email], map: "agent_invitations_email_idx")
   @@index([status], map: "agent_invitations_status_idx")
@@ -125,7 +125,7 @@ model Notification {
   dismissedAt DateTime? @map("dismissed_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
-  deliveries  NotificationDelivery[]
+  deliveries NotificationDelivery[]
 
   @@index([recipientId, readAt], map: "notifications_recipient_read_idx")
   @@index([recipientId, dismissedAt], map: "notifications_recipient_dismissed_idx")
@@ -151,17 +151,17 @@ enum NotificationDeliveryStatus {
 // browser/device). endpoint + keys are sensitive; the table is server-only
 // (RLS deny-all) and reached exclusively through authenticated route handlers.
 model PushSubscription {
-  id            String    @id @default(cuid())
-  userId        String    @map("user_id") @db.Uuid
+  id     String @id @default(cuid())
+  userId String @map("user_id") @db.Uuid
 
-  endpoint      String    @unique
-  p256dh        String
-  auth          String
+  endpoint String @unique
+  p256dh   String
+  auth     String
 
-  userAgent     String?   @map("user_agent")
-  browser       String?
-  platform      String?
-  deviceLabel   String?   @map("device_label")
+  userAgent   String? @map("user_agent")
+  browser     String?
+  platform    String?
+  deviceLabel String? @map("device_label")
 
   isActive      Boolean   @default(true) @map("is_active")
   failureCount  Int       @default(0) @map("failure_count")
@@ -169,11 +169,11 @@ model PushSubscription {
   lastSuccessAt DateTime? @map("last_success_at")
   lastFailureAt DateTime? @map("last_failure_at")
 
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user          Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deliveries    NotificationDelivery[]
+  user       Profile                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
 
   @@index([userId, isActive], map: "push_subscriptions_user_active_idx")
   @@map("push_subscriptions")
@@ -182,28 +182,28 @@ model PushSubscription {
 // Per-channel delivery attempt for a notification. Server-only audit record;
 // retained even after a subscription is deactivated.
 model NotificationDelivery {
-  id             String                     @id @default(cuid())
+  id String @id @default(cuid())
 
-  notificationId String                     @map("notification_id")
-  subscriptionId String?                    @map("subscription_id")
+  notificationId String  @map("notification_id")
+  subscriptionId String? @map("subscription_id")
 
-  channel        NotificationChannel
-  status         NotificationDeliveryStatus
+  channel NotificationChannel
+  status  NotificationDeliveryStatus
 
-  attemptCount   Int                        @default(0) @map("attempt_count")
-  lastAttemptAt  DateTime?                  @map("last_attempt_at")
-  nextAttemptAt  DateTime?                  @map("next_attempt_at")
-  deliveredAt    DateTime?                  @map("delivered_at")
+  attemptCount  Int       @default(0) @map("attempt_count")
+  lastAttemptAt DateTime? @map("last_attempt_at")
+  nextAttemptAt DateTime? @map("next_attempt_at")
+  deliveredAt   DateTime? @map("delivered_at")
 
-  providerStatus Int?                       @map("provider_status")
-  errorCode      String?                    @map("error_code")
-  errorMessage   String?                    @map("error_message")
+  providerStatus Int?    @map("provider_status")
+  errorCode      String? @map("error_code")
+  errorMessage   String? @map("error_message")
 
-  createdAt      DateTime                   @default(now()) @map("created_at")
-  updatedAt      DateTime                   @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  notification   Notification               @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-  subscription   PushSubscription?          @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  notification Notification      @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  subscription PushSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 
   @@index([notificationId], map: "notification_deliveries_notification_idx")
   @@index([subscriptionId], map: "notification_deliveries_subscription_idx")
@@ -250,6 +250,9 @@ model Property {
   salePrice       Decimal?              @map("sale_price") @db.Decimal(14, 2)
   rentPrice       Decimal?              @map("rent_price") @db.Decimal(14, 2)
   location        String
+  // Operational area (curated Locations sector). Kept alongside `location`
+  // (free-text display string, still the source for public search/cards).
+  locationId      String?               @map("location_id")
   fullAddress     String                @map("full_address")
   city            String?
   province        String?
@@ -285,12 +288,14 @@ model Property {
   contracts     Contract[]
   leads         Lead[]            @relation("LeadPrimaryListing")
   tours         Tour[]
+  operationalLocation Location?   @relation(fields: [locationId], references: [id], onDelete: SetNull)
 
   @@index([status], map: "properties_status_idx")
   @@index([type], map: "properties_type_idx")
   @@index([isFeatured], map: "properties_is_featured_idx")
   @@index([assignedAgentId], map: "properties_assigned_agent_idx")
   @@index([createdById], map: "properties_created_by_idx")
+  @@index([locationId], map: "properties_location_idx")
   @@map("properties")
 }
 
@@ -354,6 +359,28 @@ model SavedProperty {
   @@unique([profileId, propertyId], map: "saved_properties_unique")
   @@index([profileId], map: "saved_properties_profile_idx")
   @@map("saved_properties")
+}
+
+// Curated office/branch-level operational areas managed from the dashboard's
+// Locations page. Property.location stays free-text and neighborhood-grained
+// (e.g. "Palermo, Buenos Aires") for public search/display, but each Property
+// also links here via locationId for accurate, rename-safe dashboard stats.
+model Location {
+  id          String   @id @default(cuid())
+  locationId  String   @unique @map("location_id")
+  name        String
+  region      String
+  address     String
+  postalCode  String   @map("postal_code")
+  latitude    Decimal? @db.Decimal(9, 6)
+  longitude   Decimal? @db.Decimal(9, 6)
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  properties Property[]
+
+  @@map("locations")
 }
 
 // ── CRM ────────────────────────────────────────────────────────────────────────
@@ -517,45 +544,45 @@ enum TourStatus {
 // optional lead, and an assigned agent. Created from the public listing page
 // or manually from the dashboard. RLS deny-all (server-only access).
 model Tour {
-  id               String     @id @default(cuid())
-  tourNumber       String     @unique @map("tour_number")
+  id         String @id @default(cuid())
+  tourNumber String @unique @map("tour_number")
 
   // Submitted snapshot (preserved even if Contact is later edited)
-  submittedName    String     @map("submitted_name")
-  submittedEmail   String?    @map("submitted_email")
-  submittedPhone   String?    @map("submitted_phone")
-  submittedMessage String?    @map("submitted_message")
+  submittedName    String  @map("submitted_name")
+  submittedEmail   String? @map("submitted_email")
+  submittedPhone   String? @map("submitted_phone")
+  submittedMessage String? @map("submitted_message")
 
-  contactId        String     @map("contact_id")
-  contact          Contact    @relation(fields: [contactId], references: [id])
+  contactId String  @map("contact_id")
+  contact   Contact @relation(fields: [contactId], references: [id])
 
-  propertyId       String?    @map("property_id")
-  property         Property?  @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  propertyId String?   @map("property_id")
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
-  leadId           String?    @map("lead_id")
-  lead             Lead?      @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId String? @map("lead_id")
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
-  assignedAgentId  String?    @map("assigned_agent_id") @db.Uuid
-  createdById      String?    @map("created_by_id") @db.Uuid
+  assignedAgentId String? @map("assigned_agent_id") @db.Uuid
+  createdById     String? @map("created_by_id") @db.Uuid
 
-  status           TourStatus @default(REQUESTED)
-  scheduledAt      DateTime   @map("scheduled_at")
-  durationMinutes  Int        @default(60) @map("duration_minutes")
+  status          TourStatus @default(REQUESTED)
+  scheduledAt     DateTime   @map("scheduled_at")
+  durationMinutes Int        @default(60) @map("duration_minutes")
 
-  confirmationNote   String?  @map("confirmation_note")
-  rescheduleNote     String?  @map("reschedule_note")
-  cancellationReason String?  @map("cancellation_reason")
-  completionNote     String?  @map("completion_note")
+  confirmationNote   String? @map("confirmation_note")
+  rescheduleNote     String? @map("reschedule_note")
+  cancellationReason String? @map("cancellation_reason")
+  completionNote     String? @map("completion_note")
 
-  rescheduledFrom  DateTime?  @map("rescheduled_from")
-  completedAt      DateTime?  @map("completed_at")
-  cancelledAt      DateTime?  @map("cancelled_at")
+  rescheduledFrom DateTime? @map("rescheduled_from")
+  completedAt     DateTime? @map("completed_at")
+  cancelledAt     DateTime? @map("cancelled_at")
 
   // "PUBLIC_REQUEST" | "DASHBOARD_CREATED"
-  source           String     @default("PUBLIC_REQUEST")
+  source String @default("PUBLIC_REQUEST")
 
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([contactId], map: "tours_contact_idx")
   @@index([propertyId], map: "tours_property_idx")
@@ -604,56 +631,56 @@ enum LeadLifecycleStatus {
 // optional listing interest, and an assigned agent. Kept separate from
 // Opportunity so temperature / lifecycle tracking stays independent.
 model Lead {
-  id                     String              @id @default(cuid())
-  leadNumber             String              @unique @map("lead_number")
+  id         String @id @default(cuid())
+  leadNumber String @unique @map("lead_number")
 
-  contactId              String              @map("contact_id")
-  contact                Contact             @relation(fields: [contactId], references: [id])
+  contactId String  @map("contact_id")
+  contact   Contact @relation(fields: [contactId], references: [id])
 
-  primaryListingId       String?             @map("primary_listing_id")
-  primaryListing         Property?           @relation("LeadPrimaryListing", fields: [primaryListingId], references: [id], onDelete: SetNull)
+  primaryListingId String?   @map("primary_listing_id")
+  primaryListing   Property? @relation("LeadPrimaryListing", fields: [primaryListingId], references: [id], onDelete: SetNull)
 
-  assignedAgentId        String?             @map("assigned_agent_id") @db.Uuid
-  createdById            String?             @map("created_by_id") @db.Uuid
+  assignedAgentId String? @map("assigned_agent_id") @db.Uuid
+  createdById     String? @map("created_by_id") @db.Uuid
 
-  convertedOpportunityId String?             @map("converted_opportunity_id")
-  convertedAt            DateTime?           @map("converted_at")
+  convertedOpportunityId String?   @map("converted_opportunity_id")
+  convertedAt            DateTime? @map("converted_at")
 
   // Snapshot of submitted info — preserved even if Contact is updated later.
-  submittedName          String              @map("submitted_name")
-  submittedEmail         String?             @map("submitted_email")
-  submittedPhone         String?             @map("submitted_phone")
-  submittedLocation      String?             @map("submitted_location")
+  submittedName     String  @map("submitted_name")
+  submittedEmail    String? @map("submitted_email")
+  submittedPhone    String? @map("submitted_phone")
+  submittedLocation String? @map("submitted_location")
 
-  source                 LeadSource
-  sourceDetail           String?             @map("source_detail")
-  sourceUrl              String?             @map("source_url")
-  externalSource         String?             @map("external_source")
-  externalSourceId       String?             @map("external_source_id")
-  importBatchId          String?             @map("import_batch_id")
+  source           LeadSource
+  sourceDetail     String?    @map("source_detail")
+  sourceUrl        String?    @map("source_url")
+  externalSource   String?    @map("external_source")
+  externalSourceId String?    @map("external_source_id")
+  importBatchId    String?    @map("import_batch_id")
 
-  budgetMin              Decimal?            @map("budget_min") @db.Decimal(14, 2)
-  budgetMax              Decimal?            @map("budget_max") @db.Decimal(14, 2)
-  currency               String              @default("ARS")
+  budgetMin Decimal? @map("budget_min") @db.Decimal(14, 2)
+  budgetMax Decimal? @map("budget_max") @db.Decimal(14, 2)
+  currency  String   @default("ARS")
 
-  score                  Int                 @default(0)
-  temperature            LeadTemperature     @default(COLD)
-  lifecycleStatus        LeadLifecycleStatus @default(NEW) @map("lifecycle_status")
+  score           Int                 @default(0)
+  temperature     LeadTemperature     @default(COLD)
+  lifecycleStatus LeadLifecycleStatus @default(NEW) @map("lifecycle_status")
 
-  notes                  String?
-  lastContactedAt        DateTime?           @map("last_contacted_at")
-  nextFollowUpAt         DateTime?           @map("next_follow_up_at")
-  closedAt               DateTime?           @map("closed_at")
+  notes           String?
+  lastContactedAt DateTime? @map("last_contacted_at")
+  nextFollowUpAt  DateTime? @map("next_follow_up_at")
+  closedAt        DateTime? @map("closed_at")
 
-  isArchived             Boolean             @default(false) @map("is_archived")
-  archivedAt             DateTime?           @map("archived_at")
+  isArchived Boolean   @default(false) @map("is_archived")
+  archivedAt DateTime? @map("archived_at")
 
-  createdAt              DateTime            @default(now()) @map("created_at")
-  updatedAt              DateTime            @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  leadNotes              LeadNote[]
-  activities             LeadActivity[]
-  tours                  Tour[]
+  leadNotes  LeadNote[]
+  activities LeadActivity[]
+  tours      Tour[]
 
   @@index([contactId], map: "leads_contact_idx")
   @@index([primaryListingId], map: "leads_listing_idx")

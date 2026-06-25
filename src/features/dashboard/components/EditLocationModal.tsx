@@ -4,7 +4,15 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 
-import type { PropertyLocation } from "../locations-data";
+import type { LocationDto } from "@/features/locations/types/location-dto";
+import { PlaceAutocompleteInput } from "@/components/maps/PlaceAutocompleteInput";
+
+function addressComponent(
+  components: google.maps.places.AddressComponent[] | undefined,
+  type: string,
+): string {
+  return components?.find((c) => c.types.includes(type))?.longText ?? "";
+}
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -16,7 +24,7 @@ export type LocationFormValues = {
 };
 
 type EditLocationModalProps = {
-  location?: PropertyLocation | null;
+  location?: LocationDto | null;
   onClose: () => void;
   onSubmit: (values: LocationFormValues) => void;
 };
@@ -135,6 +143,35 @@ export function EditLocationModal({
                 />
               </div>
 
+              {/* Address */}
+              <div className="flex min-w-0 flex-col gap-2">
+                <label
+                  htmlFor="location-address"
+                  className={labelClass}
+                  style={mont}
+                >
+                  Address *
+                </label>
+
+                <PlaceAutocompleteInput
+                  id="location-address"
+                  value={address}
+                  onChange={setAddress}
+                  onPlaceSelected={(place) => {
+                    if (place.formattedAddress) setAddress(place.formattedAddress);
+                    const province = addressComponent(place.addressComponents, "administrative_area_level_1");
+                    if (province) setRegion(province);
+                    const postal = addressComponent(place.addressComponents, "postal_code");
+                    if (postal) setPostalCode(postal);
+                  }}
+                  fields={["formattedAddress", "addressComponents"]}
+                  placeholder="Start typing an address..."
+                  required
+                  className={inputClass}
+                  style={mont}
+                />
+              </div>
+
               {/* Region */}
               <div className="flex min-w-0 flex-col gap-2">
                 <label
@@ -153,29 +190,6 @@ export function EditLocationModal({
                     setRegion(event.target.value)
                   }
                   placeholder="e.g., Buenos Aires"
-                  className={inputClass}
-                  style={mont}
-                />
-              </div>
-
-              {/* Address */}
-              <div className="flex min-w-0 flex-col gap-2">
-                <label
-                  htmlFor="location-address"
-                  className={labelClass}
-                  style={mont}
-                >
-                  Address *
-                </label>
-
-                <input
-                  id="location-address"
-                  required
-                  value={address}
-                  onChange={(event) =>
-                    setAddress(event.target.value)
-                  }
-                  placeholder="e.g., Av. Corrientes 1234, C1043 CABA"
                   className={inputClass}
                   style={mont}
                 />

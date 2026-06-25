@@ -67,6 +67,8 @@ import {
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import type { ListingInput } from "@/schemas/listing.schema";
 import { TYPE_LABELS, STATUS_LABELS } from "../listings-data";
+import { LocationPickerInput } from "./LocationPickerInput";
+import { PlaceAutocompleteInput } from "@/components/maps/PlaceAutocompleteInput";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -105,6 +107,7 @@ type ListingFormValues = {
   operationType: PropertyOperationType;
   salePrice: string;
   rentPrice: string;
+  locationId: string;
   location: string;
   fullAddress: string;
   isFeatured: boolean;
@@ -126,6 +129,7 @@ const EMPTY_VALUES: ListingFormValues = {
   operationType: PropertyOperationType.SALE,
   salePrice: "",
   rentPrice: "",
+  locationId: "",
   location: "",
   fullAddress: "",
   isFeatured: false,
@@ -148,6 +152,7 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     operationType: listing.operationType,
     salePrice: listing.salePrice?.toString() ?? "",
     rentPrice: listing.rentPrice?.toString() ?? "",
+    locationId: listing.locationId ?? "",
     location: listing.location,
     fullAddress: listing.fullAddress,
     isFeatured: listing.isFeatured,
@@ -206,6 +211,7 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.operationType !== listing.operationType) diff.operationType = parsed.operationType;
   if (parsed.salePrice !== (listing.salePrice ?? undefined)) diff.salePrice = parsed.salePrice;
   if (parsed.rentPrice !== (listing.rentPrice ?? undefined)) diff.rentPrice = parsed.rentPrice;
+  if (parsed.locationId !== (listing.locationId ?? "")) diff.locationId = parsed.locationId;
   if (parsed.location !== listing.location) diff.location = parsed.location;
   if (parsed.fullAddress !== listing.fullAddress) diff.fullAddress = parsed.fullAddress;
   if (parsed.isFeatured !== listing.isFeatured) diff.isFeatured = parsed.isFeatured;
@@ -369,6 +375,8 @@ export function UploadListingModal({
   const amenities = watch("amenities");
   const isFeatured = watch("isFeatured");
   const status = watch("status");
+  const locationId = watch("locationId");
+  const fullAddress = watch("fullAddress");
 
   const totalImages = existingImages.length + newImages.length;
 
@@ -1013,17 +1021,26 @@ export function UploadListingModal({
                         Location <span className="text-[#e7000b]">*</span>
                       </label>
 
-                      <input
+                      <LocationPickerInput
                         id="listing-location"
-                        {...register("location")}
-                        placeholder="Buenos Aires, Argentina"
+                        value={locationId}
+                        onSelect={(id, name) => {
+                          setValue("locationId", id, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          setValue("location", name, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                        }}
+                        placeholder="Search locations..."
                         className={`${inputClass} ${borderClass(
-                          Boolean(errors.location),
+                          Boolean(errors.locationId),
                         )}`}
-                        style={mont}
                       />
 
-                      <FieldError message={errors.location?.message} />
+                      <FieldError message={errors.locationId?.message} />
                     </div>
 
                     <div className="flex min-w-0 flex-col gap-2">
@@ -1035,9 +1052,24 @@ export function UploadListingModal({
                         Full Address <span className="text-[#e7000b]">*</span>
                       </label>
 
-                      <input
+                      <PlaceAutocompleteInput
                         id="listing-full-address"
-                        {...register("fullAddress")}
+                        value={fullAddress}
+                        onChange={(value) =>
+                          setValue("fullAddress", value, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }
+                        onPlaceSelected={(place) => {
+                          if (place.formattedAddress) {
+                            setValue("fullAddress", place.formattedAddress, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          }
+                        }}
+                        fields={["formattedAddress"]}
                         placeholder="1234 Main Street, Downtown"
                         className={`${inputClass} ${borderClass(
                           Boolean(errors.fullAddress),

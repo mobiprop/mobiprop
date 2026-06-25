@@ -30,6 +30,7 @@ export type DashboardListingDto = {
   salePrice: number | null;
   rentPrice: number | null;
   location: string;
+  locationId: string | null;
   fullAddress: string;
   bedrooms: number | null;
   bathrooms: number | null;

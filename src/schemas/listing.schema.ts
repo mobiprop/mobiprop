@@ -119,6 +119,9 @@ export const listingBaseSchema = z.object({
   operationType: z.enum(PropertyOperationType, { error: "Operation type is required" }),
   salePrice: optionalPrice,
   rentPrice: optionalPrice,
+  // Must reference a real row in the dashboard's Locations sector — set
+  // together with `location` (display text) by the form's location picker.
+  locationId: z.string().trim().min(1, "Location is required"),
   location: z.string().trim().min(2, "Location is required"),
   fullAddress: z.string().trim().min(5, "Full address is required"),
   isFeatured: z.boolean().default(false),
@@ -195,7 +198,7 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 // Field groups used by the modal to validate one step at a time
 // (react-hook-form `trigger(...)` before allowing Next Step).
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
-  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "location", "fullAddress", "isFeatured", "assignedAgentId"],
+  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId"],
   1: ["bedrooms", "bathrooms", "toilets", "areaSqft", "yearBuilt", "description", "amenities"],
   2: ["videoUrl"],
 };

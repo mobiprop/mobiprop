@@ -66,6 +66,15 @@ async function validateAssignee(agentId: string): Promise<ListingActionError | n
   return null;
 }
 
+/** Confirms a locationId references a real row in the Locations sector. */
+async function validateLocationId(locationId: string): Promise<ListingActionError | null> {
+  const location = await prisma.location.findUnique({ where: { id: locationId }, select: { id: true } });
+  if (!location) {
+    return { ok: false, error: "Selected location was not found. Please pick one from the list.", status: 422 };
+  }
+  return null;
+}
+
 // ── Record-level access ───────────────────────────────────────────────────────
 
 type PropertyRecord = { createdById: string | null; assignedAgentId: string | null };
@@ -121,6 +130,7 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
     salePrice: property.salePrice === null ? null : Number(property.salePrice),
     rentPrice: property.rentPrice === null ? null : Number(property.rentPrice),
     location: property.location,
+    locationId: property.locationId,
     fullAddress: property.fullAddress,
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
@@ -372,6 +382,9 @@ export async function createListing(
     if (assigneeError) return assigneeError;
   }
 
+  const locationError = await validateLocationId(data.locationId);
+  if (locationError) return locationError;
+
   if (descriptors.length === 0 && data.status !== PropertyStatus.DRAFT) {
     return { ok: false, error: "At least one image is required to publish a listing.", status: 400 };
   }
@@ -418,6 +431,7 @@ export async function createListing(
             salePrice: data.salePrice,
             rentPrice: data.rentPrice,
             location: data.location,
+            locationId: data.locationId,
             fullAddress: data.fullAddress,
             latitude: coords?.latitude,
             longitude: coords?.longitude,
@@ -569,6 +583,11 @@ export async function updateListing(
     !hasPermission(profile.role, "listings:feature")
   ) {
     return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
+  }
+
+  if (data.locationId !== undefined && data.locationId !== existing.locationId) {
+    const locationError = await validateLocationId(data.locationId);
+    if (locationError) return locationError;
   }
 
   const { amenities, assignedAgentId: assignedAgentIdInput, videoUrl: videoUrlInput, ...fields } = data;
