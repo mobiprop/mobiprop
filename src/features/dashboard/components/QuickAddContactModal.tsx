@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 import { X, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
+
+import { ContactType } from "@/generated/prisma/enums";
+import type { ContactDto } from "@/features/crm/types/crm-dto";
+import { useCreateContactMutation } from "@/hooks/mutations/useCrmMutations";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-export type QuickContact = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  type: string;
-  company: string;
-};
-
 type QuickAddContactModalProps = {
   onClose: () => void;
-  onCreate?: (contact: QuickContact) => void;
+  /** Fires with the real, persisted Contact once it's created server-side. */
+  onCreate?: (contact: ContactDto) => void;
 };
 
 const inputClass =
@@ -28,19 +25,25 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [type, setType] = useState("Buyer");
-  const [company, setCompany] = useState("");
+  const [type, setType] = useState<ContactType>(ContactType.BUYER);
 
-  function handleSubmit(e: React.FormEvent) {
+  const createMutation = useCreateContactMutation();
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onCreate?.({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      type,
-      company: company.trim(),
-    });
+    try {
+      const { contact } = await createMutation.mutateAsync({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        type,
+      });
+      toast.success("Contact created");
+      onCreate?.(contact);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create contact");
+    }
   }
 
   return (
@@ -73,31 +76,29 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
 
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Email *</label>
-            <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john.doe@example.com" className={inputClass} style={mont} />
+            <label className={labelClass} style={mont}>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john.doe@example.com" className={inputClass} style={mont} />
           </div>
 
           {/* Phone */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Phone *</label>
-            <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" className={inputClass} style={mont} />
+            <label className={labelClass} style={mont}>Phone</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" className={inputClass} style={mont} />
           </div>
+          {!email.trim() && !phone.trim() && (
+            <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+          )}
 
-          {/* Type / Company */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Type</label>
-              <div className="relative">
-                <select value={type} onChange={(e) => setType(e.target.value)} className="w-full h-10 pl-3 pr-9 bg-[#fafbfc] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer" style={mont}>
-                  <option value="Buyer">Buyer</option>
-                  <option value="Seller">Seller</option>
-                </select>
-                <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Company</label>
-              <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company Name" className={inputClass} style={mont} />
+          {/* Type */}
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} style={mont}>Type</label>
+            <div className="relative">
+              <select value={type} onChange={(e) => setType(e.target.value as ContactType)} className="w-full h-10 pl-3 pr-9 bg-[#fafbfc] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer" style={mont}>
+                <option value={ContactType.BUYER}>Buyer</option>
+                <option value={ContactType.SELLER}>Seller</option>
+                <option value={ContactType.BOTH}>Both</option>
+              </select>
+              <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
             </div>
           </div>
 
@@ -106,8 +107,13 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
             <button type="button" onClick={onClose} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>
               Cancel
             </button>
-            <button type="submit" className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors" style={mont}>
-              Add Contact
+            <button
+              type="submit"
+              disabled={createMutation.isPending || (!email.trim() && !phone.trim())}
+              className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              style={mont}
+            >
+              {createMutation.isPending ? "Saving…" : "Add Contact"}
             </button>
           </div>
         </form>

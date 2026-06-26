@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown, Home, ExternalLink, Trash2 } from "lucide-react";
+import { X, ChevronDown, Home, Trash2, AlertTriangle } from "lucide-react";
 
-export type ContactType = "Buyer" | "Seller";
+export type ContactType = "Buyer" | "Seller" | "Both";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
+
+export type AvailableProperty = { id: string; listingId: string; title: string };
 
 export type NewContact = {
   firstName: string;
@@ -16,17 +18,30 @@ export type NewContact = {
   location: string;
   address: string;
   notes: string;
-  // Only populated for sellers — properties they own.
-  properties?: string[];
+  // Only sent for Seller/Both — properties this contact owns.
+  propertyIds?: string[];
+};
+
+export type ContactConflict = {
+  message: string;
+  onViewExisting: () => void;
 };
 
 type AddContactModalProps = {
   onClose: () => void;
   onCreate?: (contact: NewContact) => void;
   isSaving?: boolean;
+  availableProperties?: AvailableProperty[];
+  conflict?: ContactConflict | null;
 };
 
-export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModalProps) {
+export function AddContactModal({
+  onClose,
+  onCreate,
+  isSaving,
+  availableProperties = [],
+  conflict,
+}: AddContactModalProps) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -35,20 +50,20 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [properties, setProperties] = useState<string[]>([""]);
+  const [propertyIds, setPropertyIds] = useState<string[]>([]);
 
-  const isSeller = contactType === "Seller";
+  const isSellerType = contactType === "Seller" || contactType === "Both";
 
-  function updateProperty(index: number, value: string) {
-    setProperties((prev) => prev.map((p, i) => (i === index ? value : p)));
+  function updatePropertyId(index: number, value: string) {
+    setPropertyIds((prev) => prev.map((p, i) => (i === index ? value : p)));
   }
 
-  function addProperty() {
-    setProperties((prev) => [...prev, ""]);
+  function addPropertyRow() {
+    setPropertyIds((prev) => [...prev, ""]);
   }
 
-  function removeProperty(index: number) {
-    setProperties((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)));
+  function removePropertyRow(index: number) {
+    setPropertyIds((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -62,7 +77,7 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
-      properties: isSeller ? properties.map((p) => p.trim()).filter(Boolean) : undefined,
+      propertyIds: isSellerType ? propertyIds.filter(Boolean) : undefined,
     });
   }
 
@@ -94,6 +109,23 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 sm:gap-5 sm:px-6 sm:py-6">
+          {conflict && (
+            <div className="flex flex-col gap-2 rounded-[12px] border border-[#fde68a] bg-[#fffbeb] p-3.5 sm:p-4">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0 text-[#b45309]" />
+                <p className="text-[12px] leading-5 text-[#92400e]" style={mont}>{conflict.message}</p>
+              </div>
+              <button
+                type="button"
+                onClick={conflict.onViewExisting}
+                className="self-start rounded-[8px] border border-[#fcd34d] bg-white px-3 py-1.5 text-[11px] font-medium text-[#92400e] transition-colors hover:bg-[#fef3c7] sm:text-[12px]"
+                style={mont}
+              >
+                Open existing contact
+              </button>
+            </div>
+          )}
+
           {/* First / Last name */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
@@ -120,12 +152,11 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
             </div>
           </div>
 
-          {/* Email / Phone */}
+          {/* Email / Phone — at least one is required; enforced on submit below */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Email Address *</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Email Address</label>
               <input
-                required
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -135,9 +166,8 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Phone Number *</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Phone Number</label>
               <input
-                required
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -147,6 +177,9 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
               />
             </div>
           </div>
+          {!email.trim() && !phone.trim() && (
+            <p className="-mt-2 text-[11px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+          )}
 
           {/* Contact Type / Location */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -162,6 +195,7 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
                 >
                   <option value="Buyer">Buyer</option>
                   <option value="Seller">Seller</option>
+                  <option value="Both">Both</option>
                 </select>
                 <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]" />
               </div>
@@ -191,56 +225,62 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
           </div>
 
           {/* Property Listings — sellers only */}
-          {isSeller && (
+          {isSellerType && (
             <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <Home size={15} className="shrink-0 text-[#1a5ea8]" />
                 <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings</p>
               </div>
               <p className="text-[11px] leading-5 text-[#6a7282] sm:text-[12px]" style={mont}>
-                Add properties this seller owns to identify and link them to this contact.
+                Link existing listings this seller owns. New listings can also be assigned to this contact later from the listing form.
               </p>
 
-              <div className="flex flex-col gap-2.5">
-                {properties.map((property, index) => (
-                  <div key={index} className="grid grid-cols-[24px_minmax(0,1fr)] gap-2 sm:flex sm:items-center sm:gap-2.5">
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
-                      {index + 1}
-                    </span>
-                    <input
-                      value={property}
-                      onChange={(e) => updateProperty(index, e.target.value)}
-                      placeholder="Property address or listing ID"
-                      className="h-9 min-w-0 rounded-[8px] border-[1.5px] border-[#c2dcff] bg-white px-3 text-[11px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:flex-1 sm:text-[12px]"
-                      style={mont}
-                    />
-                    <button
-                      type="button"
-                      className="col-start-2 flex h-9 items-center justify-center gap-2 rounded-[8px] bg-[#1e4f86] px-3 text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:col-start-auto sm:shrink-0 sm:text-[12px]"
-                      style={mont}
-                    >
-                      <ExternalLink size={12} />
-                      View Listing
-                    </button>
-                    {properties.length > 1 && (
+              {availableProperties.length === 0 ? (
+                <p className="text-[11px] italic text-[#99a1af] sm:text-[12px]" style={mont}>No listings exist yet to link.</p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {propertyIds.map((propertyId, index) => (
+                    <div key={index} className="flex items-center gap-2.5">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
+                        {index + 1}
+                      </span>
+                      <div className="relative min-w-0 flex-1">
+                        <select
+                          value={propertyId}
+                          onChange={(e) => updatePropertyId(index, e.target.value)}
+                          className="h-9 w-full min-w-0 cursor-pointer appearance-none rounded-[8px] border-[1.5px] border-[#c2dcff] bg-white px-3 pr-8 text-[11px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] sm:text-[12px]"
+                          style={mont}
+                        >
+                          <option value="">Select a listing…</option>
+                          {availableProperties
+                            .filter((p) => p.id === propertyId || !propertyIds.includes(p.id))
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.listingId} — {p.title}
+                              </option>
+                            ))}
+                        </select>
+                        <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]" />
+                      </div>
                       <button
                         type="button"
-                        onClick={() => removeProperty(index)}
+                        onClick={() => removePropertyRow(index)}
                         title="Remove property"
                         aria-label="Remove property"
-                        className="col-start-2 flex size-9 items-center justify-center justify-self-end text-[#6a7282] transition-colors hover:text-[#fb2c36] sm:col-start-auto sm:shrink-0"
+                        className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36]"
                       >
                         <Trash2 size={14} />
                       </button>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <button
                 type="button"
-                onClick={addProperty}
-                className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[11px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] sm:w-auto sm:self-start sm:text-[12px]"
+                onClick={addPropertyRow}
+                disabled={availableProperties.length === 0 || propertyIds.length >= availableProperties.length}
+                className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[11px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start sm:text-[12px]"
                 style={mont}
               >
                 Add Property
@@ -273,7 +313,7 @@ export function AddContactModal({ onClose, onCreate, isSaving }: AddContactModal
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || (!email.trim() && !phone.trim())}
               className="h-[41.5px] rounded-[10px] bg-[#1e4f86] text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60 sm:text-[12px]"
               style={mont}
             >

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { deleteAgent, getAgentDetail, updateAgentStatus } from "@/features/agents/agent-actions";
+import { deleteAgent, getAgentDetail, updateAgent, updateAgentStatus } from "@/features/agents/agent-actions";
 
 export const runtime = "nodejs";
 
@@ -22,8 +22,26 @@ export async function PATCH(
 ) {
   const { id } = await params;
   const body = await request.json().catch(() => null);
-  const newStatus = body?.status;
 
+  // Two distinct shapes hit this route: { status } from the approve/deny/deactivate
+  // buttons, and the Edit Agent modal's profile fields. Dispatch based on which
+  // keys are present rather than overloading one schema for both.
+  const hasProfileFields =
+    body && ("fullName" in body || "phone" in body || "city" in body || "role" in body);
+
+  if (hasProfileFields) {
+    const { fullName, phone, city, role } = body;
+    if (role !== undefined && role !== "AGENT" && role !== "MANAGER") {
+      return NextResponse.json({ success: false, error: "Role must be AGENT or MANAGER." }, { status: 400 });
+    }
+    const result = await updateAgent(id, { fullName, phone, city, role });
+    if (!result.ok) {
+      return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    }
+    return NextResponse.json({ success: true, agent: result.agent });
+  }
+
+  const newStatus = body?.status;
   if (newStatus !== "ACTIVE" && newStatus !== "INACTIVE") {
     return NextResponse.json({ success: false, error: "Invalid status. Must be ACTIVE or INACTIVE." }, { status: 400 });
   }

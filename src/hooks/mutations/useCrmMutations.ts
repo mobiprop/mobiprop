@@ -7,6 +7,18 @@ import type { ContactDto, OpportunityDto, ContractDto } from "@/features/crm/typ
 
 // ── Contacts ──────────────────────────────────────────────────────────────────
 
+export type ExistingContactRef = { id: string; contactId: string; fullName: string };
+
+/** Thrown when createContact rejects a duplicate email/phone match (409). */
+export class ContactConflictError extends Error {
+  existingContact: ExistingContactRef;
+  constructor(message: string, existingContact: ExistingContactRef) {
+    super(message);
+    this.name = "ContactConflictError";
+    this.existingContact = existingContact;
+  }
+}
+
 async function postContact(body: unknown): Promise<{ contact: ContactDto }> {
   const res = await fetch("/api/dashboard/contacts", {
     method: "POST",
@@ -14,7 +26,12 @@ async function postContact(body: unknown): Promise<{ contact: ContactDto }> {
     body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to create contact");
+  if (!res.ok) {
+    if (res.status === 409 && data.existingContact) {
+      throw new ContactConflictError(data.error ?? "A matching contact already exists.", data.existingContact);
+    }
+    throw new Error(data.error ?? "Failed to create contact");
+  }
   return data;
 }
 

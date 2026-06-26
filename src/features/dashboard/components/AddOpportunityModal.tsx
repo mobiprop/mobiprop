@@ -5,6 +5,7 @@ import { X, ChevronDown, Plus, Calendar } from "lucide-react";
 
 import type { OppStage, OppStatus } from "../opportunities-data";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
+import { ContactType } from "@/generated/prisma/enums";
 import { QuickAddContactModal } from "./QuickAddContactModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -304,11 +305,10 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
         <QuickAddContactModal
           onClose={() => setShowAddContact(false)}
           onCreate={(c) => {
-            const fullName = `${c.firstName} ${c.lastName}`.trim();
-            if (fullName) {
-              setExtraContacts((prev) => (prev.includes(fullName) ? prev : [...prev, fullName]));
-              setContact(fullName);
-              setContactSide(c.type === "Seller" ? "Seller" : "Buyer");
+            if (c.fullName) {
+              setExtraContacts((prev) => (prev.includes(c.fullName) ? prev : [...prev, c.fullName]));
+              setContact(c.fullName);
+              setContactSide(c.type === ContactType.SELLER ? "Seller" : "Buyer");
             }
             setShowAddContact(false);
           }}

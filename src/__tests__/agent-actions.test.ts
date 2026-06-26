@@ -50,7 +50,7 @@ beforeEach(() => {
   };
 });
 
-const { updateAgentStatus, deleteAgent } = await import("@/features/agents/agent-actions");
+const { updateAgentStatus, updateAgent, deleteAgent } = await import("@/features/agents/agent-actions");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. updateAgentStatus logs activity
@@ -118,7 +118,56 @@ describe("updateAgentStatus — no cascade to leads/listings", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. deleteAgent
+// 3. updateAgent — name/phone/city/role edit (2026-06-26 Agents UI decision)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("updateAgent", () => {
+  it("logs AGENT_UPDATED with old/new values and returns the updated AgentDto", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({
+      id: AGENT_ID, role: "AGENT", status: "ACTIVE",
+      fullName: "Old Name", phone: "111", city: "Old City", email: "agent@test.com",
+    });
+    mockPrismaProfile.update.mockResolvedValue({
+      id: AGENT_ID, role: "MANAGER", status: "ACTIVE",
+      fullName: "New Name", phone: "222", city: "New City", email: "agent@test.com",
+      createdAt: new Date("2026-01-01"),
+    });
+
+    const res = await updateAgent(AGENT_ID, { fullName: "New Name", phone: "222", city: "New City", role: "MANAGER" });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.agent.name).toBe("New Name");
+      expect(res.agent.role).toBe("MANAGER");
+    }
+
+    expect(mockLogActivity).toHaveBeenCalledOnce();
+    const [call] = mockLogActivity.mock.calls;
+    expect(call[0].action).toBe("AGENT_UPDATED");
+    expect(call[0].oldValues).toEqual({ fullName: "Old Name", phone: "111", city: "Old City", role: "AGENT" });
+    expect(call[0].newValues).toEqual({ fullName: "New Name", phone: "222", city: "New City", role: "MANAGER" });
+  });
+
+  it("rejects a role other than AGENT or MANAGER (Admin is never assignable here)", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "AGENT", status: "ACTIVE", fullName: "X", phone: null, city: null, email: "agent@test.com" });
+
+    const res = await updateAgent(AGENT_ID, { role: "ADMIN" as never });
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(400);
+    expect(mockPrismaProfile.update).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 for USER role (not an agent)", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({ id: AGENT_ID, role: "USER", status: "ACTIVE" });
+
+    const res = await updateAgent(AGENT_ID, { fullName: "New Name" });
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(404);
+    expect(mockPrismaProfile.update).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. deleteAgent
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("deleteAgent", () => {

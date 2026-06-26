@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown } from "lucide-react";
+import { X, ChevronDown, Home, Trash2 } from "lucide-react";
 
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { ContactType } from "@/generated/prisma/enums";
+import type { AvailableProperty } from "./AddContactModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -17,6 +18,7 @@ export type EditContactInput = {
   location: string;
   address: string;
   notes: string;
+  propertyIds: string[];
 };
 
 type EditContactModalProps = {
@@ -24,13 +26,14 @@ type EditContactModalProps = {
   onClose: () => void;
   onSave: (id: string, input: EditContactInput) => void;
   isSaving?: boolean;
+  availableProperties?: AvailableProperty[];
 };
 
 const inputClass =
   "h-[37.5px] px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
-export function EditContactModal({ contact, onClose, onSave, isSaving }: EditContactModalProps) {
+export function EditContactModal({ contact, onClose, onSave, isSaving, availableProperties = [] }: EditContactModalProps) {
   const [firstName, setFirstName] = useState(contact.firstName);
   const [lastName, setLastName] = useState(contact.lastName);
   const [email, setEmail] = useState(contact.email ?? "");
@@ -39,6 +42,23 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
   const [location, setLocation] = useState(contact.location ?? "");
   const [address, setAddress] = useState(contact.address ?? "");
   const [notes, setNotes] = useState(contact.notes ?? "");
+  const [propertyIds, setPropertyIds] = useState<string[]>(
+    contact.properties.filter((p) => p.role === "OWNER").map((p) => p.id),
+  );
+
+  const isSellerType = type === ContactType.SELLER || type === ContactType.BOTH;
+
+  function updatePropertyId(index: number, value: string) {
+    setPropertyIds((prev) => prev.map((p, i) => (i === index ? value : p)));
+  }
+
+  function addPropertyRow() {
+    setPropertyIds((prev) => [...prev, ""]);
+  }
+
+  function removePropertyRow(index: number) {
+    setPropertyIds((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +71,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
+      propertyIds: isSellerType ? propertyIds.filter(Boolean) : [],
     });
   }
 
@@ -130,6 +151,9 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
               />
             </div>
           </div>
+          {!email.trim() && !phone.trim() && (
+            <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+          )}
 
           {/* Contact Type / Location */}
           <div className="grid grid-cols-2 gap-4">
@@ -174,6 +198,70 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
             />
           </div>
 
+          {/* Property Listings — sellers only */}
+          {isSellerType && (
+            <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+              <div className="flex items-center gap-2">
+                <Home size={15} className="shrink-0 text-[#1a5ea8]" />
+                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings</p>
+              </div>
+              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
+                Listings this seller owns. Changes are saved when you click Save Changes.
+              </p>
+
+              {availableProperties.length === 0 ? (
+                <p className="text-[12px] italic text-[#99a1af]" style={mont}>No listings exist yet to link.</p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {propertyIds.map((propertyId, index) => (
+                    <div key={index} className="flex items-center gap-2.5">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
+                        {index + 1}
+                      </span>
+                      <div className="relative min-w-0 flex-1">
+                        <select
+                          value={propertyId}
+                          onChange={(e) => updatePropertyId(index, e.target.value)}
+                          className="h-9 w-full min-w-0 cursor-pointer appearance-none rounded-[8px] border-[1.5px] border-[#c2dcff] bg-white px-3 pr-8 text-[12px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86]"
+                          style={mont}
+                        >
+                          <option value="">Select a listing…</option>
+                          {availableProperties
+                            .filter((p) => p.id === propertyId || !propertyIds.includes(p.id))
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.listingId} — {p.title}
+                              </option>
+                            ))}
+                        </select>
+                        <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePropertyRow(index)}
+                        title="Remove property"
+                        aria-label="Remove property"
+                        className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36]"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={addPropertyRow}
+                disabled={availableProperties.length === 0 || propertyIds.length >= availableProperties.length}
+                className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start"
+                style={mont}
+              >
+                Add Property
+              </button>
+            </div>
+          )}
+
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-semibold text-[#1f2937]" style={mont}>Notes</label>
@@ -199,7 +287,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || (!email.trim() && !phone.trim())}
               className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >

@@ -46,7 +46,10 @@ import {
   PropertyOperationType,
   PropertyStatus,
   PropertyType,
+  ContactType,
 } from "@/generated/prisma/enums";
+import type { ContactDto } from "@/features/crm/types/crm-dto";
+import { QuickAddContactModal } from "./QuickAddContactModal";
 import {
   createListingSchema,
   AMENITY_OPTIONS,
@@ -112,6 +115,7 @@ type ListingFormValues = {
   fullAddress: string;
   isFeatured: boolean;
   assignedAgentId: string;
+  ownerContactId: string;
   videoUrl: string;
   bedrooms: string;
   bathrooms: string;
@@ -134,6 +138,7 @@ const EMPTY_VALUES: ListingFormValues = {
   fullAddress: "",
   isFeatured: false,
   assignedAgentId: "",
+  ownerContactId: "",
   videoUrl: "",
   bedrooms: "",
   bathrooms: "",
@@ -157,6 +162,7 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     fullAddress: listing.fullAddress,
     isFeatured: listing.isFeatured,
     assignedAgentId: listing.assignedAgentId ?? "",
+    ownerContactId: listing.ownerContact?.id ?? "",
     videoUrl: listing.videoUrl ?? "",
     bedrooms: listing.bedrooms?.toString() ?? "",
     bathrooms: listing.bathrooms?.toString() ?? "",
@@ -169,6 +175,8 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
 }
 
 type AssignableAgent = { id: string; name: string; status: string };
+
+type SellerContact = { id: string; fullName: string; contactId: string };
 
 type NewImage = {
   file: File;
@@ -217,6 +225,9 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.isFeatured !== listing.isFeatured) diff.isFeatured = parsed.isFeatured;
   if ((parsed.assignedAgentId ?? "") !== (listing.assignedAgentId ?? "")) {
     diff.assignedAgentId = parsed.assignedAgentId;
+  }
+  if ((parsed.ownerContactId ?? "") !== (listing.ownerContact?.id ?? "")) {
+    diff.ownerContactId = parsed.ownerContactId;
   }
   if ((parsed.videoUrl ?? "") !== (listing.videoUrl ?? "")) {
     diff.videoUrl = parsed.videoUrl;
@@ -322,6 +333,8 @@ export function UploadListingModal({
   const [imagesError, setImagesError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [agents, setAgents] = useState<AssignableAgent[]>([]);
+  const [sellerContacts, setSellerContacts] = useState<SellerContact[]>([]);
+  const [showAddOwnerContact, setShowAddOwnerContact] = useState(false);
 
   useEffect(() => {
     if (!canAssign) return;
@@ -330,6 +343,20 @@ export function UploadListingModal({
       .then((json) => setAgents((json.agents ?? []).filter((a: AssignableAgent) => a.status === "ACTIVE")))
       .catch(() => undefined);
   }, [canAssign]);
+
+  useEffect(() => {
+    fetch("/api/dashboard/contacts")
+      .then((res) => res.json())
+      .then((json) => {
+        const contacts: ContactDto[] = json.contacts ?? [];
+        setSellerContacts(
+          contacts
+            .filter((c) => c.type === ContactType.SELLER || c.type === ContactType.BOTH)
+            .map((c) => ({ id: c.id, fullName: c.fullName, contactId: c.contactId })),
+        );
+      })
+      .catch(() => undefined);
+  }, []);
 
   const createMutation = useCreateListingMutation();
   const updateMutation = useUpdateListingMutation();
@@ -1114,6 +1141,52 @@ export function UploadListingModal({
                     </div>
                   )}
 
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <label
+                      htmlFor="listing-owner-contact"
+                      className={labelClass}
+                      style={mont}
+                    >
+                      Property Owner
+                    </label>
+
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className="relative min-w-0 flex-1">
+                        <select
+                          id="listing-owner-contact"
+                          {...register("ownerContactId")}
+                          className={selectClass}
+                          style={mont}
+                        >
+                          <option value="">— No owner set —</option>
+                          {sellerContacts.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.fullName} ({c.contactId})
+                            </option>
+                          ))}
+                        </select>
+
+                        <ChevronDown
+                          size={18}
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAddOwnerContact(true)}
+                        className="h-11 shrink-0 rounded-[10px] border border-[#1e4f86] px-3.5 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff]"
+                        style={mont}
+                      >
+                        + Add Contact
+                      </button>
+                    </div>
+
+                    <p className="text-[13px] leading-5 text-[#6a7282]" style={mont}>
+                      The seller/owner this listing is linked to in Contacts.
+                    </p>
+                  </div>
+
                   {canFeature && (
                     <div className="flex min-w-0 items-start justify-between gap-4 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4 sm:items-center">
                       <div className="min-w-0 flex-1">
@@ -1712,6 +1785,20 @@ export function UploadListingModal({
           </footer>
         </form>
       </div>
+
+      {showAddOwnerContact && (
+        <QuickAddContactModal
+          onClose={() => setShowAddOwnerContact(false)}
+          onCreate={(contact: ContactDto) => {
+            setSellerContacts((prev) => [
+              ...prev,
+              { id: contact.id, fullName: contact.fullName, contactId: contact.contactId },
+            ]);
+            setValue("ownerContactId", contact.id, { shouldDirty: true });
+            setShowAddOwnerContact(false);
+          }}
+        />
+      )}
     </div>
   );
 }

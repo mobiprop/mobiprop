@@ -1,0 +1,169 @@
+/**
+ * Opportunity / Contract record-scoping unit tests (2026-06-26 Milestone 3 decision).
+ *
+ * Unlike Contacts/Leads (which AGENT now sees in full), Opportunities and Contracts
+ * stay scoped to an agent's own/assigned records — the one place AGENT visibility
+ * is deliberately restricted. Covers:
+ *   1. listOpportunities / listContracts — AGENT gets an own/assigned OR scope;
+ *      ADMIN/MANAGER (opportunities:view_all / contracts:view_all) get none.
+ *   2. updateOpportunity / updateContract — AGENT is blocked (403) from updating
+ *      a record that isn't theirs; ADMIN/MANAGER can update any record.
+ */
+
+import { describe, it, expect, vi, beforeEach, type MockInstance } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
+type MockFn = MockInstance;
+
+const db = {
+  opportunity: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+  contract: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+  $queryRaw: vi.fn(),
+};
+
+vi.mock("@/lib/prisma", () => ({ get prisma() { return db; } }));
+
+const mockRequirePermission = vi.fn();
+vi.mock("@/lib/require-permission", () => ({
+  get requirePermission() { return mockRequirePermission; },
+}));
+
+function grantAs(role: "ADMIN" | "MANAGER" | "AGENT", id: string) {
+  mockRequirePermission.mockResolvedValue({
+    ok: true,
+    profile: { id, role, status: "ACTIVE", fullName: `Test ${role}`, email: `${role.toLowerCase()}@test.com`, avatarUrl: null },
+  });
+}
+
+const AGENT_A_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const AGENT_B_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const ADMIN_ID   = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const MANAGER_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+
+const { listOpportunities, updateOpportunity } = await import("@/features/crm/opportunity-actions");
+const { listContracts, updateContract } = await import("@/features/crm/contract-actions");
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+function scopeOr(where: Record<string, unknown> | undefined): Record<string, unknown>[] | undefined {
+  return where?.OR as Record<string, unknown>[] | undefined;
+}
+
+// ── Opportunities ───────────────────────────────────────────────────────────────
+
+describe("listOpportunities — record scope", () => {
+  it("scopes to own/assigned for AGENT", async () => {
+    grantAs("AGENT", AGENT_A_ID);
+    db.opportunity.findMany.mockResolvedValue([]);
+
+    await listOpportunities();
+
+    const [call] = (db.opportunity.findMany as MockFn).mock.calls;
+    const or = scopeOr(call[0].where);
+    expect(or).toContainEqual({ assignedAgentId: AGENT_A_ID });
+    expect(or).toContainEqual({ createdById: AGENT_A_ID });
+  });
+
+  it("applies no scope for ADMIN", async () => {
+    grantAs("ADMIN", ADMIN_ID);
+    db.opportunity.findMany.mockResolvedValue([]);
+
+    await listOpportunities();
+
+    const [call] = (db.opportunity.findMany as MockFn).mock.calls;
+    expect(call[0].where).toEqual({});
+  });
+
+  it("applies no scope for MANAGER", async () => {
+    grantAs("MANAGER", MANAGER_ID);
+    db.opportunity.findMany.mockResolvedValue([]);
+
+    await listOpportunities();
+
+    const [call] = (db.opportunity.findMany as MockFn).mock.calls;
+    expect(call[0].where).toEqual({});
+  });
+});
+
+describe("updateOpportunity — ownership guard", () => {
+  it("blocks AGENT from updating an opportunity they don't own/aren't assigned to", async () => {
+    grantAs("AGENT", AGENT_B_ID);
+    db.opportunity.findUnique.mockResolvedValue({ assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID });
+
+    const res = await updateOpportunity("opp-1", {});
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(403);
+    expect(db.opportunity.update).not.toHaveBeenCalled();
+  });
+
+  it("allows AGENT to update their own assigned opportunity", async () => {
+    grantAs("AGENT", AGENT_A_ID);
+    db.opportunity.findUnique.mockResolvedValue({ assignedAgentId: AGENT_A_ID, createdById: null });
+    db.opportunity.update.mockResolvedValue({
+      id: "opp-1", opportunityId: "OPP-0001", title: "Test", contactId: null, propertyId: null,
+      dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
+      commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
+      expectedCloseAt: null, agentCommission: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
+      createdAt: new Date(), contact: null, property: null,
+    });
+
+    const res = await updateOpportunity("opp-1", {});
+    expect(res.ok).toBe(true);
+  });
+
+  it("allows MANAGER to update any opportunity without an ownership check", async () => {
+    grantAs("MANAGER", MANAGER_ID);
+    db.opportunity.update.mockResolvedValue({
+      id: "opp-1", opportunityId: "OPP-0001", title: "Test", contactId: null, propertyId: null,
+      dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
+      commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
+      expectedCloseAt: null, agentCommission: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
+      createdAt: new Date(), contact: null, property: null,
+    });
+
+    const res = await updateOpportunity("opp-1", {});
+    expect(res.ok).toBe(true);
+    expect(db.opportunity.findUnique).not.toHaveBeenCalled();
+  });
+});
+
+// ── Contracts ────────────────────────────────────────────────────────────────────
+
+describe("listContracts — record scope", () => {
+  it("scopes to own/assigned for AGENT", async () => {
+    grantAs("AGENT", AGENT_A_ID);
+    db.contract.findMany.mockResolvedValue([]);
+
+    await listContracts();
+
+    const [call] = (db.contract.findMany as MockFn).mock.calls;
+    const or = scopeOr(call[0].where);
+    expect(or).toContainEqual({ assignedAgentId: AGENT_A_ID });
+    expect(or).toContainEqual({ createdById: AGENT_A_ID });
+  });
+
+  it("applies no scope for ADMIN", async () => {
+    grantAs("ADMIN", ADMIN_ID);
+    db.contract.findMany.mockResolvedValue([]);
+
+    await listContracts();
+
+    const [call] = (db.contract.findMany as MockFn).mock.calls;
+    expect(call[0].where).toEqual({});
+  });
+});
+
+describe("updateContract — ownership guard", () => {
+  it("blocks AGENT from updating a contract they don't own/aren't assigned to", async () => {
+    grantAs("AGENT", AGENT_B_ID);
+    db.contract.findUnique.mockResolvedValue({ assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID });
+
+    const res = await updateContract("con-1", {});
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(403);
+    expect(db.contract.update).not.toHaveBeenCalled();
+  });
+});

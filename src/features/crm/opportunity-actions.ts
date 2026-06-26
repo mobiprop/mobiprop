@@ -3,6 +3,8 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { OpportunityStage, OpportunityStatus, ContactType } from "@/generated/prisma/enums";
+import { Prisma, type Profile } from "@/generated/prisma/client";
+import { hasPermission } from "@/lib/permissions";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
 import type { CreateOpportunityInput, UpdateOpportunityInput } from "@/schemas/opportunity.schema";
 import type { OpportunityDto, OpportunityMetrics } from "./types/crm-dto";
@@ -10,6 +12,14 @@ import type { OpportunityDto, OpportunityMetrics } from "./types/crm-dto";
 export type { CrmActionError, CrmActionResult } from "./contact-actions";
 import type { CrmActionError } from "./contact-actions";
 type CrmActionResult<T> = ({ ok: true } & T) | CrmActionError;
+
+// ── Record-level access ──────────────────────────────────────────────────────
+
+/** ADMIN/MANAGER see all opportunities; AGENT only ones they created or are assigned to. */
+function opportunityRecordScope(profile: Profile): Prisma.OpportunityWhereInput {
+  if (hasPermission(profile.role, "opportunities:view_all")) return {};
+  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+}
 
 // ── ID generation ─────────────────────────────────────────────────────────────
 
@@ -30,6 +40,7 @@ type OppWithRelations = {
   probability: number; commission: unknown; commissionUnit: string | null;
   paymentTerms: string | null; contractStart: Date | null; contractEnd: Date | null;
   expectedCloseAt: Date | null; agentCommission: string | null; notes: string | null;
+  assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
   contact: { firstName: string; lastName: string; type: ContactType } | null;
   property: { title: string; slug: string } | null;
@@ -59,6 +70,8 @@ function toOpportunityDto(o: OppWithRelations): OpportunityDto {
     expectedCloseAt: o.expectedCloseAt?.toISOString() ?? null,
     agentCommission: o.agentCommission,
     notes: o.notes,
+    assignedAgentId: o.assignedAgentId,
+    createdById: o.createdById,
     createdAt: o.createdAt.toISOString(),
   };
 }
@@ -77,6 +90,7 @@ export async function listOpportunities(): Promise<
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
   const rows = await prisma.opportunity.findMany({
+    where: opportunityRecordScope(gate.profile),
     include: opportunityInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -138,6 +152,17 @@ export async function updateOpportunity(
 ): Promise<CrmActionResult<{ opportunity: OpportunityDto }>> {
   const gate = await requirePermission("opportunities:update");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  if (!hasPermission(gate.profile.role, "opportunities:view_all")) {
+    const existing = await prisma.opportunity.findUnique({
+      where: { id },
+      select: { assignedAgentId: true, createdById: true },
+    });
+    if (!existing) return { ok: false, error: "Opportunity not found.", status: 404 };
+    if (existing.assignedAgentId !== gate.profile.id && existing.createdById !== gate.profile.id) {
+      return { ok: false, error: "You can only update your own or assigned opportunities.", status: 403 };
+    }
+  }
 
   const parsed = updateOpportunitySchema.safeParse(input);
   if (!parsed.success) {

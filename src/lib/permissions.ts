@@ -25,6 +25,11 @@ export type Permission =
   | "invitations:resend"
   | "invitations:revoke"
   | "contacts:view"
+  // Unscoped visibility. ADMIN/MANAGER hold this; AGENT holders only see
+  // contacts they created/are assigned to, or that are linked to a lead,
+  // listing, opportunity, or tour assigned to them (record-level check in
+  // the contact actions) — mirrors the leads:view_all pattern.
+  | "contacts:view_all"
   | "contacts:create"
   | "contacts:update"
   | "contacts:delete"
@@ -59,9 +64,15 @@ export type Permission =
   | "tours:update"
   | "tours:assign"
   | "opportunities:view"
+  // Unscoped visibility. ADMIN/MANAGER hold this; AGENT holders only see
+  // opportunities/contracts they created or are assigned to (record-level
+  // check in the opportunity/contract actions) — this is the one place
+  // AGENT visibility stays scoped, per the client's Milestone 3 decision.
+  | "opportunities:view_all"
   | "opportunities:create"
   | "opportunities:update"
   | "contracts:view"
+  | "contracts:view_all"
   | "contracts:create"
   | "contracts:update"
   | "contracts:uploadDocuments"
@@ -89,6 +100,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "invitations:resend",
     "invitations:revoke",
     "contacts:view",
+    "contacts:view_all",
     "contacts:create",
     "contacts:update",
     "contacts:delete",
@@ -120,9 +132,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "tours:update",
     "tours:assign",
     "opportunities:view",
+    "opportunities:view_all",
     "opportunities:create",
     "opportunities:update",
     "contracts:view",
+    "contracts:view_all",
     "contracts:create",
     "contracts:update",
     "contracts:uploadDocuments",
@@ -138,8 +152,10 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
   MANAGER: [
     "dashboard:view",
+    "dashboard:viewCompanyRevenue",
     "agents:view",
     "contacts:view",
+    "contacts:view_all",
     "contacts:create",
     "contacts:update",
     "contacts:archive",
@@ -147,6 +163,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "listings:view",
     "listings:create",
     "listings:update",
+    "listings:delete",
     "listings:assign",
     "listings:pause",
     "listings:feature",
@@ -169,9 +186,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "tours:update",
     "tours:assign",
     "opportunities:view",
+    "opportunities:view_all",
     "opportunities:create",
     "opportunities:update",
     "contracts:view",
+    "contracts:view_all",
     "contracts:create",
     "contracts:update",
     "contracts:uploadDocuments",
@@ -183,12 +202,17 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   AGENT: [
     "dashboard:view",
     "contacts:view",
+    "contacts:view_all",
+    "contacts:create",
+    "contacts:update",
     "listings:view",
     "listings:create",
     "listings:update",
+    "listings:delete",
     "listings:pause",
     "listings:uploadImages",
     "leads:view",
+    "leads:view_all",
     "leads:create",
     "leads:update",
     "leads:change_status",
@@ -199,6 +223,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "tours:view",
     "tours:create",
     "tours:update",
+    // Opportunities/contracts deliberately stay scoped — no *:view_all here.
+    // Record-level own/assigned checks live in the opportunity/contract actions.
     "opportunities:view",
     "opportunities:update",
     "contracts:view",

@@ -47,6 +47,8 @@ export type DashboardListingDto = {
   amenities: AmenityKey[];
   images: ListingImageDto[];
   coverImageUrl: string | null;
+  /** Seller/owner-of-record Contact, if one has been linked (CRM plan §5/§9). */
+  ownerContact: { id: string; fullName: string } | null;
 };
 
 export type DashboardListingMetrics = {

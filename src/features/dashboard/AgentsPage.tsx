@@ -19,11 +19,16 @@ import {
   Handshake,
   Star,
   Trash2,
+  MoreHorizontal,
+  Pencil,
+  MoreVertical,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
+import { formatCurrency } from "@/lib/formatters";
 import { AddAgentModal } from "./components/AddAgentModal";
+import { EditAgentModal } from "./components/EditAgentModal";
 import type { AgentDto, AgentMetrics } from "@/features/agents/agent-actions";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -81,12 +86,15 @@ function formatDate(iso: string): string {
 type StatCardProps = {
   label: string;
   value: string;
-  trend: string;
+  /** Positive-trend callout (green, with an up arrow). Omit when there's no real trend to show. */
+  trend?: string;
+  /** Plain explanatory subtext, shown when `trend` isn't provided. */
+  note?: string;
   iconBg: string;
   icon: React.ReactNode;
 };
 
-function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
+function StatCard({ label, value, trend, note, iconBg, icon }: StatCardProps) {
   return (
     <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[14px] p-[18px] flex flex-col gap-3">
       <div className="flex items-start justify-between">
@@ -97,7 +105,14 @@ function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
       </div>
       <div>
         <p className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</p>
-        <p className="text-[14px] font-medium text-[#00c950] mt-1" style={mont}>{trend}</p>
+        {trend ? (
+          <p className="flex items-center gap-1 text-[14px] font-medium text-[#00c950] mt-1" style={mont}>
+            <span aria-hidden="true">↑</span>
+            <span>{trend}</span>
+          </p>
+        ) : note ? (
+          <p className="text-[14px] font-medium text-[#6a7282] mt-1" style={mont}>{note}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -123,6 +138,94 @@ function StatusBadge({ status }: { status: AgentStatus }) {
   );
 }
 
+// ── Row actions menu (kebab → Edit / Delete) ─────────────────────────────────
+
+type AgentActionsMenuProps = {
+  agent: AgentDto;
+  isOpen: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  variant?: "icon" | "full-width";
+};
+
+function AgentActionsMenu({
+  agent,
+  isOpen,
+  canEdit,
+  canDelete,
+  onToggle,
+  onClose,
+  onEdit,
+  onDelete,
+  variant = "icon",
+}: AgentActionsMenuProps) {
+  if (!canEdit && !canDelete) {
+    return (
+      <span className="text-[14px] text-[#99a1af]" style={mont}>
+        No actions
+      </span>
+    );
+  }
+
+  return (
+    <div className="relative inline-block">
+      <button
+        type="button"
+        title="More actions"
+        aria-label={`More actions for ${agent.name}`}
+        onClick={onToggle}
+        className={
+          variant === "full-width"
+            ? "flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white text-[14px] font-medium text-[#0d2138] transition-colors active:scale-[0.99]"
+            : "inline-flex size-8 items-center justify-center rounded-[7px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+        }
+      >
+        <MoreVertical size={variant === "full-width" ? 17 : 14} />
+        {variant === "full-width" && "More Actions"}
+      </button>
+
+      {isOpen && (
+        <>
+          {/* Click-outside catcher — sits behind the menu, closes it on click. */}
+          <div className="fixed inset-0 z-40" onClick={onClose} />
+          <div
+            className={`absolute z-50 mt-1 w-40 overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg ${
+              variant === "full-width" ? "left-0 right-0" : "right-0"
+            }`}
+          >
+            {canEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[14px] text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
+                style={mont}
+              >
+                <Pencil size={14} />
+                Edit
+              </button>
+            )}
+            {canDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[14px] text-[#fb2c36] transition-colors hover:bg-[#fff5f5]"
+                style={mont}
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 type AgentsPageProps = {
@@ -138,11 +241,15 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [editingAgent, setEditingAgent] = useState<AgentDto | null>(null);
 
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
+  const canEdit = hasPermission(role, "agents:update");
   const canDelete = hasPermission(role, "agents:delete");
   const canViewInvitations = hasPermission(role, "invitations:view");
+  const canViewRevenue = hasPermission(role, "dashboard:viewCompanyRevenue");
 
   const fetchAgents = useCallback(async () => {
     setLoading(true);
@@ -260,12 +367,12 @@ export function AgentsPage({ role }: AgentsPageProps) {
       </div>
 
       {/* Stat cards */}
-     {/* Stat cards */}
 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
   <StatCard
     label="Total Agents"
     value={metrics ? String(metrics.total) : "—"}
-    trend="↑ 2 new this month"
+    trend={metrics && metrics.newThisMonth > 0 ? `${metrics.newThisMonth} new this month` : undefined}
+    note={metrics && metrics.newThisMonth === 0 ? "No new agents this month" : undefined}
     iconBg="#e7ebff"
     icon={
       <Medal
@@ -278,8 +385,9 @@ export function AgentsPage({ role }: AgentsPageProps) {
 
   <StatCard
     label="Active Deals"
-    value="108"
-    trend="↑ +12.5% from last month"
+    value={metrics ? String(metrics.activeDeals) : "—"}
+    trend={metrics && metrics.activeDealsNewThisMonth > 0 ? `${metrics.activeDealsNewThisMonth} new this month` : undefined}
+    note={metrics && metrics.activeDealsNewThisMonth === 0 ? "Open opportunities" : undefined}
     iconBg="#e6faf3"
     icon={
       <Handshake
@@ -292,8 +400,8 @@ export function AgentsPage({ role }: AgentsPageProps) {
 
   <StatCard
     label="Total Revenue"
-    value="$2.21m"
-    trend="↑ +18.2% from last month"
+    value={!canViewRevenue ? "—" : metrics ? formatCurrency(metrics.totalRevenue) : "—"}
+    note={!canViewRevenue ? "Admin/Manager only" : "From closed-won opportunities"}
     iconBg="#fff1c7"
     icon={
       <DollarSign
@@ -306,8 +414,9 @@ export function AgentsPage({ role }: AgentsPageProps) {
 
   <StatCard
     label="Total Listings"
-    value="19"
-    trend="↑ +0.3 from last month"
+    value={metrics ? String(metrics.totalListings) : "—"}
+    trend={metrics && metrics.totalListingsNewThisMonth > 0 ? `${metrics.totalListingsNewThisMonth} new this month` : undefined}
+    note={metrics && metrics.totalListingsNewThisMonth === 0 ? "All listings" : undefined}
     iconBg="#fff2e8"
     icon={
       <Star
@@ -512,7 +621,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                   </span>
                 </td>
 
-                <td className="w-[144px] px-4 py-4 text-center">
+                <td className="w-[144px] px-4 py-4">
                   <StatusBadge status={mappedStatus} />
                 </td>
 
@@ -525,16 +634,17 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       Updating…
                     </span>
                   ) : isActioned ? (
-                    canDelete ? (
-                      <button
-                        type="button"
-                        title="Delete"
-                        aria-label={`Delete ${agent.name}`}
-                        onClick={() => handleDelete(agent)}
-                        className="flex size-8 items-center justify-center rounded-[8px] border border-[#ffa2a2] bg-white transition-colors hover:bg-[#fff5f5]"
-                      >
-                        <Trash2 size={14} className="text-[#fb2c36]" />
-                      </button>
+                    canEdit || canDelete ? (
+                      <AgentActionsMenu
+                        agent={agent}
+                        isOpen={menuOpenId === agent.id}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        onToggle={() => setMenuOpenId(menuOpenId === agent.id ? null : agent.id)}
+                        onClose={() => setMenuOpenId(null)}
+                        onEdit={() => { setMenuOpenId(null); setEditingAgent(agent); }}
+                        onDelete={() => { setMenuOpenId(null); handleDelete(agent); }}
+                      />
                     ) : (
                       <span
                         className="text-[14px] text-[#6a7282]"
@@ -729,16 +839,18 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     Updating…
                   </div>
                 ) : isActioned ? (
-                  canDelete ? (
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(agent)}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#ffa2a2] bg-[#fff5f5] text-[14px] font-semibold text-[#fb2c36] transition-colors active:scale-[0.99]"
-                      style={mont}
-                    >
-                      <Trash2 size={17} />
-                      Delete Agent
-                    </button>
+                  canEdit || canDelete ? (
+                    <AgentActionsMenu
+                      agent={agent}
+                      isOpen={menuOpenId === agent.id}
+                      canEdit={canEdit}
+                      canDelete={canDelete}
+                      onToggle={() => setMenuOpenId(menuOpenId === agent.id ? null : agent.id)}
+                      onClose={() => setMenuOpenId(null)}
+                      onEdit={() => { setMenuOpenId(null); setEditingAgent(agent); }}
+                      onDelete={() => { setMenuOpenId(null); handleDelete(agent); }}
+                      variant="full-width"
+                    />
                   ) : (
                     <div
                       className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
@@ -797,6 +909,13 @@ export function AgentsPage({ role }: AgentsPageProps) {
 </div>
 
       {showModal && <AddAgentModal onClose={() => setShowModal(false)} />}
+      {editingAgent && (
+        <EditAgentModal
+          agent={editingAgent}
+          onClose={() => setEditingAgent(null)}
+          onSaved={() => fetchAgents()}
+        />
+      )}
     </div>
   );
 }

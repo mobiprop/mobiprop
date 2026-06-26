@@ -4,7 +4,10 @@
  * These tests mock the persistence and auth layers so they run without a live
  * database. They cover:
  *   1. Permission gates for every role / status combination.
- *   2. AGENT record scope (only sees assigned / created leads).
+ *   2. Lead record scope — AGENT now holds `leads:view_all` (2026-06-26 client decision:
+ *      agents see ALL leads, not just own/assigned), so `leadRecordScope()` returns no
+ *      scope for any staff role today. These tests pin that behavior; the scope helper
+ *      itself stays in place for any role that might lack `leads:view_all` in the future.
  *   3. The CONVERTED guard in updateLead.
  *   4. convertLead concurrent-conversion idempotency (double-guard path).
  *   5. convertLead transaction atomicity (convertedOpportunityId inside tx).
@@ -238,24 +241,23 @@ describe("listLeads — permission gates", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("listLeads — AGENT record scope", () => {
-  it("passes scope OR clause when role is AGENT", async () => {
+  it("passes no scope when role is AGENT (leads:view_all)", async () => {
     grantAs(PROFILES.agentA);
     await listLeads({});
 
     const [findManyCall] = (db.lead.findMany as MockFn).mock.calls;
     const where = findManyCall[0].where;
 
-    // Should have AND with scope OR condition
-    expect(where.AND).toBeDefined();
-    const scopeClause = where.AND.find(
-      (c: Record<string, unknown>) => "OR" in c &&
-        Array.isArray(c.OR) &&
-        (c.OR as Record<string, unknown>[]).some((o) => "assignedAgentId" in o || "createdById" in o),
+    // AGENT holds leads:view_all (2026-06-26 decision) → scope is {} → no AND-scoped OR clause.
+    const andItems: unknown[] = where.AND ?? [];
+    const scopeClause = andItems.find(
+      (c: unknown) => typeof c === "object" && c !== null && "OR" in (c as object) &&
+        Array.isArray((c as Record<string, unknown>).OR) &&
+        ((c as Record<string, unknown[]>).OR).some(
+          (o: unknown) => typeof o === "object" && o !== null && ("assignedAgentId" in (o as object) || "createdById" in (o as object)),
+        ),
     );
-    expect(scopeClause).toBeDefined();
-    const orItems = scopeClause.OR as Record<string, unknown>[];
-    expect(orItems).toContainEqual({ assignedAgentId: AGENT_A_ID });
-    expect(orItems).toContainEqual({ createdById: AGENT_A_ID });
+    expect(scopeClause).toBeUndefined();
   });
 
   it("passes no scope when role is ADMIN", async () => {
@@ -297,38 +299,29 @@ describe("listLeads — AGENT record scope", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("getLead — AGENT record scope", () => {
-  it("returns lead when AGENT is assigned to it", async () => {
-    grantAs(PROFILES.agentA);
-    // findFirst with scope — returns the lead (means the query matched)
+  it("returns a lead assigned to a different agent (leads:view_all)", async () => {
+    // Agent B fetches a lead assigned to Agent A — allowed since AGENT now holds leads:view_all.
+    grantAs(PROFILES.agentB);
     (db.lead.findFirst as MockFn).mockResolvedValue(LEAD_ASSIGNED_TO_A);
     (db.profile.findMany as MockFn).mockResolvedValue([]);
 
     const res = await getLead("lead-1");
     expect(res.ok).toBe(true);
 
-    // Verify the scope was included in the where clause
+    // No scope applied — just the id lookup.
     const [call] = (db.lead.findFirst as MockFn).mock.calls;
     const where = call[0].where;
     expect(where.id).toBe("lead-1");
-    expect(where.OR).toBeDefined();
-    expect(where.OR).toContainEqual({ assignedAgentId: AGENT_A_ID });
+    expect(where.OR).toBeUndefined();
   });
 
-  it("returns 404 when AGENT is NOT assigned to the lead", async () => {
-    // Agent B tries to access a lead assigned to Agent A.
+  it("returns 404 when the lead doesn't exist", async () => {
     grantAs(PROFILES.agentB);
-    // findFirst returns null because scope doesn't match.
     (db.lead.findFirst as MockFn).mockResolvedValue(null);
 
     const res = await getLead("lead-1");
     expect(res.ok).toBe(false);
     expect((res as { status: number }).status).toBe(404);
-
-    // Verify the scope was Agent B's id, not Agent A's.
-    const [call] = (db.lead.findFirst as MockFn).mock.calls;
-    const where = call[0].where;
-    expect(where.OR).toContainEqual({ assignedAgentId: AGENT_B_ID });
-    expect(where.OR).toContainEqual({ createdById: AGENT_B_ID });
   });
 });
 
@@ -535,16 +528,16 @@ describe("createLead — AGENT assignment restriction", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("archiveLead — AGENT scope", () => {
-  it("returns 404 when AGENT tries to archive another agent's lead", async () => {
+  it("applies no scope for AGENT (leads:view_all) and 404s only when the lead is missing", async () => {
     grantAs(PROFILES.agentB);
-    (db.lead.findFirst as MockFn).mockResolvedValue(null); // scope excludes it
+    (db.lead.findFirst as MockFn).mockResolvedValue(null);
 
     const res = await archiveLead("lead-1");
     expect(res.ok).toBe(false);
     expect((res as { status: number }).status).toBe(404);
 
     const [call] = (db.lead.findFirst as MockFn).mock.calls;
-    expect(call[0].where.OR).toContainEqual({ assignedAgentId: AGENT_B_ID });
+    expect(call[0].where.OR).toBeUndefined();
   });
 });
 

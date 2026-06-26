@@ -22,7 +22,10 @@ export async function POST(req: Request) {
 
   const result = await createContact(body);
   if (!result.ok) {
-    return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+    return NextResponse.json(
+      { success: false, error: result.error, existingContact: result.existingContact },
+      { status: result.status },
+    );
   }
   return NextResponse.json({ success: true, contact: result.contact }, { status: 201 });
 }

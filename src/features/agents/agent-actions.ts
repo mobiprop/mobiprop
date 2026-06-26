@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { ContractStatus, OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
+import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 
 export type AgentDto = {
   id: string;
@@ -21,6 +21,15 @@ export type AgentMetrics = {
   active: number;
   pending: number;
   inactive: number;
+  newThisMonth: number;
+  /** Company-wide open Opportunities — not scoped to any one agent. */
+  activeDeals: number;
+  activeDealsNewThisMonth: number;
+  /** Company-wide revenue: sum of CLOSED_WON Opportunity.dealSize (see §17 of the
+   * project context — revenue is driven by the Opportunity, not the Contract). */
+  totalRevenue: number;
+  totalListings: number;
+  totalListingsNewThisMonth: number;
 };
 
 type ListAgentsResult =
@@ -31,24 +40,39 @@ export async function listAgents(): Promise<ListAgentsResult> {
   const auth = await requirePermission("agents:view");
   if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
 
-  const profiles = await prisma.profile.findMany({
-    where: {
-      role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
-      // Exclude the caller themselves so admins don't see themselves in the "approve" list
-      NOT: { id: auth.profile.id },
-    },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      fullName: true,
-      phone: true,
-      city: true,
-      role: true,
-      status: true,
-      createdAt: true,
-    },
-  });
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, revenueAgg, totalListings, totalListingsNewThisMonth] =
+    await Promise.all([
+      prisma.profile.findMany({
+        where: {
+          role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
+          // Exclude the caller themselves so admins don't see themselves in the "approve" list
+          NOT: { id: auth.profile.id },
+        },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          phone: true,
+          city: true,
+          role: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+      prisma.profile.count({
+        where: { role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] }, createdAt: { gte: startOfMonth } },
+      }),
+      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN } }),
+      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, createdAt: { gte: startOfMonth } } }),
+      prisma.opportunity.aggregate({ where: { status: OpportunityStatus.CLOSED_WON }, _sum: { dealSize: true } }),
+      prisma.property.count(),
+      prisma.property.count({ where: { createdAt: { gte: startOfMonth } } }),
+    ]);
 
   const agents: AgentDto[] = profiles.map((p) => ({
     id: p.id,
@@ -66,6 +90,12 @@ export async function listAgents(): Promise<ListAgentsResult> {
     active: agents.filter((a) => a.status === UserStatus.ACTIVE).length,
     pending: agents.filter((a) => a.status === UserStatus.PENDING || a.status === UserStatus.INVITED).length,
     inactive: agents.filter((a) => a.status === UserStatus.INACTIVE || a.status === UserStatus.SUSPENDED).length,
+    newThisMonth,
+    activeDeals,
+    activeDealsNewThisMonth,
+    totalRevenue: revenueAgg._sum.dealSize ? Number(revenueAgg._sum.dealSize) : 0,
+    totalListings,
+    totalListingsNewThisMonth,
   };
 
   return { ok: true, agents, metrics };
@@ -104,6 +134,68 @@ export async function updateAgentStatus(
   });
 
   return { ok: true };
+}
+
+export type UpdateAgentInput = {
+  fullName?: string;
+  phone?: string | null;
+  city?: string | null;
+  role?: "AGENT" | "MANAGER";
+};
+
+type UpdateAgentResult =
+  | { ok: true; agent: AgentDto }
+  | { ok: false; error: string; status: number };
+
+/** Admin-only edit of an agent's profile fields — name/phone/city/role. Role is
+ * deliberately restricted to AGENT|MANAGER, mirroring the invite flow: Admin is
+ * never assignable through this UI. */
+export async function updateAgent(
+  agentId: string,
+  input: UpdateAgentInput,
+): Promise<UpdateAgentResult> {
+  const auth = await requirePermission("agents:update");
+  if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
+
+  const existing = await prisma.profile.findUnique({ where: { id: agentId } });
+  if (!existing || existing.role === UserRole.USER) {
+    return { ok: false, error: "Agent not found.", status: 404 };
+  }
+
+  if (input.role && input.role !== UserRole.AGENT && input.role !== UserRole.MANAGER) {
+    return { ok: false, error: "Role must be AGENT or MANAGER.", status: 400 };
+  }
+
+  const data: { fullName?: string; phone?: string | null; city?: string | null; role?: UserRole } = {};
+  if (input.fullName !== undefined) data.fullName = input.fullName.trim();
+  if (input.phone !== undefined) data.phone = input.phone;
+  if (input.city !== undefined) data.city = input.city;
+  if (input.role !== undefined) data.role = input.role;
+
+  const updated = await prisma.profile.update({ where: { id: agentId }, data });
+
+  await logActivity({
+    actorId: auth.profile.id,
+    action: "AGENT_UPDATED",
+    entityType: "PROFILE",
+    entityId: agentId,
+    oldValues: { fullName: existing.fullName, phone: existing.phone, city: existing.city, role: existing.role },
+    newValues: { fullName: updated.fullName, phone: updated.phone, city: updated.city, role: updated.role },
+  });
+
+  return {
+    ok: true,
+    agent: {
+      id: updated.id,
+      name: updated.fullName ?? updated.email.split("@")[0],
+      email: updated.email,
+      phone: updated.phone,
+      city: updated.city,
+      role: updated.role as "ADMIN" | "MANAGER" | "AGENT",
+      status: updated.status,
+      createdAt: updated.createdAt.toISOString(),
+    },
+  };
 }
 
 type DeleteAgentResult =
@@ -191,9 +283,12 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     }),
     prisma.contract.count({ where: { assignedAgentId: agentId } }),
     prisma.opportunity.count({ where: { assignedAgentId: agentId, status: OpportunityStatus.OPEN } }),
-    prisma.contract.aggregate({
-      where: { assignedAgentId: agentId, status: { in: [ContractStatus.ACTIVE, ContractStatus.COMPLETED] } },
-      _sum: { value: true },
+    // Revenue is driven by closed-won Opportunities, not Contracts (client decision,
+    // see ulrich-claude-code-project-context.md §17) — a deal counts toward revenue
+    // the moment it's won, regardless of whether its Contract is signed yet.
+    prisma.opportunity.aggregate({
+      where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON },
+      _sum: { dealSize: true },
     }),
   ]);
 
@@ -209,7 +304,7 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     totalListings: properties.length,
     totalDeals,
     openDeals,
-    totalRevenue: revenueAgg._sum.value ? Number(revenueAgg._sum.value) : 0,
+    totalRevenue: revenueAgg._sum.dealSize ? Number(revenueAgg._sum.dealSize) : 0,
     properties: properties.map((p) => ({
       id: p.id,
       listingId: p.listingId,

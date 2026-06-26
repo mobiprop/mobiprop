@@ -37,6 +37,7 @@ export type ContactMetrics = {
   buyers: number;
   sellers: number;
   withListings: number;
+  withOpportunities: number;
 };
 
 // ── Opportunity ───────────────────────────────────────────────────────────────
@@ -64,6 +65,8 @@ export type OpportunityDto = {
   expectedCloseAt: string | null;
   agentCommission: string | null;
   notes: string | null;
+  assignedAgentId: string | null;
+  createdById: string | null;
   createdAt: string;
 };
 
@@ -94,6 +97,8 @@ export type ContractDto = {
   signedAt: string | null;
   terms: string | null;
   notes: string | null;
+  assignedAgentId: string | null;
+  createdById: string | null;
   createdAt: string;
 };
 

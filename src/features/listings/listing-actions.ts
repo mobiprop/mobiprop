@@ -75,6 +75,27 @@ async function validateLocationId(locationId: string): Promise<ListingActionErro
   return null;
 }
 
+/** Confirms an owner-contact id references a real, non-deleted Contact. */
+async function validateOwnerContact(contactId: string): Promise<ListingActionError | null> {
+  const contact = await prisma.contact.findUnique({ where: { id: contactId }, select: { isDeleted: true } });
+  if (!contact || contact.isDeleted) {
+    return { ok: false, error: "Selected owner contact was not found.", status: 422 };
+  }
+  return null;
+}
+
+/** Sets/replaces the OWNER ContactProperty link for a listing (one OWNER row per property). */
+async function syncOwnerContact(propertyId: string, ownerContactId: string | null): Promise<void> {
+  await prisma.contactProperty.deleteMany({ where: { propertyId, role: "OWNER" } });
+  if (ownerContactId) {
+    await prisma.contactProperty.upsert({
+      where: { contactId_propertyId: { contactId: ownerContactId, propertyId } },
+      create: { contactId: ownerContactId, propertyId, role: "OWNER" },
+      update: { role: "OWNER" },
+    });
+  }
+}
+
 // ── Record-level access ───────────────────────────────────────────────────────
 
 type PropertyRecord = { createdById: string | null; assignedAgentId: string | null };
@@ -99,6 +120,11 @@ function recordScope(profile: Profile): Prisma.PropertyWhereInput {
 const listingInclude = {
   images: { orderBy: { sortOrder: "asc" } },
   amenities: { include: { amenity: true } },
+  contacts: {
+    where: { role: "OWNER" },
+    take: 1,
+    include: { contact: { select: { id: true, firstName: true, lastName: true } } },
+  },
 } satisfies Prisma.PropertyInclude;
 
 type PropertyWithRelations = Prisma.PropertyGetPayload<{ include: typeof listingInclude }>;
@@ -147,6 +173,12 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
     amenities: property.amenities.map((a) => a.amenity.key as AmenityKey),
     images: property.images.map(toImageDto),
     coverImageUrl: coverUrl(property.images),
+    ownerContact: property.contacts[0]
+      ? {
+          id: property.contacts[0].contact.id,
+          fullName: `${property.contacts[0].contact.firstName} ${property.contacts[0].contact.lastName}`.trim(),
+        }
+      : null,
   };
 }
 
@@ -382,6 +414,11 @@ export async function createListing(
     if (assigneeError) return assigneeError;
   }
 
+  if (data.ownerContactId) {
+    const ownerError = await validateOwnerContact(data.ownerContactId);
+    if (ownerError) return ownerError;
+  }
+
   const locationError = await validateLocationId(data.locationId);
   if (locationError) return locationError;
 
@@ -491,6 +528,19 @@ export async function createListing(
       },
     });
     await logOptimizationFallbacks(profile.id, property.id, uploaded);
+
+    if (data.ownerContactId) {
+      await syncOwnerContact(property.id, data.ownerContactId);
+      await logActivity({
+        actorId: profile.id,
+        action: "CONTACT_PROPERTY_LINKED",
+        entityType: "CONTACT",
+        entityId: data.ownerContactId,
+        newValues: { propertyId: property.id, role: "OWNER" },
+      });
+      property = await prisma.property.findUniqueOrThrow({ where: { id: property.id }, include: listingInclude });
+    }
+
     await notifyListingCreated({
       propertyId: property.id,
       title: property.title,
@@ -590,7 +640,13 @@ export async function updateListing(
     if (locationError) return locationError;
   }
 
-  const { amenities, assignedAgentId: assignedAgentIdInput, videoUrl: videoUrlInput, ...fields } = data;
+  const {
+    amenities,
+    assignedAgentId: assignedAgentIdInput,
+    videoUrl: videoUrlInput,
+    ownerContactId: ownerContactIdInput,
+    ...fields
+  } = data;
 
   // "" means "clear the video" — store null rather than an empty string.
   const videoUrl = videoUrlInput === undefined ? undefined : videoUrlInput === "" ? null : videoUrlInput;
@@ -609,6 +665,16 @@ export async function updateListing(
     }
   }
 
+  const existingOwnerContactId = existing.contacts[0]?.contact.id ?? "";
+  let ownerContactChanged = false;
+  if (ownerContactIdInput !== undefined && ownerContactIdInput !== existingOwnerContactId) {
+    if (ownerContactIdInput) {
+      const ownerError = await validateOwnerContact(ownerContactIdInput);
+      if (ownerError) return ownerError;
+    }
+    ownerContactChanged = true;
+  }
+
   // Re-geocode when the address changed (best-effort, never blocks the save).
   const addressChanged =
     (data.fullAddress !== undefined && data.fullAddress !== existing.fullAddress) ||
@@ -619,7 +685,7 @@ export async function updateListing(
       )
     : null;
 
-  const property = await prisma.property.update({
+  let property = await prisma.property.update({
     where: { id },
     data: {
       ...fields,
@@ -641,6 +707,19 @@ export async function updateListing(
     },
     include: listingInclude,
   });
+
+  if (ownerContactChanged) {
+    await syncOwnerContact(id, ownerContactIdInput || null);
+    await logActivity({
+      actorId: profile.id,
+      action: ownerContactIdInput ? "CONTACT_PROPERTY_LINKED" : "CONTACT_PROPERTY_UNLINKED",
+      entityType: "CONTACT",
+      entityId: ownerContactIdInput || existingOwnerContactId,
+      oldValues: { propertyId: id, ownerContactId: existingOwnerContactId || null },
+      newValues: { propertyId: id, ownerContactId: ownerContactIdInput || null },
+    });
+    property = await prisma.property.findUniqueOrThrow({ where: { id }, include: listingInclude });
+  }
 
   // Log only the fields that actually changed (audit requires old vs new).
   const oldValues: Record<string, unknown> = {};

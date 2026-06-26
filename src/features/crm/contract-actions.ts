@@ -3,12 +3,22 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { ContractType, ContractStatus } from "@/generated/prisma/enums";
+import { Prisma, type Profile } from "@/generated/prisma/client";
+import { hasPermission } from "@/lib/permissions";
 import { createContractSchema, updateContractSchema } from "@/schemas/contract.schema";
 import type { CreateContractInput, UpdateContractInput } from "@/schemas/contract.schema";
 import type { ContractDto, ContractMetrics } from "./types/crm-dto";
 
 import type { CrmActionError } from "./contact-actions";
 type CrmActionResult<T> = ({ ok: true } & T) | CrmActionError;
+
+// ── Record-level access ──────────────────────────────────────────────────────
+
+/** ADMIN/MANAGER see all contracts; AGENT only ones they created or are assigned to. */
+function contractRecordScope(profile: Profile): Prisma.ContractWhereInput {
+  if (hasPermission(profile.role, "contracts:view_all")) return {};
+  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+}
 
 // ── ID generation ─────────────────────────────────────────────────────────────
 
@@ -27,6 +37,7 @@ type ContractWithRelations = {
   type: ContractType; status: ContractStatus;
   value: unknown; startDate: Date | null; endDate: Date | null;
   signedAt: Date | null; terms: string | null; notes: string | null;
+  assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
   contact: { firstName: string; lastName: string } | null;
   property: { title: string; slug: string } | null;
@@ -50,6 +61,8 @@ function toContractDto(c: ContractWithRelations): ContractDto {
     signedAt: c.signedAt?.toISOString() ?? null,
     terms: c.terms,
     notes: c.notes,
+    assignedAgentId: c.assignedAgentId,
+    createdById: c.createdById,
     createdAt: c.createdAt.toISOString(),
   };
 }
@@ -68,6 +81,7 @@ export async function listContracts(): Promise<
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
   const rows = await prisma.contract.findMany({
+    where: contractRecordScope(gate.profile),
     include: contractInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -128,6 +142,17 @@ export async function updateContract(
 ): Promise<CrmActionResult<{ contract: ContractDto }>> {
   const gate = await requirePermission("contracts:update");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  if (!hasPermission(gate.profile.role, "contracts:view_all")) {
+    const existing = await prisma.contract.findUnique({
+      where: { id },
+      select: { assignedAgentId: true, createdById: true },
+    });
+    if (!existing) return { ok: false, error: "Contract not found.", status: 404 };
+    if (existing.assignedAgentId !== gate.profile.id && existing.createdById !== gate.profile.id) {
+      return { ok: false, error: "You can only update your own or assigned contracts.", status: 403 };
+    }
+  }
 
   const parsed = updateContractSchema.safeParse(input);
   if (!parsed.success) {

@@ -22,16 +22,26 @@ import {
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { ContactType } from "@/generated/prisma/enums";
+import { ContactType, ContractStatus } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { useDashboardContactsQuery } from "@/hooks/queries/useDashboardContactsQuery";
+import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
+import { useDashboardContractsQuery } from "@/hooks/queries/useDashboardContractsQuery";
 import {
   useCreateContactMutation,
   useUpdateContactMutation,
   useDeleteContactMutation,
+  ContactConflictError,
 } from "@/hooks/mutations/useCrmMutations";
-import { AddContactModal, type NewContact } from "./components/AddContactModal";
+import { AddContactModal, type NewContact, type AvailableProperty } from "./components/AddContactModal";
 import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
+import { formatCurrency } from "@/lib/formatters";
+
+const CONTACT_TYPE_MAP: Record<NewContact["contactType"], ContactType> = {
+  Buyer: ContactType.BUYER,
+  Seller: ContactType.SELLER,
+  Both: ContactType.BOTH,
+};
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -41,12 +51,15 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 type StatCardProps = {
   label: string;
   value: string;
-  trend: string;
+  /** Positive-trend callout (green, with an up arrow). Omit when there's no real trend to show. */
+  trend?: string;
+  /** Plain explanatory subtext, shown when `trend` isn't provided. */
+  note?: string;
   iconBg: string;
   icon: React.ReactNode;
 };
 
-function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
+function StatCard({ label, value, trend, note, iconBg, icon }: StatCardProps) {
   return (
     <article className="flex min-h-[154px] min-w-0 flex-col justify-between rounded-[14px] border border-[#edf0f4] bg-white p-[18px] shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
       <div className="flex items-start justify-between gap-5">
@@ -73,13 +86,19 @@ function StatCard({ label, value, trend, iconBg, icon }: StatCardProps) {
           {value}
         </p>
 
-        <p
-          className="flex items-center gap-1 text-[13px] font-medium leading-5 text-[#00c950]"
-          style={mont}
-        >
-          <span aria-hidden="true">↑</span>
-          <span>{trend}</span>
-        </p>
+        {trend ? (
+          <p
+            className="flex items-center gap-1 text-[13px] font-medium leading-5 text-[#00c950]"
+            style={mont}
+          >
+            <span aria-hidden="true">↑</span>
+            <span>{trend}</span>
+          </p>
+        ) : note ? (
+          <p className="text-[13px] font-medium leading-5 text-[#6a7282]" style={mont}>
+            {note}
+          </p>
+        ) : null}
       </div>
     </article>
   );
@@ -342,6 +361,8 @@ type ContactsPageProps = {
   role: Role;
 };
 
+type ConflictState = { message: string; existingContactId: string };
+
 export function ContactsPage({ role }: ContactsPageProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactDto | null>(null);
@@ -349,17 +370,47 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<ContactType | "All">("All");
   const [sortBy, setSortBy] = useState<"default" | "name" | "listings">("default");
+  const [conflict, setConflict] = useState<ConflictState | null>(null);
+  const [availableProperties, setAvailableProperties] = useState<AvailableProperty[]>([]);
 
   const { data, isLoading, isError } = useDashboardContactsQuery();
+  const opportunitiesQuery = useDashboardOpportunitiesQuery();
+  const contractsQuery = useDashboardContractsQuery();
   const createMutation = useCreateContactMutation();
   const updateMutation = useUpdateContactMutation();
   const deleteMutation = useDeleteContactMutation();
 
   const canCreate = hasPermission(role, "contacts:create");
   const canEdit   = hasPermission(role, "contacts:update");
-  const canDelete = hasPermission(role, "contacts:delete");
+  const canDelete = hasPermission(role, "contacts:archive");
+  const canViewRevenue = hasPermission(role, "dashboard:viewCompanyRevenue");
+
+  useEffect(() => {
+    fetch("/api/dashboard/listings")
+      .then((res) => res.json())
+      .then((json) => {
+        const listings: { id: string; listingId: string; title: string }[] = json.listings ?? [];
+        setAvailableProperties(listings.map((l) => ({ id: l.id, listingId: l.listingId, title: l.title })));
+      })
+      .catch(() => undefined);
+  }, []);
 
   const contacts = useMemo(() => data?.contacts ?? [], [data]);
+
+  const activeDealsCount = opportunitiesQuery.data?.metrics.open;
+  const totalRevenue = useMemo(() => {
+    if (!canViewRevenue) return null;
+    const contracts = contractsQuery.data?.contracts;
+    if (!contracts) return null;
+    return contracts
+      .filter((c) => c.status === ContractStatus.COMPLETED)
+      .reduce((sum, c) => sum + (c.value ?? 0), 0);
+  }, [contractsQuery.data, canViewRevenue]);
+  const contactsInOpportunitiesPct = data
+    ? data.metrics.total > 0
+      ? `${Math.round((data.metrics.withOpportunities / data.metrics.total) * 100)}%`
+      : "0%"
+    : null;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -382,20 +433,26 @@ export function ContactsPage({ role }: ContactsPageProps) {
   }, [contacts, search, typeFilter, sortBy]);
 
   async function handleCreate(input: NewContact) {
+    setConflict(null);
     try {
       await createMutation.mutateAsync({
         firstName: input.firstName,
         lastName: input.lastName,
         email: input.email,
         phone: input.phone,
-        type: input.contactType === "Seller" ? ContactType.SELLER : ContactType.BUYER,
+        type: CONTACT_TYPE_MAP[input.contactType],
         location: input.location,
         address: input.address,
         notes: input.notes,
+        propertyIds: input.propertyIds,
       });
       toast.success("Contact created");
       setShowAddModal(false);
     } catch (err) {
+      if (err instanceof ContactConflictError) {
+        setConflict({ message: err.message, existingContactId: err.existingContact.id });
+        return;
+      }
       toast.error(err instanceof Error ? err.message : "Failed to create contact");
     }
   }
@@ -464,8 +521,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Contacts"
-          value="6"
-          trend="2 new this month"
+          value={isLoading ? "—" : String(data?.metrics.total ?? 0)}
+          note={data ? `${data.metrics.buyers} buyers · ${data.metrics.sellers} sellers` : undefined}
           iconBg="#e8ebff"
           icon={
             <Building2
@@ -478,8 +535,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
         <StatCard
           label="Active Deals"
-          value="108"
-          trend="+12.5% from last month"
+          value={opportunitiesQuery.isLoading ? "—" : String(activeDealsCount ?? 0)}
+          note="Open opportunities"
           iconBg="#d9faec"
           icon={
             <TrendingUp
@@ -492,8 +549,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
         <StatCard
           label="Total Revenue"
-          value="$2.21M"
-          trend="+18.2% from last month"
+          value={!canViewRevenue ? "—" : contractsQuery.isLoading ? "—" : formatCurrency(totalRevenue ?? 0)}
+          note={!canViewRevenue ? "Admin only" : "From completed contracts"}
           iconBg="#fff1c8"
           icon={
             <DollarSign
@@ -506,8 +563,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
         <StatCard
           label="Contacts in Opportunities"
-          value="54%"
-          trend="+0.3 from last month"
+          value={contactsInOpportunitiesPct ?? "—"}
+          note={data ? `${data.metrics.withOpportunities} of ${data.metrics.total} contacts` : undefined}
           iconBg="#fee2e2"
           icon={
             <TrendingDown
@@ -915,9 +972,27 @@ export function ContactsPage({ role }: ContactsPageProps) {
       {/* Modals */}
       {showAddModal && (
         <AddContactModal
-          onClose={() => setShowAddModal(false)}
+          onClose={() => {
+            setShowAddModal(false);
+            setConflict(null);
+          }}
           onCreate={handleCreate}
           isSaving={createMutation.isPending}
+          availableProperties={availableProperties}
+          conflict={
+            conflict
+              ? {
+                  message: conflict.message,
+                  onViewExisting: () => {
+                    const existing = contacts.find((c) => c.id === conflict.existingContactId);
+                    setShowAddModal(false);
+                    setConflict(null);
+                    if (existing) setEditingContact(existing);
+                    else toast.error("Could not open the existing contact.");
+                  },
+                }
+              : null
+          }
         />
       )}
       {editingContact && (
@@ -926,6 +1001,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
           onClose={() => setEditingContact(null)}
           onSave={handleUpdate}
           isSaving={updateMutation.isPending}
+          availableProperties={availableProperties}
         />
       )}
       {deletingContact && (

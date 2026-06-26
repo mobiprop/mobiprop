@@ -131,6 +131,10 @@ export const listingBaseSchema = z.object({
   // that aren't RFC4122-compliant (wrong version/variant nibble); the real
   // existence/role check happens server-side against the profiles table.
   assignedAgentId: z.string().guid().optional().or(z.literal("")),
+  // The seller/owner-of-record Contact for this listing (CRM plan §5/§9).
+  // Not stored on Property directly — written to ContactProperty (role
+  // OWNER) by the action. Empty string means "no owner set".
+  ownerContactId: z.string().min(1).optional().or(z.literal("")),
   // YouTube/Vimeo/direct video link shown above the map on the public page.
   videoUrl: z.string().trim().url("Enter a valid video URL").optional().or(z.literal("")),
 
@@ -198,7 +202,7 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 // Field groups used by the modal to validate one step at a time
 // (react-hook-form `trigger(...)` before allowing Next Step).
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
-  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId"],
+  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId", "ownerContactId"],
   1: ["bedrooms", "bathrooms", "toilets", "areaSqft", "yearBuilt", "description", "amenities"],
   2: ["videoUrl"],
 };

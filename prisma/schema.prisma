@@ -494,6 +494,11 @@ model Opportunity {
   contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
   property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
+  // Inverse side of Lead.convertedOpportunity — traces this Opportunity back
+  // to the Lead it was converted from, when applicable.
+  sourceLead Lead?     @relation("LeadConversion")
+  contracts  Contract[]
+
   @@index([contactId], map: "opportunities_contact_idx")
   @@index([propertyId], map: "opportunities_property_idx")
   @@index([status], map: "opportunities_status_idx")
@@ -507,6 +512,7 @@ model Contract {
   title           String
   contactId       String?        @map("contact_id")
   propertyId      String?        @map("property_id")
+  opportunityId   String?        @map("opportunity_id")
   type            ContractType   @default(SALE)
   status          ContractStatus @default(ACTIVE)
   value           Decimal?       @db.Decimal(14, 2)
@@ -520,11 +526,13 @@ model Contract {
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
-  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  property    Property?    @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
 
   @@index([contactId], map: "contracts_contact_idx")
   @@index([propertyId], map: "contracts_property_idx")
+  @@index([opportunityId], map: "contracts_opportunity_idx")
   @@index([status], map: "contracts_status_idx")
   @@map("contracts")
 }
@@ -643,8 +651,9 @@ model Lead {
   assignedAgentId String? @map("assigned_agent_id") @db.Uuid
   createdById     String? @map("created_by_id") @db.Uuid
 
-  convertedOpportunityId String?   @map("converted_opportunity_id")
-  convertedAt            DateTime? @map("converted_at")
+  convertedOpportunityId String?      @unique @map("converted_opportunity_id")
+  convertedOpportunity   Opportunity? @relation("LeadConversion", fields: [convertedOpportunityId], references: [id], onDelete: SetNull)
+  convertedAt            DateTime?    @map("converted_at")
 
   // Snapshot of submitted info — preserved even if Contact is updated later.
   submittedName     String  @map("submitted_name")
