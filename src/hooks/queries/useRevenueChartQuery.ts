@@ -3,44 +3,46 @@ import { useShallow } from "zustand/react/shallow";
 
 import { queryKeys } from "@/lib/query-keys";
 import { useDashboardStore } from "@/stores/useDashboardStore";
-import type { MetricCard } from "@/features/dashboard/types/dashboard-dto";
+import type { ChartGranularity, ChartPoint } from "@/features/dashboard/types/dashboard-dto";
 
-async function fetchDashboardMetrics(params: {
+async function fetchRevenueChart(params: {
   dateRange: string;
   from?: string | null;
   to?: string | null;
-}): Promise<{ success: boolean; metrics: MetricCard[] }> {
+  granularity: ChartGranularity;
+}): Promise<{ success: boolean; chart: ChartPoint[] }> {
   const searchParams = new URLSearchParams();
 
   searchParams.set("dateRange", params.dateRange);
-
+  searchParams.set("granularity", params.granularity);
   if (params.from) searchParams.set("from", params.from);
   if (params.to) searchParams.set("to", params.to);
 
-  const response = await fetch(`/api/dashboard/metrics?${searchParams}`);
+  const response = await fetch(`/api/dashboard/revenue-chart?${searchParams}`);
 
   if (!response.ok) {
-    throw new Error("Failed to fetch dashboard metrics");
+    throw new Error("Failed to fetch revenue chart");
   }
 
   return response.json();
 }
 
-export function useDashboardMetricsQuery() {
+export function useRevenueChartQuery(granularity: ChartGranularity) {
   const { dateRange, customDateRange } = useDashboardStore(
     useShallow((state) => ({
       dateRange: state.dateRange,
       customDateRange: state.customDateRange,
-    }))
+    })),
   );
 
   return useQuery({
-    queryKey: queryKeys.dashboardMetrics({ dateRange, customDateRange }),
+    queryKey: queryKeys.revenueChart({ dateRange, customDateRange, granularity }),
     queryFn: () =>
-      fetchDashboardMetrics({
+      fetchRevenueChart({
         dateRange,
         from: customDateRange.from,
         to: customDateRange.to,
+        granularity,
       }),
   });
 }

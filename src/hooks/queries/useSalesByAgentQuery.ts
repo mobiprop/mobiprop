@@ -3,41 +3,40 @@ import { useShallow } from "zustand/react/shallow";
 
 import { queryKeys } from "@/lib/query-keys";
 import { useDashboardStore } from "@/stores/useDashboardStore";
-import type { MetricCard } from "@/features/dashboard/types/dashboard-dto";
+import type { SaleRow } from "@/features/dashboard/types/dashboard-dto";
 
-async function fetchDashboardMetrics(params: {
+async function fetchSalesByAgent(params: {
   dateRange: string;
   from?: string | null;
   to?: string | null;
-}): Promise<{ success: boolean; metrics: MetricCard[] }> {
+}): Promise<{ success: boolean; sales: SaleRow[] }> {
   const searchParams = new URLSearchParams();
 
   searchParams.set("dateRange", params.dateRange);
-
   if (params.from) searchParams.set("from", params.from);
   if (params.to) searchParams.set("to", params.to);
 
-  const response = await fetch(`/api/dashboard/metrics?${searchParams}`);
+  const response = await fetch(`/api/dashboard/sales-by-agent?${searchParams}`);
 
   if (!response.ok) {
-    throw new Error("Failed to fetch dashboard metrics");
+    throw new Error("Failed to fetch sales by agent");
   }
 
   return response.json();
 }
 
-export function useDashboardMetricsQuery() {
+export function useSalesByAgentQuery() {
   const { dateRange, customDateRange } = useDashboardStore(
     useShallow((state) => ({
       dateRange: state.dateRange,
       customDateRange: state.customDateRange,
-    }))
+    })),
   );
 
   return useQuery({
-    queryKey: queryKeys.dashboardMetrics({ dateRange, customDateRange }),
+    queryKey: queryKeys.salesByAgent({ dateRange, customDateRange }),
     queryFn: () =>
-      fetchDashboardMetrics({
+      fetchSalesByAgent({
         dateRange,
         from: customDateRange.from,
         to: customDateRange.to,
