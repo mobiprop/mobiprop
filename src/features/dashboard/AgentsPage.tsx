@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
   Search,
   Plus,
-  Users,
-  Briefcase,
   DollarSign,
-  Building2,
   ChevronDown,
   Filter,
   Check,
@@ -19,7 +16,6 @@ import {
   Handshake,
   Star,
   Trash2,
-  MoreHorizontal,
   Pencil,
   MoreVertical,
 } from "lucide-react";
@@ -29,7 +25,8 @@ import type { Role } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/formatters";
 import { AddAgentModal } from "./components/AddAgentModal";
 import { EditAgentModal } from "./components/EditAgentModal";
-import type { AgentDto, AgentMetrics } from "@/features/agents/agent-actions";
+import { useDashboardAgentsQuery } from "@/hooks/queries/useDashboardAgentsQuery";
+import type { AgentDto } from "@/features/agents/agent-actions";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -236,9 +233,6 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "All">("All");
-  const [agents, setAgents] = useState<AgentDto[]>([]);
-  const [metrics, setMetrics] = useState<AgentMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [period, setPeriod] = useState<PeriodFilter>("all");
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -251,21 +245,9 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const canViewInvitations = hasPermission(role, "invitations:view");
   const canViewRevenue = hasPermission(role, "dashboard:viewCompanyRevenue");
 
-  const fetchAgents = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/dashboard/agents");
-      const data = await res.json();
-      if (data.success) {
-        setAgents(data.agents);
-        setMetrics(data.metrics);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchAgents(); }, [fetchAgents]);
+  const { data, isLoading: loading, refetch: fetchAgents } = useDashboardAgentsQuery();
+  const agents = data?.agents ?? [];
+  const metrics = data?.metrics ?? null;
 
   async function handleApprove(agentId: string) {
     setActioningId(agentId);

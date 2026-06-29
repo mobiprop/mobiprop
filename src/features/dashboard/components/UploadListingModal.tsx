@@ -16,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
   X,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Star,
@@ -50,6 +49,7 @@ import {
 } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { QuickAddContactModal } from "./QuickAddContactModal";
+import { SearchableSelect } from "./SearchableSelect";
 import {
   createListingSchema,
   AMENITY_OPTIONS,
@@ -256,9 +256,6 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
 const inputClass =
   "h-11 w-full min-w-0 rounded-[10px] border bg-[#fafbfc] px-3.5 text-[14px] text-[#0d2138] outline-none transition-all placeholder:text-[#99a1af] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 disabled:cursor-not-allowed disabled:bg-[#f3f4f6] disabled:text-[#6a7282]";
 
-const selectClass =
-  "h-11 w-full min-w-0 cursor-pointer appearance-none rounded-[10px] border bg-[#fafbfc] pl-3.5 pr-10 text-[14px] text-[#0d2138] outline-none transition-all focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10";
-
 const labelClass =
   "text-[14px] font-medium leading-5 text-[#1f2937]";
 
@@ -335,13 +332,19 @@ export function UploadListingModal({
   const [agents, setAgents] = useState<AssignableAgent[]>([]);
   const [sellerContacts, setSellerContacts] = useState<SellerContact[]>([]);
   const [showAddOwnerContact, setShowAddOwnerContact] = useState(false);
+  const [agentsLoading, setAgentsLoading] = useState(true);
+  const [contactsLoading, setContactsLoading] = useState(true);
 
   useEffect(() => {
-    if (!canAssign) return;
+    if (!canAssign) {
+      setAgentsLoading(false);
+      return;
+    }
     fetch("/api/dashboard/agents")
       .then((res) => res.json())
       .then((json) => setAgents((json.agents ?? []).filter((a: AssignableAgent) => a.status === "ACTIVE")))
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setAgentsLoading(false));
   }, [canAssign]);
 
   useEffect(() => {
@@ -355,7 +358,8 @@ export function UploadListingModal({
             .map((c) => ({ id: c.id, fullName: c.fullName, contactId: c.contactId })),
         );
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setContactsLoading(false));
   }, []);
 
   const createMutation = useCreateListingMutation();
@@ -401,9 +405,12 @@ export function UploadListingModal({
   const operationType = watch("operationType");
   const amenities = watch("amenities");
   const isFeatured = watch("isFeatured");
+  const type = watch("type");
   const status = watch("status");
   const locationId = watch("locationId");
   const fullAddress = watch("fullAddress");
+  const assignedAgentId = watch("assignedAgentId");
+  const ownerContactId = watch("ownerContactId");
 
   const totalImages = existingImages.length + newImages.length;
 
@@ -882,29 +889,22 @@ export function UploadListingModal({
                         Listing Type <span className="text-[#e7000b]">*</span>
                       </label>
 
-                      <div className="relative min-w-0">
-                        <select
-                          id="listing-type"
-                          {...register("type")}
-                          className={`${selectClass} ${borderClass(
-                            Boolean(errors.type),
-                          )}`}
-                          style={mont}
-                        >
-                          {Object.entries(TYPE_LABELS).map(
-                            ([value, label]) => (
-                              <option key={value} value={value}>
-                                {label}
-                              </option>
-                            ),
-                          )}
-                        </select>
-
-                        <ChevronDown
-                          size={18}
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                        />
-                      </div>
+                      <SearchableSelect
+                        id="listing-type"
+                        value={type}
+                        onChange={(next) =>
+                          setValue("type", next as PropertyType, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }
+                        options={Object.entries(TYPE_LABELS).map(
+                          ([value, label]) => ({ value, label }),
+                        )}
+                        placeholder="Select type"
+                        searchable={false}
+                        hasError={Boolean(errors.type)}
+                      />
 
                       <FieldError message={errors.type?.message} />
                     </div>
@@ -918,29 +918,22 @@ export function UploadListingModal({
                         Status <span className="text-[#e7000b]">*</span>
                       </label>
 
-                      <div className="relative min-w-0">
-                        <select
-                          id="listing-status"
-                          {...register("status")}
-                          className={`${selectClass} ${borderClass(
-                            Boolean(errors.status),
-                          )}`}
-                          style={mont}
-                        >
-                          {Object.entries(STATUS_LABELS).map(
-                            ([value, label]) => (
-                              <option key={value} value={value}>
-                                {label}
-                              </option>
-                            ),
-                          )}
-                        </select>
-
-                        <ChevronDown
-                          size={18}
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                        />
-                      </div>
+                      <SearchableSelect
+                        id="listing-status"
+                        value={status}
+                        onChange={(next) =>
+                          setValue("status", next as PropertyStatus, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }
+                        options={Object.entries(STATUS_LABELS).map(
+                          ([value, label]) => ({ value, label }),
+                        )}
+                        placeholder="Select status"
+                        searchable={false}
+                        hasError={Boolean(errors.status)}
+                      />
 
                       <FieldError message={errors.status?.message} />
                     </div>
@@ -1118,26 +1111,24 @@ export function UploadListingModal({
                         Assigned Agent
                       </label>
 
-                      <div className="relative min-w-0">
-                        <select
-                          id="listing-assigned-agent"
-                          {...register("assignedAgentId")}
-                          className={selectClass}
-                          style={mont}
-                        >
-                          <option value="">— Unassigned —</option>
-                          {agents.map((agent) => (
-                            <option key={agent.id} value={agent.id}>
-                              {agent.name}
-                            </option>
-                          ))}
-                        </select>
-
-                        <ChevronDown
-                          size={18}
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                        />
-                      </div>
+                      <SearchableSelect
+                        id="listing-assigned-agent"
+                        value={assignedAgentId}
+                        onChange={(next) =>
+                          setValue("assignedAgentId", next, {
+                            shouldDirty: true,
+                          })
+                        }
+                        options={agents.map((agent) => ({
+                          value: agent.id,
+                          label: agent.name,
+                        }))}
+                        placeholder="— Unassigned —"
+                        searchable
+                        searchPlaceholder="Search agents..."
+                        emptyLabel="No agents found."
+                        loading={agentsLoading}
+                      />
                     </div>
                   )}
 
@@ -1151,24 +1142,24 @@ export function UploadListingModal({
                     </label>
 
                     <div className="flex min-w-0 items-center gap-2">
-                      <div className="relative min-w-0 flex-1">
-                        <select
+                      <div className="min-w-0 flex-1">
+                        <SearchableSelect
                           id="listing-owner-contact"
-                          {...register("ownerContactId")}
-                          className={selectClass}
-                          style={mont}
-                        >
-                          <option value="">— No owner set —</option>
-                          {sellerContacts.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.fullName} ({c.contactId})
-                            </option>
-                          ))}
-                        </select>
-
-                        <ChevronDown
-                          size={18}
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
+                          value={ownerContactId}
+                          onChange={(next) =>
+                            setValue("ownerContactId", next, {
+                              shouldDirty: true,
+                            })
+                          }
+                          options={sellerContacts.map((c) => ({
+                            value: c.id,
+                            label: `${c.fullName} (${c.contactId})`,
+                          }))}
+                          placeholder="— No owner set —"
+                          searchable
+                          searchPlaceholder="Search contacts..."
+                          emptyLabel="No contacts found."
+                          loading={contactsLoading}
                         />
                       </div>
 

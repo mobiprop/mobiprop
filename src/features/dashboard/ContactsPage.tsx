@@ -33,7 +33,7 @@ import {
   useDeleteContactMutation,
   ContactConflictError,
 } from "@/hooks/mutations/useCrmMutations";
-import { AddContactModal, type NewContact, type AvailableProperty } from "./components/AddContactModal";
+import { AddContactModal, type NewContact } from "./components/AddContactModal";
 import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -371,7 +371,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const [typeFilter, setTypeFilter] = useState<ContactType | "All">("All");
   const [sortBy, setSortBy] = useState<"default" | "name" | "listings">("default");
   const [conflict, setConflict] = useState<ConflictState | null>(null);
-  const [availableProperties, setAvailableProperties] = useState<AvailableProperty[]>([]);
 
   const { data, isLoading, isError } = useDashboardContactsQuery();
   const opportunitiesQuery = useDashboardOpportunitiesQuery();
@@ -384,16 +383,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const canEdit   = hasPermission(role, "contacts:update");
   const canDelete = hasPermission(role, "contacts:archive");
   const canViewRevenue = hasPermission(role, "dashboard:viewCompanyRevenue");
-
-  useEffect(() => {
-    fetch("/api/dashboard/listings")
-      .then((res) => res.json())
-      .then((json) => {
-        const listings: { id: string; listingId: string; title: string }[] = json.listings ?? [];
-        setAvailableProperties(listings.map((l) => ({ id: l.id, listingId: l.listingId, title: l.title })));
-      })
-      .catch(() => undefined);
-  }, []);
 
   const contacts = useMemo(() => data?.contacts ?? [], [data]);
 
@@ -978,7 +967,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
           }}
           onCreate={handleCreate}
           isSaving={createMutation.isPending}
-          availableProperties={availableProperties}
           conflict={
             conflict
               ? {
@@ -1001,7 +989,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
           onClose={() => setEditingContact(null)}
           onSave={handleUpdate}
           isSaving={updateMutation.isPending}
-          availableProperties={availableProperties}
         />
       )}
       {deletingContact && (

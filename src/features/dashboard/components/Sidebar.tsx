@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 
 import { logoutAction } from "@/features/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 import { DASHBOARD_NAV } from "@/config/dashboard-nav";
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
@@ -40,6 +41,15 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const initials = (fullName || email || "ST").trim().slice(0, 2).toUpperCase();
+
+  // Sign out the browser-side Supabase client first: it's a singleton (shared
+  // with NotificationRealtime) that keeps its own session + auto-refresh timer
+  // independent of the server cookies `logoutAction` clears. Skipping this step
+  // is what let a stale session survive a same-tab account switch.
+  async function handleLogout() {
+    await createClient().auth.signOut();
+    await logoutAction();
+  }
 
   // Route change par sidebar close
   useEffect(() => {
@@ -259,23 +269,22 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
             </p>
           </div>
 
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              title="Log out"
-              aria-label="Log out"
-              className="
-                flex size-9 shrink-0 items-center justify-center
-                rounded-[9px]
-                text-[#6a7282]
-                transition-colors
-                hover:bg-red-50
-                hover:text-[#e7000b]
-              "
-            >
-              <LogOut size={19} strokeWidth={1.8} />
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Log out"
+            aria-label="Log out"
+            className="
+              flex size-9 shrink-0 items-center justify-center
+              rounded-[9px]
+              text-[#6a7282]
+              transition-colors
+              hover:bg-red-50
+              hover:text-[#e7000b]
+            "
+          >
+            <LogOut size={19} strokeWidth={1.8} />
+          </button>
         </div>
       </aside>
     </>

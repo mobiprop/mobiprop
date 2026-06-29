@@ -140,13 +140,11 @@ export function OpportunitiesPage({ role }: { role: Role }) {
       "Closed Lost": OpportunityStatus.CLOSED_LOST,
     };
 
-    // Find the contact ID for the selected contact name
-    const matched = contacts.find((c) => c.fullName === input.contact);
-
     try {
       await createMutation.mutateAsync({
         title: input.name || "Untitled Opportunity",
-        contactId: matched?.id,
+        contactId: input.contactId || undefined,
+        propertyId: input.propertyId || undefined,
         dealType: input.dealType as "Rent" | "Sale" | undefined,
         dealSize: input.dealSize ? Number(input.dealSize) : undefined,
         stage: stageMap[input.stage] ?? OpportunityStage.QUALIFICATION,

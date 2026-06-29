@@ -1,13 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown, Home, Trash2, AlertTriangle } from "lucide-react";
+import { X, Home, Trash2, AlertTriangle } from "lucide-react";
+
+import { ListingPicker } from "./ListingPicker";
+import { SearchableSelect } from "./SearchableSelect";
 
 export type ContactType = "Buyer" | "Seller" | "Both";
 
-const mont = { fontFamily: "'Montserrat', sans-serif" };
+const CONTACT_TYPE_OPTIONS = [
+  { value: "Buyer", label: "Buyer" },
+  { value: "Seller", label: "Seller" },
+  { value: "Both", label: "Both" },
+];
 
-export type AvailableProperty = { id: string; listingId: string; title: string };
+const mont = { fontFamily: "'Montserrat', sans-serif" };
 
 export type NewContact = {
   firstName: string;
@@ -31,15 +38,15 @@ type AddContactModalProps = {
   onClose: () => void;
   onCreate?: (contact: NewContact) => void;
   isSaving?: boolean;
-  availableProperties?: AvailableProperty[];
   conflict?: ContactConflict | null;
 };
+
+type PropertyRow = { id: string; label: string };
 
 export function AddContactModal({
   onClose,
   onCreate,
   isSaving,
-  availableProperties = [],
   conflict,
 }: AddContactModalProps) {
   const [firstName, setFirstName] = useState("");
@@ -50,20 +57,20 @@ export function AddContactModal({
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [propertyIds, setPropertyIds] = useState<string[]>([]);
+  const [propertyRows, setPropertyRows] = useState<PropertyRow[]>([]);
 
   const isSellerType = contactType === "Seller" || contactType === "Both";
 
-  function updatePropertyId(index: number, value: string) {
-    setPropertyIds((prev) => prev.map((p, i) => (i === index ? value : p)));
+  function updatePropertyRow(index: number, id: string, label: string) {
+    setPropertyRows((prev) => prev.map((p, i) => (i === index ? { id, label } : p)));
   }
 
   function addPropertyRow() {
-    setPropertyIds((prev) => [...prev, ""]);
+    setPropertyRows((prev) => [...prev, { id: "", label: "" }]);
   }
 
   function removePropertyRow(index: number) {
-    setPropertyIds((prev) => prev.filter((_, i) => i !== index));
+    setPropertyRows((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -77,7 +84,7 @@ export function AddContactModal({
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
-      propertyIds: isSellerType ? propertyIds.filter(Boolean) : undefined,
+      propertyIds: isSellerType ? propertyRows.map((p) => p.id).filter(Boolean) : undefined,
     });
   }
 
@@ -185,20 +192,14 @@ export function AddContactModal({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Contact Type *</label>
-              <div className="relative">
-                <select
-                  required
-                  value={contactType}
-                  onChange={(e) => setContactType(e.target.value as ContactType)}
-                  className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-white pl-3 pr-8 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86] sm:h-[35px]"
-                  style={mont}
-                >
-                  <option value="Buyer">Buyer</option>
-                  <option value="Seller">Seller</option>
-                  <option value="Both">Both</option>
-                </select>
-                <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]" />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={contactType}
+                onChange={(next) => setContactType(next as ContactType)}
+                options={CONTACT_TYPE_OPTIONS}
+                placeholder="Select type"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Location</label>
@@ -235,33 +236,23 @@ export function AddContactModal({
                 Link existing listings this seller owns. New listings can also be assigned to this contact later from the listing form.
               </p>
 
-              {availableProperties.length === 0 ? (
-                <p className="text-[11px] italic text-[#99a1af] sm:text-[12px]" style={mont}>No listings exist yet to link.</p>
-              ) : (
+              {propertyRows.length > 0 && (
                 <div className="flex flex-col gap-2.5">
-                  {propertyIds.map((propertyId, index) => (
+                  {propertyRows.map((row, index) => (
                     <div key={index} className="flex items-center gap-2.5">
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
                         {index + 1}
                       </span>
-                      <div className="relative min-w-0 flex-1">
-                        <select
-                          value={propertyId}
-                          onChange={(e) => updatePropertyId(index, e.target.value)}
-                          className="h-9 w-full min-w-0 cursor-pointer appearance-none rounded-[8px] border-[1.5px] border-[#c2dcff] bg-white px-3 pr-8 text-[11px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] sm:text-[12px]"
-                          style={mont}
-                        >
-                          <option value="">Select a listing…</option>
-                          {availableProperties
-                            .filter((p) => p.id === propertyId || !propertyIds.includes(p.id))
-                            .map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.listingId} — {p.title}
-                              </option>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]" />
-                      </div>
+                      <ListingPicker
+                        className="min-w-0 flex-1"
+                        value={row.id}
+                        label={row.label}
+                        onSelect={(id, label) => updatePropertyRow(index, id, label)}
+                        excludeIds={propertyRows
+                          .filter((_, i) => i !== index)
+                          .map((p) => p.id)
+                          .filter(Boolean)}
+                      />
                       <button
                         type="button"
                         onClick={() => removePropertyRow(index)}
@@ -279,7 +270,6 @@ export function AddContactModal({
               <button
                 type="button"
                 onClick={addPropertyRow}
-                disabled={availableProperties.length === 0 || propertyIds.length >= availableProperties.length}
                 className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[11px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start sm:text-[12px]"
                 style={mont}
               >

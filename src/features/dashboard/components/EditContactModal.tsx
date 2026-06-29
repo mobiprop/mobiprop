@@ -1,13 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown, Home, Trash2 } from "lucide-react";
+import { X, Home, Trash2 } from "lucide-react";
 
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { ContactType } from "@/generated/prisma/enums";
-import type { AvailableProperty } from "./AddContactModal";
+import { ListingPicker } from "./ListingPicker";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
+
+const CONTACT_TYPE_OPTIONS = [
+  { value: ContactType.BUYER, label: "Buyer" },
+  { value: ContactType.SELLER, label: "Seller" },
+  { value: ContactType.BOTH, label: "Both" },
+];
 
 export type EditContactInput = {
   firstName: string;
@@ -26,14 +33,15 @@ type EditContactModalProps = {
   onClose: () => void;
   onSave: (id: string, input: EditContactInput) => void;
   isSaving?: boolean;
-  availableProperties?: AvailableProperty[];
 };
 
 const inputClass =
   "h-[37.5px] px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
-export function EditContactModal({ contact, onClose, onSave, isSaving, availableProperties = [] }: EditContactModalProps) {
+type PropertyRow = { id: string; label: string };
+
+export function EditContactModal({ contact, onClose, onSave, isSaving }: EditContactModalProps) {
   const [firstName, setFirstName] = useState(contact.firstName);
   const [lastName, setLastName] = useState(contact.lastName);
   const [email, setEmail] = useState(contact.email ?? "");
@@ -42,22 +50,24 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, available
   const [location, setLocation] = useState(contact.location ?? "");
   const [address, setAddress] = useState(contact.address ?? "");
   const [notes, setNotes] = useState(contact.notes ?? "");
-  const [propertyIds, setPropertyIds] = useState<string[]>(
-    contact.properties.filter((p) => p.role === "OWNER").map((p) => p.id),
+  const [propertyRows, setPropertyRows] = useState<PropertyRow[]>(
+    contact.properties
+      .filter((p) => p.role === "OWNER")
+      .map((p) => ({ id: p.id, label: `${p.listingId} — ${p.title}` })),
   );
 
   const isSellerType = type === ContactType.SELLER || type === ContactType.BOTH;
 
-  function updatePropertyId(index: number, value: string) {
-    setPropertyIds((prev) => prev.map((p, i) => (i === index ? value : p)));
+  function updatePropertyRow(index: number, id: string, label: string) {
+    setPropertyRows((prev) => prev.map((p, i) => (i === index ? { id, label } : p)));
   }
 
   function addPropertyRow() {
-    setPropertyIds((prev) => [...prev, ""]);
+    setPropertyRows((prev) => [...prev, { id: "", label: "" }]);
   }
 
   function removePropertyRow(index: number) {
-    setPropertyIds((prev) => prev.filter((_, i) => i !== index));
+    setPropertyRows((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -71,7 +81,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, available
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
-      propertyIds: isSellerType ? propertyIds.filter(Boolean) : [],
+      propertyIds: isSellerType ? propertyRows.map((p) => p.id).filter(Boolean) : [],
     });
   }
 
@@ -159,20 +169,14 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, available
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Contact Type *</label>
-              <div className="relative">
-                <select
-                  required
-                  value={type}
-                  onChange={(e) => setType(e.target.value as ContactType)}
-                  className="w-full h-[35px] pl-3 pr-8 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] bg-white appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer"
-                  style={mont}
-                >
-                  <option value={ContactType.BUYER}>Buyer</option>
-                  <option value={ContactType.SELLER}>Seller</option>
-                  <option value={ContactType.BOTH}>Both</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={type}
+                onChange={(next) => setType(next as ContactType)}
+                options={CONTACT_TYPE_OPTIONS}
+                placeholder="Select type"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Location</label>
@@ -209,33 +213,23 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, available
                 Listings this seller owns. Changes are saved when you click Save Changes.
               </p>
 
-              {availableProperties.length === 0 ? (
-                <p className="text-[12px] italic text-[#99a1af]" style={mont}>No listings exist yet to link.</p>
-              ) : (
+              {propertyRows.length > 0 && (
                 <div className="flex flex-col gap-2.5">
-                  {propertyIds.map((propertyId, index) => (
+                  {propertyRows.map((row, index) => (
                     <div key={index} className="flex items-center gap-2.5">
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
                         {index + 1}
                       </span>
-                      <div className="relative min-w-0 flex-1">
-                        <select
-                          value={propertyId}
-                          onChange={(e) => updatePropertyId(index, e.target.value)}
-                          className="h-9 w-full min-w-0 cursor-pointer appearance-none rounded-[8px] border-[1.5px] border-[#c2dcff] bg-white px-3 pr-8 text-[12px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86]"
-                          style={mont}
-                        >
-                          <option value="">Select a listing…</option>
-                          {availableProperties
-                            .filter((p) => p.id === propertyId || !propertyIds.includes(p.id))
-                            .map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.listingId} — {p.title}
-                              </option>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]" />
-                      </div>
+                      <ListingPicker
+                        className="min-w-0 flex-1"
+                        value={row.id}
+                        label={row.label}
+                        onSelect={(id, label) => updatePropertyRow(index, id, label)}
+                        excludeIds={propertyRows
+                          .filter((_, i) => i !== index)
+                          .map((p) => p.id)
+                          .filter(Boolean)}
+                      />
                       <button
                         type="button"
                         onClick={() => removePropertyRow(index)}
@@ -253,7 +247,6 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, available
               <button
                 type="button"
                 onClick={addPropertyRow}
-                disabled={availableProperties.length === 0 || propertyIds.length >= availableProperties.length}
                 className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start"
                 style={mont}
               >

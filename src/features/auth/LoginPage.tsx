@@ -184,6 +184,10 @@ const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
     title: "Wrong login page",
     message: "Staff accounts must sign in at the dashboard login page.",
   },
+  profile_missing: {
+    title: "Account not set up",
+    message: "Your account isn't fully set up yet. Please contact an administrator.",
+  },
 };
 
 export function LoginPageContent() {
@@ -197,6 +201,7 @@ export function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("Incorrect email or password");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOAuthSubmitting, setIsOAuthSubmitting] = useState(false);
   const [banner, setBanner] = useState<{
@@ -259,10 +264,11 @@ export function LoginPageContent() {
 
     if (!email || !password) {
       setHasError(true);
+      setErrorMessage("Enter your email and password to continue.");
       flashBanner({
         type: "error",
-        title: "Incorrect email or password",
-        message: "Passwords do not match. Please try again.",
+        title: "Missing details",
+        message: "Enter your email and password to continue.",
       });
       return;
     }
@@ -273,9 +279,10 @@ export function LoginPageContent() {
     if (result.error) {
       setIsSubmitting(false);
       setHasError(true);
+      setErrorMessage(result.error);
       flashBanner({
         type: "error",
-        title: "Incorrect email or password",
+        title: "Couldn't sign you in",
         message: result.error,
       });
       return;
@@ -414,7 +421,7 @@ export function LoginPageContent() {
                           className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#e7000b]"
                           style={{ ...mont, fontWeight: 400 }}
                         >
-                          Incorrect email or password
+                          {errorMessage}
                         </span>
                       </div>
                     )}

@@ -49,7 +49,15 @@ export async function requireDashboardAccess(
 ): Promise<Profile> {
   const profile = await getCurrentProfile();
 
-  if (!profile) redirect("/dashboard-login");
+  if (!profile) {
+    // Authenticated Supabase user with no Profile row (e.g. created directly in
+    // Supabase, bypassing our signup/invite flow). Must sign out before
+    // redirecting: proxy.ts sends any *authenticated* visitor away from
+    // /dashboard-login back to /dashboard, which would loop forever otherwise.
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect("/dashboard-login?error=no_profile");
+  }
   // USER-role accounts belong in the public account area (currently /profile).
   if (!canAccessDashboard(profile.role)) redirect("/profile");
   if (profile.status !== "ACTIVE") redirect("/dashboard-login?error=inactive");

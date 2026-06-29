@@ -86,11 +86,24 @@ function FacebookLogo() {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+// Flags set by server-side guards (requireDashboardAccess) that land staff
+// back here with context about why.
+const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
+  inactive: {
+    title: "Account inactive",
+    message: "Your account is inactive. Please contact an administrator.",
+  },
+  no_profile: {
+    title: "Account not set up",
+    message: "Your account isn't fully set up yet. Please contact an administrator.",
+  },
+};
+
 export function StaffLoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
-  const inactiveFlag = searchParams.get("error") === "inactive";
+  const urlError = URL_ERROR_BANNERS[searchParams.get("error") ?? ""];
 
   const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
@@ -99,9 +112,7 @@ export function StaffLoginPageContent() {
   const [emailError, setEmailError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [banner, setBanner] = useState<{ type: "error" | "success"; title: string; message: string } | null>(
-    inactiveFlag
-      ? { type: "error", title: "Account inactive", message: "Your account is inactive. Please contact an administrator." }
-      : null,
+    urlError ? { type: "error", ...urlError } : null,
   );
 
   const flashBanner = (next: { type: "error" | "success"; title: string; message: string }) => {

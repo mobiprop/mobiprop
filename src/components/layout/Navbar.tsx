@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { signOut } from "@/features/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 import type { NavUser } from "@/lib/nav-user";
 
 function initialsOf(name: string) {
@@ -54,6 +55,11 @@ function ProfileMenu({ user }: { user: NavUser }) {
   }, []);
 
   async function handleLogout() {
+    // Sign out the browser-side Supabase client first: it's a singleton
+    // (shared with useSavedListings) that keeps its own session + auto-refresh
+    // timer independent of the server cookies `signOut` clears. Skipping this
+    // step is what lets a stale session survive a same-tab account switch.
+    await createClient().auth.signOut();
     await signOut();
     setOpen(false);
     router.push("/");

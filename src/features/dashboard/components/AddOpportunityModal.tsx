@@ -1,19 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown, Plus, Calendar } from "lucide-react";
+import { X, Plus, Calendar } from "lucide-react";
 
 import type { OppStage, OppStatus } from "../opportunities-data";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { ContactType } from "@/generated/prisma/enums";
 import { QuickAddContactModal } from "./QuickAddContactModal";
+import { SearchableSelect } from "./SearchableSelect";
+import { ListingPicker } from "./ListingPicker";
+import { DatePickerField } from "./DatePickerField";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
 export type NewOpportunity = {
   name: string;
   contactSide: "Buyer" | "Seller";
-  contact: string;
+  contactId: string;
   dealType: string;
   dealSize: string;
   contractStart: string;
@@ -24,7 +27,7 @@ export type NewOpportunity = {
   probability: number;
   stage: OppStage;
   expectedClose: string;
-  associatedProperty: string;
+  propertyId: string;
   status: OppStatus;
   agent: string;
   agentCommission: string;
@@ -41,19 +44,21 @@ type AddOpportunityModalProps = {
 const inputClass =
   "h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
-const selectClass =
-  "w-full h-10 pl-3 pr-9 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] bg-white appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer";
 
-const DEAL_TYPES = ["Rent", "Sale"];
-const STAGES: OppStage[] = ["Qualification", "Visitation", "Offer", "Negotiation", "Closing"];
-const STATUSES: OppStatus[] = ["Open", "Closed Won", "Closed Lost"];
+const DEAL_TYPE_OPTIONS = ["Rent", "Sale"].map((v) => ({ value: v, label: v }));
+const COMMISSION_UNIT_OPTIONS = [
+  { value: "%", label: "%" },
+  { value: "$", label: "$" },
+];
+const STAGE_OPTIONS: OppStage[] = ["Qualification", "Visitation", "Offer", "Negotiation", "Closing"];
+const STATUS_OPTIONS: OppStatus[] = ["Open", "Closed Won", "Closed Lost"];
 
 export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving }: AddOpportunityModalProps) {
   const [name, setName] = useState("");
   const [contactSide, setContactSide] = useState<"Buyer" | "Seller">("Buyer");
-  const [contact, setContact] = useState("");
+  const [contactId, setContactId] = useState("");
   const [showAddContact, setShowAddContact] = useState(false);
-  const [extraContacts, setExtraContacts] = useState<string[]>([]);
+  const [extraContacts, setExtraContacts] = useState<{ id: string; fullName: string }[]>([]);
   const [dealType, setDealType] = useState("Rent");
   const [dealSize, setDealSize] = useState("");
   const [contractStart, setContractStart] = useState("");
@@ -64,7 +69,8 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
   const [probability, setProbability] = useState(50);
   const [stage, setStage] = useState<OppStage>("Qualification");
   const [expectedClose, setExpectedClose] = useState("");
-  const [associatedProperty, setAssociatedProperty] = useState("");
+  const [propertyId, setPropertyId] = useState("");
+  const [propertyLabel, setPropertyLabel] = useState("");
   const [status, setStatus] = useState<OppStatus>("Open");
   const [agent, setAgent] = useState("Matias Ulrich");
   const [agentCommission, setAgentCommission] = useState("20%");
@@ -72,12 +78,17 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
 
   const isRental = dealType === "Rent";
 
+  const contactOptions = [
+    ...contacts.map((c) => ({ value: c.id, label: c.fullName })),
+    ...extraContacts.map((c) => ({ value: c.id, label: c.fullName })),
+  ];
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     onCreate?.({
-      name: name.trim(), contactSide, contact, dealType, dealSize,
+      name: name.trim(), contactSide, contactId, dealType, dealSize,
       contractStart, contractEnd, commissionAmount, commissionUnit, paymentTerms,
-      probability, stage, expectedClose, associatedProperty, status,
+      probability, stage, expectedClose, propertyId, status,
       agent: agent.trim(), agentCommission, description: description.trim(),
     });
   }
@@ -123,18 +134,16 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
                   </button>
                 ))}
               </div>
-              <div className="relative flex-1">
-                <select value={contact} onChange={(e) => setContact(e.target.value)} className={selectClass} style={mont}>
-                  <option value="">Select contact…</option>
-                  {contacts.map((c) => (
-                    <option key={c.id} value={c.fullName}>{c.fullName}</option>
-                  ))}
-                  {extraContacts.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
+              <SearchableSelect
+                className="flex-1"
+                size="sm"
+                value={contactId}
+                onChange={setContactId}
+                options={contactOptions}
+                placeholder="Select contact…"
+                searchPlaceholder="Search contacts..."
+                emptyLabel="No contacts found."
+              />
               <button
                 type="button"
                 onClick={() => setShowAddContact(true)}
@@ -151,12 +160,14 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Deal Type *</label>
-              <div className="relative">
-                <select required value={dealType} onChange={(e) => setDealType(e.target.value)} className={selectClass} style={mont}>
-                  {DEAL_TYPES.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={dealType}
+                onChange={setDealType}
+                options={DEAL_TYPE_OPTIONS}
+                placeholder="Select type"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Deal Size *</label>
@@ -177,15 +188,11 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
               <div className="grid grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
                   <label className={labelClass} style={mont}>Contract start date *</label>
-                  <div className="relative">
-                    <input type="date" value={contractStart} onChange={(e) => setContractStart(e.target.value)} className="h-10 w-full px-3 bg-white border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
-                  </div>
+                  <DatePickerField required value={contractStart} onChange={setContractStart} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className={labelClass} style={mont}>Contract end date *</label>
-                  <div className="relative">
-                    <input type="date" value={contractEnd} onChange={(e) => setContractEnd(e.target.value)} className="h-10 w-full px-3 bg-white border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
-                  </div>
+                  <DatePickerField required value={contractEnd} onChange={setContractEnd} />
                 </div>
               </div>
             </div>
@@ -197,13 +204,15 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
               <label className={labelClass} style={mont}>Commission Amount</label>
               <div className="flex items-center gap-2">
                 <input value={commissionAmount} onChange={(e) => setCommissionAmount(e.target.value)} placeholder="Input the percentage" className={`flex-1 ${inputClass}`} style={mont} />
-                <div className="relative w-[72px] shrink-0">
-                  <select value={commissionUnit} onChange={(e) => setCommissionUnit(e.target.value)} className={selectClass} style={mont}>
-                    <option value="%">%</option>
-                    <option value="$">$</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-                </div>
+                <SearchableSelect
+                  className="w-[72px] shrink-0"
+                  size="sm"
+                  searchable={false}
+                  value={commissionUnit}
+                  onChange={setCommissionUnit}
+                  options={COMMISSION_UNIT_OPTIONS}
+                  placeholder="%"
+                />
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
@@ -234,16 +243,18 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Stage *</label>
-              <div className="relative">
-                <select required value={stage} onChange={(e) => setStage(e.target.value as OppStage)} className={selectClass} style={mont}>
-                  {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={stage}
+                onChange={(next) => setStage(next as OppStage)}
+                options={STAGE_OPTIONS.map((s) => ({ value: s, label: s }))}
+                placeholder="Select stage"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Expected Close Date *</label>
-              <input required type="date" value={expectedClose} onChange={(e) => setExpectedClose(e.target.value)} className={inputClass} style={mont} />
+              <DatePickerField required value={expectedClose} onChange={setExpectedClose} />
             </div>
           </div>
 
@@ -251,23 +262,24 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Associated Property</label>
-              <div className="relative">
-                <select value={associatedProperty} onChange={(e) => setAssociatedProperty(e.target.value)} className={selectClass} style={mont}>
-                  <option value="">Select Property</option>
-                  <option value="Sierra Lakeview Estate">Sierra Lakeview Estate</option>
-                  <option value="Oceanfront Paradise">Oceanfront Paradise</option>
-                </select>
-                <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
+              <ListingPicker
+                tone="neutral"
+                value={propertyId}
+                label={propertyLabel}
+                onSelect={(id, label) => { setPropertyId(id); setPropertyLabel(label); }}
+                placeholder="Select Property"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Status *</label>
-              <div className="relative">
-                <select required value={status} onChange={(e) => setStatus(e.target.value as OppStatus)} className={selectClass} style={mont}>
-                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={status}
+                onChange={(next) => setStatus(next as OppStatus)}
+                options={STATUS_OPTIONS.map((s) => ({ value: s, label: s }))}
+                placeholder="Select status"
+              />
             </div>
           </div>
 
@@ -306,8 +318,8 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           onClose={() => setShowAddContact(false)}
           onCreate={(c) => {
             if (c.fullName) {
-              setExtraContacts((prev) => (prev.includes(c.fullName) ? prev : [...prev, c.fullName]));
-              setContact(c.fullName);
+              setExtraContacts((prev) => (prev.some((p) => p.id === c.id) ? prev : [...prev, { id: c.id, fullName: c.fullName }]));
+              setContactId(c.id);
               setContactSide(c.type === ContactType.SELLER ? "Seller" : "Buyer");
             }
             setShowAddContact(false);
