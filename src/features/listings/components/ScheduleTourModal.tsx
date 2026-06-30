@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, Calendar, Clock, Loader2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 
-import { useRequestTourMutation } from "@/hooks/mutations/useTourMutations";
+import { useRequestTourMutation, TourConflictError } from "@/hooks/mutations/useTourMutations";
 import { CalendarPanel } from "@/features/dashboard/components/CalendarPanel";
 import { TimePanel } from "@/features/dashboard/components/TimePanel";
 
@@ -30,6 +30,14 @@ const DATE_FMT = new Intl.DateTimeFormat("en-US", {
 });
 
 const TIME_FMT = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+
+const SLOT_FMT = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
 
 function formatTimeLabel(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -57,6 +65,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
   const calRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(60);
   const [error, setError] = useState("");
+  const [suggestedSlots, setSuggestedSlots] = useState<string[]>([]);
   const [success, setSuccess] = useState<{ tourNumber: string; scheduledAt: string } | null>(null);
 
   // Close the date/time popover on outside click
@@ -77,15 +86,9 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
     return d;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function submitTour(scheduledAt: Date) {
     setError("");
-
-    if (!name.trim()) { setError("Your name is required."); return; }
-    if (!email.trim() && !phone.trim()) { setError("Please provide at least an email or phone number."); return; }
-    if (!scheduledTime) { setError("Please choose a time."); return; }
-    const scheduledAt = buildScheduledAt();
-    if (scheduledAt <= new Date()) { setError("Please choose a future date and time."); return; }
+    setSuggestedSlots([]);
 
     try {
       const result = await mutation.mutateAsync({
@@ -99,8 +102,31 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
       });
       setSuccess({ tourNumber: result.tourNumber, scheduledAt: result.scheduledAt });
     } catch (err) {
-      setError((err as Error).message ?? "Something went wrong. Please try again.");
+      if (err instanceof TourConflictError) {
+        setSuggestedSlots(err.suggestedSlots);
+      }
+      setError((err as Error).message || "Something went wrong. Please try again.");
     }
+  }
+
+  function handlePickSuggestedSlot(iso: string) {
+    const d = new Date(iso);
+    setScheduledDate(d);
+    setScheduledTime(timeString(d));
+    void submitTour(d);
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!name.trim()) { setError("Your name is required."); return; }
+    if (!email.trim() && !phone.trim()) { setError("Please provide at least an email or phone number."); return; }
+    if (!scheduledTime) { setError("Please choose a time."); return; }
+    const scheduledAt = buildScheduledAt();
+    if (scheduledAt <= new Date()) { setError("Please choose a future date and time."); return; }
+
+    await submitTour(scheduledAt);
   };
 
   return (
@@ -267,6 +293,28 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
 
               {error && (
                 <p className="text-[12px] text-red-500" style={mont}>{error}</p>
+              )}
+
+              {suggestedSlots.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[12px] font-semibold text-[#374151]" style={mont}>
+                    Available times instead:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedSlots.map((iso) => (
+                      <button
+                        key={iso}
+                        type="button"
+                        disabled={mutation.isPending}
+                        onClick={() => handlePickSuggestedSlot(iso)}
+                        className="rounded-[8px] border border-[#1e4f86] px-3 py-1.5 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:opacity-40"
+                        style={mont}
+                      >
+                        {SLOT_FMT.format(new Date(iso))}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               <button

@@ -1,3 +1,5 @@
+import { APP_URL } from "@/lib/constants";
+
 function requiredEnv(name: string) {
   const value = process.env[name];
 
@@ -40,4 +42,30 @@ export function getVapidConfig():
 
 export function isPushServerConfigured(): boolean {
   return getVapidConfig() !== null;
+}
+
+/**
+ * Google Calendar OAuth configuration (Integrations page). Reuses the same
+ * GOOGLE_CLIENT_ID/SECRET already configured for Google sign-in — the Google
+ * Cloud Console OAuth client just needs the Calendar redirect URI added and
+ * the Calendar API enabled (see Integrations setup notes). Intentionally
+ * optional: when absent, the "Connect" button degrades to disabled instead of
+ * crashing the app at boot.
+ */
+export function getGoogleCalendarOAuthConfig():
+  | { clientId: string; clientSecret: string; redirectUri: string }
+  | null {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return null;
+
+  return {
+    clientId,
+    clientSecret,
+    redirectUri: `${APP_URL}/api/integrations/google-calendar/callback`,
+  };
+}
+
+export function isGoogleCalendarConfigured(): boolean {
+  return getGoogleCalendarOAuthConfig() !== null;
 }

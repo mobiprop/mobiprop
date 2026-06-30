@@ -9,6 +9,25 @@ import type {
   RequestTourInput,
 } from "@/schemas/tour.schema";
 
+// Thrown instead of a plain Error when a booking conflicts with the assigned
+// agent's Google Calendar — carries the alternative free times the server
+// found so the UI can offer them instead of just showing an error string.
+export class TourConflictError extends Error {
+  suggestedSlots: string[];
+  constructor(message: string, suggestedSlots: string[] = []) {
+    super(message);
+    this.name = "TourConflictError";
+    this.suggestedSlots = suggestedSlots;
+  }
+}
+
+function tourError(res: Response, json: { error?: string; suggestedSlots?: string[] }, fallback: string): Error {
+  if (res.status === 409 && json.suggestedSlots) {
+    return new TourConflictError(json.error ?? fallback, json.suggestedSlots);
+  }
+  return new Error(json.error ?? fallback);
+}
+
 // ── Create (dashboard) ────────────────────────────────────────────────────────
 
 export function useCreateTourMutation() {
@@ -21,7 +40,7 @@ export function useCreateTourMutation() {
         body: JSON.stringify(input),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to create tour");
+      if (!res.ok) throw tourError(res, json, "Failed to create tour");
       return json.tour;
     },
     onSuccess: () => {
@@ -43,7 +62,7 @@ export function useUpdateTourMutation(id: string) {
         body: JSON.stringify(input),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to update tour");
+      if (!res.ok) throw tourError(res, json, "Failed to update tour");
       return json.tour;
     },
     onSuccess: () => {
@@ -65,7 +84,7 @@ export function useUpdateTourStatusMutation(id: string) {
         body: JSON.stringify(input),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to update tour status");
+      if (!res.ok) throw tourError(res, json, "Failed to update tour status");
       return json.tour;
     },
     onSuccess: () => {
@@ -109,7 +128,7 @@ export function useRequestTourMutation() {
         body: JSON.stringify(input),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to submit tour request");
+      if (!res.ok) throw tourError(res, json, "Failed to submit tour request");
       return json.tour as { id: string; tourNumber: string; scheduledAt: string };
     },
   });

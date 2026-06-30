@@ -12,6 +12,11 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!body) return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
 
   const result = await updateTourStatus(id, body);
-  if (!result.ok) return NextResponse.json({ success: false, error: result.error }, { status: result.status });
+  if (!result.ok) {
+    return NextResponse.json(
+      { success: false, error: result.error, suggestedSlots: result.suggestedSlots },
+      { status: result.status },
+    );
+  }
   return NextResponse.json({ success: true, tour: result.tour });
 }

@@ -53,6 +53,15 @@ model Profile {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
+  // Google Calendar integration (Integrations page) — tokens stored encrypted
+  // (see src/lib/crypto.ts). Presence of googleCalendarRefreshToken is the
+  // "connected" flag; no separate boolean needed.
+  googleCalendarEmail          String?   @map("google_calendar_email")
+  googleCalendarAccessToken    String?   @map("google_calendar_access_token")
+  googleCalendarRefreshToken   String?   @map("google_calendar_refresh_token")
+  googleCalendarTokenExpiresAt DateTime? @map("google_calendar_token_expires_at")
+  googleCalendarConnectedAt    DateTime? @map("google_calendar_connected_at")
+
   pushSubscriptions PushSubscription[]
 
   @@map("profiles")
@@ -576,6 +585,10 @@ model Tour {
   status          TourStatus @default(REQUESTED)
   scheduledAt     DateTime   @map("scheduled_at")
   durationMinutes Int        @default(60) @map("duration_minutes")
+
+  // Set when the assigned agent has Google Calendar connected; lets us
+  // update/delete the synced event on reschedule/cancel.
+  googleCalendarEventId String? @map("google_calendar_event_id")
 
   confirmationNote   String? @map("confirmation_note")
   rescheduleNote     String? @map("reschedule_note")

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
   LayoutGrid,
@@ -12,6 +13,8 @@ import {
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
+import { queryKeys } from "@/lib/query-keys";
+import { useGoogleCalendarStatusQuery } from "@/hooks/queries/useGoogleCalendarStatusQuery";
 import {
   MOCK_INTEGRATIONS,
   type Integration,
@@ -23,6 +26,9 @@ import {
   type NewIntegrationRequest,
 } from "./components/RequestIntegrationModal";
 import { IntegrationDetailModal } from "./components/IntegrationDetailModal";
+import { GoogleCalendarManageModal } from "./components/GoogleCalendarManageModal";
+
+const GOOGLE_CALENDAR_ID = "google-calendar";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -215,6 +221,9 @@ type IntegrationsPageProps = {
 export function IntegrationsPage({
   role,
 }: IntegrationsPageProps) {
+  const queryClient = useQueryClient();
+  const calendarStatus = useGoogleCalendarStatusQuery();
+
   const [integrations, setIntegrations] =
     useState<Integration[]>(MOCK_INTEGRATIONS);
 
@@ -224,27 +233,43 @@ export function IntegrationsPage({
   const [manageId, setManageId] =
     useState<string | null>(null);
 
+  const [showGoogleCalendarManage, setShowGoogleCalendarManage] =
+    useState(false);
+
   const canManage = hasPermission(
     role,
     "integrations:manage",
   );
 
-  const connected = integrations.filter(
+  // Google Calendar's status comes from the real connection, not local mock
+  // state — every other card here is still purely decorative.
+  const displayIntegrations = integrations.map((integration) =>
+    integration.id === GOOGLE_CALENDAR_ID
+      ? { ...integration, status: calendarStatus.data?.status.connected ? "Connected" as const : "Available" as const }
+      : integration,
+  );
+
+  const connected = displayIntegrations.filter(
     (integration) =>
       integration.status === "Connected",
   );
 
-  const available = integrations.filter(
+  const available = displayIntegrations.filter(
     (integration) =>
       integration.status === "Available",
   );
 
   const manageIntegration =
-    integrations.find(
+    displayIntegrations.find(
       (integration) => integration.id === manageId,
     ) ?? null;
 
   function handleConnect(id: string) {
+    if (id === GOOGLE_CALENDAR_ID) {
+      window.location.href = "/api/integrations/google-calendar/connect";
+      return;
+    }
+
     setIntegrations((prev) =>
       prev.map((integration) =>
         integration.id === id
@@ -264,6 +289,19 @@ export function IntegrationsPage({
     );
 
     setManageId(id);
+  }
+
+  function handleManage(id: string) {
+    if (id === GOOGLE_CALENDAR_ID) {
+      setShowGoogleCalendarManage(true);
+      return;
+    }
+    setManageId(id);
+  }
+
+  async function handleGoogleCalendarDisconnect() {
+    await fetch("/api/integrations/google-calendar/disconnect", { method: "POST" });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.googleCalendarStatus() });
   }
 
   function handleSave(
@@ -392,13 +430,16 @@ export function IntegrationsPage({
       {/* Integration cards */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {integrations.map((integration) => (
+        {displayIntegrations.map((integration) => (
           <IntegrationCard
             key={integration.id}
             integration={integration}
-            canManage={canManage}
+            // Google Calendar is a personal connection — every staff member who
+            // can see this page can connect/disconnect their own, regardless of
+            // the org-wide "integrations:manage" permission below.
+            canManage={integration.id === GOOGLE_CALENDAR_ID ? true : canManage}
             onConnect={handleConnect}
-            onManage={setManageId}
+            onManage={handleManage}
           />
         ))}
       </div>
@@ -424,6 +465,14 @@ export function IntegrationsPage({
           onDisconnect={() =>
             handleDisconnect(manageIntegration.id)
           }
+        />
+      )}
+
+      {showGoogleCalendarManage && (
+        <GoogleCalendarManageModal
+          email={calendarStatus.data?.status.email ?? null}
+          onClose={() => setShowGoogleCalendarManage(false)}
+          onDisconnect={handleGoogleCalendarDisconnect}
         />
       )}
     </div>

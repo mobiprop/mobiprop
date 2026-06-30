@@ -31,6 +31,7 @@ export const queryKeys = {
   opportunitySummary: (dateRange: unknown) => ["opportunity-summary", dateRange] as const,
   salesByAgent: (dateRange: unknown) => ["sales-by-agent", dateRange] as const,
   locationSummary: (dateRange: unknown) => ["location-summary", dateRange] as const,
+  googleCalendarStatus: prefixed("google-calendar-status"),
 
   // CRM tables
   agents: prefixed("agents"),

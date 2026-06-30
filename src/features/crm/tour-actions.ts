@@ -7,6 +7,8 @@ import { notifyTourRequested, notifyTourStatusChanged } from "@/features/notific
 import { TourStatus, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
+import { getValidAccessToken, createEvent, patchEventTime, deleteEvent } from "@/lib/google-calendar";
+import { isSlotAvailable, findAvailableSlots } from "./tour-availability";
 import {
   requestTourSchema,
   createTourSchema,
@@ -17,8 +19,113 @@ import {
 } from "@/schemas/tour.schema";
 import type { TourDto, MyTourDto } from "./types/crm-dto";
 
-export type TourActionError = { ok: false; error: string; status: number };
+export type TourActionError = { ok: false; error: string; status: number; suggestedSlots?: string[] };
 export type TourActionResult<T> = ({ ok: true } & T) | TourActionError;
+
+// ── Availability + Google Calendar sync (best-effort; never blocks a tour
+// mutation if the calendar API has a hiccup — only the availability *check*
+// itself is allowed to stop a create/reschedule from going through) ──────────
+
+/** `force` (staff only) skips the check entirely; the public flow never sets it. */
+async function checkAvailability(
+  agentId: string | null | undefined,
+  start: Date,
+  durationMinutes: number,
+  force?: boolean,
+): Promise<{ ok: true } | { ok: false; suggestedSlots: string[] }> {
+  if (!agentId || force) return { ok: true };
+
+  const end = new Date(start.getTime() + durationMinutes * 60_000);
+  const available = await isSlotAvailable(agentId, start, end);
+  if (available) return { ok: true };
+
+  const suggestedSlots = await findAvailableSlots(agentId, start, durationMinutes);
+  return { ok: false, suggestedSlots };
+}
+
+/** Creates the Google Calendar event for a brand-new tour. No-op if the agent hasn't connected a calendar. */
+async function createTourCalendarEvent(opts: {
+  tourId: string;
+  agentId: string | null | undefined;
+  summary: string;
+  description: string;
+  location: string | null;
+  start: Date;
+  durationMinutes: number;
+}): Promise<void> {
+  if (!opts.agentId) return;
+  try {
+    const agent = await prisma.profile.findUnique({ where: { id: opts.agentId } });
+    if (!agent) return;
+    const accessToken = await getValidAccessToken(agent);
+    if (!accessToken) return;
+
+    const end = new Date(opts.start.getTime() + opts.durationMinutes * 60_000);
+    const eventId = await createEvent(accessToken, {
+      summary: opts.summary,
+      description: opts.description,
+      location: opts.location ?? undefined,
+      start: opts.start,
+      end,
+    });
+    await prisma.tour.update({ where: { id: opts.tourId }, data: { googleCalendarEventId: eventId } });
+  } catch (error) {
+    console.error("[google-calendar] failed to create event for tour", opts.tourId, error);
+  }
+}
+
+/** Moves an existing event to a new time, or creates one if the agent connected their calendar after the tour was made. */
+async function syncTourCalendarTime(opts: {
+  tourId: string;
+  agentId: string | null | undefined;
+  existingEventId: string | null | undefined;
+  summary: string;
+  description: string;
+  location: string | null;
+  start: Date;
+  durationMinutes: number;
+}): Promise<void> {
+  if (!opts.agentId) return;
+  try {
+    const agent = await prisma.profile.findUnique({ where: { id: opts.agentId } });
+    if (!agent) return;
+    const accessToken = await getValidAccessToken(agent);
+    if (!accessToken) return;
+
+    const end = new Date(opts.start.getTime() + opts.durationMinutes * 60_000);
+    if (opts.existingEventId) {
+      await patchEventTime(accessToken, opts.existingEventId, opts.start, end);
+    } else {
+      const eventId = await createEvent(accessToken, {
+        summary: opts.summary,
+        description: opts.description,
+        location: opts.location ?? undefined,
+        start: opts.start,
+        end,
+      });
+      await prisma.tour.update({ where: { id: opts.tourId }, data: { googleCalendarEventId: eventId } });
+    }
+  } catch (error) {
+    console.error("[google-calendar] failed to sync event time for tour", opts.tourId, error);
+  }
+}
+
+/** Best-effort delete on cancel. No-op if there was never a synced event. */
+async function deleteTourCalendarEvent(
+  agentId: string | null | undefined,
+  eventId: string | null | undefined,
+): Promise<void> {
+  if (!agentId || !eventId) return;
+  try {
+    const agent = await prisma.profile.findUnique({ where: { id: agentId } });
+    if (!agent) return;
+    const accessToken = await getValidAccessToken(agent);
+    if (!accessToken) return;
+    await deleteEvent(accessToken, eventId);
+  } catch (error) {
+    console.error("[google-calendar] failed to delete event", eventId, error);
+  }
+}
 
 // ── ID generation ─────────────────────────────────────────────────────────────
 
@@ -369,6 +476,17 @@ export async function createTour(
       return { ok: false, error: "Cannot assign to inactive or non-existent agent", status: 422 };
   }
 
+  // Staff can override (force) a Google Calendar conflict; the public flow can't.
+  const availability = await checkAvailability(d.assignedAgentId, scheduledAt, d.durationMinutes, d.force);
+  if (!availability.ok) {
+    return {
+      ok: false,
+      error: "This time conflicts with the agent's calendar.",
+      status: 409,
+      suggestedSlots: availability.suggestedSlots,
+    };
+  }
+
   // Find or create contact
   let contactId = d.contactId;
   let contactCreated = false;
@@ -428,6 +546,22 @@ export async function createTour(
     newValues: { tourNumber, source: d.source, contactCreated, leadCreated },
   });
 
+  await createTourCalendarEvent({
+    tourId: row.id,
+    agentId: row.assignedAgentId,
+    summary: `Property Tour — ${d.submittedName}`,
+    description: [
+      row.property ? `Listing: ${row.property.title}` : null,
+      d.submittedMessage || null,
+      [d.submittedEmail, d.submittedPhone].filter(Boolean).join(" · ") || null,
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+    location: row.property?.location ?? null,
+    start: scheduledAt,
+    durationMinutes: d.durationMinutes,
+  });
+
   const agentMap = await buildAgentMap([row.assignedAgentId]);
   return { ok: true, tour: await toTourDto(row, agentMap) };
 }
@@ -446,15 +580,36 @@ export async function updateTour(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 422 };
 
   const scope = tourRecordScope(gate.profile);
-  const existing = await prisma.tour.findFirst({ where: { id, ...scope }, select: { id: true, status: true } });
+  const existing = await prisma.tour.findFirst({
+    where: { id, ...scope },
+    select: {
+      id: true,
+      status: true,
+      assignedAgentId: true,
+      durationMinutes: true,
+      googleCalendarEventId: true,
+    },
+  });
   if (!existing) return { ok: false, error: "Tour not found", status: 404 };
   if (existing.status === TourStatus.COMPLETED || existing.status === TourStatus.CANCELLED)
     return { ok: false, error: "Cannot edit a completed or cancelled tour", status: 422 };
 
   const d = parsed.data;
-  if (d.scheduledAt) {
-    if (new Date(d.scheduledAt) <= new Date())
-      return { ok: false, error: "Scheduled date must be in the future", status: 422 };
+  const newScheduledAt = d.scheduledAt ? new Date(d.scheduledAt) : null;
+  if (newScheduledAt && newScheduledAt <= new Date())
+    return { ok: false, error: "Scheduled date must be in the future", status: 422 };
+
+  if (newScheduledAt) {
+    const durationMinutes = d.durationMinutes ?? existing.durationMinutes;
+    const availability = await checkAvailability(existing.assignedAgentId, newScheduledAt, durationMinutes, d.force);
+    if (!availability.ok) {
+      return {
+        ok: false,
+        error: "This time conflicts with the agent's calendar.",
+        status: 409,
+        suggestedSlots: availability.suggestedSlots,
+      };
+    }
   }
 
   const row = await prisma.tour.update({
@@ -464,7 +619,7 @@ export async function updateTour(
       ...(d.submittedEmail !== undefined && { submittedEmail: d.submittedEmail || null }),
       ...(d.submittedPhone !== undefined && { submittedPhone: d.submittedPhone }),
       ...(d.submittedMessage !== undefined && { submittedMessage: d.submittedMessage }),
-      ...(d.scheduledAt !== undefined && { scheduledAt: new Date(d.scheduledAt) }),
+      ...(newScheduledAt && { scheduledAt: newScheduledAt }),
       ...(d.durationMinutes !== undefined && { durationMinutes: d.durationMinutes }),
       ...(d.leadId !== undefined && { leadId: d.leadId }),
       ...(d.propertyId !== undefined && { propertyId: d.propertyId }),
@@ -473,6 +628,19 @@ export async function updateTour(
   });
 
   await logActivity({ actorId: gate.profile.id, action: "TOUR_UPDATED", entityType: "TOUR", entityId: id });
+
+  if (newScheduledAt) {
+    await syncTourCalendarTime({
+      tourId: row.id,
+      agentId: row.assignedAgentId,
+      existingEventId: existing.googleCalendarEventId,
+      summary: `Property Tour — ${row.submittedName}`,
+      description: row.property ? `Listing: ${row.property.title}` : "",
+      location: row.property?.location ?? null,
+      start: newScheduledAt,
+      durationMinutes: row.durationMinutes,
+    });
+  }
 
   const agentMap = await buildAgentMap([row.assignedAgentId]);
   return { ok: true, tour: await toTourDto(row, agentMap) };
@@ -515,11 +683,21 @@ export async function updateTourStatus(
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 422 };
 
-  const { status: newStatus, confirmationNote, rescheduleNote, cancellationReason, completionNote, scheduledAt } =
+  const { status: newStatus, confirmationNote, rescheduleNote, cancellationReason, completionNote, scheduledAt, force } =
     parsed.data;
 
   const scope = tourRecordScope(gate.profile);
-  const existing = await prisma.tour.findFirst({ where: { id, ...scope }, select: { id: true, status: true, scheduledAt: true } });
+  const existing = await prisma.tour.findFirst({
+    where: { id, ...scope },
+    select: {
+      id: true,
+      status: true,
+      scheduledAt: true,
+      assignedAgentId: true,
+      durationMinutes: true,
+      googleCalendarEventId: true,
+    },
+  });
   if (!existing) return { ok: false, error: "Tour not found", status: 404 };
 
   const allowed = VALID_STATUS_TRANSITIONS[existing.status];
@@ -531,9 +709,22 @@ export async function updateTourStatus(
     };
   }
 
-  if (newStatus === TourStatus.RESCHEDULED && scheduledAt) {
-    if (new Date(scheduledAt) <= new Date())
-      return { ok: false, error: "Rescheduled date must be in the future", status: 422 };
+  const newScheduledAt =
+    newStatus === TourStatus.RESCHEDULED && scheduledAt ? new Date(scheduledAt) : null;
+  if (newScheduledAt && newScheduledAt <= new Date()) {
+    return { ok: false, error: "Rescheduled date must be in the future", status: 422 };
+  }
+
+  if (newScheduledAt) {
+    const availability = await checkAvailability(existing.assignedAgentId, newScheduledAt, existing.durationMinutes, force);
+    if (!availability.ok) {
+      return {
+        ok: false,
+        error: "This time conflicts with the agent's calendar.",
+        status: 409,
+        suggestedSlots: availability.suggestedSlots,
+      };
+    }
   }
 
   const row = await prisma.tour.update({
@@ -560,6 +751,21 @@ export async function updateTourStatus(
 
   const action = STATUS_ACTION_MAP[newStatus] as Parameters<typeof logActivity>[0]["action"];
   await logActivity({ actorId: gate.profile.id, action, entityType: "TOUR", entityId: id });
+
+  if (newScheduledAt) {
+    await syncTourCalendarTime({
+      tourId: row.id,
+      agentId: row.assignedAgentId,
+      existingEventId: existing.googleCalendarEventId,
+      summary: `Property Tour — ${row.submittedName}`,
+      description: row.property ? `Listing: ${row.property.title}` : "",
+      location: row.property?.location ?? null,
+      start: newScheduledAt,
+      durationMinutes: row.durationMinutes,
+    });
+  } else if (newStatus === TourStatus.CANCELLED) {
+    await deleteTourCalendarEvent(existing.assignedAgentId, existing.googleCalendarEventId);
+  }
 
   // Best-effort notification for the assigned agent on confirm/reschedule/cancel.
   const notifyType = TOUR_STATUS_NOTIFICATION[newStatus];
@@ -639,12 +845,27 @@ export async function requestPublicTour(
 
   // Look up the property to determine the default agent
   let assignedAgentId: string | null = null;
+  let propertyTitle: string | null = null;
+  let propertyLocation: string | null = null;
   if (d.propertyId) {
     const prop = await prisma.property.findUnique({
       where: { id: d.propertyId },
-      select: { assignedAgentId: true },
+      select: { assignedAgentId: true, title: true, location: true },
     });
     assignedAgentId = prop?.assignedAgentId ?? null;
+    propertyTitle = prop?.title ?? null;
+    propertyLocation = prop?.location ?? null;
+  }
+
+  // The public flow can never override a conflict — only suggest alternatives.
+  const availability = await checkAvailability(assignedAgentId, scheduledAt, d.durationMinutes);
+  if (!availability.ok) {
+    return {
+      ok: false,
+      error: "This time is no longer available. Please choose another time.",
+      status: 409,
+      suggestedSlots: availability.suggestedSlots,
+    };
   }
 
   // Find or create contact
@@ -703,6 +924,22 @@ export async function requestPublicTour(
     leadId,
     assignedAgentId,
     actorId: null,
+  });
+
+  await createTourCalendarEvent({
+    tourId: tour.id,
+    agentId: assignedAgentId,
+    summary: `Property Tour — ${d.submittedName}`,
+    description: [
+      propertyTitle ? `Listing: ${propertyTitle}` : null,
+      d.submittedMessage || null,
+      [d.submittedEmail, d.submittedPhone].filter(Boolean).join(" · ") || null,
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+    location: propertyLocation,
+    start: scheduledAt,
+    durationMinutes: d.durationMinutes,
   });
 
   return { ok: true, tour: { id: tour.id, tourNumber: tour.tourNumber, scheduledAt: tour.scheduledAt.toISOString() } };

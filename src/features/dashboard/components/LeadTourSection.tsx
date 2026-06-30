@@ -20,6 +20,7 @@ import { useDashboardToursQuery } from "@/hooks/queries/useDashboardToursQuery";
 import {
   useUpdateTourMutation,
   useUpdateTourStatusMutation,
+  TourConflictError,
 } from "@/hooks/mutations/useTourMutations";
 import { TOUR_STATUS_BADGE } from "@/features/crm/tour-status-badge";
 import type { LeadDto, TourDto } from "@/features/crm/types/crm-dto";
@@ -197,7 +198,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
   const nextStatuses = VALID_NEXT[tour.status] ?? [];
   if (!canUpdate || nextStatuses.length === 0) return null;
 
-  const handleApply = async () => {
+  const handleApply = async (force?: boolean) => {
     if (!selected) return;
     try {
       await statusMutation.mutateAsync({
@@ -207,6 +208,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
         cancellationReason: selected === TourStatus.CANCELLED ? note || undefined : undefined,
         completionNote: selected === TourStatus.COMPLETED ? note || undefined : undefined,
         scheduledAt: selected === TourStatus.RESCHEDULED && newDate ? newDate.toISOString() : undefined,
+        force,
       });
       setSelected(null);
       setNote("");
@@ -215,6 +217,9 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
       // surfaced via statusMutation.isError below
     }
   };
+
+  const conflict =
+    statusMutation.error instanceof TourConflictError ? statusMutation.error : null;
 
   return (
     <div className="flex flex-col gap-3 rounded-[10px] bg-[#f9fafb] p-4">
@@ -276,20 +281,53 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
             className="border border-[#e5e7eb] rounded-[8px] px-3 py-2 text-[13px] text-[#0d2138] placeholder:text-[#9ca3af] outline-none focus:border-[#0d2138] resize-none"
             style={mont}
           />
-          <button
-            type="button"
-            onClick={handleApply}
-            disabled={statusMutation.isPending || (selected === TourStatus.RESCHEDULED && !newDate)}
-            className="self-start flex items-center gap-2 bg-[#0d2138] text-white text-[12px] font-semibold px-4 py-2 rounded-[8px] hover:bg-[#1a3a5c] disabled:opacity-40 transition-colors"
-            style={mont}
-          >
-            {statusMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : null}
-            Apply
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleApply()}
+              disabled={statusMutation.isPending || (selected === TourStatus.RESCHEDULED && !newDate)}
+              className="self-start flex items-center gap-2 bg-[#0d2138] text-white text-[12px] font-semibold px-4 py-2 rounded-[8px] hover:bg-[#1a3a5c] disabled:opacity-40 transition-colors"
+              style={mont}
+            >
+              {statusMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : null}
+              Apply
+            </button>
+            {conflict && (
+              <button
+                type="button"
+                onClick={() => handleApply(true)}
+                disabled={statusMutation.isPending}
+                className="self-start flex items-center gap-2 border border-[#d97706] text-[#d97706] text-[12px] font-semibold px-4 py-2 rounded-[8px] hover:bg-[#fffbeb] disabled:opacity-40 transition-colors"
+                style={mont}
+              >
+                Book anyway
+              </button>
+            )}
+          </div>
           {statusMutation.isError && (
             <p className="text-[12px] text-red-500" style={mont}>
               {(statusMutation.error as Error).message}
             </p>
+          )}
+          {conflict && conflict.suggestedSlots.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-[11px] font-semibold text-[#6b7280] uppercase" style={mont}>
+                Available times instead
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {conflict.suggestedSlots.map((iso) => (
+                  <button
+                    key={iso}
+                    type="button"
+                    onClick={() => setNewDate(new Date(iso))}
+                    className="rounded-[8px] border border-[#1e4f86] px-3 py-1.5 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff]"
+                    style={mont}
+                  >
+                    {format(new Date(iso), "EEE MMM d, h:mm a")}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -303,6 +341,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState<Date | null>(null);
   const [error, setError] = useState("");
+  const [suggestedSlots, setSuggestedSlots] = useState<string[]>([]);
   const updateMutation = useUpdateTourMutation(tour.id);
   const canUpdate = hasPermission(role, "tours:update");
 
@@ -316,17 +355,24 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
   const startEditing = () => {
     setValue(new Date(tour.scheduledAt));
     setError("");
+    setSuggestedSlots([]);
     setEditing(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (force?: boolean) => {
     if (!value) return;
     setError("");
     try {
-      await updateMutation.mutateAsync({ scheduledAt: value.toISOString() });
+      await updateMutation.mutateAsync({ scheduledAt: value.toISOString(), force });
       setEditing(false);
+      setSuggestedSlots([]);
     } catch (err) {
-      setError((err as Error).message ?? "Failed to update tour");
+      if (err instanceof TourConflictError) {
+        setSuggestedSlots(err.suggestedSlots);
+      } else {
+        setSuggestedSlots([]);
+      }
+      setError((err as Error).message || "Failed to update tour");
     }
   };
 
@@ -349,7 +395,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={handleSave}
+          onClick={() => handleSave()}
           disabled={!value || updateMutation.isPending}
           className="text-[12px] font-semibold text-white bg-[#0d2138] px-3 py-1 rounded-[6px] disabled:opacity-40"
           style={mont}
@@ -358,15 +404,41 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
         </button>
         <button
           type="button"
-          onClick={() => { setEditing(false); setError(""); }}
+          onClick={() => { setEditing(false); setError(""); setSuggestedSlots([]); }}
           className="text-[12px] text-[#6b7280]"
           style={mont}
         >
           Cancel
         </button>
+        {suggestedSlots.length > 0 && (
+          <button
+            type="button"
+            onClick={() => handleSave(true)}
+            disabled={updateMutation.isPending}
+            className="text-[12px] font-semibold text-[#d97706] disabled:opacity-40"
+            style={mont}
+          >
+            Book anyway
+          </button>
+        )}
       </div>
       {error && (
         <p className="text-[12px] text-red-500" style={mont}>{error}</p>
+      )}
+      {suggestedSlots.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {suggestedSlots.map((iso) => (
+            <button
+              key={iso}
+              type="button"
+              onClick={() => setValue(new Date(iso))}
+              className="rounded-[8px] border border-[#1e4f86] px-3 py-1.5 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff]"
+              style={mont}
+            >
+              {format(new Date(iso), "EEE MMM d, h:mm a")}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

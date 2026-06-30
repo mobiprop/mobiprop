@@ -40,25 +40,16 @@ export type Integration = {
 
 export const MOCK_INTEGRATIONS: Integration[] = [
   {
+    // Real connection — IntegrationsPage overrides this entry's status from
+    // useGoogleCalendarStatusQuery() and routes its Connect/Manage actions to
+    // the real OAuth flow instead of the generic mock toggle below.
     id: "google-calendar",
     name: "Google Calendar",
-    description: "Sync appointments and viewings",
-    status: "Connected",
+    description: "Sync tour appointments to your calendar",
+    status: "Available",
     icon: Calendar,
     iconBg: "#e8f0fe",
     iconColor: "#1e4f86",
-    lastSynced: "2 hours ago",
-    settings: [
-      { type: "password", id: "apiKey", label: "API Key", value: "sk_live_xxxxxxxxxxxxxxxxxxxx" },
-      { type: "text", id: "webhookUrl", label: "Webhook URL", value: "https://api.ulrichpropiedades.com/webhooks/calendar" },
-      { type: "select", id: "syncFrequency", label: "Sync Frequency", value: "Every 15 minutes", options: ["Every 15 minutes", "Every 30 minutes", "Every hour", "Every 6 hours", "Daily"] },
-    ],
-    permissions: [
-      { id: "read", label: "Read calendar events", enabled: true },
-      { id: "create", label: "Create calendar events", enabled: true },
-      { id: "update", label: "Update calendar events", enabled: true },
-      { id: "delete", label: "Delete calendar events", enabled: false },
-    ],
   },
   {
     id: "mailchimp",

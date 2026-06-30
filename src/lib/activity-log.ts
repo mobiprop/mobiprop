@@ -76,7 +76,9 @@ export type ActivityAction =
   | "TOUR_LEAD_REUSED"
   | "LOCATION_CREATED"
   | "LOCATION_UPDATED"
-  | "LOCATION_DELETED";
+  | "LOCATION_DELETED"
+  | "GOOGLE_CALENDAR_CONNECTED"
+  | "GOOGLE_CALENDAR_DISCONNECTED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

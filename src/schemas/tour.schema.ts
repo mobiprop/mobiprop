@@ -45,6 +45,9 @@ export const createTourSchema = z.object({
   scheduledAt: z.string().datetime({ offset: true }),
   durationMinutes: z.coerce.number().int().min(15).max(480).default(60),
   source: z.enum(["PUBLIC_REQUEST", "DASHBOARD_CREATED"]).default("DASHBOARD_CREATED"),
+  // Staff can book over a Google Calendar conflict; the public flow has no
+  // equivalent field and is always blocked.
+  force: z.boolean().optional(),
 });
 
 export type CreateTourInput = z.infer<typeof createTourSchema>;
@@ -65,6 +68,7 @@ export const updateTourSchema = z.object({
   durationMinutes: z.coerce.number().int().min(15).max(480).optional(),
   leadId: z.string().optional().nullable(),
   propertyId: z.string().optional().nullable(),
+  force: z.boolean().optional(),
 });
 
 export type UpdateTourInput = z.infer<typeof updateTourSchema>;
@@ -79,6 +83,7 @@ export const updateTourStatusSchema = z.object({
   completionNote: z.string().max(2000).optional(),
   // New date when rescheduling
   scheduledAt: z.string().datetime({ offset: true }).optional(),
+  force: z.boolean().optional(),
 });
 
 export type UpdateTourStatusInput = z.infer<typeof updateTourStatusSchema>;

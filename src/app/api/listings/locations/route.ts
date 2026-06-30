@@ -5,8 +5,8 @@ import { listPublicLocationSuggestions } from "@/features/listings/listing-actio
 export const runtime = "nodejs";
 
 /**
- * Public: location autocomplete suggestions for the property search — distinct
- * city/location values from ACTIVE listings matching `q`.
+ * Public: location autocomplete suggestions for the property search — names
+ * from the master Locations table matching `q`.
  */
 export async function GET(request: Request) {
   const q = new URL(request.url).searchParams.get("q") ?? "";

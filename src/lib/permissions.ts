@@ -76,6 +76,10 @@ export type Permission =
   | "contracts:create"
   | "contracts:update"
   | "contracts:uploadDocuments"
+  // All staff hold "view" (the page also hosts each agent's own Google
+  // Calendar connection — a personal setting, not an org-wide one). "manage"
+  // stays ADMIN-only — it gates the org-wide mock integrations (Mailchimp,
+  // Stripe, etc.), not an agent's personal calendar connect/disconnect.
   | "integrations:view"
   | "integrations:manage"
   | "locations:view"
@@ -194,6 +198,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "contracts:create",
     "contracts:update",
     "contracts:uploadDocuments",
+    "integrations:view",
     "locations:view",
     "messages:view",
     "notifications:view",
@@ -201,6 +206,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
   AGENT: [
     "dashboard:view",
+    "integrations:view",
     "contacts:view",
     "contacts:view_all",
     "contacts:create",

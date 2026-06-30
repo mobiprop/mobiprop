@@ -1219,36 +1219,27 @@ export const getPublicListingBySlug = cache(async function getPublicListingBySlu
 });
 
 /**
- * Public: location suggestions for the search autocomplete — distinct
- * city/location values from ACTIVE listings matching the typed query.
+ * Public: location suggestions for the search autocomplete — names from the
+ * master Locations table matching the typed query, so a location is
+ * searchable as soon as it's added, before any property is listed under it.
  */
 export async function listPublicLocationSuggestions(query: string): Promise<string[]> {
   const q = query.trim();
-  const where: Prisma.PropertyWhereInput = { status: PropertyStatus.ACTIVE };
-  if (q) {
-    where.OR = [
-      { location: { contains: q, mode: "insensitive" } },
-      { city: { contains: q, mode: "insensitive" } },
-    ];
-  }
+  const where: Prisma.LocationWhereInput = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { region: { contains: q, mode: "insensitive" } },
+        ],
+      }
+    : {};
 
-  const rows = await prisma.property.findMany({
+  const rows = await prisma.location.findMany({
     where,
-    select: { location: true, city: true },
-    take: 50,
+    select: { name: true },
+    orderBy: { name: "asc" },
+    take: 8,
   });
 
-  // Suggest values exactly as stored so a selected suggestion round-trips
-  // through the `location` contains-filter.
-  const lower = q.toLowerCase();
-  const suggestions = new Set<string>();
-  for (const row of rows) {
-    if (row.city && (!lower || row.city.toLowerCase().includes(lower))) {
-      suggestions.add(row.city);
-    }
-    if (!lower || row.location.toLowerCase().includes(lower)) {
-      suggestions.add(row.location);
-    }
-  }
-  return [...suggestions].slice(0, 8);
+  return rows.map((row) => row.name);
 }
