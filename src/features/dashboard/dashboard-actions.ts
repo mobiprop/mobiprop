@@ -17,6 +17,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { hasPermission } from "@/lib/permissions";
+import { resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
 import { OpportunityStatus, PropertyStatus, PropertyOperationType } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import type {
@@ -137,7 +138,6 @@ function sparklineFromValues(
   return sums;
 }
 
-const num = (d: unknown): number => (d === null || d === undefined ? 0 : Number(d));
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
 
@@ -170,7 +170,10 @@ export async function getDashboardMetrics(
     }),
     prisma.opportunity.findMany({
       where: opportunityWhere,
-      select: { status: true, dealSize: true, commission: true, createdAt: true, updatedAt: true },
+      select: {
+        status: true, dealSize: true, commission: true, commissionUnit: true,
+        agentCommissionValue: true, agentCommissionUnit: true, createdAt: true, updatedAt: true,
+      },
     }),
   ]);
 
@@ -193,14 +196,16 @@ export async function getDashboardMetrics(
     (o) => o.status === OpportunityStatus.CLOSED_LOST && inPrevWindow(o.updatedAt),
   );
 
-  const sumDealSize = (rows: typeof opportunityRows) => rows.reduce((s, o) => s + num(o.dealSize), 0);
-  const sumCommission = (rows: typeof opportunityRows) => rows.reduce((s, o) => s + num(o.commission), 0);
+  // "Revenue" = the company's resolved commission (Commission Amount), never the
+  // full deal size. Agent's "Mi Comisión" = their own resolved agent commission.
+  const sumRevenue = (rows: typeof opportunityRows) => rows.reduce((s, o) => s + resolveCompanyRevenue(o), 0);
+  const sumAgentEarnings = (rows: typeof opportunityRows) => rows.reduce((s, o) => s + resolveAgentEarnings(o), 0);
 
   let metrics: MetricCard[];
 
   if (isCompanyView) {
-    const revenueWindow = sumDealSize(wonInWindow);
-    const revenuePrevWindow = sumDealSize(wonInPrevWindow);
+    const revenueWindow = sumRevenue(wonInWindow);
+    const revenuePrevWindow = sumRevenue(wonInPrevWindow);
 
     metrics = [
       {
@@ -216,7 +221,7 @@ export async function getDashboardMetrics(
         key: "lost",
         label: "Lost Opportunities",
         value: String(lostInWindow.length),
-        sub: fmtMoney(sumDealSize(lostInWindow)),
+        sub: fmtMoney(sumRevenue(lostInWindow)),
         iconBg: "#fee2e2",
         iconColor: "#dc2626",
         sparkline: sparklineFromDates(lostInWindow.map((o) => o.updatedAt), start, end),
@@ -239,7 +244,7 @@ export async function getDashboardMetrics(
         iconBg: "#fef3c7",
         iconColor: "#d97706",
         sparkline: sparklineFromValues(
-          wonInWindow.map((o) => ({ date: o.updatedAt, value: num(o.dealSize) })),
+          wonInWindow.map((o) => ({ date: o.updatedAt, value: resolveCompanyRevenue(o) })),
           start,
           end,
         ),
@@ -247,8 +252,8 @@ export async function getDashboardMetrics(
       },
     ];
   } else {
-    const commissionWindow = sumCommission(wonInWindow);
-    const commissionPrevWindow = sumCommission(wonInPrevWindow);
+    const commissionWindow = sumAgentEarnings(wonInWindow);
+    const commissionPrevWindow = sumAgentEarnings(wonInPrevWindow);
 
     metrics = [
       {
@@ -285,7 +290,7 @@ export async function getDashboardMetrics(
         iconBg: "#fef3c7",
         iconColor: "#d97706",
         sparkline: sparklineFromValues(
-          wonInWindow.map((o) => ({ date: o.updatedAt, value: num(o.commission) })),
+          wonInWindow.map((o) => ({ date: o.updatedAt, value: resolveAgentEarnings(o) })),
           start,
           end,
         ),
@@ -337,16 +342,17 @@ export async function getRevenueChart(
         { OR: [{ createdAt: { gte: start, lte: end } }, { updatedAt: { gte: start, lte: end } }] },
       ],
     },
-    select: { status: true, dealSize: true, createdAt: true, updatedAt: true },
+    select: { status: true, dealSize: true, commission: true, commissionUnit: true, createdAt: true, updatedAt: true },
   });
 
   const chart: ChartPoint[] = buildBuckets(start, end, granularity).map(({ label, bucketStart, bucketEnd }) => {
+    // Both series are revenue (resolved company commission), not deal size.
     const revenue = rows
       .filter((o) => o.status === OpportunityStatus.CLOSED_WON && o.updatedAt >= bucketStart && o.updatedAt <= bucketEnd)
-      .reduce((s, o) => s + num(o.dealSize), 0);
+      .reduce((s, o) => s + resolveCompanyRevenue(o), 0);
     const openOpportunities = rows
       .filter((o) => o.status === OpportunityStatus.OPEN && o.createdAt >= bucketStart && o.createdAt <= bucketEnd)
-      .reduce((s, o) => s + num(o.dealSize), 0);
+      .reduce((s, o) => s + resolveCompanyRevenue(o), 0);
     return { label, revenue: Math.round(revenue), openOpportunities: Math.round(openOpportunities) };
   });
 
@@ -376,6 +382,8 @@ export async function getSalesByAgent(
     select: {
       opportunityId: true,
       dealSize: true,
+      commission: true,
+      commissionUnit: true,
       updatedAt: true,
       assignedAgentId: true,
       property: { select: { listingId: true, operationType: true } },
@@ -398,7 +406,7 @@ export async function getSalesByAgent(
       listingId: r.property?.listingId ?? null,
       operation: OPERATION_LABEL[r.property?.operationType ?? PropertyOperationType.SALE],
       date: r.updatedAt.toISOString(),
-      revenue: num(r.dealSize),
+      revenue: resolveCompanyRevenue(r),
     };
   });
 

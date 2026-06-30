@@ -13,7 +13,11 @@ export default async function DashboardContractsPage() {
     // Contract from Won Opportunity" deep link) — needs a Suspense boundary
     // during prerender, same as dashboard/layout.tsx's pattern.
     <Suspense fallback={null}>
-      <ContractsPage role={profile.role} />
+      <ContractsPage
+        role={profile.role}
+        currentUserId={profile.id}
+        currentUserName={profile.fullName ?? profile.email}
+      />
     </Suspense>
   );
 }

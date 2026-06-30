@@ -168,6 +168,12 @@ export async function createContract(
       contactId: fields.contactId || null,
       propertyId: fields.propertyId || null,
       opportunityId: fields.opportunityId || null,
+      // Only ADMIN/MANAGER (agents:view) may assign to an arbitrary agent. Any
+      // other role (AGENT) can't see other agents, so their contracts are
+      // always attributed to themselves regardless of what the client sends.
+      assignedAgentId: hasPermission(gate.profile.role, "agents:view")
+        ? fields.assignedAgentId ?? null
+        : gate.profile.id,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       createdById: gate.profile.id,

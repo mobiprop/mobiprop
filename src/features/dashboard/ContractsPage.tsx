@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -86,9 +87,136 @@ function fmtValue(n: number | null) {
   return `$${n.toLocaleString("en-US")}`;
 }
 
+// ── Row actions menu ──────────────────────────────────────────────────────────
+// Rendered in a portal so it can't be clipped by the table's overflow-hidden /
+// overflow-x-auto wrappers (which otherwise cut off the menu on the last row).
+// Flips above the trigger when it would run past the bottom of the viewport.
+
+function RowMenu({
+  label,
+  canDelete,
+  onEdit,
+  onDelete,
+}: {
+  label: string;
+  canDelete: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const updatePosition = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const menuWidth = 160;
+    const menuHeight = canDelete ? 92 : 48;
+    const gap = 6;
+    const padding = 8;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+    if (left < padding) left = padding;
+    if (left + menuWidth > window.innerWidth - padding) left = window.innerWidth - menuWidth - padding;
+    if (top + menuHeight > window.innerHeight - padding) top = rect.top - menuHeight - gap;
+    setPosition({ top, left });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, canDelete]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        title="Actions"
+        aria-label={`Open actions for ${label}`}
+        aria-expanded={open}
+        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
+        className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
+          open ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+        }`}
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            className="fixed z-[9999] w-[160px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+            style={{ top: position.top, left: position.left }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => { setOpen(false); onEdit(); }}
+              className="flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
+              style={mont}
+            >
+              <Pencil size={14} className="text-[#1e4f86]" /> Edit
+            </button>
+            {canDelete && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { setOpen(false); onDelete(); }}
+                className="flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium text-[#fb2c36] transition-colors hover:bg-[#fff1f2]"
+                style={mont}
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            )}
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export function ContractsPage({ role }: { role: Role }) {
+export function ContractsPage({
+  role,
+  currentUserId,
+  currentUserName,
+}: {
+  role: Role;
+  currentUserId: string;
+  currentUserName: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [editing, setEditing] = useState<ContractDto | "new" | null>(null);
@@ -96,7 +224,6 @@ export function ContractsPage({ role }: { role: Role }) {
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "All">("All");
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useDashboardContractsQuery();
   const createMutation = useCreateContractMutation();
@@ -106,6 +233,11 @@ export function ContractsPage({ role }: { role: Role }) {
 
   const canCreate = hasPermission(role, "contracts:create");
   const canDelete = hasPermission(role, "contracts:delete");
+  // Roles without agents:view (AGENT) can't pick another agent — their
+  // contracts are always assigned to themselves (enforced server-side too).
+  const lockedAgent = hasPermission(role, "agents:view")
+    ? null
+    : { id: currentUserId, name: currentUserName };
 
   const contracts = useMemo(() => data?.contracts ?? [], [data]);
   const metrics = data?.metrics;
@@ -143,7 +275,11 @@ export function ContractsPage({ role }: { role: Role }) {
     });
   }, [contracts, search, statusFilter]);
 
-  async function handleSubmit(values: ContractFormValues) {
+  // Saves the contract and returns the persisted record so the modal can apply
+  // its staged document uploads against the new id. The modal closes itself
+  // after documents are handled (so files attach to a real contract, never an
+  // orphan); returns null on failure to keep the modal open.
+  async function handleSubmit(values: ContractFormValues): Promise<ContractDto | null> {
     const payload = {
       title: values.title || "Untitled Contract",
       type: values.type,
@@ -161,16 +297,16 @@ export function ContractsPage({ role }: { role: Role }) {
 
     try {
       if (editing && editing !== "new") {
-        await updateMutation.mutateAsync({ id: editing.id, body: payload });
+        const { contract } = await updateMutation.mutateAsync({ id: editing.id, body: payload });
         toast.success("Contract updated");
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success("Contract created");
+        return contract;
       }
-      setEditing(null);
-      setDraft(undefined);
+      const { contract } = await createMutation.mutateAsync(payload);
+      toast.success("Contract created");
+      return contract;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save contract");
+      return null;
     }
   }
 
@@ -300,41 +436,12 @@ export function ContractsPage({ role }: { role: Role }) {
                         <Badge label={STATUS_LABEL[contract.status] ?? contract.status} bg={statusStyle.bg} text={statusStyle.text} />
                       </td>
                       <td className="px-4 py-4 text-center">
-                        <div className="relative inline-block">
-                          <button
-                            type="button"
-                            onClick={() => setOpenMenuId(openMenuId === contract.id ? null : contract.id)}
-                            title="Actions"
-                            className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
-                          >
-                            <MoreVertical size={16} />
-                          </button>
-                          {openMenuId === contract.id && (
-                            <>
-                              <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
-                              <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[160px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
-                                <button
-                                  type="button"
-                                  onClick={() => { setDraft(undefined); setEditing(contract); setOpenMenuId(null); }}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
-                                  style={mont}
-                                >
-                                  <Pencil size={16} className="text-[#6a7282]" /> Edit
-                                </button>
-                                {canDelete && (
-                                  <button
-                                    type="button"
-                                    onClick={() => { handleDelete(contract); setOpenMenuId(null); }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#dc2626] hover:bg-[#fef2f2] transition-colors"
-                                    style={mont}
-                                  >
-                                    <Trash2 size={16} /> Delete
-                                  </button>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        <RowMenu
+                          label={contract.title}
+                          canDelete={canDelete}
+                          onEdit={() => { setDraft(undefined); setEditing(contract); }}
+                          onDelete={() => handleDelete(contract)}
+                        />
                       </td>
                     </tr>
                   );
@@ -366,6 +473,7 @@ export function ContractsPage({ role }: { role: Role }) {
           onClose={() => { setEditing(null); setDraft(undefined); }}
           onSubmit={handleSubmit}
           isSaving={isSaving}
+          lockedAgent={lockedAgent}
         />
       )}
     </div>

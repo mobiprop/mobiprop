@@ -166,6 +166,12 @@ export async function createOpportunity(
       ...fields,
       opportunityId,
       propertyId: fields.propertyId || null,
+      // Agents can't see/choose other agents — force self-assignment so the deal
+      // is always attributed to its creator. ADMIN/MANAGER (agents:view) keep
+      // the agent they picked.
+      assignedAgentId: hasPermission(gate.profile.role, "agents:view")
+        ? fields.assignedAgentId ?? null
+        : gate.profile.id,
       contractStart: contractStart ? new Date(contractStart) : null,
       contractEnd: contractEnd ? new Date(contractEnd) : null,
       expectedCloseAt: expectedCloseAt ? new Date(expectedCloseAt) : null,

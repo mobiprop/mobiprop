@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { computeCommissionAmount } from "@/lib/commission";
+import { computeCommissionAmount, resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
 import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 
 export type AgentDto = {
@@ -14,9 +14,9 @@ export type AgentDto = {
   city: string | null;
   role: "ADMIN" | "MANAGER" | "AGENT";
   status: UserStatus;
-  /** This agent's own computed commission earnings — sum of agentCommission
-   * amounts across their CLOSED_WON opportunities. Distinct from company
-   * revenue (Opportunity.dealSize), which is what the agent actually earned. */
+  /** This agent's own computed commission earnings — sum of the resolved
+   * agentCommission across their CLOSED_WON opportunities. Distinct from company
+   * revenue (the resolved Commission Amount the brokerage earns). */
   totalEarnings: number;
   createdAt: string;
 };
@@ -51,8 +51,9 @@ export type AgentMetrics = {
   /** Company-wide open Opportunities — not scoped to any one agent. */
   activeDeals: number;
   activeDealsNewThisMonth: number;
-  /** Company-wide revenue: sum of CLOSED_WON Opportunity.dealSize (see §17 of the
-   * project context — revenue is driven by the Opportunity, not the Contract). */
+  /** Company-wide revenue: sum of the resolved Commission Amount across
+   * CLOSED_WON Opportunities (see §17 — revenue is the brokerage's commission,
+   * not the deal size, and is driven by the Opportunity, not the Contract). */
   totalRevenue: number;
   totalListings: number;
   totalListingsNewThisMonth: number;
@@ -70,7 +71,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, revenueAgg, totalListings, totalListingsNewThisMonth, earningsByAgent] =
+  const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, wonRevenueRows, totalListings, totalListingsNewThisMonth, earningsByAgent] =
     await Promise.all([
       prisma.profile.findMany({
         where: {
@@ -95,7 +96,12 @@ export async function listAgents(): Promise<ListAgentsResult> {
       }),
       prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN } }),
       prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, createdAt: { gte: startOfMonth } } }),
-      prisma.opportunity.aggregate({ where: { status: OpportunityStatus.CLOSED_WON }, _sum: { dealSize: true } }),
+      // Company revenue = resolved commission (not deal size), so we need the
+      // rows, not a DB _sum of dealSize.
+      prisma.opportunity.findMany({
+        where: { status: OpportunityStatus.CLOSED_WON },
+        select: { dealSize: true, commission: true, commissionUnit: true },
+      }),
       prisma.property.count(),
       prisma.property.count({ where: { createdAt: { gte: startOfMonth } } }),
       buildEarningsByAgent(),
@@ -121,7 +127,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
     newThisMonth,
     activeDeals,
     activeDealsNewThisMonth,
-    totalRevenue: revenueAgg._sum.dealSize ? Number(revenueAgg._sum.dealSize) : 0,
+    totalRevenue: wonRevenueRows.reduce((s, o) => s + resolveCompanyRevenue(o), 0),
     totalListings,
     totalListingsNewThisMonth,
   };
@@ -296,7 +302,7 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     return { ok: false, error: "Agent not found.", status: 404 };
   }
 
-  const [properties, totalDeals, openDeals, revenueAgg, wonOpportunities] = await Promise.all([
+  const [properties, totalDeals, openDeals, wonOpportunities] = await Promise.all([
     prisma.property.findMany({
       where: { assignedAgentId: agentId },
       select: {
@@ -315,26 +321,20 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     prisma.contract.count({ where: { assignedAgentId: agentId } }),
     prisma.opportunity.count({ where: { assignedAgentId: agentId, status: OpportunityStatus.OPEN } }),
     // Revenue is driven by closed-won Opportunities, not Contracts (client decision,
-    // see ulrich-claude-code-project-context.md §17) — a deal counts toward revenue
-    // the moment it's won, regardless of whether its Contract is signed yet.
-    prisma.opportunity.aggregate({
-      where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON },
-      _sum: { dealSize: true },
-    }),
+    // see ulrich-claude-code-project-context.md §17) — a deal counts the moment it's
+    // won, regardless of whether its Contract is signed yet. "Total Revenue" is the
+    // resolved company commission; "Total Earnings" is the resolved agent commission.
     prisma.opportunity.findMany({
       where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON },
-      select: { dealSize: true, agentCommissionValue: true, agentCommissionUnit: true },
+      select: {
+        dealSize: true, commission: true, commissionUnit: true,
+        agentCommissionValue: true, agentCommissionUnit: true,
+      },
     }),
   ]);
 
-  const totalEarnings = wonOpportunities.reduce((sum, o) => {
-    const amount = computeCommissionAmount(
-      o.dealSize !== null ? Number(o.dealSize) : null,
-      o.agentCommissionValue !== null ? Number(o.agentCommissionValue) : null,
-      o.agentCommissionUnit,
-    );
-    return sum + (amount ?? 0);
-  }, 0);
+  const totalRevenue = wonOpportunities.reduce((sum, o) => sum + resolveCompanyRevenue(o), 0);
+  const totalEarnings = wonOpportunities.reduce((sum, o) => sum + resolveAgentEarnings(o), 0);
 
   const agent: AgentDetailDto = {
     id: profile.id,
@@ -349,7 +349,7 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     totalListings: properties.length,
     totalDeals,
     openDeals,
-    totalRevenue: revenueAgg._sum.dealSize ? Number(revenueAgg._sum.dealSize) : 0,
+    totalRevenue,
     properties: properties.map((p) => ({
       id: p.id,
       listingId: p.listingId,

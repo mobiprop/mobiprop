@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -91,6 +92,108 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// ── Row actions menu ──────────────────────────────────────────────────────────
+// Portal-rendered so the table's overflow-hidden / overflow-x-auto wrappers can't
+// clip it on the last row; flips above the trigger near the viewport bottom.
+
+type RowMenuItem = { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean };
+
+function RowMenu({ label, items }: { label: string; items: RowMenuItem[] }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const updatePosition = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const menuWidth = 200;
+    const menuHeight = items.length * 40 + 12;
+    const gap = 6;
+    const padding = 8;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+    if (left < padding) left = padding;
+    if (left + menuWidth > window.innerWidth - padding) left = window.innerWidth - menuWidth - padding;
+    if (top + menuHeight > window.innerHeight - padding) top = rect.top - menuHeight - gap;
+    setPosition({ top, left });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, items.length]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const handleEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        title="Actions"
+        aria-label={`Open actions for ${label}`}
+        aria-expanded={open}
+        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
+        className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
+          open ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+        }`}
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            className="fixed z-[9999] w-[200px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+            style={{ top: position.top, left: position.left }}
+          >
+            {items.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                role="menuitem"
+                onClick={() => { setOpen(false); item.onClick(); }}
+                className={`flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium transition-colors ${
+                  item.danger ? "text-[#fb2c36] hover:bg-[#fff1f2]" : "text-[#0d2138] hover:bg-[#f8fafc]"
+                }`}
+                style={mont}
+              >
+                {item.icon} {item.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
 function fmt(n: number | null) {
   if (n === null) return "—";
   return `$${n.toLocaleString("en-US")}`;
@@ -98,13 +201,20 @@ function fmt(n: number | null) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export function OpportunitiesPage({ role }: { role: Role }) {
+export function OpportunitiesPage({
+  role,
+  currentUserId,
+  currentUserName,
+}: {
+  role: Role;
+  currentUserId: string;
+  currentUserName: string;
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState<OpportunityDto | "new" | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<StageTab>("All");
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useDashboardOpportunitiesQuery();
   const createMutation = useCreateOpportunityMutation();
@@ -113,6 +223,11 @@ export function OpportunitiesPage({ role }: { role: Role }) {
 
   const canCreate = hasPermission(role, "opportunities:create");
   const canDelete = hasPermission(role, "opportunities:delete");
+  // Roles without agents:view (AGENT) can't pick another agent — their
+  // opportunities are always assigned to themselves (enforced server-side too).
+  const lockedAgent = hasPermission(role, "agents:view")
+    ? null
+    : { id: currentUserId, name: currentUserName };
 
   const opportunities = useMemo(() => data?.opportunities ?? [], [data]);
   const metrics = data?.metrics;
@@ -300,51 +415,18 @@ export function OpportunitiesPage({ role }: { role: Role }) {
                       <StatusBadge status={opp.status} />
                     </td>
                     <td className="px-5 py-4 w-[55px] text-center">
-                      <div className="relative inline-block">
-                        <button
-                          type="button"
-                          onClick={() => setOpenMenuId(openMenuId === opp.id ? null : opp.id)}
-                          title="Actions"
-                          className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
-                        >
-                          <MoreVertical size={16} />
-                        </button>
-                        {openMenuId === opp.id && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
-                            <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[200px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
-                              <button
-                                type="button"
-                                onClick={() => { setEditing(opp); setOpenMenuId(null); }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
-                                style={mont}
-                              >
-                                <Pencil size={16} className="text-[#6a7282]" /> Edit
-                              </button>
-                              {opp.status === OpportunityStatus.CLOSED_WON && (
-                                <button
-                                  type="button"
-                                  onClick={() => { router.push(`/dashboard/contracts?fromOpportunity=${opp.id}`); setOpenMenuId(null); }}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
-                                  style={mont}
-                                >
-                                  <FileSignature size={16} className="text-[#6a7282]" /> Create Contract
-                                </button>
-                              )}
-                              {canDelete && (
-                                <button
-                                  type="button"
-                                  onClick={() => { handleDelete(opp); setOpenMenuId(null); }}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#dc2626] hover:bg-[#fef2f2] transition-colors"
-                                  style={mont}
-                                >
-                                  <Trash2 size={16} /> Delete
-                                </button>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      <RowMenu
+                        label={opp.title ?? opp.id}
+                        items={[
+                          { label: "Edit", icon: <Pencil size={14} className="text-[#1e4f86]" />, onClick: () => setEditing(opp) },
+                          ...(opp.status === OpportunityStatus.CLOSED_WON
+                            ? [{ label: "Create Contract", icon: <FileSignature size={14} className="text-[#1e4f86]" />, onClick: () => router.push(`/dashboard/contracts?fromOpportunity=${opp.id}`) }]
+                            : []),
+                          ...(canDelete
+                            ? [{ label: "Delete", icon: <Trash2 size={14} />, onClick: () => handleDelete(opp), danger: true }]
+                            : []),
+                        ]}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -368,6 +450,7 @@ export function OpportunitiesPage({ role }: { role: Role }) {
           onClose={() => setEditing(null)}
           onSubmit={handleSubmit}
           isSaving={isSaving}
+          lockedAgent={lockedAgent}
         />
       )}
       {showFilter && (

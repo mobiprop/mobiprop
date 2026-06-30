@@ -39,8 +39,16 @@ type AddContractModalProps = {
   /** Pre-fill from "Create Contract from Won Opportunity" — a human still confirms/saves. */
   draft?: ContractDraft;
   onClose: () => void;
-  onSubmit: (values: ContractFormValues) => void;
+  /**
+   * Saves the contract and resolves to the persisted record (or null on
+   * failure). The modal needs the saved id to apply staged document
+   * uploads/removals AFTER the contract exists — so a cancelled form never
+   * leaves orphaned files in storage.
+   */
+  onSubmit: (values: ContractFormValues) => Promise<ContractDto | null>;
   isSaving?: boolean;
+  /** When set (AGENT logged in), the Assigned Agent field is locked to self. */
+  lockedAgent?: { id: string; name: string } | null;
 };
 
 const inputClass =
@@ -53,7 +61,7 @@ function fmtBytes(n: number) {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function AddContractModal({ mode = "create", initial, draft, onClose, onSubmit, isSaving }: AddContractModalProps) {
+export function AddContractModal({ mode = "create", initial, draft, onClose, onSubmit, isSaving, lockedAgent }: AddContractModalProps) {
   const [title, setTitle] = useState(initial?.title ?? draft?.title ?? "");
   const [type, setType] = useState<ContractType>(initial?.type ?? draft?.type ?? ContractType.SALE);
   const [status, setStatus] = useState<ContractStatus>(initial?.status ?? ContractStatus.ACTIVE);
@@ -61,7 +69,7 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
   const [contactLabel, setContactLabel] = useState(initial?.contactName ?? "");
   const [propertyId, setPropertyId] = useState(initial?.propertyId ?? draft?.propertyId ?? "");
   const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? "");
-  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? draft?.assignedAgentId ?? "");
+  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? draft?.assignedAgentId ?? lockedAgent?.id ?? "");
   const [opportunityId] = useState(initial?.opportunityId ?? draft?.opportunityId ?? "");
   const [opportunityLabel] = useState(initial?.opportunityNumber ?? "");
   const [value, setValue] = useState(initial?.value != null ? String(initial.value) : draft?.value != null ? String(draft.value) : "");
@@ -69,21 +77,26 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
   const [endDate, setEndDate] = useState(initial?.endDate?.slice(0, 10) ?? draft?.endDate?.slice(0, 10) ?? "");
   const [terms, setTerms] = useState(initial?.terms ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [documents, setDocuments] = useState(initial?.documents ?? []);
+  // Existing (already-uploaded) documents — edit mode only.
+  const [documents] = useState(initial?.documents ?? []);
+  // Newly chosen files, staged in memory until the form is submitted. Nothing
+  // hits storage until Save, so cancelling the form never orphans a file.
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  // Existing documents the user removed — applied (DELETE) only on Save.
+  const [removedDocIds, setRemovedDocIds] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const uploadMutation = useUploadContractDocumentMutation();
   const removeMutation = useRemoveContractDocumentMutation();
 
-  const contractId = initial?.id ?? null;
+  const visibleDocuments = documents.filter((d) => !removedDocIds.includes(d.id));
 
-  async function handleFiles(files: FileList | File[]) {
-    if (!contractId) {
-      toast.error("Save the contract before attaching documents.");
-      return;
-    }
+  // Validate and stage selected files locally (no upload yet).
+  function stageFiles(files: FileList | File[]) {
+    const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    const next: File[] = [];
     for (const file of Array.from(files)) {
-      const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
       if (!allowed.includes(file.type)) {
         toast.error(`${file.name}: only PDF, DOC, and DOCX files are supported.`);
         continue;
@@ -92,42 +105,62 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
         toast.error(`${file.name}: exceeds the 10MB limit.`);
         continue;
       }
-      try {
-        const doc = await uploadMutation.mutateAsync({ contractId, file });
-        setDocuments((prev) => [doc, ...prev]);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : `Failed to upload ${file.name}`);
-      }
+      next.push(file);
     }
+    if (next.length) setPendingFiles((prev) => [...prev, ...next]);
   }
 
-  async function handleRemoveDocument(documentId: string) {
-    if (!contractId) return;
-    try {
-      await removeMutation.mutateAsync({ contractId, documentId });
-      setDocuments((prev) => prev.filter((d) => d.id !== documentId));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to remove document");
-    }
+  function removePendingFile(index: number) {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function markExistingRemoved(documentId: string) {
+    setRemovedDocIds((prev) => (prev.includes(documentId) ? prev : [...prev, documentId]));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit({
-      title: title.trim(),
-      type,
-      status,
-      contactId,
-      propertyId,
-      assignedAgentId,
-      opportunityId,
-      value,
-      startDate,
-      endDate,
-      terms: terms.trim(),
-      notes: notes.trim(),
-    });
+    if (submitting || isSaving) return;
+    setSubmitting(true);
+    try {
+      const saved = await onSubmit({
+        title: title.trim(),
+        type,
+        status,
+        contactId,
+        propertyId,
+        assignedAgentId,
+        opportunityId,
+        value,
+        startDate,
+        endDate,
+        terms: terms.trim(),
+        notes: notes.trim(),
+      });
+
+      // onSubmit returns null on failure (it already surfaced the error toast) —
+      // keep the modal open so the user doesn't lose their input or staged files.
+      if (!saved) return;
+
+      // Now that the contract exists, apply the staged document changes.
+      for (const file of pendingFiles) {
+        await uploadMutation.mutateAsync({ contractId: saved.id, file });
+      }
+      for (const documentId of removedDocIds) {
+        await removeMutation.mutateAsync({ contractId: saved.id, documentId });
+      }
+
+      onClose();
+    } catch (err) {
+      // Contract saved but a document op failed — leave the modal open so the
+      // user can retry; the already-removed staged files stay staged.
+      toast.error(err instanceof Error ? err.message : "Failed to attach documents");
+    } finally {
+      setSubmitting(false);
+    }
   }
+
+  const busy = submitting || isSaving;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={onClose}>
@@ -221,7 +254,7 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-2">
               <label className={labelClass} style={mont}>Assigned Agent</label>
-              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" />
+              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" lockedAgent={lockedAgent} />
             </div>
             <div className="flex min-w-0 flex-col gap-2">
               <label className={labelClass} style={mont}>Contract Value</label>
@@ -307,9 +340,10 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
             <div className="flex flex-col gap-2">
               <label className={labelClass} style={mont}>Contract Documents</label>
 
-              {documents.length > 0 && (
+              {/* Already-saved documents (edit mode) */}
+              {visibleDocuments.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  {documents.map((doc) => (
+                  {visibleDocuments.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between gap-3 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2.5">
                       <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138] hover:text-[#1e4f86]">
                         <FileText size={16} className="shrink-0 text-[#6a7282]" />
@@ -318,8 +352,8 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
                       </a>
                       <button
                         type="button"
-                        onClick={() => handleRemoveDocument(doc.id)}
-                        disabled={removeMutation.isPending}
+                        onClick={() => markExistingRemoved(doc.id)}
+                        disabled={busy}
                         title="Remove"
                         className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
                       >
@@ -330,41 +364,62 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
                 </div>
               )}
 
-              {!contractId ? (
-                <p className="rounded-[10px] border border-dashed border-[#e5e7eb] bg-[#fafbfc] px-4 py-4 text-center text-[12px] text-[#9ca3af]" style={mont}>
-                  Save the contract first, then attach documents from Edit.
-                </p>
-              ) : (
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                  onDragLeave={() => setIsDragOver(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsDragOver(false);
-                    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
-                  }}
-                  className={`flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed px-4 py-6 text-center transition-colors ${
-                    isDragOver ? "border-[#1e4f86] bg-[#eff6ff]" : "border-[#e5e7eb] bg-[#fafbfc]"
-                  }`}
-                >
-                  {uploadMutation.isPending ? (
-                    <Loader2 size={24} className="animate-spin text-[#1e4f86]" />
-                  ) : (
-                    <Upload size={24} className="text-[#9ca3af]" />
-                  )}
-                  <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
-                    Click to upload or drag and drop
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      multiple
-                      className="hidden"
-                      onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; }}
-                    />
-                  </label>
-                  <p className="text-[11px] text-[#9ca3af]" style={mont}>PDF, DOC, DOCX up to 10MB</p>
+              {/* Staged files — not uploaded until Save */}
+              {pendingFiles.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {pendingFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-[8px] border border-dashed border-[#c2dcff] bg-[#f5f9ff] px-3 py-2.5">
+                      <div className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138]">
+                        <FileText size={16} className="shrink-0 text-[#1e4f86]" />
+                        <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{file.name}</span>
+                        <span className="shrink-0 rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-medium text-[#1e4f86]" style={mont}>Pending</span>
+                        <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(file.size)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePendingFile(index)}
+                        disabled={busy}
+                        title="Remove"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
+
+              <div
+                onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(false);
+                  if (e.dataTransfer.files.length) stageFiles(e.dataTransfer.files);
+                }}
+                className={`flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed px-4 py-6 text-center transition-colors ${
+                  isDragOver ? "border-[#1e4f86] bg-[#eff6ff]" : "border-[#e5e7eb] bg-[#fafbfc]"
+                }`}
+              >
+                {submitting ? (
+                  <Loader2 size={24} className="animate-spin text-[#1e4f86]" />
+                ) : (
+                  <Upload size={24} className="text-[#9ca3af]" />
+                )}
+                <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
+                  Click to upload or drag and drop
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => { if (e.target.files?.length) stageFiles(e.target.files); e.target.value = ""; }}
+                  />
+                </label>
+                <p className="text-[11px] text-[#9ca3af]" style={mont}>
+                  PDF, DOC, DOCX up to 10MB — attached when you save
+                </p>
+              </div>
             </div>
           </div>
 
@@ -373,18 +428,19 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
             <button
               type="button"
               onClick={onClose}
-              className="h-[42px] w-full rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] sm:flex-1"
+              disabled={busy}
+              className="h-[42px] w-full rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
               style={mont}
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={busy}
               className="h-[42px] w-full rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
               style={mont}
             >
-              {isSaving ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Contract"}
+              {busy ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Contract"}
             </button>
           </div>
         </form>

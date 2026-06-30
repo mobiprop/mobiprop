@@ -7,5 +7,11 @@ export const metadata: Metadata = { title: "Opportunities — Ulrich Propiedades
 
 export default async function DashboardOpportunitiesPage() {
   const profile = await requireDashboardAccess("opportunities:view");
-  return <OpportunitiesPage role={profile.role} />;
+  return (
+    <OpportunitiesPage
+      role={profile.role}
+      currentUserId={profile.id}
+      currentUserName={profile.fullName ?? profile.email}
+    />
+  );
 }

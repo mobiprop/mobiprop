@@ -17,3 +17,34 @@ export function computeCommissionAmount(
   }
   return commission;
 }
+
+// Prisma returns Decimal columns as Decimal objects; Number() coerces them
+// (and plain numbers) to a number, or null when the column is unset.
+const toNum = (d: unknown): number | null => (d === null || d === undefined ? null : Number(d));
+
+/**
+ * Company revenue ($) for one opportunity — the "Commission Amount" resolved
+ * against the deal size (`% of deal size` or a flat `$`). 0 when unset. This is
+ * what "revenue" means everywhere in the dashboard: the brokerage's commission,
+ * NOT the full deal size.
+ */
+export function resolveCompanyRevenue(o: {
+  dealSize: unknown;
+  commission: unknown;
+  commissionUnit: string | null;
+}): number {
+  return computeCommissionAmount(toNum(o.dealSize), toNum(o.commission), o.commissionUnit) ?? 0;
+}
+
+/**
+ * The agent's personal earnings ($) for one opportunity — the "Agent
+ * Commission" resolved against the deal size. 0 when unset. Feeds the agent's
+ * "Mi Comisión" card and their profile's Total Earnings.
+ */
+export function resolveAgentEarnings(o: {
+  dealSize: unknown;
+  agentCommissionValue: unknown;
+  agentCommissionUnit: string | null;
+}): number {
+  return computeCommissionAmount(toNum(o.dealSize), toNum(o.agentCommissionValue), o.agentCommissionUnit) ?? 0;
+}

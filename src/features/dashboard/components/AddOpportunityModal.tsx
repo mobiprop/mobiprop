@@ -44,6 +44,8 @@ type AddOpportunityModalProps = {
   onClose: () => void;
   onSubmit: (values: OpportunityFormValues) => void;
   isSaving?: boolean;
+  /** When set (AGENT logged in), the Assigned Agent field is locked to self. */
+  lockedAgent?: { id: string; name: string } | null;
 };
 
 const inputClass =
@@ -73,7 +75,7 @@ function fmtPreview(amount: number | null) {
   return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
-export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving }: AddOpportunityModalProps) {
+export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving, lockedAgent }: AddOpportunityModalProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [contactSide, setContactSide] = useState<"Buyer" | "Seller">(
     initial?.contactType === ContactType.SELLER ? "Seller" : "Buyer",
@@ -94,7 +96,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   const [propertyId, setPropertyId] = useState(initial?.propertyId ?? "");
   const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? "");
   const [status, setStatus] = useState<OpportunityStatus>(initial?.status ?? OpportunityStatus.OPEN);
-  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? "");
+  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? lockedAgent?.id ?? "");
   const [agentCommissionValue, setAgentCommissionValue] = useState(
     initial?.agentCommissionValue != null ? String(initial.agentCommissionValue) : "",
   );
@@ -335,7 +337,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Agent *</label>
-              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" />
+              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" lockedAgent={lockedAgent} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Agent Commission</label>
