@@ -108,7 +108,7 @@ const contactInclude = {
 
 // ── List ──────────────────────────────────────────────────────────────────────
 
-export async function listContacts(search?: string): Promise<
+export async function listContacts(search?: string, limit?: number): Promise<
   CrmActionResult<{ contacts: ContactDto[]; metrics: ContactMetrics }>
 > {
   const gate = await requirePermission("contacts:view");
@@ -138,7 +138,7 @@ export async function listContacts(search?: string): Promise<
     where,
     include: contactInclude,
     orderBy: { createdAt: "desc" },
-    ...(search && { take: 10 }),
+    ...((limit ?? (search ? 10 : undefined)) !== undefined && { take: limit ?? 10 }),
   });
 
   const dtos = contacts.map(toContactDto);

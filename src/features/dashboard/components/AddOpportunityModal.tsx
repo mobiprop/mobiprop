@@ -1,43 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { X, Plus, Calendar } from "lucide-react";
 
-import type { OppStage, OppStatus } from "../opportunities-data";
-import type { ContactDto } from "@/features/crm/types/crm-dto";
+import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
+import type { OpportunityDto } from "@/features/crm/types/crm-dto";
 import { ContactType } from "@/generated/prisma/enums";
+import { computeCommissionAmount } from "@/lib/commission";
 import { QuickAddContactModal } from "./QuickAddContactModal";
 import { SearchableSelect } from "./SearchableSelect";
+import { ContactPicker } from "./ContactPicker";
 import { ListingPicker } from "./ListingPicker";
+import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-export type NewOpportunity = {
-  name: string;
+export type OpportunityFormValues = {
+  title: string;
   contactSide: "Buyer" | "Seller";
   contactId: string;
-  dealType: string;
+  dealType: "Rent" | "Sale";
   dealSize: string;
   contractStart: string;
   contractEnd: string;
-  commissionAmount: string;
-  commissionUnit: string;
+  commission: string;
+  commissionUnit: "%" | "$";
   paymentTerms: string;
   probability: number;
-  stage: OppStage;
-  expectedClose: string;
+  stage: OpportunityStage;
+  expectedCloseAt: string;
   propertyId: string;
-  status: OppStatus;
-  agent: string;
-  agentCommission: string;
-  description: string;
+  status: OpportunityStatus;
+  assignedAgentId: string;
+  agentCommissionValue: string;
+  agentCommissionUnit: "%" | "$";
+  notes: string;
 };
 
 type AddOpportunityModalProps = {
+  mode?: "create" | "edit";
+  initial?: OpportunityDto;
   onClose: () => void;
-  onCreate?: (opp: NewOpportunity) => void;
-  contacts?: ContactDto[];
+  onSubmit: (values: OpportunityFormValues) => void;
   isSaving?: boolean;
 };
 
@@ -50,46 +55,87 @@ const COMMISSION_UNIT_OPTIONS = [
   { value: "%", label: "%" },
   { value: "$", label: "$" },
 ];
-const STAGE_OPTIONS: OppStage[] = ["Qualification", "Visitation", "Offer", "Negotiation", "Closing"];
-const STATUS_OPTIONS: OppStatus[] = ["Open", "Closed Won", "Closed Lost"];
+const STAGE_OPTIONS: { value: OpportunityStage; label: string }[] = [
+  { value: OpportunityStage.QUALIFICATION, label: "Qualification" },
+  { value: OpportunityStage.VISITATION, label: "Visitation" },
+  { value: OpportunityStage.OFFER, label: "Offer" },
+  { value: OpportunityStage.NEGOTIATION, label: "Negotiation" },
+  { value: OpportunityStage.CLOSING, label: "Closing" },
+];
+const STATUS_OPTIONS: { value: OpportunityStatus; label: string }[] = [
+  { value: OpportunityStatus.OPEN, label: "Open" },
+  { value: OpportunityStatus.CLOSED_WON, label: "Closed Won" },
+  { value: OpportunityStatus.CLOSED_LOST, label: "Closed Lost" },
+];
 
-export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving }: AddOpportunityModalProps) {
-  const [name, setName] = useState("");
-  const [contactSide, setContactSide] = useState<"Buyer" | "Seller">("Buyer");
-  const [contactId, setContactId] = useState("");
+function fmtPreview(amount: number | null) {
+  if (amount === null) return null;
+  return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
+export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving }: AddOpportunityModalProps) {
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [contactSide, setContactSide] = useState<"Buyer" | "Seller">(
+    initial?.contactType === ContactType.SELLER ? "Seller" : "Buyer",
+  );
+  const [contactId, setContactId] = useState(initial?.contactId ?? "");
+  const [contactLabel, setContactLabel] = useState(initial?.contactName ?? "");
   const [showAddContact, setShowAddContact] = useState(false);
-  const [extraContacts, setExtraContacts] = useState<{ id: string; fullName: string }[]>([]);
-  const [dealType, setDealType] = useState("Rent");
-  const [dealSize, setDealSize] = useState("");
-  const [contractStart, setContractStart] = useState("");
-  const [contractEnd, setContractEnd] = useState("");
-  const [commissionAmount, setCommissionAmount] = useState("");
-  const [commissionUnit, setCommissionUnit] = useState("%");
-  const [paymentTerms, setPaymentTerms] = useState("");
-  const [probability, setProbability] = useState(50);
-  const [stage, setStage] = useState<OppStage>("Qualification");
-  const [expectedClose, setExpectedClose] = useState("");
-  const [propertyId, setPropertyId] = useState("");
-  const [propertyLabel, setPropertyLabel] = useState("");
-  const [status, setStatus] = useState<OppStatus>("Open");
-  const [agent, setAgent] = useState("Matias Ulrich");
-  const [agentCommission, setAgentCommission] = useState("20%");
-  const [description, setDescription] = useState("");
+  const [dealType, setDealType] = useState<"Rent" | "Sale">(initial?.dealType === "Rent" ? "Rent" : "Sale");
+  const [dealSize, setDealSize] = useState(initial?.dealSize != null ? String(initial.dealSize) : "");
+  const [contractStart, setContractStart] = useState(initial?.contractStart?.slice(0, 10) ?? "");
+  const [contractEnd, setContractEnd] = useState(initial?.contractEnd?.slice(0, 10) ?? "");
+  const [commission, setCommission] = useState(initial?.commission != null ? String(initial.commission) : "");
+  const [commissionUnit, setCommissionUnit] = useState<"%" | "$">((initial?.commissionUnit as "%" | "$") ?? "%");
+  const [paymentTerms, setPaymentTerms] = useState(initial?.paymentTerms ?? "");
+  const [probability, setProbability] = useState(initial?.probability ?? 50);
+  const [stage, setStage] = useState<OpportunityStage>(initial?.stage ?? OpportunityStage.QUALIFICATION);
+  const [expectedCloseAt, setExpectedCloseAt] = useState(initial?.expectedCloseAt?.slice(0, 10) ?? "");
+  const [propertyId, setPropertyId] = useState(initial?.propertyId ?? "");
+  const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? "");
+  const [status, setStatus] = useState<OpportunityStatus>(initial?.status ?? OpportunityStatus.OPEN);
+  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? "");
+  const [agentCommissionValue, setAgentCommissionValue] = useState(
+    initial?.agentCommissionValue != null ? String(initial.agentCommissionValue) : "",
+  );
+  const [agentCommissionUnit, setAgentCommissionUnit] = useState<"%" | "$">(
+    (initial?.agentCommissionUnit as "%" | "$") ?? "%",
+  );
+  const [notes, setNotes] = useState(initial?.notes ?? "");
 
   const isRental = dealType === "Rent";
 
-  const contactOptions = [
-    ...contacts.map((c) => ({ value: c.id, label: c.fullName })),
-    ...extraContacts.map((c) => ({ value: c.id, label: c.fullName })),
-  ];
+  const commissionPreview = useMemo(
+    () => fmtPreview(computeCommissionAmount(Number(dealSize) || null, Number(commission) || null, commissionUnit)),
+    [dealSize, commission, commissionUnit],
+  );
+  const agentCommissionPreview = useMemo(
+    () => fmtPreview(computeCommissionAmount(Number(dealSize) || null, Number(agentCommissionValue) || null, agentCommissionUnit)),
+    [dealSize, agentCommissionValue, agentCommissionUnit],
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onCreate?.({
-      name: name.trim(), contactSide, contactId, dealType, dealSize,
-      contractStart, contractEnd, commissionAmount, commissionUnit, paymentTerms,
-      probability, stage, expectedClose, propertyId, status,
-      agent: agent.trim(), agentCommission, description: description.trim(),
+    onSubmit({
+      title: title.trim(),
+      contactSide,
+      contactId,
+      dealType,
+      dealSize,
+      contractStart,
+      contractEnd,
+      commission,
+      commissionUnit,
+      paymentTerms,
+      probability,
+      stage,
+      expectedCloseAt,
+      propertyId,
+      status,
+      assignedAgentId,
+      agentCommissionValue,
+      agentCommissionUnit,
+      notes: notes.trim(),
     });
   }
 
@@ -102,7 +148,9 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
       >
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white flex items-center justify-between px-6 py-5 border-b border-[#e5e7eb]">
-          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>New Opportunity</p>
+          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>
+            {mode === "edit" ? "Edit Opportunity" : "New Opportunity"}
+          </p>
           <button type="button" onClick={onClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
             <X size={18} />
           </button>
@@ -112,7 +160,7 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           {/* Opportunity name */}
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} style={mont}>Opportunity Name *</label>
-            <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter opportunity name" className={inputClass} style={mont} />
+            <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter opportunity name" className={inputClass} style={mont} />
           </div>
 
           {/* Contact */}
@@ -134,15 +182,12 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
                   </button>
                 ))}
               </div>
-              <SearchableSelect
+              <ContactPicker
                 className="flex-1"
-                size="sm"
                 value={contactId}
-                onChange={setContactId}
-                options={contactOptions}
-                placeholder="Select contact…"
-                searchPlaceholder="Search contacts..."
-                emptyLabel="No contacts found."
+                label={contactLabel}
+                onSelect={(id, lbl) => { setContactId(id); setContactLabel(lbl); }}
+                placeholder="Search and select contact…"
               />
               <button
                 type="button"
@@ -164,7 +209,7 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
                 size="sm"
                 searchable={false}
                 value={dealType}
-                onChange={setDealType}
+                onChange={(next) => setDealType(next as "Rent" | "Sale")}
                 options={DEAL_TYPE_OPTIONS}
                 placeholder="Select type"
               />
@@ -203,17 +248,20 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Commission Amount</label>
               <div className="flex items-center gap-2">
-                <input value={commissionAmount} onChange={(e) => setCommissionAmount(e.target.value)} placeholder="Input the percentage" className={`flex-1 ${inputClass}`} style={mont} />
+                <input value={commission} onChange={(e) => setCommission(e.target.value)} placeholder="Input the percentage" className={`flex-1 ${inputClass}`} style={mont} />
                 <SearchableSelect
                   className="w-[72px] shrink-0"
                   size="sm"
                   searchable={false}
                   value={commissionUnit}
-                  onChange={setCommissionUnit}
+                  onChange={(next) => setCommissionUnit(next as "%" | "$")}
                   options={COMMISSION_UNIT_OPTIONS}
                   placeholder="%"
                 />
               </div>
+              {commissionPreview && (
+                <p className="text-[11px] text-[#6a7282]" style={mont}>{commissionPreview} of deal size — company revenue</p>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Payment Terms</label>
@@ -247,14 +295,14 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
                 size="sm"
                 searchable={false}
                 value={stage}
-                onChange={(next) => setStage(next as OppStage)}
-                options={STAGE_OPTIONS.map((s) => ({ value: s, label: s }))}
+                onChange={(next) => setStage(next as OpportunityStage)}
+                options={STAGE_OPTIONS}
                 placeholder="Select stage"
               />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Expected Close Date *</label>
-              <DatePickerField required value={expectedClose} onChange={setExpectedClose} />
+              <DatePickerField required value={expectedCloseAt} onChange={setExpectedCloseAt} />
             </div>
           </div>
 
@@ -266,7 +314,7 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
                 tone="neutral"
                 value={propertyId}
                 label={propertyLabel}
-                onSelect={(id, label) => { setPropertyId(id); setPropertyLabel(label); }}
+                onSelect={(id, lbl) => { setPropertyId(id); setPropertyLabel(lbl); }}
                 placeholder="Select Property"
               />
             </div>
@@ -276,8 +324,8 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
                 size="sm"
                 searchable={false}
                 value={status}
-                onChange={(next) => setStatus(next as OppStatus)}
-                options={STATUS_OPTIONS.map((s) => ({ value: s, label: s }))}
+                onChange={(next) => setStatus(next as OpportunityStatus)}
+                options={STATUS_OPTIONS}
                 placeholder="Select status"
               />
             </div>
@@ -287,18 +335,32 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Agent *</label>
-              <input required value={agent} onChange={(e) => setAgent(e.target.value)} className={inputClass} style={mont} />
+              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>Agent Commission</label>
-              <input value={agentCommission} onChange={(e) => setAgentCommission(e.target.value)} className={inputClass} style={mont} />
+              <div className="flex items-center gap-2">
+                <input value={agentCommissionValue} onChange={(e) => setAgentCommissionValue(e.target.value)} placeholder="Input the percentage" className={`flex-1 ${inputClass}`} style={mont} />
+                <SearchableSelect
+                  className="w-[72px] shrink-0"
+                  size="sm"
+                  searchable={false}
+                  value={agentCommissionUnit}
+                  onChange={(next) => setAgentCommissionUnit(next as "%" | "$")}
+                  options={COMMISSION_UNIT_OPTIONS}
+                  placeholder="%"
+                />
+              </div>
+              {agentCommissionPreview && (
+                <p className="text-[11px] text-[#6a7282]" style={mont}>{agentCommissionPreview} — reflected on the agent&apos;s earnings</p>
+              )}
             </div>
           </div>
 
           {/* Description */}
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} style={mont}>Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this opportunity..." rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Describe this opportunity..." rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
           </div>
 
           {/* Actions */}
@@ -307,7 +369,7 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
               Cancel
             </button>
             <button type="submit" disabled={isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>
-              {isSaving ? "Saving…" : "Create Opportunity"}
+              {isSaving ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Opportunity"}
             </button>
           </div>
         </form>
@@ -318,8 +380,8 @@ export function AddOpportunityModal({ onClose, onCreate, contacts = [], isSaving
           onClose={() => setShowAddContact(false)}
           onCreate={(c) => {
             if (c.fullName) {
-              setExtraContacts((prev) => (prev.some((p) => p.id === c.id) ? prev : [...prev, { id: c.id, fullName: c.fullName }]));
               setContactId(c.id);
+              setContactLabel(c.fullName);
               setContactSide(c.type === ContactType.SELLER ? "Seller" : "Buyer");
             }
             setShowAddContact(false);

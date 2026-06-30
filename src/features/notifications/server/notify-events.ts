@@ -368,3 +368,107 @@ export function notifyTourStatusChanged(input: {
     "notifyTourStatusChanged",
   );
 }
+
+// ── Opportunities ─────────────────────────────────────────────────────────────
+
+export function notifyOpportunityStageChanged(input: {
+  opportunityId: string;
+  title: string;
+  assignedAgentId: string | null;
+  actorId: string | null;
+  /** updatedAt epoch — each genuine stage change is a distinct dedupe event. */
+  occurredAt: Date;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "OPPORTUNITY_STAGE_CHANGED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        dedupeDiscriminator: String(input.occurredAt.getTime()),
+        entityType: "OPPORTUNITY",
+        entityId: input.opportunityId,
+        actionUrl: "/dashboard/opportunities",
+        content: { title: "Opportunity stage updated", body: `"${input.title}" moved to a new stage.` },
+      }),
+    "notifyOpportunityStageChanged",
+  );
+}
+
+export function notifyOpportunityClosed(input: {
+  opportunityId: string;
+  title: string;
+  won: boolean;
+  assignedAgentId: string | null;
+  actorId: string | null;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: input.won ? "OPPORTUNITY_WON" : "OPPORTUNITY_LOST",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        dedupeDiscriminator: input.opportunityId,
+        entityType: "OPPORTUNITY",
+        entityId: input.opportunityId,
+        actionUrl: "/dashboard/opportunities",
+        content: input.won
+          ? { title: "Opportunity won", body: `"${input.title}" was marked Closed Won.` }
+          : { title: "Opportunity lost", body: `"${input.title}" was marked Closed Lost.` },
+      }),
+    "notifyOpportunityClosed",
+  );
+}
+
+// ── Contracts ─────────────────────────────────────────────────────────────────
+
+export function notifyContractCreated(input: {
+  contractId: string;
+  title: string;
+  assignedAgentId: string | null;
+  actorId: string | null;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "CONTRACT_CREATED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        entityType: "CONTRACT",
+        entityId: input.contractId,
+        actionUrl: "/dashboard/contracts",
+        content: { title: "New contract created", body: `Contract "${input.title}" was created.` },
+      }),
+    "notifyContractCreated",
+  );
+}
+
+/** Fired by the daily contract-expiry cron — 60 days before a rental contract's end date. */
+export function notifyContractExpiring(input: {
+  contractId: string;
+  title: string;
+  endDate: Date;
+  assignedAgentId: string | null;
+}): Promise<void> {
+  const daysLeft = Math.max(0, Math.round((input.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "CONTRACT_EXPIRING",
+        actorId: null,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        // One notification per contract — the cron's own idempotency check
+        // (expiryNotifiedAt) is the primary guard; this dedupes any same-day retry.
+        dedupeDiscriminator: "expiry",
+        entityType: "CONTRACT",
+        entityId: input.contractId,
+        actionUrl: "/dashboard/contracts",
+        content: {
+          title: "Rental contract expiring soon",
+          body: `"${input.title}" ends in ${daysLeft} days (${input.endDate.toLocaleDateString("en-US")}).`,
+        },
+      }),
+    "notifyContractExpiring",
+  );
+}

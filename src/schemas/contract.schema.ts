@@ -6,6 +6,7 @@ export const createContractSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
   contactId: z.string().optional(),
   propertyId: z.string().optional(),
+  opportunityId: z.string().optional(),
   type: z.nativeEnum(ContractType).default(ContractType.SALE),
   status: z.nativeEnum(ContractStatus).default(ContractStatus.ACTIVE),
   value: z.coerce.number().positive().optional(),

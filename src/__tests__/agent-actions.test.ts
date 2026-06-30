@@ -36,6 +36,8 @@ vi.mock("@/lib/prisma", () => ({
     profile: mockPrismaProfile,
     lead: { count: vi.fn().mockResolvedValue(0) },
     property: {},
+    // Used by buildEarningsByAgent() (agent commission earnings rollup).
+    opportunity: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

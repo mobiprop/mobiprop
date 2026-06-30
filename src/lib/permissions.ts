@@ -71,10 +71,12 @@ export type Permission =
   | "opportunities:view_all"
   | "opportunities:create"
   | "opportunities:update"
+  | "opportunities:delete"
   | "contracts:view"
   | "contracts:view_all"
   | "contracts:create"
   | "contracts:update"
+  | "contracts:delete"
   | "contracts:uploadDocuments"
   // All staff hold "view" (the page also hosts each agent's own Google
   // Calendar connection — a personal setting, not an org-wide one). "manage"
@@ -139,10 +141,12 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:view_all",
     "opportunities:create",
     "opportunities:update",
+    "opportunities:delete",
     "contracts:view",
     "contracts:view_all",
     "contracts:create",
     "contracts:update",
+    "contracts:delete",
     "contracts:uploadDocuments",
     "integrations:view",
     "integrations:manage",
@@ -193,10 +197,12 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:view_all",
     "opportunities:create",
     "opportunities:update",
+    "opportunities:delete",
     "contracts:view",
     "contracts:view_all",
     "contracts:create",
     "contracts:update",
+    "contracts:delete",
     "contracts:uploadDocuments",
     "integrations:view",
     "locations:view",
@@ -231,9 +237,16 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "tours:update",
     // Opportunities/contracts deliberately stay scoped — no *:view_all here.
     // Record-level own/assigned checks live in the opportunity/contract actions.
+    // Delete is deliberately withheld from AGENT (ADMIN/MANAGER only) — the
+    // client's decision grants agents full create/edit on their own/assigned
+    // opportunities/contracts but doesn't extend to deleting revenue records.
     "opportunities:view",
+    "opportunities:create",
     "opportunities:update",
     "contracts:view",
+    "contracts:create",
+    "contracts:update",
+    "contracts:uploadDocuments",
     "messages:view",
     "notifications:view",
     "settings:view",

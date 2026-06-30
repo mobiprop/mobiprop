@@ -12,7 +12,9 @@ export type ActivityEntityType =
   | "LEAD"
   | "LEAD_NOTE"
   | "TOUR"
-  | "LOCATION";
+  | "LOCATION"
+  | "OPPORTUNITY"
+  | "CONTRACT";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -78,7 +80,17 @@ export type ActivityAction =
   | "LOCATION_UPDATED"
   | "LOCATION_DELETED"
   | "GOOGLE_CALENDAR_CONNECTED"
-  | "GOOGLE_CALENDAR_DISCONNECTED";
+  | "GOOGLE_CALENDAR_DISCONNECTED"
+  | "OPPORTUNITY_CREATED"
+  | "OPPORTUNITY_UPDATED"
+  | "OPPORTUNITY_STATUS_CHANGED"
+  | "OPPORTUNITY_DELETED"
+  | "CONTRACT_CREATED"
+  | "CONTRACT_UPDATED"
+  | "CONTRACT_STATUS_CHANGED"
+  | "CONTRACT_DELETED"
+  | "CONTRACT_DOCUMENT_UPLOADED"
+  | "CONTRACT_DOCUMENT_REMOVED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

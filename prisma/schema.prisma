@@ -490,11 +490,14 @@ model Opportunity {
   commission      Decimal?          @db.Decimal(14, 2)
   commissionUnit  String?           @map("commission_unit")
   paymentTerms    String?           @map("payment_terms")
-  contractStart   DateTime?         @map("contract_start")
-  contractEnd     DateTime?         @map("contract_end")
-  expectedCloseAt DateTime?         @map("expected_close_at")
-  agentCommission String?           @map("agent_commission")
+  contractStart       DateTime?         @map("contract_start")
+  contractEnd         DateTime?         @map("contract_end")
+  expectedCloseAt     DateTime?         @map("expected_close_at")
+  agentCommissionValue Decimal?         @map("agent_commission_value") @db.Decimal(14, 2)
+  agentCommissionUnit String?           @map("agent_commission_unit")
   notes           String?
+  isDeleted       Boolean           @default(false) @map("is_deleted")
+  deletedAt       DateTime?         @map("deleted_at")
   assignedAgentId String?           @map("assigned_agent_id") @db.Uuid
   createdById     String?           @map("created_by_id") @db.Uuid
   createdAt       DateTime          @default(now()) @map("created_at")
@@ -511,6 +514,7 @@ model Opportunity {
   @@index([contactId], map: "opportunities_contact_idx")
   @@index([propertyId], map: "opportunities_property_idx")
   @@index([status], map: "opportunities_status_idx")
+  @@index([isDeleted], map: "opportunities_is_deleted_idx")
   @@map("opportunities")
 }
 
@@ -530,6 +534,9 @@ model Contract {
   signedAt        DateTime?      @map("signed_at")
   terms           String?
   notes           String?
+  isDeleted        Boolean        @default(false) @map("is_deleted")
+  deletedAt        DateTime?      @map("deleted_at")
+  expiryNotifiedAt DateTime?      @map("expiry_notified_at")
   assignedAgentId String?        @map("assigned_agent_id") @db.Uuid
   createdById     String?        @map("created_by_id") @db.Uuid
   createdAt       DateTime       @default(now()) @map("created_at")
@@ -538,12 +545,32 @@ model Contract {
   contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
   property    Property?    @relation(fields: [propertyId], references: [id], onDelete: SetNull)
   opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  documents   ContractDocument[]
 
   @@index([contactId], map: "contracts_contact_idx")
   @@index([propertyId], map: "contracts_property_idx")
   @@index([opportunityId], map: "contracts_opportunity_idx")
   @@index([status], map: "contracts_status_idx")
+  @@index([isDeleted], map: "contracts_is_deleted_idx")
   @@map("contracts")
+}
+
+// A document (PDF/DOC/DOCX) attached to a Contract, stored in Supabase Storage.
+model ContractDocument {
+  id           String   @id @default(cuid())
+  contractId   String   @map("contract_id")
+  fileName     String   @map("file_name")
+  storagePath  String   @map("storage_path")
+  url          String
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  uploadedById String?  @map("uploaded_by_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId], map: "contract_documents_contract_idx")
+  @@map("contract_documents")
 }
 
 // ── Tours ─────────────────────────────────────────────────────────────────────

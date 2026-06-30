@@ -4,7 +4,9 @@ import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
 
 export const createOpportunitySchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
-  contactId: z.string().optional(),
+  // Required: the lifecycle rule is Contact → Lead → Opportunity → Contract —
+  // an Opportunity can't exist without a (converted) Contact behind it.
+  contactId: z.string().min(1, "Contact is required"),
   contactSide: z.enum(["Buyer", "Seller"]).optional(),
   propertyId: z.string().optional(),
   dealType: z.enum(["Rent", "Sale"]).optional(),
@@ -18,7 +20,8 @@ export const createOpportunitySchema = z.object({
   contractStart: z.string().optional(),
   contractEnd: z.string().optional(),
   expectedCloseAt: z.string().optional(),
-  agentCommission: z.string().max(50).optional(),
+  agentCommissionValue: z.coerce.number().nonnegative().optional(),
+  agentCommissionUnit: z.enum(["%", "$"]).optional(),
   notes: z.string().max(2000).optional(),
   // .guid() (not .uuid()) — some seeded staff profiles use simplified IDs
   // that aren't RFC4122-compliant (wrong version/variant nibble); the real
