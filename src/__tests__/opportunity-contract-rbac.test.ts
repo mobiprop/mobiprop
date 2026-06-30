@@ -17,7 +17,7 @@ vi.mock("server-only", () => ({}));
 type MockFn = MockInstance;
 
 const db = {
-  opportunity: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+  opportunity: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn(), create: vi.fn() },
   contract: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
   // buildAgentMap() looks up assignedAgentId display names after create/update.
   profile: { findMany: vi.fn().mockResolvedValue([]) },
@@ -64,7 +64,9 @@ const AGENT_B_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const ADMIN_ID   = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const MANAGER_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
-const { listOpportunities, updateOpportunity } = await import("@/features/crm/opportunity-actions");
+const { listOpportunities, updateOpportunity, createContractFromOpportunity } = await import(
+  "@/features/crm/opportunity-actions"
+);
 const { listContracts, updateContract } = await import("@/features/crm/contract-actions");
 
 beforeEach(() => {
@@ -155,6 +157,74 @@ describe("updateOpportunity — ownership guard", () => {
 
     const res = await updateOpportunity("opp-1", {});
     expect(res.ok).toBe(true);
+  });
+});
+
+describe("createContractFromOpportunity — Option A pre-fill draft", () => {
+  const baseOpp = {
+    id: "opp-1",
+    title: "Sale of 123 Main St",
+    contactId: "contact-1",
+    propertyId: "property-1",
+    assignedAgentId: AGENT_A_ID,
+    dealSize: 150000,
+    dealType: "Sale",
+    contractStart: null,
+    contractEnd: null,
+    status: "CLOSED_WON",
+  };
+
+  it("rejects when the opportunity is not Closed Won", async () => {
+    grantAs("ADMIN", ADMIN_ID);
+    db.opportunity.findFirst.mockResolvedValue({ ...baseOpp, status: "OPEN" });
+
+    const res = await createContractFromOpportunity("opp-1");
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(400);
+  });
+
+  it("scopes the lookup to own/assigned for AGENT, so an unscoped row can't be fetched", async () => {
+    grantAs("AGENT", AGENT_B_ID);
+    db.opportunity.findFirst.mockResolvedValue(null);
+
+    const res = await createContractFromOpportunity("opp-1");
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(404);
+
+    const [call] = (db.opportunity.findFirst as MockFn).mock.calls;
+    const or = scopeOr(call[0].where);
+    expect(or).toContainEqual({ assignedAgentId: AGENT_B_ID });
+    expect(or).toContainEqual({ createdById: AGENT_B_ID });
+  });
+
+  it("builds a draft from a Closed Won opportunity with the right field mapping", async () => {
+    grantAs("AGENT", AGENT_A_ID);
+    db.opportunity.findFirst.mockResolvedValue(baseOpp);
+
+    const res = await createContractFromOpportunity("opp-1");
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.draft).toEqual({
+      title: "Sale of 123 Main St",
+      contactId: "contact-1",
+      propertyId: "property-1",
+      assignedAgentId: AGENT_A_ID,
+      opportunityId: "opp-1",
+      value: 150000,
+      startDate: null,
+      endDate: null,
+      type: "SALE",
+    });
+  });
+
+  it("maps a Rent deal type to the RENT contract type", async () => {
+    grantAs("ADMIN", ADMIN_ID);
+    db.opportunity.findFirst.mockResolvedValue({ ...baseOpp, dealType: "Rent" });
+
+    const res = await createContractFromOpportunity("opp-1");
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.draft.type).toBe("RENT");
   });
 });
 
