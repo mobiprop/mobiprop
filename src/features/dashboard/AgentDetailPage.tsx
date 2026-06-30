@@ -14,6 +14,7 @@ import {
   MapPin,
   Phone,
   Search,
+  Wallet,
 } from "lucide-react";
 
 import { useAgentDetailQuery } from "@/hooks/queries/useAgentDetailQuery";
@@ -302,7 +303,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         </section>
 
         {/* Statistics */}
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <StatCard
             iconBackground="#e4e7ff"
             icon={
@@ -353,6 +354,19 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
             }
             value={agent.openDeals}
             label="Open Deals"
+          />
+
+          <StatCard
+            iconBackground="#fae8ff"
+            icon={
+              <Wallet
+                size={20}
+                strokeWidth={1.8}
+                className="text-[#a855f7]"
+              />
+            }
+            value={`$${priceFormat.format(agent.totalEarnings)}`}
+            label="Total Earnings"
           />
         </section>
 

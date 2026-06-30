@@ -19,6 +19,8 @@ type MockFn = MockInstance;
 const db = {
   opportunity: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
   contract: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+  // buildAgentMap() looks up assignedAgentId display names after create/update.
+  profile: { findMany: vi.fn().mockResolvedValue([]) },
   $queryRaw: vi.fn(),
 };
 
@@ -27,6 +29,27 @@ vi.mock("@/lib/prisma", () => ({ get prisma() { return db; } }));
 const mockRequirePermission = vi.fn();
 vi.mock("@/lib/require-permission", () => ({
   get requirePermission() { return mockRequirePermission; },
+}));
+
+vi.mock("@/lib/activity-log", () => ({ logActivity: vi.fn().mockResolvedValue(undefined) }));
+
+// contract-actions.ts's document-upload helpers pull in the Supabase admin
+// client (env.ts) transitively — stub the storage module so importing it
+// doesn't require real Supabase env vars in the test runner.
+vi.mock("@/lib/supabase/storage", () => ({
+  mintContractDocumentUploadTicket: vi.fn(),
+  verifyUploadedContractDocument: vi.fn(),
+  removeContractDocumentObject: vi.fn(),
+}));
+
+// notify-events.ts transitively imports send-web-push.ts -> env.ts, which
+// throws at module-load time outside a real runtime env — stub it out so
+// importing opportunity-actions/contract-actions doesn't pull that chain in.
+vi.mock("@/features/notifications/server/notify-events", () => ({
+  notifyOpportunityClosed: vi.fn().mockResolvedValue(undefined),
+  notifyOpportunityStageChanged: vi.fn().mockResolvedValue(undefined),
+  notifyContractCreated: vi.fn().mockResolvedValue(undefined),
+  notifyContractExpiring: vi.fn().mockResolvedValue(undefined),
 }));
 
 function grantAs(role: "ADMIN" | "MANAGER" | "AGENT", id: string) {
@@ -74,7 +97,7 @@ describe("listOpportunities — record scope", () => {
     await listOpportunities();
 
     const [call] = (db.opportunity.findMany as MockFn).mock.calls;
-    expect(call[0].where).toEqual({});
+    expect(call[0].where).toEqual({ isDeleted: false });
   });
 
   it("applies no scope for MANAGER", async () => {
@@ -84,7 +107,7 @@ describe("listOpportunities — record scope", () => {
     await listOpportunities();
 
     const [call] = (db.opportunity.findMany as MockFn).mock.calls;
-    expect(call[0].where).toEqual({});
+    expect(call[0].where).toEqual({ isDeleted: false });
   });
 });
 
@@ -106,7 +129,7 @@ describe("updateOpportunity — ownership guard", () => {
       id: "opp-1", opportunityId: "OPP-0001", title: "Test", contactId: null, propertyId: null,
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
       commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
-      expectedCloseAt: null, agentCommission: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
+      expectedCloseAt: null, agentCommissionValue: null, agentCommissionUnit: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
       createdAt: new Date(), contact: null, property: null,
     });
 
@@ -114,19 +137,24 @@ describe("updateOpportunity — ownership guard", () => {
     expect(res.ok).toBe(true);
   });
 
-  it("allows MANAGER to update any opportunity without an ownership check", async () => {
+  it("allows MANAGER to update any opportunity regardless of who owns it", async () => {
     grantAs("MANAGER", MANAGER_ID);
+    // Owned by a different agent entirely — a MANAGER must not be blocked by the
+    // ownership check that applies to AGENT (opportunities:view_all bypasses it).
+    db.opportunity.findUnique.mockResolvedValue({
+      isDeleted: false, assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID,
+      title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null,
+    });
     db.opportunity.update.mockResolvedValue({
       id: "opp-1", opportunityId: "OPP-0001", title: "Test", contactId: null, propertyId: null,
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
       commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
-      expectedCloseAt: null, agentCommission: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
+      expectedCloseAt: null, agentCommissionValue: null, agentCommissionUnit: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
       createdAt: new Date(), contact: null, property: null,
     });
 
     const res = await updateOpportunity("opp-1", {});
     expect(res.ok).toBe(true);
-    expect(db.opportunity.findUnique).not.toHaveBeenCalled();
   });
 });
 
@@ -152,7 +180,7 @@ describe("listContracts — record scope", () => {
     await listContracts();
 
     const [call] = (db.contract.findMany as MockFn).mock.calls;
-    expect(call[0].where).toEqual({});
+    expect(call[0].where).toEqual({ isDeleted: false });
   });
 });
 

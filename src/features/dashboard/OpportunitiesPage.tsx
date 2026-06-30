@@ -1,20 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Search, Plus, DollarSign, FolderOpen, Trophy, BarChart3,
-  Filter, Download, MoreVertical, Pencil, Loader2,
+  Filter, Download, MoreVertical, Pencil, Trash2, FileSignature, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
+import { OpportunityStatus } from "@/generated/prisma/enums";
 import type { OpportunityDto } from "@/features/crm/types/crm-dto";
 import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
-import { useCreateOpportunityMutation } from "@/hooks/mutations/useCrmMutations";
-import { useDashboardContactsQuery } from "@/hooks/queries/useDashboardContactsQuery";
-import { AddOpportunityModal, type NewOpportunity } from "./components/AddOpportunityModal";
+import {
+  useCreateOpportunityMutation,
+  useUpdateOpportunityMutation,
+  useDeleteOpportunityMutation,
+} from "@/hooks/mutations/useCrmMutations";
+import { AddOpportunityModal, type OpportunityFormValues } from "./components/AddOpportunityModal";
 import { OpportunityFilterModal } from "./components/OpportunityFilterModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -95,21 +99,23 @@ function fmt(n: number | null) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function OpportunitiesPage({ role }: { role: Role }) {
-  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
+  const [editing, setEditing] = useState<OpportunityDto | "new" | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<StageTab>("All");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useDashboardOpportunitiesQuery();
-  const { data: contactsData } = useDashboardContactsQuery();
   const createMutation = useCreateOpportunityMutation();
+  const updateMutation = useUpdateOpportunityMutation();
+  const deleteMutation = useDeleteOpportunityMutation();
 
   const canCreate = hasPermission(role, "opportunities:create");
+  const canDelete = hasPermission(role, "opportunities:delete");
 
   const opportunities = useMemo(() => data?.opportunities ?? [], [data]);
   const metrics = data?.metrics;
-  const contacts = useMemo(() => contactsData?.contacts ?? [], [contactsData]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -125,50 +131,57 @@ export function OpportunitiesPage({ role }: { role: Role }) {
     });
   }, [opportunities, search, activeTab]);
 
-  async function handleCreate(input: NewOpportunity) {
-    // Map the modal's string stage/status to Prisma enums
-    const stageMap: Record<string, OpportunityStage> = {
-      Qualification: OpportunityStage.QUALIFICATION,
-      Visitation: OpportunityStage.VISITATION,
-      Offer: OpportunityStage.OFFER,
-      Negotiation: OpportunityStage.NEGOTIATION,
-      Closing: OpportunityStage.CLOSING,
-    };
-    const statusMap: Record<string, OpportunityStatus> = {
-      Open: OpportunityStatus.OPEN,
-      "Closed Won": OpportunityStatus.CLOSED_WON,
-      "Closed Lost": OpportunityStatus.CLOSED_LOST,
+  async function handleSubmit(values: OpportunityFormValues) {
+    const payload = {
+      title: values.title || "Untitled Opportunity",
+      contactId: values.contactId || undefined,
+      propertyId: values.propertyId || undefined,
+      dealType: values.dealType,
+      dealSize: values.dealSize ? Number(values.dealSize) : undefined,
+      stage: values.stage,
+      status: values.status,
+      probability: values.probability,
+      commission: values.commission ? Number(values.commission) : undefined,
+      commissionUnit: values.commissionUnit,
+      paymentTerms: values.paymentTerms || undefined,
+      contractStart: values.contractStart || undefined,
+      contractEnd: values.contractEnd || undefined,
+      expectedCloseAt: values.expectedCloseAt || undefined,
+      assignedAgentId: values.assignedAgentId || undefined,
+      agentCommissionValue: values.agentCommissionValue ? Number(values.agentCommissionValue) : undefined,
+      agentCommissionUnit: values.agentCommissionUnit,
+      notes: values.notes || undefined,
     };
 
     try {
-      await createMutation.mutateAsync({
-        title: input.name || "Untitled Opportunity",
-        contactId: input.contactId || undefined,
-        propertyId: input.propertyId || undefined,
-        dealType: input.dealType as "Rent" | "Sale" | undefined,
-        dealSize: input.dealSize ? Number(input.dealSize) : undefined,
-        stage: stageMap[input.stage] ?? OpportunityStage.QUALIFICATION,
-        status: statusMap[input.status] ?? OpportunityStatus.OPEN,
-        probability: input.probability,
-        commission: input.commissionAmount ? Number(input.commissionAmount) : undefined,
-        commissionUnit: input.commissionUnit as "%" | "$" | undefined,
-        paymentTerms: input.paymentTerms || undefined,
-        contractStart: input.contractStart || undefined,
-        contractEnd: input.contractEnd || undefined,
-        expectedCloseAt: input.expectedClose || undefined,
-        agentCommission: input.agentCommission || undefined,
-        notes: input.description || undefined,
-      });
-      toast.success("Opportunity created");
-      setShowModal(false);
+      if (editing && editing !== "new") {
+        await updateMutation.mutateAsync({ id: editing.id, body: payload });
+        toast.success("Opportunity updated");
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success("Opportunity created");
+      }
+      setEditing(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create opportunity");
+      toast.error(err instanceof Error ? err.message : "Failed to save opportunity");
+    }
+  }
+
+  async function handleDelete(opp: OpportunityDto) {
+    if (!confirm(`Delete "${opp.title}"? This can't be undone.`)) return;
+    try {
+      await deleteMutation.mutateAsync(opp.id);
+      toast.success("Opportunity deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete opportunity");
     }
   }
 
   const winRate = metrics && metrics.total > 0
     ? Math.round((metrics.closedWon / metrics.total) * 100)
     : 0;
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="px-6 py-5 flex flex-col gap-5">
@@ -181,7 +194,7 @@ export function OpportunitiesPage({ role }: { role: Role }) {
         {canCreate && (
           <button
             type="button"
-            onClick={() => setShowModal(true)}
+            onClick={() => setEditing("new")}
             className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
             style={mont}
           >
@@ -299,15 +312,35 @@ export function OpportunitiesPage({ role }: { role: Role }) {
                         {openMenuId === opp.id && (
                           <>
                             <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
-                            <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[160px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
+                            <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[200px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
                               <button
                                 type="button"
-                                onClick={() => { setShowModal(true); setOpenMenuId(null); }}
+                                onClick={() => { setEditing(opp); setOpenMenuId(null); }}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
                                 style={mont}
                               >
                                 <Pencil size={16} className="text-[#6a7282]" /> Edit
                               </button>
+                              {opp.status === OpportunityStatus.CLOSED_WON && (
+                                <button
+                                  type="button"
+                                  onClick={() => { router.push(`/dashboard/contracts?fromOpportunity=${opp.id}`); setOpenMenuId(null); }}
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
+                                  style={mont}
+                                >
+                                  <FileSignature size={16} className="text-[#6a7282]" /> Create Contract
+                                </button>
+                              )}
+                              {canDelete && (
+                                <button
+                                  type="button"
+                                  onClick={() => { handleDelete(opp); setOpenMenuId(null); }}
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#dc2626] hover:bg-[#fef2f2] transition-colors"
+                                  style={mont}
+                                >
+                                  <Trash2 size={16} /> Delete
+                                </button>
+                              )}
                             </div>
                           </>
                         )}
@@ -328,12 +361,13 @@ export function OpportunitiesPage({ role }: { role: Role }) {
         )}
       </div>
 
-      {showModal && (
+      {editing && (
         <AddOpportunityModal
-          onClose={() => setShowModal(false)}
-          onCreate={handleCreate}
-          contacts={contacts}
-          isSaving={createMutation.isPending}
+          mode={editing === "new" ? "create" : "edit"}
+          initial={editing === "new" ? undefined : editing}
+          onClose={() => setEditing(null)}
+          onSubmit={handleSubmit}
+          isSaving={isSaving}
         />
       )}
       {showFilter && (

@@ -59,13 +59,19 @@ export type OpportunityDto = {
   probability: number;
   commission: number | null;
   commissionUnit: string | null;
+  /** Computed: commissionUnit === "%" ? dealSize * commission / 100 : commission. */
+  commissionAmount: number | null;
   paymentTerms: string | null;
   contractStart: string | null;
   contractEnd: string | null;
   expectedCloseAt: string | null;
-  agentCommission: string | null;
+  agentCommissionValue: number | null;
+  agentCommissionUnit: string | null;
+  /** Computed the same way as commissionAmount, against dealSize. */
+  agentCommissionAmount: number | null;
   notes: string | null;
   assignedAgentId: string | null;
+  assignedAgentName: string | null;
   createdById: string | null;
   createdAt: string;
 };
@@ -80,6 +86,15 @@ export type OpportunityMetrics = {
 
 // ── Contract ──────────────────────────────────────────────────────────────────
 
+export type ContractDocumentDto = {
+  id: string;
+  fileName: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+};
+
 export type ContractDto = {
   id: string;
   contractId: string;
@@ -89,6 +104,8 @@ export type ContractDto = {
   propertyId: string | null;
   propertyTitle: string | null;
   propertySlug: string | null;
+  opportunityId: string | null;
+  opportunityNumber: string | null;
   type: ContractType;
   status: ContractStatus;
   value: number | null;
@@ -98,7 +115,9 @@ export type ContractDto = {
   terms: string | null;
   notes: string | null;
   assignedAgentId: string | null;
+  assignedAgentName: string | null;
   createdById: string | null;
+  documents: ContractDocumentDto[];
   createdAt: string;
 };
 

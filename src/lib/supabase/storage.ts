@@ -7,6 +7,21 @@ import { LISTING_IMAGE_MAX_BYTES } from "@/schemas/listing.schema";
 
 const AVATAR_BUCKET = "avatars";
 const PROPERTY_IMAGES_BUCKET = "property-images";
+const CONTRACT_DOCUMENTS_BUCKET = "contract-documents";
+
+export const CONTRACT_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB, matches the upload UI's stated cap
+const CONTRACT_DOCUMENT_MIME_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+function extensionForContractDocument(mimeType: string, fileName: string): string {
+  if (mimeType === "application/pdf") return "pdf";
+  if (mimeType === "application/msword") return "doc";
+  if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "docx";
+  return fileName.split(".").pop()?.toLowerCase() || "bin";
+}
 
 // Keep the bucket's hard cap in step with the per-file schema limit. Note:
 // Supabase also enforces a project-wide upload size limit (Dashboard →
@@ -210,4 +225,127 @@ export async function removePropertyImages(storagePaths: string[]): Promise<void
 
   const { error } = await supabase.storage.from(PROPERTY_IMAGES_BUCKET).remove(storagePaths);
   if (error) console.error("[storage] failed to remove listing images", error.message);
+}
+
+// ── Contract documents ──────────────────────────────────────────────────────
+//
+// Same signed-upload-URL pattern as property images: a 10MB PDF would risk
+// hitting the serverless function's request-body limit if it passed through
+// a Next.js API route, so the browser uploads directly to storage and the
+// server only mints the ticket beforehand and verifies the result after.
+
+let contractDocumentsBucketReady = false;
+
+async function ensureContractDocumentsBucket(): Promise<void> {
+  if (contractDocumentsBucketReady) return;
+
+  const supabase = createAdminClient();
+  // Private bucket — unlike listing images, contract documents are not public.
+  // Reads go through getPublicUrl() below only because this bucket also sets
+  // `public: false`; callers fetch through a signed read instead.
+  const desiredOptions = {
+    public: false,
+    fileSizeLimit: CONTRACT_DOCUMENT_MAX_BYTES,
+    allowedMimeTypes: CONTRACT_DOCUMENT_MIME_TYPES,
+  };
+
+  const { data: existing } = await supabase.storage.getBucket(CONTRACT_DOCUMENTS_BUCKET);
+  if (existing) {
+    const { error: updateError } = await supabase.storage.updateBucket(CONTRACT_DOCUMENTS_BUCKET, desiredOptions);
+    if (updateError) {
+      console.error("[storage] could not raise contract-documents bucket limits", updateError.message);
+    }
+    contractDocumentsBucketReady = true;
+    return;
+  }
+
+  let { error } = await supabase.storage.createBucket(CONTRACT_DOCUMENTS_BUCKET, desiredOptions);
+  if (error && !/already exists/i.test(error.message)) {
+    ({ error } = await supabase.storage.createBucket(CONTRACT_DOCUMENTS_BUCKET, {
+      public: false,
+      allowedMimeTypes: CONTRACT_DOCUMENT_MIME_TYPES,
+    }));
+  }
+  if (error && !/already exists/i.test(error.message)) {
+    throw new Error(`Failed to create ${CONTRACT_DOCUMENTS_BUCKET} bucket: ${error.message}`);
+  }
+  contractDocumentsBucketReady = true;
+}
+
+export type ContractDocumentUploadTicket = {
+  documentId: string;
+  storagePath: string;
+  signedUrl: string;
+  token: string;
+};
+
+/** Mints a signed upload URL under `{contractId}/{documentId}.{ext}`. */
+export async function mintContractDocumentUploadTicket(
+  contractId: string,
+  file: { name: string; type: string },
+): Promise<ContractDocumentUploadTicket> {
+  if (!CONTRACT_DOCUMENT_MIME_TYPES.includes(file.type)) {
+    throw new Error("Only PDF, DOC, and DOCX files are supported.");
+  }
+
+  await ensureContractDocumentsBucket();
+  const supabase = createAdminClient();
+
+  const documentId = randomUUID();
+  const storagePath = `${contractId}/${documentId}.${extensionForContractDocument(file.type, file.name)}`;
+  const { data, error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).createSignedUploadUrl(storagePath);
+  if (error || !data) {
+    throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
+  }
+
+  return { documentId, storagePath, signedUrl: data.signedUrl, token: data.token };
+}
+
+export type VerifiedContractDocument = {
+  storagePath: string;
+  url: string;
+  sizeBytes: number;
+  mimeType: string;
+};
+
+/** Confirms the upload landed in storage and reads its authoritative size/type — never trusts the client. */
+export async function verifyUploadedContractDocument(
+  contractId: string,
+  storagePath: string,
+): Promise<VerifiedContractDocument> {
+  if (!storagePath.startsWith(`${contractId}/`)) {
+    throw new Error("Document path does not belong to this contract.");
+  }
+  const supabase = createAdminClient();
+
+  const name = storagePath.slice(contractId.length + 1);
+  const { data: objects, error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).list(contractId, { limit: 1000 });
+  if (error) throw new Error(`Failed to verify uploaded document: ${error.message}`);
+
+  const object = objects?.find((o) => o.name === name);
+  if (!object) throw new Error("Uploaded document is missing from storage.");
+
+  const sizeBytes = Number(object.metadata?.size ?? 0);
+  const mimeType = String(object.metadata?.mimetype ?? "");
+  if (!CONTRACT_DOCUMENT_MIME_TYPES.includes(mimeType)) {
+    throw new Error("Uploaded document has an unsupported type.");
+  }
+  if (sizeBytes <= 0 || sizeBytes > CONTRACT_DOCUMENT_MAX_BYTES) {
+    throw new Error("Uploaded document violates the size limit.");
+  }
+
+  // Bucket is private — mint a long-lived signed URL rather than a public one.
+  const { data: signed, error: signError } = await supabase.storage
+    .from(CONTRACT_DOCUMENTS_BUCKET)
+    .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+  if (signError || !signed) throw new Error(`Failed to sign document URL: ${signError?.message ?? "unknown error"}`);
+
+  return { storagePath, url: signed.signedUrl, sizeBytes, mimeType };
+}
+
+/** Removes a single contract document object. Best-effort: errors are logged. */
+export async function removeContractDocumentObject(storagePath: string): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).remove([storagePath]);
+  if (error) console.error("[storage] failed to remove contract document", error.message);
 }

@@ -1,19 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   Search, Plus, Share2, Building2, TrendingUp, DollarSign, Banknote,
-  ChevronDown, Filter, MoreVertical, Loader2,
+  ChevronDown, Filter, MoreVertical, Pencil, Trash2, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { ContractType, ContractStatus } from "@/generated/prisma/enums";
+import { ContractStatus } from "@/generated/prisma/enums";
 import type { ContractDto } from "@/features/crm/types/crm-dto";
+import type { ContractDraft } from "@/features/crm/opportunity-actions";
 import { useDashboardContractsQuery } from "@/hooks/queries/useDashboardContractsQuery";
-import { useCreateContractMutation } from "@/hooks/mutations/useCrmMutations";
-import { AddContractModal, type NewContract } from "./components/AddContractModal";
+import {
+  useCreateContractMutation,
+  useUpdateContractMutation,
+  useDeleteContractMutation,
+  useCreateContractFromOpportunityMutation,
+} from "@/hooks/mutations/useCrmMutations";
+import { AddContractModal, type ContractFormValues } from "./components/AddContractModal";
 import { ContractFilterPopover } from "./components/ContractFilterPopover";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -82,18 +89,46 @@ function fmtValue(n: number | null) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function ContractsPage({ role }: { role: Role }) {
-  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [editing, setEditing] = useState<ContractDto | "new" | null>(null);
+  const [draft, setDraft] = useState<ContractDraft | undefined>(undefined);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "All">("All");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data, isLoading, isError } = useDashboardContractsQuery();
   const createMutation = useCreateContractMutation();
+  const updateMutation = useUpdateContractMutation();
+  const deleteMutation = useDeleteContractMutation();
+  const draftMutation = useCreateContractFromOpportunityMutation();
 
   const canCreate = hasPermission(role, "contracts:create");
+  const canDelete = hasPermission(role, "contracts:delete");
 
   const contracts = useMemo(() => data?.contracts ?? [], [data]);
   const metrics = data?.metrics;
+
+  // "Create Contract from Won Opportunity" deep link — fetch the pre-fill
+  // draft, open the create modal with it, then strip the query param.
+  useEffect(() => {
+    const opportunityId = searchParams.get("fromOpportunity");
+    if (!opportunityId) return;
+
+    draftMutation.mutate(opportunityId, {
+      onSuccess: (result) => {
+        setDraft(result.draft);
+        setEditing("new");
+      },
+      onError: (err) => {
+        toast.error(err instanceof Error ? err.message : "Failed to prepare contract draft");
+      },
+      onSettled: () => router.replace("/dashboard/contracts"),
+    });
+    // Only run once per ?fromOpportunity= value — router.replace strips it after.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -108,31 +143,48 @@ export function ContractsPage({ role }: { role: Role }) {
     });
   }, [contracts, search, statusFilter]);
 
-  async function handleCreate(input: NewContract) {
-    const typeMap: Record<string, ContractType> = {
-      Sale: ContractType.SALE,
-      Rent: ContractType.RENT,
-      "Sale & Rent": ContractType.SALE_AND_RENT,
-    };
-    const statusMap: Record<string, ContractStatus> = {
-      Active: ContractStatus.ACTIVE,
-      Pending: ContractStatus.PENDING,
-      Completed: ContractStatus.COMPLETED,
+  async function handleSubmit(values: ContractFormValues) {
+    const payload = {
+      title: values.title || "Untitled Contract",
+      type: values.type,
+      status: values.status,
+      contactId: values.contactId || undefined,
+      propertyId: values.propertyId || undefined,
+      assignedAgentId: values.assignedAgentId || undefined,
+      opportunityId: values.opportunityId || undefined,
+      value: values.value ? Number(values.value) : undefined,
+      startDate: values.startDate || undefined,
+      endDate: values.endDate || undefined,
+      terms: values.terms || undefined,
+      notes: values.notes || undefined,
     };
 
     try {
-      await createMutation.mutateAsync({
-        title: input.title || "Untitled Contract",
-        type: typeMap[input.type] ?? ContractType.SALE,
-        status: statusMap[input.status] ?? ContractStatus.ACTIVE,
-        terms: input.terms || undefined,
-      });
-      toast.success("Contract created");
-      setShowModal(false);
+      if (editing && editing !== "new") {
+        await updateMutation.mutateAsync({ id: editing.id, body: payload });
+        toast.success("Contract updated");
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success("Contract created");
+      }
+      setEditing(null);
+      setDraft(undefined);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create contract");
+      toast.error(err instanceof Error ? err.message : "Failed to save contract");
     }
   }
+
+  async function handleDelete(contract: ContractDto) {
+    if (!confirm(`Delete contract "${contract.title}"? This can't be undone.`)) return;
+    try {
+      await deleteMutation.mutateAsync(contract.id);
+      toast.success("Contract deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete contract");
+    }
+  }
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6">
@@ -147,7 +199,7 @@ export function ContractsPage({ role }: { role: Role }) {
             <Share2 size={16} className="shrink-0" /><span className="truncate">Export</span>
           </button>
           {canCreate && (
-            <button type="button" onClick={() => setShowModal(true)} className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:px-4" style={mont}>
+            <button type="button" onClick={() => { setDraft(undefined); setEditing("new"); }} className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:px-4" style={mont}>
               <Plus size={16} className="shrink-0" /><span className="truncate">Add Contract</span>
             </button>
           )}
@@ -248,9 +300,41 @@ export function ContractsPage({ role }: { role: Role }) {
                         <Badge label={STATUS_LABEL[contract.status] ?? contract.status} bg={statusStyle.bg} text={statusStyle.text} />
                       </td>
                       <td className="px-4 py-4 text-center">
-                        <button type="button" title="Actions" className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors">
-                          <MoreVertical size={16} />
-                        </button>
+                        <div className="relative inline-block">
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuId(openMenuId === contract.id ? null : contract.id)}
+                            title="Actions"
+                            className="inline-flex items-center justify-center text-[#6a7282] hover:text-[#0d2138] transition-colors"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                          {openMenuId === contract.id && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
+                              <div className="absolute right-0 top-[calc(100%+4px)] z-50 w-[160px] bg-white border border-[#e5e7eb] rounded-[12px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden py-1">
+                                <button
+                                  type="button"
+                                  onClick={() => { setDraft(undefined); setEditing(contract); setOpenMenuId(null); }}
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
+                                  style={mont}
+                                >
+                                  <Pencil size={16} className="text-[#6a7282]" /> Edit
+                                </button>
+                                {canDelete && (
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleDelete(contract); setOpenMenuId(null); }}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] font-medium text-[#dc2626] hover:bg-[#fef2f2] transition-colors"
+                                    style={mont}
+                                  >
+                                    <Trash2 size={16} /> Delete
+                                  </button>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -274,11 +358,14 @@ export function ContractsPage({ role }: { role: Role }) {
         </div>
       </div>
 
-      {showModal && (
+      {editing && (
         <AddContractModal
-          onClose={() => setShowModal(false)}
-          onCreate={handleCreate}
-          isSaving={createMutation.isPending}
+          mode={editing === "new" ? "create" : "edit"}
+          initial={editing === "new" ? undefined : editing}
+          draft={editing === "new" ? draft : undefined}
+          onClose={() => { setEditing(null); setDraft(undefined); }}
+          onSubmit={handleSubmit}
+          isSaving={isSaving}
         />
       )}
     </div>

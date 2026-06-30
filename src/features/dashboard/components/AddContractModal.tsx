@@ -1,44 +1,45 @@
 "use client";
 
 import { useState } from "react";
+import { X, ChevronDown, Upload, Trash2, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { ContractType, ContractStatus } from "@/generated/prisma/enums";
+import type { ContractDto } from "@/features/crm/types/crm-dto";
+import type { ContractDraft } from "@/features/crm/opportunity-actions";
 import {
-  X,
-  ChevronDown,
-  Home,
-  ExternalLink,
-  Plus,
-  UserPlus,
-  Upload,
-  Trash2,
-} from "lucide-react";
+  useUploadContractDocumentMutation,
+  useRemoveContractDocumentMutation,
+} from "@/hooks/mutations/useCrmMutations";
+import { ContactPicker } from "./ContactPicker";
+import { ListingPicker } from "./ListingPicker";
+import { AgentSelect } from "./AgentSelect";
+import { DatePickerField } from "./DatePickerField";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-export type ContractType = "Sale" | "Rent" | "Sale & Rent";
-export type ContractStatus = "Active" | "Pending" | "Completed";
-
-export type NewContract = {
+export type ContractFormValues = {
   title: string;
   type: ContractType;
   status: ContractStatus;
-  listing: string;
-  participants: Participant[];
-  properties: string[];
+  contactId: string;
+  propertyId: string;
+  assignedAgentId: string;
+  opportunityId: string;
+  value: string;
+  startDate: string;
+  endDate: string;
   terms: string;
+  notes: string;
 };
-
-type Participant = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-};
-
-type ParticipantMode = "none" | "existing" | "new";
 
 type AddContractModalProps = {
+  mode?: "create" | "edit";
+  initial?: ContractDto;
+  /** Pre-fill from "Create Contract from Won Opportunity" — a human still confirms/saves. */
+  draft?: ContractDraft;
   onClose: () => void;
-  onCreate?: (contract: NewContract) => void;
+  onSubmit: (values: ContractFormValues) => void;
   isSaving?: boolean;
 };
 
@@ -46,146 +47,106 @@ const inputClass =
   "h-10 px-3.5 bg-[#fafbfc] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] text-[#1f2937]";
 
-function Toggle({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-[#1e4f86]" : "bg-[#d1d5db]"}`}
-    >
-      <span
-        className={`absolute top-0.5 size-5 rounded-full bg-white transition-transform ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`}
-      />
-    </button>
-  );
+function fmtBytes(n: number) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function AddContractModal({
-  onClose,
-  onCreate,
-  isSaving,
-}: AddContractModalProps) {
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState<ContractType>("Sale");
-  const [status, setStatus] = useState<ContractStatus>("Active");
-  const [listing, setListing] = useState("");
-  const [terms, setTerms] = useState("");
-  const [properties, setProperties] = useState<string[]>([""]);
+export function AddContractModal({ mode = "create", initial, draft, onClose, onSubmit, isSaving }: AddContractModalProps) {
+  const [title, setTitle] = useState(initial?.title ?? draft?.title ?? "");
+  const [type, setType] = useState<ContractType>(initial?.type ?? draft?.type ?? ContractType.SALE);
+  const [status, setStatus] = useState<ContractStatus>(initial?.status ?? ContractStatus.ACTIVE);
+  const [contactId, setContactId] = useState(initial?.contactId ?? draft?.contactId ?? "");
+  const [contactLabel, setContactLabel] = useState(initial?.contactName ?? "");
+  const [propertyId, setPropertyId] = useState(initial?.propertyId ?? draft?.propertyId ?? "");
+  const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? "");
+  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? draft?.assignedAgentId ?? "");
+  const [opportunityId] = useState(initial?.opportunityId ?? draft?.opportunityId ?? "");
+  const [opportunityLabel] = useState(initial?.opportunityNumber ?? "");
+  const [value, setValue] = useState(initial?.value != null ? String(initial.value) : draft?.value != null ? String(draft.value) : "");
+  const [startDate, setStartDate] = useState(initial?.startDate?.slice(0, 10) ?? draft?.startDate?.slice(0, 10) ?? "");
+  const [endDate, setEndDate] = useState(initial?.endDate?.slice(0, 10) ?? draft?.endDate?.slice(0, 10) ?? "");
+  const [terms, setTerms] = useState(initial?.terms ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [documents, setDocuments] = useState(initial?.documents ?? []);
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  const [participants, setParticipants] = useState<Participant[]>([
-    { id: 1, name: "John Doe", email: "john@example.com", role: "Buyer" },
-  ]);
-  const [participantMode, setParticipantMode] =
-    useState<ParticipantMode>("none");
+  const uploadMutation = useUploadContractDocumentMutation();
+  const removeMutation = useRemoveContractDocumentMutation();
 
-  // "Add existing contact" sub-form
-  const [existingSearch, setExistingSearch] = useState("");
-  const [existingRole, setExistingRole] = useState("");
+  const contractId = initial?.id ?? null;
 
-  // "New contact" sub-form
-  const [ncFirst, setNcFirst] = useState("");
-  const [ncLast, setNcLast] = useState("");
-  const [ncEmail, setNcEmail] = useState("");
-  const [ncPhone, setNcPhone] = useState("");
-  const [ncType, setNcType] = useState("");
-  const [ncLinkAsParticipant, setNcLinkAsParticipant] = useState(true);
-  const [ncRole, setNcRole] = useState("");
-
-  function addExistingParticipant() {
-    if (!existingSearch.trim()) return;
-    setParticipants((prev) => [
-      ...prev,
-      {
-        id: Math.max(0, ...prev.map((p) => p.id)) + 1,
-        name: existingSearch.trim(),
-        email: "",
-        role: existingRole || "Participant",
-      },
-    ]);
-    setExistingSearch("");
-    setExistingRole("");
-    setParticipantMode("none");
-  }
-
-  function createNewParticipant() {
-    const name = `${ncFirst} ${ncLast}`.trim();
-    if (!name) return;
-    if (ncLinkAsParticipant) {
-      setParticipants((prev) => [
-        ...prev,
-        {
-          id: Math.max(0, ...prev.map((p) => p.id)) + 1,
-          name,
-          email: ncEmail.trim(),
-          role: ncRole || ncType || "Participant",
-        },
-      ]);
+  async function handleFiles(files: FileList | File[]) {
+    if (!contractId) {
+      toast.error("Save the contract before attaching documents.");
+      return;
     }
-    setNcFirst("");
-    setNcLast("");
-    setNcEmail("");
-    setNcPhone("");
-    setNcType("");
-    setNcRole("");
-    setParticipantMode("none");
+    for (const file of Array.from(files)) {
+      const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+      if (!allowed.includes(file.type)) {
+        toast.error(`${file.name}: only PDF, DOC, and DOCX files are supported.`);
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name}: exceeds the 10MB limit.`);
+        continue;
+      }
+      try {
+        const doc = await uploadMutation.mutateAsync({ contractId, file });
+        setDocuments((prev) => [doc, ...prev]);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : `Failed to upload ${file.name}`);
+      }
+    }
   }
 
-  function removeParticipant(id: number) {
-    setParticipants((prev) => prev.filter((p) => p.id !== id));
-  }
-
-  function updateProperty(index: number, value: string) {
-    setProperties((prev) => prev.map((p, i) => (i === index ? value : p)));
+  async function handleRemoveDocument(documentId: string) {
+    if (!contractId) return;
+    try {
+      await removeMutation.mutateAsync({ contractId, documentId });
+      setDocuments((prev) => prev.filter((d) => d.id !== documentId));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove document");
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onCreate?.({
+    onSubmit({
       title: title.trim(),
       type,
       status,
-      listing,
-      participants,
-      properties: properties.map((p) => p.trim()).filter(Boolean),
+      contactId,
+      propertyId,
+      assignedAgentId,
+      opportunityId,
+      value,
+      startDate,
+      endDate,
       terms: terms.trim(),
+      notes: notes.trim(),
     });
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
 
       <div
-        className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-[850px] flex-col overflow-hidden rounded-[16px] bg-white shadow-xl sm:max-h-[92vh] sm:rounded-[14px]"
+        className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-[700px] flex-col overflow-hidden rounded-[16px] bg-white shadow-xl sm:max-h-[92vh] sm:rounded-[14px]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4 py-4 sm:px-5 sm:pb-[21px] sm:pt-5">
           <div className="flex min-w-0 flex-col">
-            <p
-              className="truncate text-[15px] font-semibold leading-6 text-[#0d2138] sm:text-[16px]"
-              style={mont}
-            >
-              New Contract
+            <p className="truncate text-[15px] font-semibold leading-6 text-[#0d2138] sm:text-[16px]" style={mont}>
+              {mode === "edit" ? "Edit Contract" : "New Contract"}
             </p>
-
-            <p
-              className="mt-0.5 truncate text-[11px] text-[#6a7282] sm:text-[12px]"
-              style={mont}
-            >
-              Create a new property contract
+            <p className="mt-0.5 truncate text-[11px] text-[#6a7282] sm:text-[12px]" style={mont}>
+              {draft ? "Pre-filled from a Closed Won opportunity — review and save" : "Create a new property contract"}
             </p>
           </div>
-
           <button
             type="button"
             onClick={onClose}
@@ -196,22 +157,14 @@ export function AddContractModal({
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-4 sm:gap-6 sm:px-6 sm:py-6"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-4 sm:gap-6 sm:px-6 sm:py-6">
           {/* Basic Information */}
           <div className="flex flex-col gap-4">
-            <p className="text-[14px] font-medium text-[#1f2937]" style={mont}>
-              Basic Information
-            </p>
+            <p className="text-[14px] font-medium text-[#1f2937]" style={mont}>Basic Information</p>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
               <div className="flex min-w-0 flex-col gap-2">
-                <label className={labelClass} style={mont}>
-                  Contract Title *
-                </label>
-
+                <label className={labelClass} style={mont}>Contract Title *</label>
                 <input
                   required
                   value={title}
@@ -223,10 +176,7 @@ export function AddContractModal({
               </div>
 
               <div className="flex min-w-0 flex-col gap-2">
-                <label className={labelClass} style={mont}>
-                  Contract Type *
-                </label>
-
+                <label className={labelClass} style={mont}>Contract Type *</label>
                 <div className="relative">
                   <select
                     required
@@ -235,433 +185,78 @@ export function AddContractModal({
                     className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
                     style={mont}
                   >
-                    <option value="Sale">Sale</option>
-                    <option value="Rent">Rent</option>
-                    <option value="Sale & Rent">Sale &amp; Rent</option>
+                    <option value={ContractType.SALE}>Sale</option>
+                    <option value={ContractType.RENT}>Rent</option>
+                    <option value={ContractType.SALE_AND_RENT}>Sale &amp; Rent</option>
                   </select>
-
-                  <ChevronDown
-                    size={18}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                  />
+                  <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]" />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Participants */}
-          <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-3 sm:p-4">
-            <div className="flex items-center gap-2">
-              <Home size={15} className="shrink-0 text-[#1e4f86]" />
-
-              <p
-                className="text-[14px] font-medium text-[#1e4f86]"
-                style={mont}
-              >
-                Participants
-              </p>
-            </div>
-
-            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-              Assign people associated with this contract.
-            </p>
-
-            {/* Participant list */}
-            <div className="flex flex-col gap-2">
-              {participants.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white p-3 sm:p-4"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div
-                      className="flex size-[43px] shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-medium text-white"
-                      style={mont}
-                    >
-                      {p.name
-                        ?.split(" ")
-                        .filter(Boolean)
-                        .map((name) => name[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase() || "?"}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className="truncate text-[13px] font-medium text-[#111827] sm:text-[14px]"
-                        style={mont}
-                      >
-                        {p.name || "Unnamed participant"}
-                      </p>
-
-                      <p
-                        className="mt-0.5 truncate text-[11px] text-[#6b7280] sm:text-[13px]"
-                        style={mont}
-                      >
-                        {[p.email, p.role].filter(Boolean).join(" • ")}
-                      </p>
-                    </div>
-                  </div>
-
-                  {participants.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeParticipant(p.id)}
-                      title="Remove participant"
-                      aria-label={`Remove ${p.name}`}
-                      className="flex size-9 shrink-0 items-center justify-center rounded-[8px] border border-transparent text-[#6a7282] transition-colors hover:border-red-100 hover:bg-red-50 hover:text-[#fb2c36]"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Participant buttons */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setParticipantMode(participantMode === "new" ? "none" : "new")
-                }
-                className={`flex h-10 w-full items-center justify-center gap-2 rounded-[8px] border px-4 text-[12px] font-medium transition-colors ${
-                  participantMode === "new"
-                    ? "border-[#1e4f86] bg-[#1e4f86] text-white"
-                    : "border-[#1e4f86] bg-white text-[#1e4f86] hover:bg-[#eff6ff]"
-                }`}
-                style={mont}
-              >
-                <UserPlus size={16} className="shrink-0" />
-                <span>Add Contact</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setParticipantMode(
-                    participantMode === "existing" ? "none" : "existing",
-                  )
-                }
-                className={`flex h-10 w-full items-center justify-center gap-2 rounded-[8px] border px-4 text-[12px] font-medium transition-colors ${
-                  participantMode === "existing"
-                    ? "border-[#1e4f86] bg-[#1e4f86] text-white"
-                    : "border-[#1e4f86] bg-white text-[#1e4f86] hover:bg-[#eff6ff]"
-                }`}
-                style={mont}
-              >
-                <Plus size={16} className="shrink-0" />
-                <span>Add Participant</span>
-              </button>
-            </div>
-
-            {/* Add existing contact */}
-            {participantMode === "existing" && (
-              <div className="flex flex-col gap-3 border-t border-[#e5e7eb] pt-4">
-                <p
-                  className="text-[12px] font-semibold text-[#1f2937]"
-                  style={mont}
-                >
-                  Add Existing Contact as Participant
-                </p>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass} style={mont}>
-                    Select Contact *
-                  </label>
-
-                  <input
-                    value={existingSearch}
-                    onChange={(e) => setExistingSearch(e.target.value)}
-                    placeholder="Search contacts by name or email..."
-                    className="h-10 w-full min-w-0 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
-                    style={mont}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass} style={mont}>
-                    Role in Contract *
-                  </label>
-
-                  <div className="relative">
-                    <select
-                      value={existingRole}
-                      onChange={(e) => setExistingRole(e.target.value)}
-                      className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-white pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
-                      style={mont}
-                    >
-                      <option value="">Select role</option>
-                      <option value="Buyer">Buyer</option>
-                      <option value="Seller">Seller</option>
-                      <option value="Agent">Agent</option>
-                      <option value="Tenant">Tenant</option>
-                      <option value="Landlord">Landlord</option>
-                    </select>
-
-                    <ChevronDown
-                      size={18}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                  <button
-                    type="button"
-                    onClick={addExistingParticipant}
-                    className="flex h-10 w-full items-center justify-center gap-2 rounded-[8px] bg-[#1e4f86] px-4 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:h-9 sm:w-auto"
-                    style={mont}
-                  >
-                    <UserPlus size={16} className="shrink-0" />
-                    Add to Contract
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setParticipantMode("none")}
-                    className="h-10 w-full rounded-[8px] border border-[#e5e7eb] bg-white px-4 text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] sm:h-9 sm:w-auto"
-                    style={mont}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* New contact creation */}
-            {participantMode === "new" && (
-              <div className="flex flex-col gap-3 border-t border-[#e5e7eb] pt-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#d1d5db] text-[11px] font-semibold text-[#6b7280]"
-                    style={mont}
-                  >
-                    ?
-                  </div>
-
-                  <div className="min-w-0">
-                    <p
-                      className="text-[12px] font-medium text-[#111827]"
-                      style={mont}
-                    >
-                      New Contact
-                    </p>
-
-                    <p
-                      className="truncate text-[11px] text-[#9ca3af]"
-                      style={mont}
-                    >
-                      Enter contact information
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-[12px] text-[#6b7280]" style={mont}>
-                  Contact Information
-                </p>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>
-                      First Name *
-                    </label>
-
-                    <input
-                      value={ncFirst}
-                      onChange={(e) => setNcFirst(e.target.value)}
-                      placeholder="e.g. Jane"
-                      className="h-10 w-full min-w-0 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
-                      style={mont}
-                    />
-                  </div>
-
-                  <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>
-                      Last Name *
-                    </label>
-
-                    <input
-                      value={ncLast}
-                      onChange={(e) => setNcLast(e.target.value)}
-                      placeholder="e.g. Smith"
-                      className="h-10 w-full min-w-0 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
-                      style={mont}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>
-                      Email Address *
-                    </label>
-
-                    <input
-                      type="email"
-                      value={ncEmail}
-                      onChange={(e) => setNcEmail(e.target.value)}
-                      placeholder="jane@example.com"
-                      className="h-10 w-full min-w-0 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
-                      style={mont}
-                    />
-                  </div>
-
-                  <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>
-                      Phone Number
-                    </label>
-
-                    <input
-                      type="tel"
-                      value={ncPhone}
-                      onChange={(e) => setNcPhone(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
-                      className="h-10 w-full min-w-0 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
-                      style={mont}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass} style={mont}>
-                    Contact Type *
-                  </label>
-
-                  <div className="relative">
-                    <select
-                      value={ncType}
-                      onChange={(e) => setNcType(e.target.value)}
-                      className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-white pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
-                      style={mont}
-                    >
-                      <option value="">Select contact type</option>
-                      <option value="Buyer">Buyer</option>
-                      <option value="Seller">Seller</option>
-                    </select>
-
-                    <ChevronDown
-                      size={18}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                    />
-                  </div>
-                </div>
-
-                {/* Add as participant toggle */}
-                <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-3 sm:px-3.5">
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="text-[12px] font-semibold text-[#1f2937]"
-                      style={mont}
-                    >
-                      Add as contract participant
-                    </p>
-
-                    <p
-                      className="mt-0.5 text-[11px] leading-4 text-[#6b7280]"
-                      style={mont}
-                    >
-                      Link this new contact directly to this contract
-                    </p>
-                  </div>
-
-                  <div className="shrink-0">
-                    <Toggle
-                      checked={ncLinkAsParticipant}
-                      onChange={setNcLinkAsParticipant}
-                    />
-                  </div>
-                </div>
-
-                {ncLinkAsParticipant && (
-                  <div className="flex flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>
-                      Role in Contract *
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        value={ncRole}
-                        onChange={(e) => setNcRole(e.target.value)}
-                        className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-white pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
-                        style={mont}
-                      >
-                        <option value="">Select role in this contract</option>
-                        <option value="Buyer">Buyer</option>
-                        <option value="Seller">Seller</option>
-                        <option value="Agent">Agent</option>
-                        <option value="Tenant">Tenant</option>
-                        <option value="Landlord">Landlord</option>
-                      </select>
-
-                      <ChevronDown
-                        size={18}
-                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                  <button
-                    type="button"
-                    onClick={createNewParticipant}
-                    className="flex h-10 w-full items-center justify-center gap-2 rounded-[8px] bg-[#1e4f86] px-4 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:h-9 sm:w-auto"
-                    style={mont}
-                  >
-                    <UserPlus size={16} className="shrink-0" />
-                    Create &amp; Add to Contract
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setParticipantMode("none")}
-                    className="h-10 w-full rounded-[8px] border border-[#e5e7eb] bg-white px-4 text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] sm:h-9 sm:w-auto"
-                    style={mont}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Listing / Status */}
+          {/* Contact / Property / Agent */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-2">
-              <label className={labelClass} style={mont}>
-                Listing *
-              </label>
+              <label className={labelClass} style={mont}>Contact *</label>
+              <ContactPicker
+                value={contactId}
+                label={contactLabel}
+                onSelect={(id, lbl) => { setContactId(id); setContactLabel(lbl); }}
+                placeholder="Search and select contact…"
+              />
+            </div>
+            <div className="flex min-w-0 flex-col gap-2">
+              <label className={labelClass} style={mont}>Property Listing</label>
+              <ListingPicker
+                tone="neutral"
+                value={propertyId}
+                label={propertyLabel}
+                onSelect={(id, lbl) => { setPropertyId(id); setPropertyLabel(lbl); }}
+                placeholder="Select listing…"
+              />
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+            <div className="flex min-w-0 flex-col gap-2">
+              <label className={labelClass} style={mont}>Assigned Agent</label>
+              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" />
+            </div>
+            <div className="flex min-w-0 flex-col gap-2">
+              <label className={labelClass} style={mont}>Contract Value</label>
               <div className="relative">
-                <select
-                  required
-                  value={listing}
-                  onChange={(e) => setListing(e.target.value)}
-                  className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>$</span>
+                <input
+                  type="number"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder="0.00"
+                  className={`${inputClass} w-full pl-7`}
                   style={mont}
-                >
-                  <option value="">Select Listing</option>
-                  <option value="Sierra Lakeview Estate">
-                    Sierra Lakeview Estate
-                  </option>
-                  <option value="Palermo Loft">Palermo Loft</option>
-                  <option value="Nordelta Villa">Nordelta Villa</option>
-                </select>
-
-                <ChevronDown
-                  size={18}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
                 />
               </div>
             </div>
+          </div>
 
+          {opportunityId && (
+            <div className="rounded-[10px] border border-[#c2dcff] bg-[#eff6ff] px-3.5 py-2.5 text-[12px] text-[#1e4f86]" style={mont}>
+              Linked to opportunity {opportunityLabel || opportunityId}
+            </div>
+          )}
+
+          {/* Dates / Status */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-2">
-              <label className={labelClass} style={mont}>
-                Status *
-              </label>
-
+              <label className={labelClass} style={mont}>Start Date</label>
+              <DatePickerField value={startDate} onChange={setStartDate} />
+            </div>
+            <div className="flex min-w-0 flex-col gap-2">
+              <label className={labelClass} style={mont}>End Date</label>
+              <DatePickerField value={endDate} onChange={setEndDate} />
+            </div>
+            <div className="flex min-w-0 flex-col gap-2">
+              <label className={labelClass} style={mont}>Status *</label>
               <div className="relative">
                 <select
                   required
@@ -670,111 +265,23 @@ export function AddContractModal({
                   className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
                   style={mont}
                 >
-                  <option value="Active">Active</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Completed">Completed</option>
+                  <option value={ContractStatus.ACTIVE}>Active</option>
+                  <option value={ContractStatus.PENDING}>Pending</option>
+                  <option value={ContractStatus.COMPLETED}>Completed</option>
+                  <option value={ContractStatus.DRAFT}>Draft</option>
+                  <option value={ContractStatus.CANCELLED}>Cancelled</option>
                 </select>
-
-                <ChevronDown
-                  size={18}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                />
+                <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]" />
               </div>
             </div>
           </div>
 
-          {/* Property Listings */}
-          <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-3 sm:p-4">
-            <div className="flex items-center gap-2">
-              <Home size={15} className="shrink-0 text-[#1e4f86]" />
-
-              <p
-                className="text-[14px] font-medium text-[#1e4f86]"
-                style={mont}
-              >
-                Property Listings
-              </p>
-            </div>
-
-            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-              Add properties this seller owns to identify and link them to this
-              contact.
-            </p>
-
-            <div className="flex flex-col gap-2.5">
-              {properties.map((property, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-white p-3 sm:flex-row sm:items-center"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                    <span
-                      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white"
-                      style={mont}
-                    >
-                      {index + 1}
-                    </span>
-
-                    <input
-                      value={property}
-                      onChange={(e) => updateProperty(index, e.target.value)}
-                      placeholder="Property address or listing ID"
-                      className="h-9 min-w-0 flex-1 rounded-[8px] border-[1.5px] border-[#c2dcff] bg-white px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
-                      style={mont}
-                    />
-                  </div>
-
-                  <div className="flex w-full items-center gap-2 sm:w-auto">
-                    <button
-                      type="button"
-                      className="flex h-9 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[8px] bg-[#1e4f86] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:flex-none"
-                      style={mont}
-                    >
-                      <ExternalLink size={12} className="shrink-0" />
-                      View Listing
-                    </button>
-
-                    {properties.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setProperties((prev) =>
-                            prev.filter((_, i) => i !== index),
-                          )
-                        }
-                        title="Remove"
-                        aria-label="Remove property"
-                        className="flex size-9 shrink-0 items-center justify-center rounded-[8px] border border-[#e5e7eb] bg-white text-[#6a7282] transition-colors hover:border-red-100 hover:bg-red-50 hover:text-[#fb2c36]"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setProperties((prev) => [...prev, ""])}
-              className="h-10 w-full rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-bold text-[#1e4f86] transition-colors hover:bg-[#eff6ff] sm:h-9 sm:w-auto sm:self-start"
-              style={mont}
-            >
-              Add Listing
-            </button>
-          </div>
-
           {/* Additional Details */}
           <div className="flex flex-col gap-4">
-            <p className="text-[14px] font-medium text-[#1f2937]" style={mont}>
-              Additional Details
-            </p>
+            <p className="text-[14px] font-medium text-[#1f2937]" style={mont}>Additional Details</p>
 
             <div className="flex flex-col gap-2">
-              <label className={labelClass} style={mont}>
-                Terms &amp; Conditions
-              </label>
-
+              <label className={labelClass} style={mont}>Terms &amp; Conditions</label>
               <textarea
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
@@ -786,24 +293,78 @@ export function AddContractModal({
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className={labelClass} style={mont}>
-                Contract Documents
-              </label>
+              <label className={labelClass} style={mont}>Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Internal notes..."
+                rows={2}
+                className="w-full resize-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-2.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
+                style={mont}
+              />
+            </div>
 
-              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed border-[#e5e7eb] bg-[#fafbfc] px-4 py-6 text-center">
-                <Upload size={24} className="text-[#9ca3af]" />
+            <div className="flex flex-col gap-2">
+              <label className={labelClass} style={mont}>Contract Documents</label>
 
-                <p
-                  className="text-[13px] font-medium text-[#6b7280]"
-                  style={mont}
+              {documents.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {documents.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between gap-3 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2.5">
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138] hover:text-[#1e4f86]">
+                        <FileText size={16} className="shrink-0 text-[#6a7282]" />
+                        <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{doc.fileName}</span>
+                        <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(doc.sizeBytes)}</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDocument(doc.id)}
+                        disabled={removeMutation.isPending}
+                        title="Remove"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!contractId ? (
+                <p className="rounded-[10px] border border-dashed border-[#e5e7eb] bg-[#fafbfc] px-4 py-4 text-center text-[12px] text-[#9ca3af]" style={mont}>
+                  Save the contract first, then attach documents from Edit.
+                </p>
+              ) : (
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+                  }}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed px-4 py-6 text-center transition-colors ${
+                    isDragOver ? "border-[#1e4f86] bg-[#eff6ff]" : "border-[#e5e7eb] bg-[#fafbfc]"
+                  }`}
                 >
-                  Click to upload or drag and drop
-                </p>
-
-                <p className="text-[11px] text-[#9ca3af]" style={mont}>
-                  PDF, DOC, DOCX up to 10MB
-                </p>
-              </div>
+                  {uploadMutation.isPending ? (
+                    <Loader2 size={24} className="animate-spin text-[#1e4f86]" />
+                  ) : (
+                    <Upload size={24} className="text-[#9ca3af]" />
+                  )}
+                  <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
+                    Click to upload or drag and drop
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; }}
+                    />
+                  </label>
+                  <p className="text-[11px] text-[#9ca3af]" style={mont}>PDF, DOC, DOCX up to 10MB</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -817,14 +378,13 @@ export function AddContractModal({
             >
               Cancel
             </button>
-
             <button
               type="submit"
               disabled={isSaving}
               className="h-[42px] w-full rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
               style={mont}
             >
-              {isSaving ? "Saving…" : "Create Contract"}
+              {isSaving ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Contract"}
             </button>
           </div>
         </form>

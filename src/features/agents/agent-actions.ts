@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
+import { computeCommissionAmount } from "@/lib/commission";
 import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 
 export type AgentDto = {
@@ -13,8 +14,33 @@ export type AgentDto = {
   city: string | null;
   role: "ADMIN" | "MANAGER" | "AGENT";
   status: UserStatus;
+  /** This agent's own computed commission earnings — sum of agentCommission
+   * amounts across their CLOSED_WON opportunities. Distinct from company
+   * revenue (Opportunity.dealSize), which is what the agent actually earned. */
+  totalEarnings: number;
   createdAt: string;
 };
+
+/** Sums each agent's computed commission earnings across their CLOSED_WON opportunities. */
+async function buildEarningsByAgent(): Promise<Map<string, number>> {
+  const rows = await prisma.opportunity.findMany({
+    where: { status: OpportunityStatus.CLOSED_WON, assignedAgentId: { not: null } },
+    select: { assignedAgentId: true, dealSize: true, agentCommissionValue: true, agentCommissionUnit: true },
+  });
+
+  const earnings = new Map<string, number>();
+  for (const row of rows) {
+    if (!row.assignedAgentId) continue;
+    const amount = computeCommissionAmount(
+      row.dealSize !== null ? Number(row.dealSize) : null,
+      row.agentCommissionValue !== null ? Number(row.agentCommissionValue) : null,
+      row.agentCommissionUnit,
+    );
+    if (!amount) continue;
+    earnings.set(row.assignedAgentId, (earnings.get(row.assignedAgentId) ?? 0) + amount);
+  }
+  return earnings;
+}
 
 export type AgentMetrics = {
   total: number;
@@ -44,7 +70,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, revenueAgg, totalListings, totalListingsNewThisMonth] =
+  const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, revenueAgg, totalListings, totalListingsNewThisMonth, earningsByAgent] =
     await Promise.all([
       prisma.profile.findMany({
         where: {
@@ -72,6 +98,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
       prisma.opportunity.aggregate({ where: { status: OpportunityStatus.CLOSED_WON }, _sum: { dealSize: true } }),
       prisma.property.count(),
       prisma.property.count({ where: { createdAt: { gte: startOfMonth } } }),
+      buildEarningsByAgent(),
     ]);
 
   const agents: AgentDto[] = profiles.map((p) => ({
@@ -82,6 +109,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
     city: p.city,
     role: p.role as "ADMIN" | "MANAGER" | "AGENT",
     status: p.status,
+    totalEarnings: earningsByAgent.get(p.id) ?? 0,
     createdAt: p.createdAt.toISOString(),
   }));
 
@@ -183,6 +211,8 @@ export async function updateAgent(
     newValues: { fullName: updated.fullName, phone: updated.phone, city: updated.city, role: updated.role },
   });
 
+  const earningsByAgent = await buildEarningsByAgent();
+
   return {
     ok: true,
     agent: {
@@ -193,6 +223,7 @@ export async function updateAgent(
       city: updated.city,
       role: updated.role as "ADMIN" | "MANAGER" | "AGENT",
       status: updated.status,
+      totalEarnings: earningsByAgent.get(updated.id) ?? 0,
       createdAt: updated.createdAt.toISOString(),
     },
   };
@@ -265,7 +296,7 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     return { ok: false, error: "Agent not found.", status: 404 };
   }
 
-  const [properties, totalDeals, openDeals, revenueAgg] = await Promise.all([
+  const [properties, totalDeals, openDeals, revenueAgg, wonOpportunities] = await Promise.all([
     prisma.property.findMany({
       where: { assignedAgentId: agentId },
       select: {
@@ -290,7 +321,20 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
       where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON },
       _sum: { dealSize: true },
     }),
+    prisma.opportunity.findMany({
+      where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON },
+      select: { dealSize: true, agentCommissionValue: true, agentCommissionUnit: true },
+    }),
   ]);
+
+  const totalEarnings = wonOpportunities.reduce((sum, o) => {
+    const amount = computeCommissionAmount(
+      o.dealSize !== null ? Number(o.dealSize) : null,
+      o.agentCommissionValue !== null ? Number(o.agentCommissionValue) : null,
+      o.agentCommissionUnit,
+    );
+    return sum + (amount ?? 0);
+  }, 0);
 
   const agent: AgentDetailDto = {
     id: profile.id,
@@ -300,6 +344,7 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     city: profile.city,
     role: profile.role as "ADMIN" | "MANAGER" | "AGENT",
     status: profile.status,
+    totalEarnings,
     createdAt: profile.createdAt.toISOString(),
     totalListings: properties.length,
     totalDeals,

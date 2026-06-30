@@ -5,6 +5,10 @@ import { requirePermission } from "@/lib/require-permission";
 import { OpportunityStage, OpportunityStatus, ContactType } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
+import { logActivity } from "@/lib/activity-log";
+import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
+import { computeCommissionAmount } from "@/lib/commission";
+import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
 import type { CreateOpportunityInput, UpdateOpportunityInput } from "@/schemas/opportunity.schema";
 import type { OpportunityDto, OpportunityMetrics } from "./types/crm-dto";
@@ -39,14 +43,23 @@ type OppWithRelations = {
   stage: OpportunityStage; status: OpportunityStatus;
   probability: number; commission: unknown; commissionUnit: string | null;
   paymentTerms: string | null; contractStart: Date | null; contractEnd: Date | null;
-  expectedCloseAt: Date | null; agentCommission: string | null; notes: string | null;
+  expectedCloseAt: Date | null;
+  agentCommissionValue: unknown; agentCommissionUnit: string | null;
+  notes: string | null;
   assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
   contact: { firstName: string; lastName: string; type: ContactType } | null;
   property: { title: string; slug: string } | null;
 };
 
-function toOpportunityDto(o: OppWithRelations): OpportunityDto {
+function toOpportunityDto(
+  o: OppWithRelations,
+  agentMap: Map<string, { id: string; fullName: string | null; email: string }>,
+): OpportunityDto {
+  const dealSize = o.dealSize !== null ? Number(o.dealSize) : null;
+  const commission = o.commission !== null ? Number(o.commission) : null;
+  const agentCommissionValue = o.agentCommissionValue !== null ? Number(o.agentCommissionValue) : null;
+
   return {
     id: o.id,
     opportunityId: o.opportunityId,
@@ -58,19 +71,23 @@ function toOpportunityDto(o: OppWithRelations): OpportunityDto {
     propertyTitle: o.property?.title ?? null,
     propertySlug: o.property?.slug ?? null,
     dealType: o.dealType,
-    dealSize: o.dealSize !== null ? Number(o.dealSize) : null,
+    dealSize,
     stage: o.stage,
     status: o.status,
     probability: o.probability,
-    commission: o.commission !== null ? Number(o.commission) : null,
+    commission,
     commissionUnit: o.commissionUnit,
+    commissionAmount: computeCommissionAmount(dealSize, commission, o.commissionUnit),
     paymentTerms: o.paymentTerms,
     contractStart: o.contractStart?.toISOString() ?? null,
     contractEnd: o.contractEnd?.toISOString() ?? null,
     expectedCloseAt: o.expectedCloseAt?.toISOString() ?? null,
-    agentCommission: o.agentCommission,
+    agentCommissionValue,
+    agentCommissionUnit: o.agentCommissionUnit,
+    agentCommissionAmount: computeCommissionAmount(dealSize, agentCommissionValue, o.agentCommissionUnit),
     notes: o.notes,
     assignedAgentId: o.assignedAgentId,
+    assignedAgentName: agentDisplayName(o.assignedAgentId ? agentMap.get(o.assignedAgentId) : null),
     createdById: o.createdById,
     createdAt: o.createdAt.toISOString(),
   };
@@ -90,12 +107,13 @@ export async function listOpportunities(): Promise<
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
   const rows = await prisma.opportunity.findMany({
-    where: opportunityRecordScope(gate.profile),
+    where: { isDeleted: false, ...opportunityRecordScope(gate.profile) },
     include: opportunityInclude,
     orderBy: { createdAt: "desc" },
   });
 
-  const dtos = rows.map(toOpportunityDto);
+  const agentMap = await buildAgentMap(rows.map((r) => r.assignedAgentId));
+  const dtos = rows.map((r) => toOpportunityDto(r, agentMap));
   const totalValue = dtos.reduce((sum, o) => sum + (o.dealSize ?? 0), 0);
 
   return {
@@ -109,6 +127,22 @@ export async function listOpportunities(): Promise<
       totalValue,
     },
   };
+}
+
+// ── Get single ────────────────────────────────────────────────────────────────
+
+export async function getOpportunity(id: string): Promise<CrmActionResult<{ opportunity: OpportunityDto }>> {
+  const gate = await requirePermission("opportunities:view");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const opp = await prisma.opportunity.findFirst({
+    where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    include: opportunityInclude,
+  });
+  if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
+
+  const agentMap = await buildAgentMap([opp.assignedAgentId]);
+  return { ok: true, opportunity: toOpportunityDto(opp, agentMap) };
 }
 
 // ── Create ────────────────────────────────────────────────────────────────────
@@ -131,7 +165,6 @@ export async function createOpportunity(
     data: {
       ...fields,
       opportunityId,
-      contactId: fields.contactId || null,
       propertyId: fields.propertyId || null,
       contractStart: contractStart ? new Date(contractStart) : null,
       contractEnd: contractEnd ? new Date(contractEnd) : null,
@@ -141,7 +174,16 @@ export async function createOpportunity(
     include: opportunityInclude,
   });
 
-  return { ok: true, opportunity: toOpportunityDto(opp) };
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "OPPORTUNITY_CREATED",
+    entityType: "OPPORTUNITY",
+    entityId: opp.id,
+    newValues: { title: opp.title, contactId: opp.contactId, stage: opp.stage, status: opp.status, dealSize: fields.dealSize ?? null },
+  });
+
+  const agentMap = await buildAgentMap([opp.assignedAgentId]);
+  return { ok: true, opportunity: toOpportunityDto(opp, agentMap) };
 }
 
 // ── Update ────────────────────────────────────────────────────────────────────
@@ -153,12 +195,12 @@ export async function updateOpportunity(
   const gate = await requirePermission("opportunities:update");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const existing = await prisma.opportunity.findUnique({
+    where: { id },
+    select: { isDeleted: true, assignedAgentId: true, createdById: true, title: true, stage: true, status: true, dealSize: true },
+  });
+  if (!existing || existing.isDeleted) return { ok: false, error: "Opportunity not found.", status: 404 };
   if (!hasPermission(gate.profile.role, "opportunities:view_all")) {
-    const existing = await prisma.opportunity.findUnique({
-      where: { id },
-      select: { assignedAgentId: true, createdById: true },
-    });
-    if (!existing) return { ok: false, error: "Opportunity not found.", status: 404 };
     if (existing.assignedAgentId !== gate.profile.id && existing.createdById !== gate.profile.id) {
       return { ok: false, error: "You can only update your own or assigned opportunities.", status: 403 };
     }
@@ -184,5 +226,106 @@ export async function updateOpportunity(
     include: opportunityInclude,
   });
 
-  return { ok: true, opportunity: toOpportunityDto(opp) };
+  const statusChanged = fields.status && fields.status !== existing.status;
+  const stageChanged = fields.stage && fields.stage !== existing.stage;
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: statusChanged || stageChanged ? "OPPORTUNITY_STATUS_CHANGED" : "OPPORTUNITY_UPDATED",
+    entityType: "OPPORTUNITY",
+    entityId: id,
+    oldValues: { title: existing.title, stage: existing.stage, status: existing.status, dealSize: existing.dealSize ? Number(existing.dealSize) : null },
+    newValues: { title: opp.title, stage: opp.stage, status: opp.status, dealSize: opp.dealSize ? Number(opp.dealSize) : null },
+  });
+
+  if (statusChanged && (opp.status === OpportunityStatus.CLOSED_WON || opp.status === OpportunityStatus.CLOSED_LOST)) {
+    void notifyOpportunityClosed({
+      opportunityId: opp.id,
+      title: opp.title,
+      won: opp.status === OpportunityStatus.CLOSED_WON,
+      assignedAgentId: opp.assignedAgentId,
+      actorId: gate.profile.id,
+    });
+  } else if (stageChanged) {
+    void notifyOpportunityStageChanged({
+      opportunityId: opp.id,
+      title: opp.title,
+      assignedAgentId: opp.assignedAgentId,
+      actorId: gate.profile.id,
+      occurredAt: opp.updatedAt,
+    });
+  }
+
+  const agentMap = await buildAgentMap([opp.assignedAgentId]);
+  return { ok: true, opportunity: toOpportunityDto(opp, agentMap) };
+}
+
+// ── Soft delete ───────────────────────────────────────────────────────────────
+
+export async function deleteOpportunity(id: string): Promise<CrmActionResult<{ id: string }>> {
+  const gate = await requirePermission("opportunities:delete");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const existing = await prisma.opportunity.findUnique({ where: { id }, select: { title: true, isDeleted: true } });
+  if (!existing || existing.isDeleted) return { ok: false, error: "Opportunity not found.", status: 404 };
+
+  await prisma.opportunity.update({ where: { id }, data: { isDeleted: true, deletedAt: new Date() } });
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "OPPORTUNITY_DELETED",
+    entityType: "OPPORTUNITY",
+    entityId: id,
+    oldValues: { title: existing.title, isDeleted: false },
+    newValues: { isDeleted: true, deletedAt: new Date().toISOString() },
+  });
+
+  return { ok: true, id };
+}
+
+// ── Create Contract from a Won Opportunity (Option A pre-fill) ─────────────────
+
+export type ContractDraft = {
+  title: string;
+  contactId: string | null;
+  propertyId: string | null;
+  assignedAgentId: string | null;
+  opportunityId: string;
+  value: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  type: "SALE" | "RENT" | "SALE_AND_RENT";
+};
+
+/**
+ * Returns a pre-filled Contract draft from a CLOSED_WON Opportunity — the
+ * human still confirms/saves it through the normal create-contract flow
+ * (Option A, per the 2026-06-26 client decision: Opportunities and Contracts
+ * stay separate, linked records with a one-click pre-fill, not a merge).
+ */
+export async function createContractFromOpportunity(id: string): Promise<CrmActionResult<{ draft: ContractDraft }>> {
+  const gate = await requirePermission("contracts:create");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const opp = await prisma.opportunity.findFirst({
+    where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+  });
+  if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
+  if (opp.status !== OpportunityStatus.CLOSED_WON) {
+    return { ok: false, error: "Only a Closed Won opportunity can be turned into a contract.", status: 400 };
+  }
+
+  const draft: ContractDraft = {
+    title: opp.title,
+    contactId: opp.contactId,
+    propertyId: opp.propertyId,
+    assignedAgentId: opp.assignedAgentId,
+    opportunityId: opp.id,
+    value: opp.dealSize !== null ? Number(opp.dealSize) : null,
+    startDate: opp.contractStart?.toISOString() ?? null,
+    endDate: opp.contractEnd?.toISOString() ?? null,
+    type: opp.dealType === "Rent" ? "RENT" : "SALE",
+  };
+
+  return { ok: true, draft };
 }
