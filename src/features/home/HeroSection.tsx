@@ -1,49 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import svgPaths from "@/assets/svg-6s7nojygyu";
-
-type PanelPosition = { top: number; left: number; width: number; maxHeight: number };
-
-/** Tracks `top`/`left`/`width` of `triggerRef`'s element while `open`, for a `fixed`-position portal panel. */
-function useFloatingPosition(open: boolean, triggerRef: React.RefObject<HTMLElement | null>) {
-  const [position, setPosition] = useState<PanelPosition | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function update() {
-      const rect = triggerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const top = rect.bottom + 6;
-      // On iOS the on-screen keyboard shrinks the visual viewport; use it (when
-      // available) so the panel is capped to the space actually visible above
-      // the keyboard instead of running underneath it.
-      const vv = window.visualViewport;
-      const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
-      const maxHeight = Math.max(140, visibleBottom - top - 12);
-      setPosition({ top, left: rect.left, width: rect.width, maxHeight });
-    }
-    update();
-    window.addEventListener("resize", update);
-    // capture: true catches scroll on any scrollable ancestor, not just window
-    window.addEventListener("scroll", update, true);
-    // iOS Safari fires keyboard show/hide and focus-scroll on visualViewport,
-    // NOT on window — without these the fixed panel detaches from its trigger.
-    const vv = window.visualViewport;
-    vv?.addEventListener("resize", update);
-    vv?.addEventListener("scroll", update);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-      vv?.removeEventListener("resize", update);
-      vv?.removeEventListener("scroll", update);
-    };
-  }, [open, triggerRef]);
-
-  return position;
-}
 
 const heroImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.webp";
@@ -137,26 +96,20 @@ function HeroDropdown({
   onSelect: (index: number) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const position = useFloatingPosition(open, triggerRef);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (triggerRef.current?.contains(target)) return;
-      if (panelRef.current?.contains(target)) return;
-      setOpen(false);
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
   return (
-    <div className="relative w-full">
+    <div ref={rootRef} className="relative w-full">
       <button
-        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex h-[50px] lg:h-[54px] w-full items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5 cursor-pointer"
@@ -172,39 +125,26 @@ function HeroDropdown({
         </div>
         <ChevronDown />
       </button>
-      {open && position
-        ? createPortal(
-            <div
-              ref={panelRef}
-              style={{
-                position: "fixed",
-                top: position.top,
-                left: position.left,
-                width: position.width,
-                maxHeight: position.maxHeight,
+      {open ? (
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full z-50 max-h-[280px] overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
+          {options.map((opt, index) => (
+            <button
+              key={opt.label}
+              type="button"
+              onClick={() => {
+                onSelect(index);
+                setOpen(false);
               }}
-              className="z-50 overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg"
+              className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
+                index === selectedIndex ? "text-[#00528f] font-medium" : "text-[#4a5565]"
+              }`}
+              style={{ fontFamily: "Poppins, sans-serif" }}
             >
-              {options.map((opt, index) => (
-                <button
-                  key={opt.label}
-                  type="button"
-                  onClick={() => {
-                    onSelect(index);
-                    setOpen(false);
-                  }}
-                  className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
-                    index === selectedIndex ? "text-[#00528f] font-medium" : "text-[#4a5565]"
-                  }`}
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>,
-            document.body,
-          )
-        : null}
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -220,16 +160,11 @@ export function HeroSection() {
   const [locationOpen, setLocationOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const locationRef = useRef<HTMLDivElement>(null);
-  const locationPanelRef = useRef<HTMLDivElement>(null);
-  const locationPosition = useFloatingPosition(locationOpen, locationRef);
 
   useEffect(() => {
     if (!locationOpen) return;
     const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (locationRef.current?.contains(target)) return;
-      if (locationPanelRef.current?.contains(target)) return;
-      setLocationOpen(false);
+      if (!locationRef.current?.contains(e.target as Node)) setLocationOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -264,8 +199,8 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative w-full min-h-[760px] overflow-hidden sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]">
-      <div className="absolute inset-0">
+    <section className="relative w-full min-h-[760px] sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]">
+      <div className="absolute inset-0 overflow-hidden">
         <img
           src={heroImg}
           alt="Luxury property"
@@ -369,37 +304,24 @@ export function HeroSection() {
               <ChevronDown />
             </div>
 
-            {locationOpen && suggestions.length > 0 && locationPosition
-              ? createPortal(
-                  <div
-                    ref={locationPanelRef}
-                    style={{
-                      position: "fixed",
-                      top: locationPosition.top,
-                      left: locationPosition.left,
-                      width: locationPosition.width,
-                      maxHeight: locationPosition.maxHeight,
+            {locationOpen && suggestions.length > 0 ? (
+              <div className="absolute top-[calc(100%+6px)] left-0 w-full z-50 max-h-[280px] overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
+                {suggestions.map((sugg) => (
+                  <button
+                    key={sugg}
+                    type="button"
+                    onClick={() => {
+                      setLocation(sugg);
+                      setLocationOpen(false);
                     }}
-                    className="z-50 overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg"
+                    className="w-full truncate px-4 py-2.5 text-left text-[14px] text-[#4a5565] hover:bg-[#f3f4f6] transition-colors cursor-pointer"
+                    style={{ fontFamily: "Poppins, sans-serif" }}
                   >
-                    {suggestions.map((sugg) => (
-                      <button
-                        key={sugg}
-                        type="button"
-                        onClick={() => {
-                          setLocation(sugg);
-                          setLocationOpen(false);
-                        }}
-                        className="w-full truncate px-4 py-2.5 text-left text-[14px] text-[#4a5565] hover:bg-[#f3f4f6] transition-colors cursor-pointer"
-                        style={{ fontFamily: "Poppins, sans-serif" }}
-                      >
-                        {sugg}
-                      </button>
-                    ))}
-                  </div>,
-                  document.body,
-                )
-              : null}
+                    {sugg}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
 
