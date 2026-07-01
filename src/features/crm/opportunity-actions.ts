@@ -7,7 +7,7 @@ import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
-import { computeCommissionAmount } from "@/lib/commission";
+import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
 import type { CreateOpportunityInput, UpdateOpportunityInput } from "@/schemas/opportunity.schema";
@@ -115,6 +115,9 @@ export async function listOpportunities(): Promise<
   const agentMap = await buildAgentMap(rows.map((r) => r.assignedAgentId));
   const dtos = rows.map((r) => toOpportunityDto(r, agentMap));
   const totalValue = dtos.reduce((sum, o) => sum + (o.dealSize ?? 0), 0);
+  const totalRevenue = rows
+    .filter((r) => r.status === OpportunityStatus.CLOSED_WON)
+    .reduce((sum, r) => sum + resolveCompanyRevenue(r), 0);
 
   return {
     ok: true,
@@ -125,6 +128,7 @@ export async function listOpportunities(): Promise<
       closedWon: dtos.filter((o) => o.status === OpportunityStatus.CLOSED_WON).length,
       closedLost: dtos.filter((o) => o.status === OpportunityStatus.CLOSED_LOST).length,
       totalValue,
+      totalRevenue,
     },
   };
 }

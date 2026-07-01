@@ -36,6 +36,7 @@ export type ContactMetrics = {
   total: number;
   buyers: number;
   sellers: number;
+  both: number;
   withListings: number;
   withOpportunities: number;
 };
@@ -82,6 +83,9 @@ export type OpportunityMetrics = {
   closedWon: number;
   closedLost: number;
   totalValue: number;
+  /** Sum of resolved commission amounts for CLOSED_WON opportunities — the
+   * brokerage's actual revenue, not the raw deal size. */
+  totalRevenue: number;
 };
 
 // ── Contract ──────────────────────────────────────────────────────────────────

@@ -22,11 +22,10 @@ import {
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { ContactType, ContractStatus } from "@/generated/prisma/enums";
+import { ContactType } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { useDashboardContactsQuery } from "@/hooks/queries/useDashboardContactsQuery";
 import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
-import { useDashboardContractsQuery } from "@/hooks/queries/useDashboardContractsQuery";
 import {
   useCreateContactMutation,
   useUpdateContactMutation,
@@ -374,7 +373,6 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
   const { data, isLoading, isError } = useDashboardContactsQuery();
   const opportunitiesQuery = useDashboardOpportunitiesQuery();
-  const contractsQuery = useDashboardContractsQuery();
   const createMutation = useCreateContactMutation();
   const updateMutation = useUpdateContactMutation();
   const deleteMutation = useDeleteContactMutation();
@@ -389,12 +387,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const activeDealsCount = opportunitiesQuery.data?.metrics.open;
   const totalRevenue = useMemo(() => {
     if (!canViewRevenue) return null;
-    const contracts = contractsQuery.data?.contracts;
-    if (!contracts) return null;
-    return contracts
-      .filter((c) => c.status === ContractStatus.COMPLETED)
-      .reduce((sum, c) => sum + (c.value ?? 0), 0);
-  }, [contractsQuery.data, canViewRevenue]);
+    return opportunitiesQuery.data?.metrics.totalRevenue ?? null;
+  }, [opportunitiesQuery.data, canViewRevenue]);
   const contactsInOpportunitiesPct = data
     ? data.metrics.total > 0
       ? `${Math.round((data.metrics.withOpportunities / data.metrics.total) * 100)}%`
@@ -511,7 +505,11 @@ export function ContactsPage({ role }: ContactsPageProps) {
         <StatCard
           label="Total Contacts"
           value={isLoading ? "—" : String(data?.metrics.total ?? 0)}
-          note={data ? `${data.metrics.buyers} buyers · ${data.metrics.sellers} sellers` : undefined}
+          note={data ? [
+            data.metrics.buyers > 0 && `${data.metrics.buyers} buyers`,
+            data.metrics.sellers > 0 && `${data.metrics.sellers} sellers`,
+            data.metrics.both > 0 && `${data.metrics.both} both`,
+          ].filter(Boolean).join(" · ") : undefined}
           iconBg="#e8ebff"
           icon={
             <Building2
@@ -538,8 +536,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
         <StatCard
           label="Total Revenue"
-          value={!canViewRevenue ? "—" : contractsQuery.isLoading ? "—" : formatCurrency(totalRevenue ?? 0)}
-          note={!canViewRevenue ? "Admin only" : "From completed contracts"}
+          value={!canViewRevenue ? "—" : opportunitiesQuery.isLoading ? "—" : formatCurrency(totalRevenue ?? 0)}
+          note={!canViewRevenue ? "Admin only" : "From closed won opportunities"}
           iconBg="#fff1c8"
           icon={
             <DollarSign
