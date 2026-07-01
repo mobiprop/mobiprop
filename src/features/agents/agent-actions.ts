@@ -24,7 +24,7 @@ export type AgentDto = {
 /** Sums each agent's computed commission earnings across their CLOSED_WON opportunities. */
 async function buildEarningsByAgent(): Promise<Map<string, number>> {
   const rows = await prisma.opportunity.findMany({
-    where: { status: OpportunityStatus.CLOSED_WON, assignedAgentId: { not: null } },
+    where: { status: OpportunityStatus.CLOSED_WON, assignedAgentId: { not: null }, isDeleted: false },
     select: { assignedAgentId: true, dealSize: true, commission: true, commissionUnit: true, agentCommissionValue: true, agentCommissionUnit: true },
   });
 
@@ -90,12 +90,12 @@ export async function listAgents(): Promise<ListAgentsResult> {
       prisma.profile.count({
         where: { role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] }, createdAt: { gte: startOfMonth } },
       }),
-      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN } }),
-      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, createdAt: { gte: startOfMonth } } }),
+      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, isDeleted: false } }),
+      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, isDeleted: false, createdAt: { gte: startOfMonth } } }),
       // Company revenue = resolved commission (not deal size), so we need the
       // rows, not a DB _sum of dealSize.
       prisma.opportunity.findMany({
-        where: { status: OpportunityStatus.CLOSED_WON },
+        where: { status: OpportunityStatus.CLOSED_WON, isDeleted: false },
         select: { dealSize: true, commission: true, commissionUnit: true },
       }),
       prisma.property.count(),
@@ -314,14 +314,15 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
       },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.contract.count({ where: { assignedAgentId: agentId } }),
-    prisma.opportunity.count({ where: { assignedAgentId: agentId, status: OpportunityStatus.OPEN } }),
+    // Total deals = all non-deleted opportunities for this agent (across all statuses).
+    prisma.opportunity.count({ where: { assignedAgentId: agentId, isDeleted: false } }),
+    prisma.opportunity.count({ where: { assignedAgentId: agentId, status: OpportunityStatus.OPEN, isDeleted: false } }),
     // Revenue is driven by closed-won Opportunities, not Contracts (client decision,
     // see ulrich-claude-code-project-context.md §17) — a deal counts the moment it's
     // won, regardless of whether its Contract is signed yet. "Total Revenue" is the
     // resolved company commission; "Total Earnings" is the resolved agent commission.
     prisma.opportunity.findMany({
-      where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON },
+      where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON, isDeleted: false },
       select: {
         dealSize: true, commission: true, commissionUnit: true,
         agentCommissionValue: true, agentCommissionUnit: true,

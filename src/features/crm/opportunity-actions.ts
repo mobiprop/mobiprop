@@ -294,9 +294,12 @@ export async function deleteOpportunity(id: string): Promise<CrmActionResult<{ i
 export type ContractDraft = {
   title: string;
   contactId: string | null;
+  contactName: string | null;
   propertyId: string | null;
+  propertyTitle: string | null;
   assignedAgentId: string | null;
   opportunityId: string;
+  opportunityNumber: string;
   value: number | null;
   startDate: string | null;
   endDate: string | null;
@@ -315,6 +318,10 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
 
   const opp = await prisma.opportunity.findFirst({
     where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    include: {
+      contact: { select: { firstName: true, lastName: true } },
+      property: { select: { title: true } },
+    },
   });
   if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
   if (opp.status !== OpportunityStatus.CLOSED_WON) {
@@ -324,9 +331,12 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
   const draft: ContractDraft = {
     title: opp.title,
     contactId: opp.contactId,
+    contactName: opp.contact ? `${opp.contact.firstName} ${opp.contact.lastName}`.trim() : null,
     propertyId: opp.propertyId,
+    propertyTitle: opp.property?.title ?? null,
     assignedAgentId: opp.assignedAgentId,
     opportunityId: opp.id,
+    opportunityNumber: opp.opportunityId,
     value: opp.dealSize !== null ? Number(opp.dealSize) : null,
     startDate: opp.contractStart?.toISOString() ?? null,
     endDate: opp.contractEnd?.toISOString() ?? null,

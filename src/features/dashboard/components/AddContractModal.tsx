@@ -66,12 +66,12 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
   const [type, setType] = useState<ContractType>(initial?.type ?? draft?.type ?? ContractType.SALE);
   const [status, setStatus] = useState<ContractStatus>(initial?.status ?? ContractStatus.ACTIVE);
   const [contactId, setContactId] = useState(initial?.contactId ?? draft?.contactId ?? "");
-  const [contactLabel, setContactLabel] = useState(initial?.contactName ?? "");
+  const [contactLabel, setContactLabel] = useState(initial?.contactName ?? draft?.contactName ?? "");
   const [propertyId, setPropertyId] = useState(initial?.propertyId ?? draft?.propertyId ?? "");
-  const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? "");
+  const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? draft?.propertyTitle ?? "");
   const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? draft?.assignedAgentId ?? lockedAgent?.id ?? "");
   const [opportunityId] = useState(initial?.opportunityId ?? draft?.opportunityId ?? "");
-  const [opportunityLabel] = useState(initial?.opportunityNumber ?? "");
+  const [opportunityLabel] = useState(initial?.opportunityNumber ?? draft?.opportunityNumber ?? "");
   const [value, setValue] = useState(initial?.value != null ? String(initial.value) : draft?.value != null ? String(draft.value) : "");
   const [startDate, setStartDate] = useState(initial?.startDate?.slice(0, 10) ?? draft?.startDate?.slice(0, 10) ?? "");
   const [endDate, setEndDate] = useState(initial?.endDate?.slice(0, 10) ?? draft?.endDate?.slice(0, 10) ?? "");
