@@ -84,3 +84,17 @@ body {
 .animate-global-loading-bar {
   animation: global-loading-bar 1.1s ease-in-out infinite;
 }
+
+/*
+ * iOS Safari auto-zooms into any form control with a font-size below 16px on
+ * focus and never zooms back out. Force at least 16px on touch devices so the
+ * viewport stays put — desktop typography and pinch-to-zoom are untouched.
+ * `!important` is required to win over Tailwind's text-[14px] utilities.
+ */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
