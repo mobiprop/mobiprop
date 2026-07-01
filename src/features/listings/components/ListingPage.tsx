@@ -488,7 +488,7 @@ function SearchBarDropdown<T extends string>({
         </span>
       </button>
       {open ? (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 overflow-hidden">
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 max-h-[280px] overflow-y-auto overscroll-contain">
           {options.map((opt) => (
             <button
               key={opt.value || "all"}
@@ -776,7 +776,7 @@ return (
         </div>
 
         {locationOpen && locationSuggestions.length > 0 ? (
-          <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 overflow-hidden">
+          <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 max-h-[280px] overflow-y-auto overscroll-contain">
             {locationSuggestions.map((sugg) => (
               <button
                 key={sugg}

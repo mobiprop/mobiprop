@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
-type PanelPosition = { top: number; left: number; width: number };
+type PanelPosition = { top: number; left: number; width: number; maxHeight: number };
 
 /** Tracks `top`/`left`/`width` of `triggerRef`'s element while `open`, for a `fixed`-position portal panel. */
 function useFloatingPosition(open: boolean, triggerRef: React.RefObject<HTMLElement | null>) {
@@ -16,15 +16,29 @@ function useFloatingPosition(open: boolean, triggerRef: React.RefObject<HTMLElem
     function update() {
       const rect = triggerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setPosition({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+      const top = rect.bottom + 6;
+      // On iOS the on-screen keyboard shrinks the visual viewport; use it (when
+      // available) so the panel is capped to the space actually visible above
+      // the keyboard instead of running underneath it.
+      const vv = window.visualViewport;
+      const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const maxHeight = Math.max(140, visibleBottom - top - 12);
+      setPosition({ top, left: rect.left, width: rect.width, maxHeight });
     }
     update();
     window.addEventListener("resize", update);
     // capture: true catches scroll on any scrollable ancestor, not just window
     window.addEventListener("scroll", update, true);
+    // iOS Safari fires keyboard show/hide and focus-scroll on visualViewport,
+    // NOT on window — without these the fixed panel detaches from its trigger.
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
     };
   }, [open, triggerRef]);
 
@@ -162,8 +176,14 @@ function HeroDropdown({
         ? createPortal(
             <div
               ref={panelRef}
-              style={{ position: "fixed", top: position.top, left: position.left, width: position.width }}
-              className="z-50 overflow-hidden rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg"
+              style={{
+                position: "fixed",
+                top: position.top,
+                left: position.left,
+                width: position.width,
+                maxHeight: position.maxHeight,
+              }}
+              className="z-50 overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg"
             >
               {options.map((opt, index) => (
                 <button
@@ -358,8 +378,9 @@ export function HeroSection() {
                       top: locationPosition.top,
                       left: locationPosition.left,
                       width: locationPosition.width,
+                      maxHeight: locationPosition.maxHeight,
                     }}
-                    className="z-50 overflow-hidden rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg"
+                    className="z-50 overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg"
                   >
                     {suggestions.map((sugg) => (
                       <button
