@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import { ScheduleTourModal } from "./ScheduleTourModal";
+import { ImageLightbox } from "./ImageLightbox";
 import svgPaths from "./singleListingSvgPaths";
 import type { PublicListingAgent } from "../listing-actions";
 import type { PublicListingDto } from "../types/listing-dto";
@@ -547,6 +548,7 @@ export function SingleListingPageContent({
   const [copied, setCopied] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [tourModalOpen, setTourModalOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const { isSaved, toggleSave } = useSavedListings();
   const saved = isSaved(listing.listingId);
 
@@ -560,9 +562,14 @@ export function SingleListingPageContent({
   const shareText = `${listing.title} — ${listing.location}`;
   const openShare = (url: string) => window.open(url, "_blank", "noopener,noreferrer");
 
-  const images = listing.images;
-  const mainImage = images.find((img) => img.isCover) ?? images[0] ?? null;
-  const sideImages = images.filter((img) => img !== mainImage).slice(0, 3);
+  // Cover first, then the rest in their stored order — this is the order the
+  // lightbox pages through, so the thumbnails' indexes map straight into it.
+  const mainImage = listing.images.find((img) => img.isCover) ?? listing.images[0] ?? null;
+  const images = mainImage
+    ? [mainImage, ...listing.images.filter((img) => img !== mainImage)]
+    : listing.images;
+  const sideImages = images.slice(1, 4);
+  const hiddenCount = images.length - 4;
 
   const stats = buildStats(listing);
   const listingAmenities = listing.amenities.map((key) => ({
@@ -601,14 +608,32 @@ export function SingleListingPageContent({
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
           {/* Main Image */}
           <div className="relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
-            <img
-              src={mainImage?.url ?? fallbackImg}
-              alt={mainImage?.altText ?? listing.title}
-              className="w-full h-full object-cover"
-            />
+            <button
+              type="button"
+              onClick={() => mainImage && setLightboxIndex(0)}
+              disabled={!mainImage}
+              aria-label="Open image gallery"
+              className="group absolute inset-0 h-full w-full cursor-zoom-in disabled:cursor-default"
+            >
+              <img
+                src={mainImage?.url ?? fallbackImg}
+                alt={mainImage?.altText ?? listing.title}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              />
+
+              {/* Expand hint */}
+              {mainImage ? (
+                <span className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[12px] sm:text-[13px] text-white opacity-90 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  View photos
+                </span>
+              ) : null}
+            </button>
 
             {/* Badges */}
-            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-wrap gap-1.5">
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-wrap gap-1.5 pointer-events-none">
               {badges.map((tag) => (
                 <span
                   key={tag}
@@ -625,30 +650,38 @@ export function SingleListingPageContent({
           {sideImages.length > 0 ? (
           <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2 sm:gap-4 w-full lg:w-[342px] lg:shrink-0">
             {sideImages.map((img, i) => (
-            <div
+            <button
               key={img.id}
-              className="relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px]"
+              type="button"
+              onClick={() => setLightboxIndex(i + 1)}
+              aria-label={`Open image gallery at photo ${i + 2}`}
+              className="group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
             >
               <img
                 src={img.url}
                 alt={img.altText ?? `${listing.title} view ${i + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
               />
 
-              {i === sideImages.length - 1 && images.length > sideImages.length + 1 ? (
-              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-white rounded-[50px] px-2.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1">
+              {/* Last visible tile shows how many more photos exist and, when
+                  clicked, opens the gallery at the first hidden photo. */}
+              {i === sideImages.length - 1 && hiddenCount > 0 ? (
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex(4);
+                }}
+                className="absolute inset-0 flex items-center justify-center bg-black/55 text-white transition-colors group-hover:bg-black/65"
+              >
                 <span
-                  className="text-[#232323] text-[10px] sm:text-[13px] lg:text-[14px] whitespace-nowrap"
-                  style={{
-                    fontFamily: "Montserrat, sans-serif",
-                    fontWeight: 500,
-                  }}
+                  className="text-[14px] sm:text-[18px] lg:text-[20px] whitespace-nowrap"
+                  style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
                 >
-                  +{images.length - sideImages.length - 1} more
+                  +{hiddenCount} more
                 </span>
-              </div>
+              </span>
               ) : null}
-            </div>
+            </button>
             ))}
           </div>
           ) : null}
@@ -1343,6 +1376,14 @@ export function SingleListingPageContent({
 
       {/* Footer spacer */}
       <div className="h-8" />
+
+      {/* Full-screen image gallery */}
+      <ImageLightbox
+        images={images}
+        startIndex={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        title={listing.title}
+      />
 
       {/* Tour request modal */}
       {tourModalOpen && (
