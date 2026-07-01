@@ -774,3 +774,35 @@ model LeadActivity {
   @@index([actorId], map: "lead_activities_actor_idx")
   @@map("lead_activities")
 }
+
+// ── Blog / CMS ───────────────────────────────────────────────────────────────
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// Editorial content authored from the dashboard Blog module. Body is Tiptap
+// HTML. Not yet wired to the public site — the public blog still renders static
+// content until this is connected.
+model BlogPost {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  title         String
+  // Fixed taxonomy enforced at the Zod layer (see BLOG_CATEGORIES); stored as
+  // text so new categories can be added without a migration.
+  category      String
+  excerpt       String?
+  content       String     // Tiptap-authored HTML
+  coverImageUrl String?    @map("cover_image_url")
+  author        String
+  status        BlogStatus @default(DRAFT)
+  publishedAt   DateTime?  @map("published_at")
+  createdById   String?    @map("created_by_id") @db.Uuid
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt], map: "blog_posts_status_published_idx")
+  @@index([category], map: "blog_posts_category_idx")
+  @@map("blog_posts")
+}

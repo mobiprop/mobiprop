@@ -4,10 +4,12 @@ import { randomUUID } from "crypto";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LISTING_IMAGE_MAX_BYTES } from "@/schemas/listing.schema";
+import { BLOG_COVER_MAX_BYTES } from "@/schemas/blog.schema";
 
 const AVATAR_BUCKET = "avatars";
 const PROPERTY_IMAGES_BUCKET = "property-images";
 const CONTRACT_DOCUMENTS_BUCKET = "contract-documents";
+const BLOG_IMAGES_BUCKET = "blog-images";
 
 export const CONTRACT_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB, matches the upload UI's stated cap
 const CONTRACT_DOCUMENT_MIME_TYPES = [
@@ -348,4 +350,77 @@ export async function removeContractDocumentObject(storagePath: string): Promise
   const supabase = createAdminClient();
   const { error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).remove([storagePath]);
   if (error) console.error("[storage] failed to remove contract document", error.message);
+}
+
+// ── Blog cover images ────────────────────────────────────────────────────────
+//
+// Blog covers are public (they'll render on the public site once wired), so the
+// bucket is public-read and covers get a stable public URL. Same signed-upload
+// pattern as property images — the browser uploads the (already client-side
+// optimized) file directly to storage; the server only mints the ticket.
+
+const BLOG_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+let blogBucketReady = false;
+
+async function ensureBlogImagesBucket(): Promise<void> {
+  if (blogBucketReady) return;
+
+  const supabase = createAdminClient();
+  const desiredOptions = {
+    public: true,
+    fileSizeLimit: BLOG_COVER_MAX_BYTES,
+    allowedMimeTypes: BLOG_IMAGE_MIME_TYPES,
+  };
+
+  const { data: existing } = await supabase.storage.getBucket(BLOG_IMAGES_BUCKET);
+  if (existing) {
+    const { error: updateError } = await supabase.storage.updateBucket(BLOG_IMAGES_BUCKET, desiredOptions);
+    if (updateError) {
+      console.error("[storage] could not raise blog-images bucket limits", updateError.message);
+    }
+    blogBucketReady = true;
+    return;
+  }
+
+  let { error } = await supabase.storage.createBucket(BLOG_IMAGES_BUCKET, desiredOptions);
+  if (error && !/already exists/i.test(error.message)) {
+    ({ error } = await supabase.storage.createBucket(BLOG_IMAGES_BUCKET, {
+      public: true,
+      allowedMimeTypes: BLOG_IMAGE_MIME_TYPES,
+    }));
+  }
+  if (error && !/already exists/i.test(error.message)) {
+    throw new Error(`Failed to create ${BLOG_IMAGES_BUCKET} bucket: ${error.message}`);
+  }
+  blogBucketReady = true;
+}
+
+export type BlogCoverUploadTicket = {
+  storagePath: string;
+  signedUrl: string;
+  token: string;
+  publicUrl: string;
+};
+
+/**
+ * Mints a single signed upload URL for a blog cover under `covers/{uuid}.{ext}`,
+ * returning the public URL the caller stores on the post once the upload lands.
+ */
+export async function mintBlogCoverUploadTicket(file: {
+  name: string;
+  type: string;
+}): Promise<BlogCoverUploadTicket> {
+  await ensureBlogImagesBucket();
+  const supabase = createAdminClient();
+
+  const storagePath = `covers/${randomUUID()}.${extensionForMime(file.type)}`;
+  const { data, error } = await supabase.storage
+    .from(BLOG_IMAGES_BUCKET)
+    .createSignedUploadUrl(storagePath);
+  if (error || !data) {
+    throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
+  }
+
+  const { data: pub } = supabase.storage.from(BLOG_IMAGES_BUCKET).getPublicUrl(storagePath);
+  return { storagePath, signedUrl: data.signedUrl, token: data.token, publicUrl: pub.publicUrl };
 }

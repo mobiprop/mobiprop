@@ -14,7 +14,8 @@ export type ActivityEntityType =
   | "TOUR"
   | "LOCATION"
   | "OPPORTUNITY"
-  | "CONTRACT";
+  | "CONTRACT"
+  | "BLOG_POST";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -90,7 +91,11 @@ export type ActivityAction =
   | "CONTRACT_STATUS_CHANGED"
   | "CONTRACT_DELETED"
   | "CONTRACT_DOCUMENT_UPLOADED"
-  | "CONTRACT_DOCUMENT_REMOVED";
+  | "CONTRACT_DOCUMENT_REMOVED"
+  | "BLOG_POST_CREATED"
+  | "BLOG_POST_UPDATED"
+  | "BLOG_POST_DELETED"
+  | "BLOG_POST_STATUS_CHANGED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */
