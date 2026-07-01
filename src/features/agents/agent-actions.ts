@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { computeCommissionAmount, resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
+import { resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
 import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 
 export type AgentDto = {
@@ -25,17 +25,13 @@ export type AgentDto = {
 async function buildEarningsByAgent(): Promise<Map<string, number>> {
   const rows = await prisma.opportunity.findMany({
     where: { status: OpportunityStatus.CLOSED_WON, assignedAgentId: { not: null } },
-    select: { assignedAgentId: true, dealSize: true, agentCommissionValue: true, agentCommissionUnit: true },
+    select: { assignedAgentId: true, dealSize: true, commission: true, commissionUnit: true, agentCommissionValue: true, agentCommissionUnit: true },
   });
 
   const earnings = new Map<string, number>();
   for (const row of rows) {
     if (!row.assignedAgentId) continue;
-    const amount = computeCommissionAmount(
-      row.dealSize !== null ? Number(row.dealSize) : null,
-      row.agentCommissionValue !== null ? Number(row.agentCommissionValue) : null,
-      row.agentCommissionUnit,
-    );
+    const amount = resolveAgentEarnings(row);
     if (!amount) continue;
     earnings.set(row.assignedAgentId, (earnings.get(row.assignedAgentId) ?? 0) + amount);
   }

@@ -38,13 +38,20 @@ export function resolveCompanyRevenue(o: {
 
 /**
  * The agent's personal earnings ($) for one opportunity — the "Agent
- * Commission" resolved against the deal size. 0 when unset. Feeds the agent's
- * "Mi Comisión" card and their profile's Total Earnings.
+ * Commission" resolved against the *company commission amount* (not the full
+ * deal size). 0 when unset. Feeds the agent's "Mi Comisión" card and their
+ * profile's Total Earnings.
+ *
+ * Math: agentCommission% of companyRevenue (e.g. 20% of $56k = $11,200,
+ * NOT 20% of the $800k deal size).
  */
 export function resolveAgentEarnings(o: {
   dealSize: unknown;
+  commission: unknown;
+  commissionUnit: string | null;
   agentCommissionValue: unknown;
   agentCommissionUnit: string | null;
 }): number {
-  return computeCommissionAmount(toNum(o.dealSize), toNum(o.agentCommissionValue), o.agentCommissionUnit) ?? 0;
+  const companyRevenue = resolveCompanyRevenue(o);
+  return computeCommissionAmount(companyRevenue || null, toNum(o.agentCommissionValue), o.agentCommissionUnit) ?? 0;
 }

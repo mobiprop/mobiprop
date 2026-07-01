@@ -107,13 +107,14 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
 
   const isRental = dealType === "Rent";
 
-  const commissionPreview = useMemo(
-    () => fmtPreview(computeCommissionAmount(Number(dealSize) || null, Number(commission) || null, commissionUnit)),
+  const commissionAmount = useMemo(
+    () => computeCommissionAmount(Number(dealSize) || null, Number(commission) || null, commissionUnit),
     [dealSize, commission, commissionUnit],
   );
+  const commissionPreview = useMemo(() => fmtPreview(commissionAmount), [commissionAmount]);
   const agentCommissionPreview = useMemo(
-    () => fmtPreview(computeCommissionAmount(Number(dealSize) || null, Number(agentCommissionValue) || null, agentCommissionUnit)),
-    [dealSize, agentCommissionValue, agentCommissionUnit],
+    () => fmtPreview(computeCommissionAmount(commissionAmount, Number(agentCommissionValue) || null, agentCommissionUnit)),
+    [commissionAmount, agentCommissionValue, agentCommissionUnit],
   );
 
   function handleSubmit(e: React.FormEvent) {
