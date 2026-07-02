@@ -150,11 +150,11 @@ describe("updateOpportunity — ownership guard", () => {
     grantAs("AGENT", AGENT_A_ID);
     db.opportunity.findUnique.mockResolvedValue({ assignedAgentId: AGENT_A_ID, createdById: null });
     db.opportunity.update.mockResolvedValue({
-      id: "opp-1", opportunityId: "OPP-0001", title: "Test", contactId: null, propertyId: null,
+      id: "opp-1", opportunityId: "OPP-0001", title: "Test", propertyId: null,
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
       commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
       expectedCloseAt: null, agentCommissionValue: null, agentCommissionUnit: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
-      createdAt: new Date(), contact: null, property: null,
+      createdAt: new Date(), participants: [], property: null,
     });
 
     const res = await updateOpportunity("opp-1", {});
@@ -186,11 +186,11 @@ describe("updateOpportunity — ownership guard", () => {
       title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null,
     });
     db.opportunity.update.mockResolvedValue({
-      id: "opp-1", opportunityId: "OPP-0001", title: "Test", contactId: null, propertyId: null,
+      id: "opp-1", opportunityId: "OPP-0001", title: "Test", propertyId: null,
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
       commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
       expectedCloseAt: null, agentCommissionValue: null, agentCommissionUnit: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
-      createdAt: new Date(), contact: null, property: null,
+      createdAt: new Date(), participants: [], property: null,
     });
 
     const res = await updateOpportunity("opp-1", {});
@@ -201,9 +201,13 @@ describe("updateOpportunity — ownership guard", () => {
 describe("createContractFromOpportunity — Option A pre-fill draft", () => {
   const baseOpp = {
     id: "opp-1",
+    opportunityId: "OPP-0001",
     title: "Sale of 123 Main St",
-    contactId: "contact-1",
+    participants: [
+      { role: "BUYER", contactId: "contact-1", contact: { firstName: "John", lastName: "Buyer" } },
+    ],
     propertyId: "property-1",
+    property: { title: "123 Main St" },
     assignedAgentId: AGENT_A_ID,
     dealSize: 150000,
     dealType: "Sale",
@@ -245,9 +249,12 @@ describe("createContractFromOpportunity — Option A pre-fill draft", () => {
     expect(res.draft).toEqual({
       title: "Sale of 123 Main St",
       contactId: "contact-1",
+      contactName: "John Buyer",
       propertyId: "property-1",
+      propertyTitle: "123 Main St",
       assignedAgentId: AGENT_A_ID,
       opportunityId: "opp-1",
+      opportunityNumber: "OPP-0001",
       value: 150000,
       startDate: null,
       endDate: null,

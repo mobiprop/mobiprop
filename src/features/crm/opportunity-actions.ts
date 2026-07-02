@@ -2,7 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
-import { OpportunityStage, OpportunityStatus, ContactType } from "@/generated/prisma/enums";
+import { OpportunityStage, OpportunityStatus, OpportunityParticipantRole } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
@@ -11,8 +11,8 @@ import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
 import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
-import type { CreateOpportunityInput, UpdateOpportunityInput } from "@/schemas/opportunity.schema";
-import type { OpportunityDto, OpportunityMetrics } from "./types/crm-dto";
+import type { CreateOpportunityInput, UpdateOpportunityInput, ParticipantInput } from "@/schemas/opportunity.schema";
+import type { OpportunityDto, OpportunityMetrics, OpportunityParticipantDto } from "./types/crm-dto";
 
 export type { CrmActionError, CrmActionResult } from "./contact-actions";
 import type { CrmActionError } from "./contact-actions";
@@ -42,9 +42,17 @@ async function nextOpportunityId(): Promise<string> {
 
 // ── DTO mapping ───────────────────────────────────────────────────────────────
 
+type ParticipantWithRelations = {
+  id: string;
+  role: OpportunityParticipantRole;
+  contactId: string | null;
+  companyName: string | null;
+  contact: { firstName: string; lastName: string } | null;
+};
+
 type OppWithRelations = {
   id: string; opportunityId: string; title: string;
-  contactId: string | null; propertyId: string | null;
+  propertyId: string | null;
   dealType: string | null; dealSize: unknown;
   stage: OpportunityStage; status: OpportunityStatus;
   probability: number; commission: unknown; commissionUnit: string | null;
@@ -54,9 +62,19 @@ type OppWithRelations = {
   notes: string | null;
   assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
-  contact: { firstName: string; lastName: string; type: ContactType } | null;
+  participants: ParticipantWithRelations[];
   property: { title: string; slug: string } | null;
 };
+
+function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDto {
+  return {
+    id: p.id,
+    role: p.role,
+    contactId: p.contactId,
+    contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
+    companyName: p.companyName,
+  };
+}
 
 function toOpportunityDto(
   o: OppWithRelations,
@@ -70,9 +88,7 @@ function toOpportunityDto(
     id: o.id,
     opportunityId: o.opportunityId,
     title: o.title,
-    contactId: o.contactId,
-    contactName: o.contact ? `${o.contact.firstName} ${o.contact.lastName}`.trim() : null,
-    contactType: o.contact?.type ?? null,
+    participants: o.participants.map(toParticipantDto),
     propertyId: o.propertyId,
     propertyTitle: o.property?.title ?? null,
     propertySlug: o.property?.slug ?? null,
@@ -100,7 +116,10 @@ function toOpportunityDto(
 }
 
 const opportunityInclude = {
-  contact: { select: { firstName: true, lastName: true, type: true } },
+  participants: {
+    include: { contact: { select: { firstName: true, lastName: true } } },
+    orderBy: { createdAt: "asc" },
+  },
   property: { select: { title: true, slug: true } },
 } as const;
 
@@ -157,6 +176,29 @@ export async function getOpportunity(id: string): Promise<CrmActionResult<{ oppo
   return { ok: true, opportunity: toOpportunityDto(opp, agentMap) };
 }
 
+/** Confirms every BUYER/SELLER participant's contactId is a real, non-deleted Contact. */
+async function validateParticipantContacts(participants: ParticipantInput[]): Promise<string | null> {
+  const contactIds = [...new Set(participants.map((p) => p.contactId).filter((id): id is string => Boolean(id)))];
+  if (contactIds.length === 0) return null;
+
+  const found = await prisma.contact.findMany({
+    where: { id: { in: contactIds }, isDeleted: false },
+    select: { id: true },
+  });
+  if (found.length !== contactIds.length) {
+    return "One of the selected contacts was not found.";
+  }
+  return null;
+}
+
+function participantsCreateData(participants: ParticipantInput[]) {
+  return participants.map((p) => ({
+    role: p.role as OpportunityParticipantRole,
+    contactId: p.role === "AGENCY" ? null : (p.contactId ?? null),
+    companyName: p.role === "AGENCY" ? (p.companyName ?? null) : null,
+  }));
+}
+
 // ── Create ────────────────────────────────────────────────────────────────────
 
 export async function createOpportunity(
@@ -170,7 +212,11 @@ export async function createOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { contactSide, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+
+  const contactError = await validateParticipantContacts(participants);
+  if (contactError) return { ok: false, error: contactError, status: 422 };
+
   const opportunityId = await nextOpportunityId();
 
   const opp = await prisma.opportunity.create({
@@ -188,6 +234,7 @@ export async function createOpportunity(
       contractEnd: contractEnd ? new Date(contractEnd) : null,
       expectedCloseAt: expectedCloseAt ? new Date(expectedCloseAt) : null,
       createdById: gate.profile.id,
+      participants: { create: participantsCreateData(participants) },
     },
     include: opportunityInclude,
   });
@@ -197,7 +244,13 @@ export async function createOpportunity(
     action: "OPPORTUNITY_CREATED",
     entityType: "OPPORTUNITY",
     entityId: opp.id,
-    newValues: { title: opp.title, contactId: opp.contactId, stage: opp.stage, status: opp.status, dealSize: fields.dealSize ?? null },
+    newValues: {
+      title: opp.title,
+      participants: opp.participants.map((p) => ({ role: p.role, contactId: p.contactId })),
+      stage: opp.stage,
+      status: opp.status,
+      dealSize: fields.dealSize ?? null,
+    },
   });
 
   const agentMap = await buildAgentMap([opp.assignedAgentId]);
@@ -233,17 +286,26 @@ export async function updateOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { contactSide, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+
+  if (participants !== undefined) {
+    const contactError = await validateParticipantContacts(participants);
+    if (contactError) return { ok: false, error: contactError, status: 422 };
+  }
 
   const opp = await prisma.opportunity.update({
     where: { id },
     data: {
       ...fields,
-      contactId: fields.contactId !== undefined ? (fields.contactId || null) : undefined,
       propertyId: fields.propertyId !== undefined ? (fields.propertyId || null) : undefined,
       contractStart: contractStart !== undefined ? (contractStart ? new Date(contractStart) : null) : undefined,
       contractEnd: contractEnd !== undefined ? (contractEnd ? new Date(contractEnd) : null) : undefined,
       expectedCloseAt: expectedCloseAt !== undefined ? (expectedCloseAt ? new Date(expectedCloseAt) : null) : undefined,
+      // Full replace, mirroring how listing amenities are updated — simplest
+      // correct behavior for a small per-deal participant list.
+      ...(participants !== undefined
+        ? { participants: { deleteMany: {}, create: participantsCreateData(participants) } }
+        : {}),
     },
     include: opportunityInclude,
   });
@@ -336,7 +398,7 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
   const opp = await prisma.opportunity.findFirst({
     where: { id, isDeleted: false, ...scope },
     include: {
-      contact: { select: { firstName: true, lastName: true } },
+      participants: { include: { contact: { select: { firstName: true, lastName: true } } } },
       property: { select: { title: true } },
     },
   });
@@ -345,10 +407,17 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
     return { ok: false, error: "Only a Closed Won opportunity can be turned into a contract.", status: 400 };
   }
 
+  // A Contract still has a single counterparty — prefer the Buyer, falling
+  // back to the Seller, when the opportunity has multiple participants.
+  const primaryContact =
+    opp.participants.find((p) => p.role === "BUYER" && p.contact) ??
+    opp.participants.find((p) => p.role === "SELLER" && p.contact) ??
+    null;
+
   const draft: ContractDraft = {
     title: opp.title,
-    contactId: opp.contactId,
-    contactName: opp.contact ? `${opp.contact.firstName} ${opp.contact.lastName}`.trim() : null,
+    contactId: primaryContact?.contactId ?? null,
+    contactName: primaryContact?.contact ? `${primaryContact.contact.firstName} ${primaryContact.contact.lastName}`.trim() : null,
     propertyId: opp.propertyId,
     propertyTitle: opp.property?.title ?? null,
     assignedAgentId: opp.assignedAgentId,

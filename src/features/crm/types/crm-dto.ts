@@ -43,13 +43,23 @@ export type ContactMetrics = {
 
 // ── Opportunity ───────────────────────────────────────────────────────────────
 
+export type OpportunityParticipantRole = "BUYER" | "SELLER" | "AGENCY";
+
+export type OpportunityParticipantDto = {
+  id: string;
+  role: OpportunityParticipantRole;
+  /** Set for BUYER/SELLER rows (a linked Contact); null for AGENCY rows. */
+  contactId: string | null;
+  contactName: string | null;
+  /** Set for AGENCY rows only — free text, no Contact record. */
+  companyName: string | null;
+};
+
 export type OpportunityDto = {
   id: string;
   opportunityId: string;
   title: string;
-  contactId: string | null;
-  contactName: string | null;
-  contactType: ContactType | null;
+  participants: OpportunityParticipantDto[];
   propertyId: string | null;
   propertyTitle: string | null;
   propertySlug: string | null;

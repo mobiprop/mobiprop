@@ -145,20 +145,24 @@ export async function GET(req: Request) {
       take: MAX,
     }),
 
-    // 3. Opportunities matching by title / contact name
+    // 3. Opportunities matching by title / participant contact name
     prisma.opportunity.findMany({
       where: {
         OR: [
           { title: { contains: q, mode: "insensitive" } },
           { opportunityId: { contains: q, mode: "insensitive" } },
-          { contact: { firstName: { contains: q, mode: "insensitive" } } },
-          { contact: { lastName: { contains: q, mode: "insensitive" } } },
+          { participants: { some: { contact: { firstName: { contains: q, mode: "insensitive" } } } } },
+          { participants: { some: { contact: { lastName: { contains: q, mode: "insensitive" } } } } },
         ],
       },
       select: {
         id: true, opportunityId: true, title: true,
         stage: true, status: true, dealSize: true,
-        contact: { select: { firstName: true, lastName: true } },
+        participants: {
+          where: { role: { in: ["BUYER", "SELLER"] } },
+          include: { contact: { select: { firstName: true, lastName: true } } },
+          take: 1,
+        },
       },
       take: MAX,
     }),
@@ -236,15 +240,18 @@ export async function GET(req: Request) {
 
   // ── Map opportunities ─────────────────────────────────────────────────────
 
-  const opportunityResults: SearchOpportunityResult[] = matchedOpportunities.map((o) => ({
-    id: o.id,
-    opportunityId: o.opportunityId,
-    title: o.title,
-    contactName: o.contact ? `${o.contact.firstName} ${o.contact.lastName}`.trim() : null,
-    stage: o.stage,
-    status: o.status,
-    dealSize: o.dealSize !== null ? Number(o.dealSize) : null,
-  }));
+  const opportunityResults: SearchOpportunityResult[] = matchedOpportunities.map((o) => {
+    const contact = o.participants[0]?.contact ?? null;
+    return {
+      id: o.id,
+      opportunityId: o.opportunityId,
+      title: o.title,
+      contactName: contact ? `${contact.firstName} ${contact.lastName}`.trim() : null,
+      stage: o.stage,
+      status: o.status,
+      dealSize: o.dealSize !== null ? Number(o.dealSize) : null,
+    };
+  });
 
   // ── Map contracts ─────────────────────────────────────────────────────────
 
