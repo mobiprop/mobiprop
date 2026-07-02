@@ -161,7 +161,12 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     toilets: property.toilets,
-    areaSqft: property.areaSqft,
+    totalAreaM2: property.totalAreaM2,
+    coveredAreaM2: property.coveredAreaM2,
+    semiCoveredAreaM2: property.semiCoveredAreaM2,
+    lotSizeM2: property.lotSizeM2,
+    lotFrontageM2: property.lotFrontageM2,
+    lotDepthM2: property.lotDepthM2,
     yearBuilt: property.yearBuilt,
     isFeatured: property.isFeatured,
     videoUrl: property.videoUrl,
@@ -204,8 +209,12 @@ function toPublicDto(property: PropertyWithRelations): PublicListingDto {
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     toilets: property.toilets,
-    areaSqft: property.areaSqft,
-    lotSizeSqft: property.lotSizeSqft,
+    totalAreaM2: property.totalAreaM2,
+    coveredAreaM2: property.coveredAreaM2,
+    semiCoveredAreaM2: property.semiCoveredAreaM2,
+    lotSizeM2: property.lotSizeM2,
+    lotFrontageM2: property.lotFrontageM2,
+    lotDepthM2: property.lotDepthM2,
     parkingSpaces: property.parkingSpaces,
     yearBuilt: property.yearBuilt,
     floors: property.floors,
@@ -475,7 +484,12 @@ export async function createListing(
             bedrooms: data.bedrooms,
             bathrooms: data.bathrooms,
             toilets: data.toilets,
-            areaSqft: data.areaSqft,
+            totalAreaM2: data.totalAreaM2,
+            coveredAreaM2: data.coveredAreaM2,
+            semiCoveredAreaM2: data.semiCoveredAreaM2,
+            lotSizeM2: data.lotSizeM2,
+            lotFrontageM2: data.lotFrontageM2,
+            lotDepthM2: data.lotDepthM2,
             yearBuilt: data.yearBuilt,
             isFeatured: data.isFeatured,
             videoUrl: data.videoUrl || null,
@@ -1137,7 +1151,7 @@ export async function listPublicListings(
   if (filters.bedrooms !== undefined) where.bedrooms = { gte: filters.bedrooms };
   if (filters.bathrooms !== undefined) where.bathrooms = { gte: filters.bathrooms };
   if (filters.minArea !== undefined || filters.maxArea !== undefined) {
-    where.areaSqft = {
+    where.totalAreaM2 = {
       ...(filters.minArea !== undefined ? { gte: filters.minArea } : {}),
       ...(filters.maxArea !== undefined ? { lte: filters.maxArea } : {}),
     };

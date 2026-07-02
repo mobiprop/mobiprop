@@ -251,7 +251,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
               className="text-[13px] text-[#2b3038]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              {formatArea(property.areaSqft)}
+              {formatArea(property.totalAreaM2)}
             </span>
           </div>
 

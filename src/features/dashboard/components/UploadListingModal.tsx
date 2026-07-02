@@ -79,6 +79,28 @@ const MAX_IMAGE_MB = Math.round(LISTING_IMAGE_MAX_BYTES / (1024 * 1024));
 
 const STEPS = ["Basic Info", "Listing Details", "Images"] as const;
 
+type AreaField = {
+  key: "totalAreaM2" | "coveredAreaM2" | "semiCoveredAreaM2" | "lotSizeM2" | "lotFrontageM2" | "lotDepthM2";
+  label: string;
+  placeholder: string;
+  required: boolean;
+};
+
+// Non-LOT listings break area into total/covered/semi-covered + optional lot
+// size; LOT listings replace all of that with frontage/depth instead.
+const NON_LOT_AREA_FIELDS: AreaField[] = [
+  { key: "totalAreaM2", label: "Total (m²)", placeholder: "120", required: true },
+  { key: "coveredAreaM2", label: "Covered (m²)", placeholder: "95", required: false },
+  { key: "semiCoveredAreaM2", label: "Semi-covered (m²)", placeholder: "15", required: false },
+  { key: "lotSizeM2", label: "Lot Size (m²)", placeholder: "200", required: false },
+];
+
+const LOT_AREA_FIELDS: AreaField[] = [
+  { key: "totalAreaM2", label: "Total (m²)", placeholder: "500", required: true },
+  { key: "lotFrontageM2", label: "Lot Frontage (m²)", placeholder: "20", required: false },
+  { key: "lotDepthM2", label: "Lot Depth (m²)", placeholder: "25", required: false },
+];
+
 const AMENITY_ICONS: Record<
   AmenityKey,
   ComponentType<{ size?: number; className?: string }>
@@ -120,7 +142,12 @@ type ListingFormValues = {
   bedrooms: string;
   bathrooms: string;
   toilets: string;
-  areaSqft: string;
+  totalAreaM2: string;
+  coveredAreaM2: string;
+  semiCoveredAreaM2: string;
+  lotSizeM2: string;
+  lotFrontageM2: string;
+  lotDepthM2: string;
   yearBuilt: string;
   description: string;
   amenities: AmenityKey[];
@@ -143,7 +170,12 @@ const EMPTY_VALUES: ListingFormValues = {
   bedrooms: "",
   bathrooms: "",
   toilets: "",
-  areaSqft: "",
+  totalAreaM2: "",
+  coveredAreaM2: "",
+  semiCoveredAreaM2: "",
+  lotSizeM2: "",
+  lotFrontageM2: "",
+  lotDepthM2: "",
   yearBuilt: "",
   description: "",
   amenities: [],
@@ -167,7 +199,12 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     bedrooms: listing.bedrooms?.toString() ?? "",
     bathrooms: listing.bathrooms?.toString() ?? "",
     toilets: listing.toilets?.toString() ?? "",
-    areaSqft: listing.areaSqft?.toString() ?? "",
+    totalAreaM2: listing.totalAreaM2?.toString() ?? "",
+    coveredAreaM2: listing.coveredAreaM2?.toString() ?? "",
+    semiCoveredAreaM2: listing.semiCoveredAreaM2?.toString() ?? "",
+    lotSizeM2: listing.lotSizeM2?.toString() ?? "",
+    lotFrontageM2: listing.lotFrontageM2?.toString() ?? "",
+    lotDepthM2: listing.lotDepthM2?.toString() ?? "",
     yearBuilt: listing.yearBuilt?.toString() ?? "",
     description: listing.description,
     amenities: listing.amenities,
@@ -235,7 +272,15 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.bedrooms !== (listing.bedrooms ?? undefined)) diff.bedrooms = parsed.bedrooms;
   if (parsed.bathrooms !== (listing.bathrooms ?? undefined)) diff.bathrooms = parsed.bathrooms;
   if (parsed.toilets !== (listing.toilets ?? undefined)) diff.toilets = parsed.toilets;
-  if (parsed.areaSqft !== (listing.areaSqft ?? undefined)) diff.areaSqft = parsed.areaSqft;
+  if (parsed.totalAreaM2 !== (listing.totalAreaM2 ?? undefined)) diff.totalAreaM2 = parsed.totalAreaM2;
+  if (parsed.coveredAreaM2 !== (listing.coveredAreaM2 ?? undefined))
+    diff.coveredAreaM2 = parsed.coveredAreaM2;
+  if (parsed.semiCoveredAreaM2 !== (listing.semiCoveredAreaM2 ?? undefined))
+    diff.semiCoveredAreaM2 = parsed.semiCoveredAreaM2;
+  if (parsed.lotSizeM2 !== (listing.lotSizeM2 ?? undefined)) diff.lotSizeM2 = parsed.lotSizeM2;
+  if (parsed.lotFrontageM2 !== (listing.lotFrontageM2 ?? undefined))
+    diff.lotFrontageM2 = parsed.lotFrontageM2;
+  if (parsed.lotDepthM2 !== (listing.lotDepthM2 ?? undefined)) diff.lotDepthM2 = parsed.lotDepthM2;
   if (parsed.yearBuilt !== (listing.yearBuilt ?? undefined)) diff.yearBuilt = parsed.yearBuilt;
   if (parsed.description !== listing.description) diff.description = parsed.description;
 
@@ -413,6 +458,7 @@ export function UploadListingModal({
   const ownerContactId = watch("ownerContactId");
 
   const totalImages = existingImages.length + newImages.length;
+  const areaFields = type === PropertyType.LOT ? LOT_AREA_FIELDS : NON_LOT_AREA_FIELDS;
 
   const hasSale =
     operationType === PropertyOperationType.SALE ||
@@ -1213,12 +1259,11 @@ export function UploadListingModal({
               {/* Step 2: Listing Details */}
               {step === 1 && (
                 <>
-                  <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+                  <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
                     {(
                       [
                         ["bedrooms", "Bedrooms", "3"],
                         ["bathrooms", "Bathrooms", "2"],
-                        ["areaSqft", "Area (sqft)", "1200"],
                       ] as const
                     ).map(([field, label, placeholder]) => (
                       <div
@@ -1249,6 +1294,41 @@ export function UploadListingModal({
                         <FieldError message={errors[field]?.message} />
                       </div>
                     ))}
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-3">
+                    <span className={labelClass} style={mont}>
+                      Area
+                    </span>
+
+                    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+                      {areaFields.map(({ key, label, placeholder, required }) => (
+                        <div key={key} className="flex min-w-0 flex-col gap-2">
+                          <label
+                            htmlFor={`listing-${key}`}
+                            className={labelClass}
+                            style={mont}
+                          >
+                            {label} {required && <span className="text-[#e7000b]">*</span>}
+                          </label>
+
+                          <input
+                            id={`listing-${key}`}
+                            type="number"
+                            min="0"
+                            inputMode="numeric"
+                            {...register(key)}
+                            placeholder={placeholder}
+                            className={`${inputClass} ${borderClass(
+                              Boolean(errors[key]),
+                            )}`}
+                            style={mont}
+                          />
+
+                          <FieldError message={errors[key]?.message} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">

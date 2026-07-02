@@ -105,6 +105,16 @@ const optionalPrice = z.preprocess(
   z.number().positive("Price must be greater than 0").optional(),
 );
 
+const optionalArea = (label: string) =>
+  z.preprocess(
+    (value) => (value === "" || value === null || value === undefined ? undefined : Number(value)),
+    z
+      .number()
+      .int(`${label} must be a whole number`)
+      .positive(`${label} must be greater than 0`)
+      .optional(),
+  );
+
 const CURRENT_YEAR = new Date().getFullYear();
 
 export const listingBaseSchema = z.object({
@@ -142,9 +152,18 @@ export const listingBaseSchema = z.object({
   bedrooms: requiredCount("Bedrooms"),
   bathrooms: requiredCount("Bathrooms"),
   toilets: requiredCount("Toilettes"),
-  areaSqft: numberFromInput.pipe(
-    z.number({ error: "Area is required" }).int().positive("Area must be greater than 0"),
+  // Total area applies to every listing type — whole property area for
+  // non-LOT types, parcel area for LOT. Covered/semi-covered/lot size are
+  // shown for non-LOT types; lot frontage/depth replace them for LOT (see
+  // UploadListingModal, which renders the relevant subset per `type`).
+  totalAreaM2: numberFromInput.pipe(
+    z.number({ error: "Total area is required" }).int().positive("Total area must be greater than 0"),
   ),
+  coveredAreaM2: optionalArea("Covered area"),
+  semiCoveredAreaM2: optionalArea("Semi-covered area"),
+  lotSizeM2: optionalArea("Lot size"),
+  lotFrontageM2: optionalArea("Lot frontage"),
+  lotDepthM2: optionalArea("Lot depth"),
   yearBuilt: numberFromInput.pipe(
     z
       .number({ error: "Year built is required" })
@@ -203,6 +222,19 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 // (react-hook-form `trigger(...)` before allowing Next Step).
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
   0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId", "ownerContactId"],
-  1: ["bedrooms", "bathrooms", "toilets", "areaSqft", "yearBuilt", "description", "amenities"],
+  1: [
+    "bedrooms",
+    "bathrooms",
+    "toilets",
+    "totalAreaM2",
+    "coveredAreaM2",
+    "semiCoveredAreaM2",
+    "lotSizeM2",
+    "lotFrontageM2",
+    "lotDepthM2",
+    "yearBuilt",
+    "description",
+    "amenities",
+  ],
   2: ["videoUrl"],
 };

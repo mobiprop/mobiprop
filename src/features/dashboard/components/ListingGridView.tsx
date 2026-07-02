@@ -57,7 +57,7 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
         <div className="flex items-center gap-4 text-[12px] text-[#2b3038]" style={mont}>
           <span className="flex items-center gap-1.5"><BedDouble size={14} className="text-[#6a7282]" />{listing.bedrooms ?? 0} Bed</span>
           <span className="flex items-center gap-1.5"><Bath size={14} className="text-[#6a7282]" />{listing.bathrooms ?? 0} Bath</span>
-          <span className="flex items-center gap-1.5"><Maximize size={14} className="text-[#6a7282]" />{listing.areaSqft ?? 0} sqft</span>
+          <span className="flex items-center gap-1.5"><Maximize size={14} className="text-[#6a7282]" />{listing.totalAreaM2 ?? 0} m²</span>
         </div>
 
         <div className="flex items-center justify-between pt-1">

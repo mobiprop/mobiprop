@@ -326,7 +326,7 @@ export function FiltersModal({ onClose, onApply }: {
                 </div>
                 <input
                   type="number"
-                  placeholder="Min Area (sq ft)"
+                  placeholder="Min Area (m²)"
                   value={minArea}
                   onChange={(e) => setMinArea(e.target.value)}
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -341,7 +341,7 @@ export function FiltersModal({ onClose, onApply }: {
                 </div>
                 <input
                   type="number"
-                  placeholder="Max Area (sq ft)"
+                  placeholder="Max Area (m²)"
                   value={maxArea}
                   onChange={(e) => setMaxArea(e.target.value)}
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
