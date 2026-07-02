@@ -2,9 +2,12 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
+import { uploadAvatar, removeAvatar } from "@/lib/supabase/storage";
 import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
+import type { Prisma } from "@/generated/prisma/client";
 
 export type AgentDto = {
   id: string;
@@ -12,6 +15,12 @@ export type AgentDto = {
   email: string;
   phone: string | null;
   city: string | null;
+  avatarUrl: string | null;
+  /** Private admin-only notes (Edit Agent modal) — distinct from the agent's
+   * own public bio (Profile.description). */
+  notes: string | null;
+  teamLeaderId: string | null;
+  teamLeaderName: string | null;
   role: "ADMIN" | "MANAGER" | "AGENT";
   status: UserStatus;
   /** This agent's own computed commission earnings — sum of the resolved
@@ -20,6 +29,39 @@ export type AgentDto = {
   totalEarnings: number;
   createdAt: string;
 };
+
+type ProfileWithTeamLeader = {
+  id: string;
+  email: string;
+  fullName: string | null;
+  phone: string | null;
+  city: string | null;
+  avatarUrl: string | null;
+  notes: string | null;
+  teamLeaderId: string | null;
+  teamLeader: { fullName: string | null; email: string } | null;
+  role: UserRole;
+  status: UserStatus;
+  createdAt: Date;
+};
+
+function toAgentDto(p: ProfileWithTeamLeader, totalEarnings: number): AgentDto {
+  return {
+    id: p.id,
+    name: p.fullName ?? p.email.split("@")[0],
+    email: p.email,
+    phone: p.phone,
+    city: p.city,
+    avatarUrl: p.avatarUrl,
+    notes: p.notes,
+    teamLeaderId: p.teamLeaderId,
+    teamLeaderName: p.teamLeader ? (p.teamLeader.fullName ?? p.teamLeader.email) : null,
+    role: p.role as "ADMIN" | "MANAGER" | "AGENT",
+    status: p.status,
+    totalEarnings,
+    createdAt: p.createdAt.toISOString(),
+  };
+}
 
 /** Sums each agent's computed commission earnings across their CLOSED_WON opportunities. */
 async function buildEarningsByAgent(): Promise<Map<string, number>> {
@@ -67,14 +109,26 @@ export async function listAgents(): Promise<ListAgentsResult> {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
+  // Everything on this page is scoped to the caller's team: for MANAGER the
+  // roster shows only their direct reports (agents whose teamLeaderId points
+  // to them) and the deals/revenue/listings metrics cover self + those
+  // reports; ADMIN (scopeIds === null) stays company-wide.
+  const scopeIds = await resolveOwnerScopeIds(auth.profile);
+  const opportunityOwnerScope: Prisma.OpportunityWhereInput =
+    scopeIds === null ? {} : { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
+  const propertyOwnerScope: Prisma.PropertyWhereInput =
+    scopeIds === null ? {} : { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
+  const rosterWhere: Prisma.ProfileWhereInput = {
+    role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
+    // Exclude the caller themselves so admins don't see themselves in the "approve" list
+    NOT: { id: auth.profile.id },
+    ...(scopeIds === null ? {} : { teamLeaderId: auth.profile.id }),
+  };
+
   const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, wonRevenueRows, totalListings, totalListingsNewThisMonth, earningsByAgent] =
     await Promise.all([
       prisma.profile.findMany({
-        where: {
-          role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
-          // Exclude the caller themselves so admins don't see themselves in the "approve" list
-          NOT: { id: auth.profile.id },
-        },
+        where: rosterWhere,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -82,38 +136,34 @@ export async function listAgents(): Promise<ListAgentsResult> {
           fullName: true,
           phone: true,
           city: true,
+          avatarUrl: true,
+          notes: true,
+          teamLeaderId: true,
+          teamLeader: { select: { fullName: true, email: true } },
           role: true,
           status: true,
           createdAt: true,
         },
       }),
       prisma.profile.count({
-        where: { role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] }, createdAt: { gte: startOfMonth } },
+        where: { ...rosterWhere, createdAt: { gte: startOfMonth } },
       }),
-      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, isDeleted: false } }),
-      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, isDeleted: false, createdAt: { gte: startOfMonth } } }),
+      prisma.opportunity.count({ where: { status: OpportunityStatus.OPEN, isDeleted: false, ...opportunityOwnerScope } }),
+      prisma.opportunity.count({
+        where: { status: OpportunityStatus.OPEN, isDeleted: false, createdAt: { gte: startOfMonth }, ...opportunityOwnerScope },
+      }),
       // Company revenue = resolved commission (not deal size), so we need the
       // rows, not a DB _sum of dealSize.
       prisma.opportunity.findMany({
-        where: { status: OpportunityStatus.CLOSED_WON, isDeleted: false },
+        where: { status: OpportunityStatus.CLOSED_WON, isDeleted: false, ...opportunityOwnerScope },
         select: { dealSize: true, commission: true, commissionUnit: true },
       }),
-      prisma.property.count(),
-      prisma.property.count({ where: { createdAt: { gte: startOfMonth } } }),
+      prisma.property.count({ where: propertyOwnerScope }),
+      prisma.property.count({ where: { createdAt: { gte: startOfMonth }, ...propertyOwnerScope } }),
       buildEarningsByAgent(),
     ]);
 
-  const agents: AgentDto[] = profiles.map((p) => ({
-    id: p.id,
-    name: p.fullName ?? p.email.split("@")[0],
-    email: p.email,
-    phone: p.phone,
-    city: p.city,
-    role: p.role as "ADMIN" | "MANAGER" | "AGENT",
-    status: p.status,
-    totalEarnings: earningsByAgent.get(p.id) ?? 0,
-    createdAt: p.createdAt.toISOString(),
-  }));
+  const agents: AgentDto[] = profiles.map((p) => toAgentDto(p, earningsByAgent.get(p.id) ?? 0));
 
   const metrics: AgentMetrics = {
     total: agents.length,
@@ -171,15 +221,32 @@ export type UpdateAgentInput = {
   phone?: string | null;
   city?: string | null;
   role?: "AGENT" | "MANAGER";
+  notes?: string | null;
+  teamLeaderId?: string | null;
 };
 
 type UpdateAgentResult =
   | { ok: true; agent: AgentDto }
   | { ok: false; error: string; status: number };
 
-/** Admin-only edit of an agent's profile fields — name/phone/city/role. Role is
- * deliberately restricted to AGENT|MANAGER, mirroring the invite flow: Admin is
- * never assignable through this UI. */
+/** Confirms a teamLeaderId refers to a real, active Manager/Admin — never the
+ * agent itself. */
+async function validateTeamLeader(agentId: string, teamLeaderId: string): Promise<string | null> {
+  if (teamLeaderId === agentId) return "An agent can't be their own team leader.";
+
+  const leader = await prisma.profile.findUnique({
+    where: { id: teamLeaderId },
+    select: { role: true, status: true },
+  });
+  if (!leader || (leader.role !== UserRole.MANAGER && leader.role !== UserRole.ADMIN) || leader.status !== UserStatus.ACTIVE) {
+    return "Team leader must be an active Manager or Admin.";
+  }
+  return null;
+}
+
+/** Admin-only edit of an agent's profile fields — name/phone/city/role/notes/
+ * team leader. Role is deliberately restricted to AGENT|MANAGER, mirroring the
+ * invite flow: Admin is never assignable through this UI. */
 export async function updateAgent(
   agentId: string,
   input: UpdateAgentInput,
@@ -196,39 +263,138 @@ export async function updateAgent(
     return { ok: false, error: "Role must be AGENT or MANAGER.", status: 400 };
   }
 
-  const data: { fullName?: string; phone?: string | null; city?: string | null; role?: UserRole } = {};
+  if (input.teamLeaderId) {
+    const leaderError = await validateTeamLeader(agentId, input.teamLeaderId);
+    if (leaderError) return { ok: false, error: leaderError, status: 422 };
+  }
+
+  const data: {
+    fullName?: string;
+    phone?: string | null;
+    city?: string | null;
+    role?: UserRole;
+    notes?: string | null;
+    teamLeaderId?: string | null;
+  } = {};
   if (input.fullName !== undefined) data.fullName = input.fullName.trim();
   if (input.phone !== undefined) data.phone = input.phone;
   if (input.city !== undefined) data.city = input.city;
   if (input.role !== undefined) data.role = input.role;
+  if (input.notes !== undefined) data.notes = input.notes;
+  if (input.teamLeaderId !== undefined) data.teamLeaderId = input.teamLeaderId || null;
 
-  const updated = await prisma.profile.update({ where: { id: agentId }, data });
+  const updated = await prisma.profile.update({
+    where: { id: agentId },
+    data,
+    include: { teamLeader: { select: { fullName: true, email: true } } },
+  });
 
   await logActivity({
     actorId: auth.profile.id,
     action: "AGENT_UPDATED",
     entityType: "PROFILE",
     entityId: agentId,
-    oldValues: { fullName: existing.fullName, phone: existing.phone, city: existing.city, role: existing.role },
-    newValues: { fullName: updated.fullName, phone: updated.phone, city: updated.city, role: updated.role },
+    oldValues: {
+      fullName: existing.fullName,
+      phone: existing.phone,
+      city: existing.city,
+      role: existing.role,
+      notes: existing.notes,
+      teamLeaderId: existing.teamLeaderId,
+    },
+    newValues: {
+      fullName: updated.fullName,
+      phone: updated.phone,
+      city: updated.city,
+      role: updated.role,
+      notes: updated.notes,
+      teamLeaderId: updated.teamLeaderId,
+    },
   });
 
   const earningsByAgent = await buildEarningsByAgent();
 
   return {
     ok: true,
-    agent: {
-      id: updated.id,
-      name: updated.fullName ?? updated.email.split("@")[0],
-      email: updated.email,
-      phone: updated.phone,
-      city: updated.city,
-      role: updated.role as "ADMIN" | "MANAGER" | "AGENT",
-      status: updated.status,
-      totalEarnings: earningsByAgent.get(updated.id) ?? 0,
-      createdAt: updated.createdAt.toISOString(),
-    },
+    agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0),
   };
+}
+
+const MAX_AGENT_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB, matches the self-service profile photo limit
+const ALLOWED_AGENT_AVATAR_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+
+/** Admin-only: upload/replace an agent's profile photo (Edit Agent modal). */
+export async function updateAgentAvatar(agentId: string, file: File): Promise<UpdateAgentResult> {
+  const auth = await requirePermission("agents:update");
+  if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
+
+  const existing = await prisma.profile.findUnique({ where: { id: agentId } });
+  if (!existing || existing.role === UserRole.USER) {
+    return { ok: false, error: "Agent not found.", status: 404 };
+  }
+
+  if (file.size > MAX_AGENT_AVATAR_BYTES) {
+    return { ok: false, error: "Image must be smaller than 5MB.", status: 400 };
+  }
+  if (!ALLOWED_AGENT_AVATAR_TYPES.has(file.type)) {
+    return { ok: false, error: "Image must be a PNG, JPEG, WEBP or GIF.", status: 400 };
+  }
+
+  let avatarUrl: string;
+  try {
+    avatarUrl = await uploadAvatar(agentId, file);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Failed to upload photo.", status: 500 };
+  }
+
+  const updated = await prisma.profile.update({
+    where: { id: agentId },
+    data: { avatarUrl },
+    include: { teamLeader: { select: { fullName: true, email: true } } },
+  });
+
+  await logActivity({
+    actorId: auth.profile.id,
+    action: "AGENT_UPDATED",
+    entityType: "PROFILE",
+    entityId: agentId,
+    oldValues: { avatarUrl: existing.avatarUrl },
+    newValues: { avatarUrl: updated.avatarUrl },
+  });
+
+  const earningsByAgent = await buildEarningsByAgent();
+  return { ok: true, agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0) };
+}
+
+/** Admin-only: remove an agent's profile photo. */
+export async function removeAgentAvatar(agentId: string): Promise<UpdateAgentResult> {
+  const auth = await requirePermission("agents:update");
+  if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
+
+  const existing = await prisma.profile.findUnique({ where: { id: agentId } });
+  if (!existing || existing.role === UserRole.USER) {
+    return { ok: false, error: "Agent not found.", status: 404 };
+  }
+
+  await removeAvatar(agentId);
+
+  const updated = await prisma.profile.update({
+    where: { id: agentId },
+    data: { avatarUrl: null },
+    include: { teamLeader: { select: { fullName: true, email: true } } },
+  });
+
+  await logActivity({
+    actorId: auth.profile.id,
+    action: "AGENT_UPDATED",
+    entityType: "PROFILE",
+    entityId: agentId,
+    oldValues: { avatarUrl: existing.avatarUrl },
+    newValues: { avatarUrl: null },
+  });
+
+  const earningsByAgent = await buildEarningsByAgent();
+  return { ok: true, agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0) };
 }
 
 type DeleteAgentResult =
@@ -292,9 +458,29 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
 
   const profile = await prisma.profile.findUnique({
     where: { id: agentId },
-    select: { id: true, email: true, fullName: true, phone: true, city: true, role: true, status: true, createdAt: true },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      phone: true,
+      city: true,
+      avatarUrl: true,
+      notes: true,
+      teamLeaderId: true,
+      teamLeader: { select: { fullName: true, email: true } },
+      role: true,
+      status: true,
+      createdAt: true,
+    },
   });
   if (!profile || profile.role === UserRole.USER) {
+    return { ok: false, error: "Agent not found.", status: 404 };
+  }
+
+  // Mirrors the roster scoping in listAgents: a MANAGER may only open their
+  // own detail or a direct report's; ADMIN (null scope) can open anyone's.
+  const scopeIds = await resolveOwnerScopeIds(auth.profile);
+  if (scopeIds !== null && profile.id !== auth.profile.id && profile.teamLeaderId !== auth.profile.id) {
     return { ok: false, error: "Agent not found.", status: 404 };
   }
 
@@ -334,15 +520,7 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
   const totalEarnings = wonOpportunities.reduce((sum, o) => sum + resolveAgentEarnings(o), 0);
 
   const agent: AgentDetailDto = {
-    id: profile.id,
-    name: profile.fullName ?? profile.email.split("@")[0],
-    email: profile.email,
-    phone: profile.phone,
-    city: profile.city,
-    role: profile.role as "ADMIN" | "MANAGER" | "AGENT",
-    status: profile.status,
-    totalEarnings,
-    createdAt: profile.createdAt.toISOString(),
+    ...toAgentDto(profile, totalEarnings),
     totalListings: properties.length,
     totalDeals,
     openDeals,

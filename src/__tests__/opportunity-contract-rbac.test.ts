@@ -1,13 +1,14 @@
 /**
- * Opportunity / Contract record-scoping unit tests (2026-06-26 Milestone 3 decision).
+ * Opportunity / Contract record-scoping unit tests (2026-06-26 Milestone 3
+ * decision; team-based MANAGER scoping added 2026-07-02).
  *
  * Unlike Contacts/Leads (which AGENT now sees in full), Opportunities and Contracts
  * stay scoped to an agent's own/assigned records — the one place AGENT visibility
  * is deliberately restricted. Covers:
  *   1. listOpportunities / listContracts — AGENT gets an own/assigned OR scope;
- *      ADMIN/MANAGER (opportunities:view_all / contracts:view_all) get none.
- *   2. updateOpportunity / updateContract — AGENT is blocked (403) from updating
- *      a record that isn't theirs; ADMIN/MANAGER can update any record.
+ *      MANAGER gets an own+team OR scope (resolveOwnerScopeIds); ADMIN gets none.
+ *   2. updateOpportunity / updateContract — AGENT/MANAGER are blocked (403) from
+ *      updating a record outside their scope; ADMIN can update any record.
  */
 
 import { describe, it, expect, vi, beforeEach, type MockInstance } from "vitest";
@@ -71,6 +72,10 @@ const { listContracts, updateContract } = await import("@/features/crm/contract-
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default: no team members for any MANAGER (resolveOwnerScopeIds's
+  // teamLeaderId lookup) and no agent rows for buildAgentMap's id-in lookup.
+  // Tests that need a team member override this with mockImplementationOnce.
+  db.profile.findMany.mockResolvedValue([]);
 });
 
 function scopeOr(where: Record<string, unknown> | undefined): Record<string, unknown>[] | undefined {
@@ -88,8 +93,8 @@ describe("listOpportunities — record scope", () => {
 
     const [call] = (db.opportunity.findMany as MockFn).mock.calls;
     const or = scopeOr(call[0].where);
-    expect(or).toContainEqual({ assignedAgentId: AGENT_A_ID });
-    expect(or).toContainEqual({ createdById: AGENT_A_ID });
+    expect(or).toContainEqual({ assignedAgentId: { in: [AGENT_A_ID] } });
+    expect(or).toContainEqual({ createdById: { in: [AGENT_A_ID] } });
   });
 
   it("applies no scope for ADMIN", async () => {
@@ -102,14 +107,31 @@ describe("listOpportunities — record scope", () => {
     expect(call[0].where).toEqual({ isDeleted: false });
   });
 
-  it("applies no scope for MANAGER", async () => {
+  it("scopes MANAGER to self only when they lead no team", async () => {
     grantAs("MANAGER", MANAGER_ID);
     db.opportunity.findMany.mockResolvedValue([]);
 
     await listOpportunities();
 
     const [call] = (db.opportunity.findMany as MockFn).mock.calls;
-    expect(call[0].where).toEqual({ isDeleted: false });
+    const or = scopeOr(call[0].where);
+    expect(or).toContainEqual({ assignedAgentId: { in: [MANAGER_ID] } });
+    expect(or).toContainEqual({ createdById: { in: [MANAGER_ID] } });
+  });
+
+  it("scopes MANAGER to self + direct reports", async () => {
+    grantAs("MANAGER", MANAGER_ID);
+    db.profile.findMany.mockImplementation((args: { where?: { teamLeaderId?: string } }) =>
+      Promise.resolve(args?.where?.teamLeaderId ? [{ id: AGENT_A_ID }] : []),
+    );
+    db.opportunity.findMany.mockResolvedValue([]);
+
+    await listOpportunities();
+
+    const [call] = (db.opportunity.findMany as MockFn).mock.calls;
+    const or = scopeOr(call[0].where);
+    expect(or).toContainEqual({ assignedAgentId: { in: [MANAGER_ID, AGENT_A_ID] } });
+    expect(or).toContainEqual({ createdById: { in: [MANAGER_ID, AGENT_A_ID] } });
   });
 });
 
@@ -139,10 +161,26 @@ describe("updateOpportunity — ownership guard", () => {
     expect(res.ok).toBe(true);
   });
 
-  it("allows MANAGER to update any opportunity regardless of who owns it", async () => {
+  it("blocks MANAGER from updating an opportunity owned by an agent outside their team", async () => {
     grantAs("MANAGER", MANAGER_ID);
-    // Owned by a different agent entirely — a MANAGER must not be blocked by the
-    // ownership check that applies to AGENT (opportunities:view_all bypasses it).
+    // Owned by an agent who is not this Manager's direct report — team-based
+    // scoping (2026-07-02) means a Manager no longer bypasses ownership entirely.
+    db.opportunity.findUnique.mockResolvedValue({
+      isDeleted: false, assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID,
+      title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null,
+    });
+
+    const res = await updateOpportunity("opp-1", {});
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(403);
+    expect(db.opportunity.update).not.toHaveBeenCalled();
+  });
+
+  it("allows MANAGER to update an opportunity owned by their own team member", async () => {
+    grantAs("MANAGER", MANAGER_ID);
+    db.profile.findMany.mockImplementation((args: { where?: { teamLeaderId?: string } }) =>
+      Promise.resolve(args?.where?.teamLeaderId ? [{ id: AGENT_A_ID }] : []),
+    );
     db.opportunity.findUnique.mockResolvedValue({
       isDeleted: false, assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID,
       title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null,
@@ -193,8 +231,8 @@ describe("createContractFromOpportunity — Option A pre-fill draft", () => {
 
     const [call] = (db.opportunity.findFirst as MockFn).mock.calls;
     const or = scopeOr(call[0].where);
-    expect(or).toContainEqual({ assignedAgentId: AGENT_B_ID });
-    expect(or).toContainEqual({ createdById: AGENT_B_ID });
+    expect(or).toContainEqual({ assignedAgentId: { in: [AGENT_B_ID] } });
+    expect(or).toContainEqual({ createdById: { in: [AGENT_B_ID] } });
   });
 
   it("builds a draft from a Closed Won opportunity with the right field mapping", async () => {
@@ -239,8 +277,8 @@ describe("listContracts — record scope", () => {
 
     const [call] = (db.contract.findMany as MockFn).mock.calls;
     const or = scopeOr(call[0].where);
-    expect(or).toContainEqual({ assignedAgentId: AGENT_A_ID });
-    expect(or).toContainEqual({ createdById: AGENT_A_ID });
+    expect(or).toContainEqual({ assignedAgentId: { in: [AGENT_A_ID] } });
+    expect(or).toContainEqual({ createdById: { in: [AGENT_A_ID] } });
   });
 
   it("applies no scope for ADMIN", async () => {

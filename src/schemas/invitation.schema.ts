@@ -10,6 +10,7 @@ export const createInvitationSchema = z.object({
   phone: z.string().trim().min(1).optional(),
   location: z.string().trim().min(1).optional(),
   notes: z.string().trim().min(1).optional(),
+  teamLeaderId: z.string().guid().optional(),
 });
 
 export const validateInvitationSchema = z.object({

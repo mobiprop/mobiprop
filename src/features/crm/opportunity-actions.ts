@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/require-permission";
 import { OpportunityStage, OpportunityStatus, ContactType } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
 import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
@@ -19,10 +20,15 @@ type CrmActionResult<T> = ({ ok: true } & T) | CrmActionError;
 
 // ── Record-level access ──────────────────────────────────────────────────────
 
-/** ADMIN/MANAGER see all opportunities; AGENT only ones they created or are assigned to. */
-function opportunityRecordScope(profile: Profile): Prisma.OpportunityWhereInput {
-  if (hasPermission(profile.role, "opportunities:view_all")) return {};
-  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+/**
+ * ADMIN sees all opportunities. MANAGER sees their own + their team's (agents
+ * whose teamLeaderId points to them). AGENT only ones they created or are
+ * assigned to.
+ */
+async function opportunityRecordScope(profile: Profile): Promise<Prisma.OpportunityWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
 // ── ID generation ─────────────────────────────────────────────────────────────
@@ -106,8 +112,9 @@ export async function listOpportunities(): Promise<
   const gate = await requirePermission("opportunities:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await opportunityRecordScope(gate.profile);
   const rows = await prisma.opportunity.findMany({
-    where: { isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    where: { isDeleted: false, ...scope },
     include: opportunityInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -139,8 +146,9 @@ export async function getOpportunity(id: string): Promise<CrmActionResult<{ oppo
   const gate = await requirePermission("opportunities:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await opportunityRecordScope(gate.profile);
   const opp = await prisma.opportunity.findFirst({
-    where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    where: { id, isDeleted: false, ...scope },
     include: opportunityInclude,
   });
   if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
@@ -210,8 +218,12 @@ export async function updateOpportunity(
     select: { isDeleted: true, assignedAgentId: true, createdById: true, title: true, stage: true, status: true, dealSize: true },
   });
   if (!existing || existing.isDeleted) return { ok: false, error: "Opportunity not found.", status: 404 };
-  if (!hasPermission(gate.profile.role, "opportunities:view_all")) {
-    if (existing.assignedAgentId !== gate.profile.id && existing.createdById !== gate.profile.id) {
+  const scopeIds = await resolveOwnerScopeIds(gate.profile);
+  if (scopeIds !== null) {
+    const visible =
+      (existing.assignedAgentId !== null && scopeIds.includes(existing.assignedAgentId)) ||
+      (existing.createdById !== null && scopeIds.includes(existing.createdById));
+    if (!visible) {
       return { ok: false, error: "You can only update your own or assigned opportunities.", status: 403 };
     }
   }
@@ -320,8 +332,9 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
   const gate = await requirePermission("contracts:create");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await opportunityRecordScope(gate.profile);
   const opp = await prisma.opportunity.findFirst({
-    where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    where: { id, isDeleted: false, ...scope },
     include: {
       contact: { select: { firstName: true, lastName: true } },
       property: { select: { title: true } },

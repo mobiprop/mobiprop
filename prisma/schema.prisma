@@ -46,6 +46,11 @@ model Profile {
   timezone    String?
   address     String?
   description String?
+  // Private admin-only notes about a staff member (Edit Agent modal) —
+  // distinct from `description`, which is the user's own public bio.
+  notes       String?
+  // Manager/Admin this AGENT reports to (Edit/Add Agent "Team Leader" field).
+  teamLeaderId String?   @map("team_leader_id") @db.Uuid
   // Notification / security / locale settings edited from the profile modal.
   preferences Json?
   role        UserRole   @default(USER)
@@ -64,6 +69,12 @@ model Profile {
 
   pushSubscriptions PushSubscription[]
 
+  teamLeader  Profile?  @relation("TeamLeadership", fields: [teamLeaderId], references: [id], onDelete: SetNull)
+  teamMembers Profile[] @relation("TeamLeadership")
+
+  invitationsAsTeamLeader AgentInvitation[] @relation("InvitationTeamLeader")
+
+  @@index([teamLeaderId], map: "profiles_team_leader_idx")
   @@map("profiles")
 }
 
@@ -84,12 +95,22 @@ model AgentInvitation {
   phone       String?
   location    String?
   notes       String?
+  // Manager/Admin picked as this invitee's team leader — applied to the
+  // Profile once the invite is accepted (see applyInvitationExtras).
+  teamLeaderId String?         @map("team_leader_id") @db.Uuid
+  // Storage path (avatars bucket) of a photo picked before the invite is
+  // accepted — no Profile id exists yet, so it can't live at its final path.
+  // Promoted to the new Profile's avatar path on acceptance.
+  avatarPath  String?          @map("avatar_path")
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  teamLeader Profile? @relation("InvitationTeamLeader", fields: [teamLeaderId], references: [id], onDelete: SetNull)
 
   @@index([email], map: "agent_invitations_email_idx")
   @@index([status], map: "agent_invitations_status_idx")
   @@index([expiresAt], map: "agent_invitations_expires_at_idx")
+  @@index([teamLeaderId], map: "agent_invitations_team_leader_idx")
   @@map("agent_invitations")
 }
 
