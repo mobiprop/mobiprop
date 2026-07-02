@@ -132,25 +132,39 @@ const amenityIcons: { key: AmenityKey; label: string; icon: React.ReactNode }[] 
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path
-          d={svgPaths.p16cc3700}
+          d="M14.4001 14.4L9.6001 9.59998"
           stroke="#1E4F86"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
         <path
-          d={svgPaths.p2165cae0}
+          d="M18.6569 21.4849C18.2819 21.8601 17.7732 22.0709 17.2428 22.071C16.7123 22.071 16.2035 21.8604 15.8284 21.4854C15.4533 21.1104 15.2424 20.6017 15.2423 20.0713C15.2423 19.5408 15.4529 19.032 15.8279 18.6569L14.0609 20.4249C13.6858 20.8 13.1769 21.0108 12.6464 21.0108C12.1159 21.0108 11.607 20.8 11.2319 20.4249C10.8568 20.0498 10.646 19.5409 10.646 19.0104C10.646 18.4799 10.8568 17.9711 11.2319 17.5959L17.5959 11.2319C17.9711 10.8568 18.4799 10.646 19.0104 10.646C19.5409 10.646 20.0498 10.8568 20.4249 11.2319C20.8 11.607 21.0108 12.1159 21.0108 12.6464C21.0108 13.1769 20.8 13.6858 20.4249 14.0609L18.6569 15.8279C19.032 15.4529 19.5408 15.2423 20.0713 15.2423C20.6017 15.2424 21.1104 15.4533 21.4854 15.8284C21.8604 16.2035 22.071 16.7123 22.071 17.2428C22.0709 17.7732 21.8601 18.2819 21.4849 18.6569L18.6569 21.4849Z"
           stroke="#1E4F86"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
         <path
-          d={svgPaths.p37d02340}
+          d="M21.5001 21.5L20.1001 20.1"
           stroke="#1E4F86"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
+        />
+        <path
+          d="M3.90049 3.90012L2.50049 2.50012"
+          stroke="#1E4F86"
           strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M6.40376 12.768C6.02861 13.1432 5.5198 13.3539 4.98926 13.3539C4.45872 13.3539 3.94991 13.1432 3.57476 12.768C3.19961 12.3929 2.98886 11.884 2.98886 11.3535C2.98886 10.823 3.19961 10.3142 3.57476 9.93901L5.34276 8.17201C5.15701 8.3577 4.9365 8.50498 4.69382 8.60545C4.45115 8.70592 4.19106 8.7576 3.92841 8.75756C3.39796 8.75746 2.88928 8.54666 2.51426 8.17151C2.32857 7.98575 2.18129 7.76524 2.08082 7.52257C1.98035 7.27989 1.92866 7.0198 1.92871 6.75715C1.9288 6.22671 2.13961 5.71802 2.51476 5.34301L5.34276 2.51501C5.71778 2.13986 6.22646 1.92905 6.75691 1.92896C7.01956 1.92891 7.27965 1.9806 7.52232 2.08106C7.765 2.18153 7.98551 2.32882 8.17126 2.51451C8.35702 2.7002 8.50438 2.92065 8.60493 3.16329C8.70549 3.40593 8.75727 3.666 8.75731 3.92865C8.75736 4.1913 8.70567 4.45139 8.6052 4.69407C8.50474 4.93674 8.35745 5.15725 8.17176 5.34301L9.93876 3.57501C10.3139 3.19986 10.8227 2.9891 11.3533 2.9891C11.8838 2.9891 12.3926 3.19986 12.7678 3.57501C13.1429 3.95016 13.3537 4.45897 13.3537 4.98951C13.3537 5.52005 13.1429 6.02886 12.7678 6.40401L6.40376 12.768Z"
+          stroke="#1E4F86"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
@@ -188,41 +202,34 @@ const amenityIcons: { key: AmenityKey; label: string; icon: React.ReactNode }[] 
     key: "ELEVATOR",
     label: "Elevator",
     icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path
-          d="M14.4 14.4L9.6 9.6"
+          d="M14.0003 10.6667L11.3337 13.3334L8.66699 10.6667"
           stroke="#1E4F86"
+          strokeWidth="1.1"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
         <path
-          d={svgPaths.p3f75e300}
+          d="M11.333 13.3334V2.66675"
           stroke="#1E4F86"
+          strokeWidth="1.1"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
         <path
-          d="M21.5 21.5L20.1 20.1"
+          d="M2 5.33341L4.66667 2.66675L7.33333 5.33341"
           stroke="#1E4F86"
+          strokeWidth="1.1"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
         <path
-          d={svgPaths.p39715080}
+          d="M4.66699 2.66675V13.3334"
           stroke="#1E4F86"
+          strokeWidth="1.1"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
-        <path
-          d={svgPaths.p3f4a1500}
-          stroke="#1E4F86"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
         />
       </svg>
     ),
@@ -321,6 +328,250 @@ const amenityIcons: { key: AmenityKey; label: string; icon: React.ReactNode }[] 
       </svg>
     ),
   },
+  {
+    key: "CREDIT_APPROVED",
+    label: "Credit Approved",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <g clipPath="url(#clip0_1712_2678)">
+          <path
+            d="M2.5668 5.74657C2.46949 5.30825 2.48443 4.85246 2.61023 4.42146C2.73604 3.99046 2.96863 3.5982 3.28644 3.28105C3.60425 2.9639 3.997 2.73213 4.42827 2.60723C4.85953 2.48233 5.31535 2.46835 5.75346 2.56657C5.9946 2.18944 6.3268 1.87907 6.71943 1.66409C7.11206 1.44911 7.55249 1.33643 8.00013 1.33643C8.44776 1.33643 8.8882 1.44911 9.28083 1.66409C9.67346 1.87907 10.0057 2.18944 10.2468 2.56657C10.6856 2.46792 11.1422 2.48184 11.5741 2.60704C12.0061 2.73225 12.3994 2.96466 12.7174 3.28267C13.0354 3.60068 13.2678 3.99395 13.393 4.4259C13.5182 4.85786 13.5321 5.31446 13.4335 5.75324C13.8106 5.99437 14.121 6.32657 14.3359 6.7192C14.5509 7.11183 14.6636 7.55227 14.6636 7.9999C14.6636 8.44754 14.5509 8.88797 14.3359 9.2806C14.121 9.67323 13.8106 10.0054 13.4335 10.2466C13.5317 10.6847 13.5177 11.1405 13.3928 11.5718C13.2679 12.003 13.0361 12.3958 12.719 12.7136C12.4018 13.0314 12.0096 13.264 11.5786 13.3898C11.1476 13.5156 10.6918 13.5305 10.2535 13.4332C10.0126 13.8118 9.68018 14.1235 9.28688 14.3394C8.89358 14.5554 8.45215 14.6686 8.00346 14.6686C7.55478 14.6686 7.11335 14.5554 6.72004 14.3394C6.32674 14.1235 5.99429 13.8118 5.75346 13.4332C5.31535 13.5315 4.85953 13.5175 4.42827 13.3926C3.997 13.2677 3.60425 13.0359 3.28644 12.7188C2.96863 12.4016 2.73604 12.0093 2.61023 11.5783C2.48443 11.1473 2.46949 10.6916 2.5668 10.2532C2.18677 10.0127 1.87374 9.68002 1.65683 9.28605C1.43992 8.89207 1.32617 8.44964 1.32617 7.9999C1.32617 7.55016 1.43992 7.10773 1.65683 6.71376C1.87374 6.31979 2.18677 5.98707 2.5668 5.74657Z"
+            stroke="#1E4F86"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 8.00008L7.33333 9.33341L10 6.66675"
+            stroke="#1E4F86"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+        <defs>
+          <clipPath id="clip0_1712_2678">
+            <rect width="16" height="16" fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
+    ),
+  },
+  {
+    key: "INTERNET",
+    label: "Internet",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M8 13.3333H8.00667"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M1.33301 5.87994C3.16642 4.24009 5.5399 3.3335 7.99967 3.3335C10.4594 3.3335 12.8329 4.24009 14.6663 5.87994"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M3.33301 8.57271C4.5792 7.35119 6.25466 6.66699 7.99967 6.66699C9.74469 6.66699 11.4201 7.35119 12.6663 8.57271"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5.66699 10.9526C6.29009 10.3419 7.12782 9.99976 8.00033 9.99976C8.87283 9.99976 9.71056 10.3419 10.3337 10.9526"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "GAS",
+    label: "Gas",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M5.66634 9.66667C6.10837 9.66667 6.53229 9.49107 6.84485 9.17851C7.15741 8.86595 7.33301 8.44203 7.33301 8C7.33301 7.08 6.99967 6.66667 6.66634 6C5.95167 4.57133 6.51701 3.29733 7.99967 2C8.33301 3.66667 9.33301 5.26667 10.6663 6.33333C11.9997 7.4 12.6663 8.66667 12.6663 10C12.6663 10.6128 12.5456 11.2197 12.3111 11.7859C12.0766 12.352 11.7328 12.8665 11.2995 13.2998C10.8662 13.7332 10.3517 14.0769 9.78553 14.3114C9.21934 14.546 8.61251 14.6667 7.99967 14.6667C7.38684 14.6667 6.78 14.546 6.21382 14.3114C5.64763 14.0769 5.13318 13.7332 4.69984 13.2998C4.2665 12.8665 3.92276 12.352 3.68824 11.7859C3.45371 11.2197 3.33301 10.6128 3.33301 10C3.33301 9.23133 3.62167 8.47067 3.99967 8C3.99967 8.44203 4.17527 8.86595 4.48783 9.17851C4.80039 9.49107 5.22431 9.66667 5.66634 9.66667Z"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "RADIANT_FLOORS",
+    label: "Radiant Floors",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M9.33301 2.66659V9.69325C9.84139 9.98676 10.2387 10.4398 10.4634 10.9822C10.688 11.5245 10.7274 12.1258 10.5755 12.6928C10.4235 13.2599 10.0888 13.7609 9.62304 14.1183C9.15732 14.4756 8.5867 14.6693 7.99968 14.6693C7.41265 14.6693 6.84203 14.4756 6.37631 14.1183C5.91059 13.7609 5.57581 13.2599 5.42387 12.6928C5.27194 12.1258 5.31135 11.5245 5.536 10.9822C5.76064 10.4398 6.15796 9.98676 6.66634 9.69325V2.66659C6.66634 2.31296 6.80682 1.97382 7.05687 1.72378C7.30692 1.47373 7.64605 1.33325 7.99968 1.33325C8.3533 1.33325 8.69244 1.47373 8.94248 1.72378C9.19253 1.97382 9.33301 2.31296 9.33301 2.66659Z"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "WATER",
+    label: "Water",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M4.66667 10.8668C6.13333 10.8668 7.33333 9.64678 7.33333 8.16678C7.33333 7.39345 6.95333 6.66011 6.19333 6.04011C5.43333 5.42011 4.86 4.50011 4.66667 3.53345C4.47333 4.50011 3.90667 5.42678 3.14 6.04011C2.37333 6.65345 2 7.40011 2 8.16678C2 9.64678 3.2 10.8668 4.66667 10.8668Z"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8.3729 4.40009C8.83141 3.66751 9.15644 2.85946 9.3329 2.01343C9.66624 3.68009 10.6662 5.28009 11.9996 6.34676C13.3329 7.41343 13.9996 8.68009 13.9996 10.0134C14.0034 10.935 13.7335 11.8369 13.2241 12.6048C12.7147 13.3728 11.9888 13.9722 11.1383 14.3271C10.2879 14.682 9.35118 14.7764 8.44702 14.5983C7.54285 14.4202 6.71193 13.9777 6.05957 13.3268"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "BARBECUE",
+    label: "Barbecue",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <g clipPath="url(#clip0_1712_2709)">
+          <path
+            d="M10.6666 1.33325L9.13324 2.86659C8.76678 3.24044 8.56152 3.74308 8.56152 4.26659C8.56152 4.79009 8.76678 5.29273 9.13324 5.66659L10.3332 6.86659C10.7071 7.23304 11.2097 7.4383 11.7332 7.4383C12.2567 7.4383 12.7594 7.23304 13.1332 6.86659L14.6666 5.33325"
+            stroke="#1E4F86"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M9.99978 9.99995L2.19978 2.19995C1.9337 2.46065 1.72232 2.77183 1.57801 3.11525C1.43371 3.45868 1.35938 3.82744 1.35938 4.19995C1.35938 4.57246 1.43371 4.94123 1.57801 5.28465C1.72232 5.62807 1.9337 5.93925 2.19978 6.19995L7.06645 11.0666C7.53312 11.5333 8.39978 11.5333 8.93312 11.0666L9.99978 9.99995ZM9.99978 9.99995L14.6665 14.6666"
+            stroke="#1E4F86"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M1.40039 14.5333L5.66706 10.3333"
+            stroke="#1E4F86"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12.6667 3.33325L8 7.99992"
+            stroke="#1E4F86"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+        <defs>
+          <clipPath id="clip0_1712_2709">
+            <rect width="16" height="16" fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
+    ),
+  },
+  {
+    key: "LAUNDRY",
+    label: "Laundry",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M2 4H4"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M11.333 4H11.3397"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12.6667 1.33325H3.33333C2.59695 1.33325 2 1.93021 2 2.66659V13.3333C2 14.0696 2.59695 14.6666 3.33333 14.6666H12.6667C13.403 14.6666 14 14.0696 14 13.3333V2.66659C14 1.93021 13.403 1.33325 12.6667 1.33325Z"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8.00033 11.9999C9.84127 11.9999 11.3337 10.5075 11.3337 8.66659C11.3337 6.82564 9.84127 5.33325 8.00033 5.33325C6.15938 5.33325 4.66699 6.82564 4.66699 8.66659C4.66699 10.5075 6.15938 11.9999 8.00033 11.9999Z"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M7.99967 11.9999C8.4417 11.9999 8.86563 11.8243 9.17819 11.5118C9.49075 11.1992 9.66634 10.7753 9.66634 10.3333C9.66634 9.89122 9.49075 9.4673 9.17819 9.15474C8.86563 8.84218 8.4417 8.66659 7.99967 8.66659C7.55765 8.66659 7.13372 8.49099 6.82116 8.17843C6.5086 7.86587 6.33301 7.44195 6.33301 6.99992C6.33301 6.55789 6.5086 6.13397 6.82116 5.82141C7.13372 5.50885 7.55765 5.33325 7.99967 5.33325"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "TENNIS_COURT",
+    label: "Tennis Court",
+    icon: (
+      <svg width="14" height="15" viewBox="0 0 14 15" fill="none">
+        <path
+          d="M10.7933 9.31715C11.5006 9.31715 12.1789 9.59811 12.679 10.0982C13.179 10.5983 13.46 11.2766 13.46 11.9838C13.46 12.6911 13.179 13.3693 12.679 13.8694C12.1789 14.3695 11.5006 14.6505 10.7933 14.6505C10.0861 14.6505 9.40781 14.3695 8.90771 13.8694C8.40762 13.3693 8.12667 12.6911 8.12667 11.9838C8.12667 11.2766 8.40762 10.5983 8.90771 10.0982C9.40781 9.59811 10.0861 9.31715 10.7933 9.31715ZM10.7933 10.6505C10.4397 10.6505 10.1006 10.791 9.85052 11.041C9.60048 11.2911 9.46 11.6302 9.46 11.9838C9.46 12.3374 9.60048 12.6766 9.85052 12.9266C10.1006 13.1767 10.4397 13.3172 10.7933 13.3172C11.147 13.3172 11.4861 13.1767 11.7361 12.9266C11.9862 12.6766 12.1267 12.3374 12.1267 11.9838C12.1267 11.6302 11.9862 11.2911 11.7361 11.041C11.4861 10.791 11.147 10.6505 10.7933 10.6505ZM2.82667 9.01049C2.82667 9.01049 3.76667 8.06382 3.77333 6.18382C3.53333 4.72382 4.10667 3.01049 5.42 1.70382C7.37333 -0.249514 10.22 -0.569514 11.7933 0.983819C13.3467 2.55715 13.0267 5.40382 11.0733 7.35715C9.76667 8.67049 8.05333 9.24382 6.59333 9.00382C4.71333 9.01049 3.76667 9.95049 3.76667 9.95049L0.94 12.7772L0 11.8372L2.82667 9.01049ZM10.84 1.93715C9.79333 0.897153 7.79333 1.21049 6.36 2.65049C4.93333 4.07715 4.61333 6.08382 5.65333 7.12382C6.7 8.16382 8.7 7.84382 10.1267 6.41715C11.5667 4.98382 11.88 2.98382 10.84 1.93715Z"
+          fill="#1E4F86"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "AIR_CONDITIONING",
+    label: "Air Conditioning",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M8.53301 13.0667C8.70202 13.1935 8.89874 13.2783 9.10695 13.3141C9.31516 13.3499 9.52891 13.3358 9.73057 13.2728C9.93222 13.2098 10.116 13.0998 10.2668 12.9518C10.4176 12.8038 10.5311 12.6221 10.5979 12.4217C10.6647 12.2213 10.683 12.0079 10.6511 11.799C10.6192 11.5902 10.5382 11.3919 10.4147 11.2205C10.2911 11.0491 10.1286 10.9095 9.94058 10.8132C9.75252 10.717 9.54428 10.6667 9.33301 10.6667H1.33301"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M11.6663 5.33342C11.8368 5.10614 12.0625 4.92621 12.3221 4.81071C12.5816 4.69521 12.8664 4.64797 13.1494 4.67348C13.4323 4.699 13.704 4.79641 13.9387 4.95648C14.1734 5.11655 14.3633 5.33396 14.4904 5.58806C14.6174 5.84216 14.6774 6.12452 14.6647 6.40833C14.6519 6.69214 14.5668 6.96797 14.4174 7.20963C14.2681 7.4513 14.0594 7.65077 13.8113 7.78912C13.5631 7.92746 13.2838 8.00008 12.9997 8.00008H1.33301"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M6.53301 2.93341C6.70202 2.80665 6.89874 2.72187 7.10695 2.68605C7.31516 2.65023 7.52891 2.6644 7.73056 2.7274C7.93222 2.79039 8.11603 2.9004 8.26683 3.04837C8.41763 3.19633 8.53111 3.37802 8.59792 3.57844C8.66473 3.77887 8.68295 3.99231 8.65109 4.20116C8.61923 4.41001 8.5382 4.6083 8.41466 4.7797C8.29113 4.95109 8.12864 5.09067 7.94058 5.18694C7.75252 5.28321 7.54428 5.33341 7.33301 5.33341H1.33301"
+          stroke="#1E4F86"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
 ];
 
 // Icon catalog for the stats strip; values come from the listing at render time.
@@ -328,33 +579,60 @@ const statCatalog = [
   {
     label: "Type",
     value: "For Sale",
-    icon: <img src="/assets/figma-temp/UserProfile/type.svg" alt="Type" width={29} height={29} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14.6838 3.01704C14.2463 2.57943 13.653 2.33351 13.0342 2.33337H4.66683C4.04799 2.33337 3.4545 2.57921 3.01691 3.01679C2.57933 3.45438 2.3335 4.04787 2.3335 4.66671V13.034C2.33363 13.6528 2.57955 14.2462 3.01716 14.6837L13.1718 24.8384C13.7021 25.3653 14.4193 25.661 15.1668 25.661C15.9144 25.661 16.6316 25.3653 17.1618 24.8384L24.8385 17.1617C25.3654 16.6314 25.6612 15.9143 25.6612 15.1667C25.6612 14.4192 25.3654 13.702 24.8385 13.1717L14.6838 3.01704Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8.74984 9.33329C9.072 9.33329 9.33317 9.07213 9.33317 8.74996C9.33317 8.42779 9.072 8.16663 8.74984 8.16663C8.42767 8.16663 8.1665 8.42779 8.1665 8.74996C8.1665 9.07213 8.42767 9.33329 8.74984 9.33329Z" fill="#232323" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Price",
     value: "$12,500,000",
-    icon: <img src="/assets/figma-temp/UserProfile/price.svg" alt="Price" width={32} height={22} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M23.3335 7H4.66683C3.37816 7 2.3335 8.04467 2.3335 9.33333V18.6667C2.3335 19.9553 3.37816 21 4.66683 21H23.3335C24.6222 21 25.6668 19.9553 25.6668 18.6667V9.33333C25.6668 8.04467 24.6222 7 23.3335 7Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M13.9998 16.3333C15.2885 16.3333 16.3332 15.2886 16.3332 14C16.3332 12.7113 15.2885 11.6666 13.9998 11.6666C12.7112 11.6666 11.6665 12.7113 11.6665 14C11.6665 15.2886 12.7112 16.3333 13.9998 16.3333Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M7 14H7.01167M21 14H21.0117" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Beds",
     value: "5",
-    icon: <img
-  src="/assets/figma-temp/UserProfile/bed.svg"
-  alt="Beds"
-  width={32}
-  height={24}
-  style={{ maxWidth: "32px", height: "auto" }}
-/>,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.3335 23.3333V14C2.3335 13.3811 2.57933 12.7876 3.01691 12.35C3.4545 11.9125 4.04799 11.6666 4.66683 11.6666H23.3335C23.9523 11.6666 24.5458 11.9125 24.9834 12.35C25.421 12.7876 25.6668 13.3811 25.6668 14V23.3333" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.6665 11.6666V6.99996C4.6665 6.38112 4.91234 5.78763 5.34992 5.35004C5.78751 4.91246 6.381 4.66663 6.99984 4.66663H20.9998C21.6187 4.66663 22.2122 4.91246 22.6498 5.35004C23.0873 5.78763 23.3332 6.38112 23.3332 6.99996V11.6666" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M14 4.66663V11.6666" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 21H25.6668" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Baths",
     value: "6",
-    icon: <img src="/assets/figma-temp/UserProfile/bath.svg" alt="Baths" width={32} height={27} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.6668 4.66663L9.3335 6.99996" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M19.8335 22.1666V24.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 14H25.6668" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8.1665 22.1666V24.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.4998 5.83339L8.891 4.22455C8.55362 3.8856 8.12524 3.65168 7.6577 3.55109C7.19015 3.45049 6.70348 3.48754 6.25655 3.65775C5.80962 3.82795 5.42158 4.12402 5.13939 4.51014C4.85721 4.89626 4.69295 5.35587 4.6665 5.83339V19.8334C4.6665 20.4522 4.91234 21.0457 5.34992 21.4833C5.78751 21.9209 6.381 22.1667 6.99984 22.1667H20.9998C21.6187 22.1667 22.2122 21.9209 22.6498 21.4833C23.0873 21.0457 23.3332 20.4522 23.3332 19.8334V14.0001" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Size",
     value: "8,100 sq ft",
-    icon: <img src="/assets/figma-temp/UserProfile/size.svg" alt="Size" width={28} height={24} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.5 3.5H24.5V10.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 24.5H3.5V17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24.5002 3.5L16.3335 11.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3.5 24.5L11.6667 16.3334" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Parking",
@@ -364,32 +642,80 @@ const statCatalog = [
   {
     label: "Lot Size",
     value: "1.1 acres",
-    icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Size" width={24} height={24} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2.33337V25.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 22.1666L14 25.6666L10.5 22.1666" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22.1665 10.5L25.6665 14L22.1665 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 14H25.6668" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5.8335 10.5L2.3335 14L5.8335 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 5.83337L14 2.33337L17.5 5.83337" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
-    label: "Covered Area",
+    label: "Covered m²",
     value: "95 m²",
-    icon: <img src="/assets/figma-temp/UserProfile/size.svg" alt="Covered Area" width={28} height={24} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.5 3.5H24.5V10.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 24.5H3.5V17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24.5002 3.5L16.3335 11.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3.5 24.5L11.6667 16.3334" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
-    label: "Semi-covered Area",
+    label: "Semi-covered m²",
     value: "15 m²",
-    icon: <img src="/assets/figma-temp/UserProfile/size.svg" alt="Semi-covered Area" width={28} height={24} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.5 3.5H24.5V10.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 24.5H3.5V17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24.5002 3.5L16.3335 11.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3.5 24.5L11.6667 16.3334" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Lot Frontage",
     value: "20 m²",
-    icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Frontage" width={24} height={24} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2.33337V25.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 22.1666L14 25.6666L10.5 22.1666" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22.1665 10.5L25.6665 14L22.1665 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 14H25.6668" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5.8335 10.5L2.3335 14L5.8335 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 5.83337L14 2.33337L17.5 5.83337" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Lot Depth",
     value: "25 m²",
-    icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Depth" width={24} height={24} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2.33337V25.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 22.1666L14 25.6666L10.5 22.1666" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22.1665 10.5L25.6665 14L22.1665 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 14H25.6668" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5.8335 10.5L2.3335 14L5.8335 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 5.83337L14 2.33337L17.5 5.83337" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Built in",
     value: "2021",
-    icon: <img src="/assets/figma-temp/UserProfile/built.svg" alt="Built in" width={26} height={28} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.3335 2.33337V7.00004" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18.6665 2.33337V7.00004" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22.1667 4.66663H5.83333C4.54467 4.66663 3.5 5.71129 3.5 6.99996V23.3333C3.5 24.622 4.54467 25.6666 5.83333 25.6666H22.1667C23.4553 25.6666 24.5 24.622 24.5 23.3333V6.99996C24.5 5.71129 23.4553 4.66663 22.1667 4.66663Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3.5 11.6666H24.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Floors",
@@ -401,12 +727,13 @@ const statCatalog = [
     value: "PHF-3128-RN",
     copy: true,
     icon: (
-      <img
-        src="/assets/figma-temp/UserProfile/property.svg"
-        alt="Property ID"
-        width={28}
-        height={24}
-      />
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.6665 11.6666H20.9998" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18.6665 16.3334H20.9998" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M7.19824 17.5C7.43874 16.8164 7.88553 16.2242 8.47693 15.8054C9.06833 15.3865 9.77519 15.1615 10.4999 15.1615C11.2246 15.1615 11.9315 15.3865 12.5229 15.8054C13.1143 16.2242 13.5611 16.8164 13.8016 17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.4998 15.1667C11.7885 15.1667 12.8332 14.122 12.8332 12.8333C12.8332 11.5447 11.7885 10.5 10.4998 10.5C9.21117 10.5 8.1665 11.5447 8.1665 12.8333C8.1665 14.122 9.21117 15.1667 10.4998 15.1667Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M23.3335 5.83337H4.66683C3.37816 5.83337 2.3335 6.87804 2.3335 8.16671V19.8334C2.3335 21.122 3.37816 22.1667 4.66683 22.1667H23.3335C24.6222 22.1667 25.6668 21.122 25.6668 19.8334V8.16671C25.6668 6.87804 24.6222 5.83337 23.3335 5.83337Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     ),
   },
 ];
@@ -440,9 +767,9 @@ function buildStats(listing: PublicListingDto) {
       push("Lot Depth", `${listing.lotDepthM2.toLocaleString("en-US")} m²`);
   } else {
     if (listing.coveredAreaM2 !== null)
-      push("Covered Area", `${listing.coveredAreaM2.toLocaleString("en-US")} m²`);
+      push("Covered m²", `${listing.coveredAreaM2.toLocaleString("en-US")} m²`);
     if (listing.semiCoveredAreaM2 !== null)
-      push("Semi-covered Area", `${listing.semiCoveredAreaM2.toLocaleString("en-US")} m²`);
+      push("Semi-covered m²", `${listing.semiCoveredAreaM2.toLocaleString("en-US")} m²`);
     if (listing.lotSizeM2 !== null)
       push("Lot Size", `${listing.lotSizeM2.toLocaleString("en-US")} m²`);
   }
@@ -679,42 +1006,42 @@ export function SingleListingPageContent({
 
           {/* Side Images */}
           {sideImages.length > 0 ? (
-          <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2 sm:gap-4 w-full lg:w-[342px] lg:shrink-0">
-            {sideImages.map((img, i) => (
-            <button
-              key={img.id}
-              type="button"
-              onClick={() => setLightboxIndex(i + 1)}
-              aria-label={`Open image gallery at photo ${i + 2}`}
-              className="group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
-            >
-              <img
-                src={img.url}
-                alt={img.altText ?? `${listing.title} view ${i + 1}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-              />
-
-              {/* Last visible tile shows how many more photos exist and, when
-                  clicked, opens the gallery at the first hidden photo. */}
-              {i === sideImages.length - 1 && hiddenCount > 0 ? (
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLightboxIndex(4);
-                }}
-                className="absolute inset-0 flex items-center justify-center bg-black/55 text-white transition-colors group-hover:bg-black/65"
-              >
-                <span
-                  className="text-[14px] sm:text-[18px] lg:text-[20px] whitespace-nowrap"
-                  style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
+            <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2 sm:gap-4 w-full lg:w-[342px] lg:shrink-0">
+              {sideImages.map((img, i) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  onClick={() => setLightboxIndex(i + 1)}
+                  aria-label={`Open image gallery at photo ${i + 2}`}
+                  className="group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
                 >
-                  +{hiddenCount} more
-                </span>
-              </span>
-              ) : null}
-            </button>
-            ))}
-          </div>
+                  <img
+                    src={img.url}
+                    alt={img.altText ?? `${listing.title} view ${i + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                  />
+
+                  {/* Last visible tile shows how many more photos exist and, when
+                  clicked, opens the gallery at the first hidden photo. */}
+                  {i === sideImages.length - 1 && hiddenCount > 0 ? (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLightboxIndex(4);
+                      }}
+                      className="absolute inset-0 flex items-center justify-center bg-black/55 text-white transition-colors group-hover:bg-black/65"
+                    >
+                      <span
+                        className="text-[14px] sm:text-[18px] lg:text-[20px] whitespace-nowrap"
+                        style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
+                      >
+                        +{hiddenCount} more
+                      </span>
+                    </span>
+                  ) : null}
+                </button>
+              ))}
+            </div>
           ) : null}
         </div>
 
@@ -777,59 +1104,59 @@ export function SingleListingPageContent({
           {/* Prices */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-3 sm:gap-6 md:gap-2">
             {listing.salePrice !== null ? (
-            <div className="flex items-center justify-between sm:justify-start gap-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-2 h-2 rounded-full bg-[#1e4f86]" />
+              <div className="flex items-center justify-between sm:justify-start gap-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[#1e4f86]" />
+                  <span
+                    className="text-[#1e4f86] text-[14px] sm:text-[16px]"
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Sale
+                  </span>
+                </div>
+
                 <span
-                  className="text-[#1e4f86] text-[14px] sm:text-[16px]"
+                  className="text-[#1e4f86] text-[20px] sm:text-[22px] lg:text-[24px]"
                   style={{
-                    fontFamily: "Montserrat, sans-serif",
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: 600,
+                    letterSpacing: "-0.24px",
                   }}
                 >
-                  Sale
+                  {formatSalePrice(listing.salePrice)}
                 </span>
               </div>
-
-              <span
-                className="text-[#1e4f86] text-[20px] sm:text-[22px] lg:text-[24px]"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  fontWeight: 600,
-                  letterSpacing: "-0.24px",
-                }}
-              >
-                {formatSalePrice(listing.salePrice)}
-              </span>
-            </div>
             ) : null}
 
             {listing.rentPrice !== null ? (
-            <div className="flex items-center justify-between sm:justify-start gap-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-2 h-2 rounded-full bg-[#4896b6]" />
+              <div className="flex items-center justify-between sm:justify-start gap-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[#4896b6]" />
+                  <span
+                    className="text-[#4896b6] text-[14px] sm:text-[16px]"
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Rent
+                  </span>
+                </div>
+
                 <span
-                  className="text-[#4896b6] text-[14px] sm:text-[16px]"
+                  className="text-[#4896b6] text-[20px] sm:text-[22px] lg:text-[24px]"
                   style={{
-                    fontFamily: "Montserrat, sans-serif",
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: 600,
+                    letterSpacing: "-0.24px",
                   }}
                 >
-                  Rent
+                  {formatRentPrice(listing.rentPrice)}
                 </span>
               </div>
-
-              <span
-                className="text-[#4896b6] text-[20px] sm:text-[22px] lg:text-[24px]"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  fontWeight: 600,
-                  letterSpacing: "-0.24px",
-                }}
-              >
-                {formatRentPrice(listing.rentPrice)}
-              </span>
-            </div>
             ) : null}
           </div>
         </div>
@@ -1033,11 +1360,10 @@ export function SingleListingPageContent({
           {/* Save button */}
           <button
             onClick={() => toggleSave(listing.listingId, () => setLoginOpen(true))}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-4xl border text-[13px] sm:text-[14px] transition-colors shrink-0 ${
-              saved
-                ? "border-[#e74c3c] text-[#e74c3c] bg-[#fff5f5] hover:bg-[#ffe8e8]"
-                : "border-[#d1d5dc] text-[#2b3038] hover:bg-gray-50"
-            }`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-4xl border text-[13px] sm:text-[14px] transition-colors shrink-0 ${saved
+              ? "border-[#e74c3c] text-[#e74c3c] bg-[#fff5f5] hover:bg-[#ffe8e8]"
+              : "border-[#d1d5dc] text-[#2b3038] hover:bg-gray-50"
+              }`}
             style={{ fontFamily: "Montserrat, sans-serif" }}
             aria-label={saved ? "Remove from saved" : "Save property"}
           >
@@ -1093,89 +1419,95 @@ export function SingleListingPageContent({
         </h2>
       </div>
       {/* Property Details Stats */}
-      <div className="bg-[#F8FAFC] ">
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-4">
-          <div className="bg-[#f8fafc] rounded-[4px] px-0 py-[28px]">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-[30px]">
-              {stats.map((stat, i) => (
-                <div key={stat.label} className="relative min-h-[78px] px-0">
-                  <div className="flex flex-col items-start text-left lg:gap-1">
-                    <div className="mb-[10px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[22px] [&>svg]:w-[22px] [&>svg]:stroke-[1.8]">
-                      {stat.icon}
-                    </div>
+      <div className="bg-[#F8FAFC]">
+        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-7">
+          <div className="bg-[#f8fafc] rounded-[4px] overflow-hidden">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
+              {stats.map((stat, i) => {
+                const isLastColLg = (i + 1) % 7 === 0 || i === stats.length - 1;
+                const isLastRowLg = i >= 7 * Math.floor((stats.length - 1) / 7);
 
-                    <p
-                      className="text-[#2b3038] text-[14px] sm:text-[18px] leading-[18px]"
-                      style={{
-                        fontFamily: "Poppins, sans-serif",
-                        fontWeight: 500,
-                        letterSpacing: "-0.18px",
-                      }}
-                    >
-                      {stat.label}
-                    </p>
+                const isLastColSm = (i + 1) % 3 === 0 || i === stats.length - 1;
+                const isLastRowSm = i >= 3 * Math.floor((stats.length - 1) / 3);
 
-                    <p
-                      className="mt-[3px] flex items-center gap-[4px] text-[#2b3038]/60 text-[12px] sm:text-[16px] leading-[18px]"
-                      style={{
-                        fontFamily: "Montserrat, sans-serif",
-                        fontWeight: 400,
-                      }}
-                    >
-                      {stat.value}
+                const isLastColXs = (i + 1) % 2 === 0 || i === stats.length - 1;
+                const isLastRowXs = i >= 2 * Math.floor((stats.length - 1) / 2);
 
-                      {stat.copy && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigator.clipboard.writeText(stat.value)
-                          }
-                          className="inline-flex h-[12px] w-[12px] items-center justify-center text-[#0D2138]"
-                          aria-label="Copy property ID"
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
+                return (
+                  <div
+                    key={stat.label}
+                    className={`relative min-h-[78px] px-4 py-6 sm:px-6 sm:py-6 flex flex-col justify-start text-left 
+                      ${isLastColLg ? "lg:border-r-0" : "lg:border-r lg:border-[#e5e7eb]"}
+                      ${isLastRowLg ? "lg:border-b-0" : "lg:border-b lg:border-[#e5e7eb]"}
+                      ${isLastColSm ? "sm:max-lg:border-r-0" : "sm:max-lg:border-r sm:max-lg:border-[#e5e7eb]"}
+                      ${isLastRowSm ? "sm:max-lg:border-b-0" : "sm:max-lg:border-b sm:max-lg:border-[#e5e7eb]"}
+                      ${isLastColXs ? "max-sm:border-r-0" : "max-sm:border-r max-sm:border-[#e5e7eb]"}
+                      ${isLastRowXs ? "max-sm:border-b-0" : "max-sm:border-b max-sm:border-[#e5e7eb]"}
+                    `}
+                  >
+                    <div className="flex flex-col items-center text-left lg:gap-0.5">
+                      <div className="mb-[10px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[22px] [&>svg]:w-[22px] [&>svg]:stroke-[1.8]">
+                        {stat.icon}
+                      </div>
+
+                      <p
+                        className="text-[#2b3038] text-[14px] sm:text-[16px] leading-[18px] lg:max-w-[135px]"
+                        style={{
+                          fontFamily: "Montserrat, sans-serif",
+                          fontWeight: 600,
+                          letterSpacing: "-3%",
+                        }}
+                      >
+                        {stat.label}
+                      </p>
+
+                      <p
+                        className="mt-[3px] flex items-center gap-[4px] text-[#2b3038]/60 text-[12px] sm:text-[16px] leading-[18px]"
+                        style={{
+                          fontFamily: "Montserrat, sans-serif",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {stat.value}
+
+                        {stat.copy && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigator.clipboard.writeText(stat.value)
+                            }
+                            className="inline-flex h-[12px] w-[12px] items-center justify-center text-[#0D2138]"
+                            aria-label="Copy property ID"
                           >
-                            <rect
-                              x="9"
-                              y="9"
-                              width="11"
-                              height="11"
-                              rx="1.5"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                            <path
-                              d="M5 15H4.5C3.67 15 3 14.33 3 13.5V4.5C3 3.67 3.67 3 4.5 3H13.5C14.33 3 15 3.67 15 4.5V5"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </p>
-                  </div>  
-
-                  {/* Desktop separator */}
-                  {i % 6 !== 5 && i !== stats.length - 1 && (
-                    <span className="hidden lg:block absolute left-[60%] top-1/2 h-[78px] w-px -translate-y-1/2 bg-[#e5e7eb]" />
-                  )}
-
-                  {/* Tablet separator */}
-                  {(i + 1) % 3 !== 0 && (
-                    <span className="hidden sm:block lg:hidden absolute left-[60%] top-1/2 h-[78px] w-px -translate-y-1/2 bg-[#e5e7eb]" />
-                  )}
-
-                  {/* Mobile separator */}
-                  {(i + 1) % 2 !== 0 && (
-                    <span className="block sm:hidden absolute left-[60%] top-1/2 h-[78px] w-px -translate-y-1/2 bg-[#e5e7eb]" />
-                  )}
-                </div>
-              ))}
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <rect
+                                x="9"
+                                y="9"
+                                width="11"
+                                height="11"
+                                rx="1.5"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M5 15H4.5C3.67 15 3 14.33 3 13.5V4.5C3 3.67 3.67 3 4.5 3H13.5C14.33 3 15 3.67 15 4.5V5"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1183,42 +1515,42 @@ export function SingleListingPageContent({
 
       {/* Features & Amenities */}
       {listingAmenities.length > 0 ? (
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-16">
-        <h2
-          className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: 500,
-            letterSpacing: "-0.24px",
-          }}
-        >
-          Features & Amenities
-        </h2>
+        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-[100px]">
+          <h2
+            className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+            style={{
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: 500,
+              letterSpacing: "-0.24px",
+            }}
+          >
+            Features & Amenities
+          </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {listingAmenities.map((item) => (
-            <div
-              key={item.label}
-              className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[48px] sm:min-h-[50px]"
-            >
-              <div className="shrink-0 flex items-center justify-center [&>svg]:w-[18px] [&>svg]:h-[18px] sm:[&>svg]:w-[20px] sm:[&>svg]:h-[20px]">
-                {item.icon}
-              </div>
-
-              <span
-                className="text-[#2b3038] text-[15px] sm:text-[16px] lg:text-[18px] leading-[20px] sm:leading-[22px]"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  fontWeight: 500,
-                  letterSpacing: "-0.18px",
-                }}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {listingAmenities.map((item) => (
+              <div
+                key={item.label}
+                className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[48px] sm:min-h-[50px]"
               >
-                {item.label}
-              </span>
-            </div>
-          ))}
+                <div className="shrink-0 flex items-center justify-center [&>svg]:w-[18px] [&>svg]:h-[18px] sm:[&>svg]:w-[20px] sm:[&>svg]:h-[20px]  [&_[fill]:not([fill=none])]:fill-[#1E4F86]">
+                  {item.icon}
+                </div>
+
+                <span
+                  className="text-[#2b3038] text-[15px] sm:text-[16px] lg:text-[18px] leading-[20px] sm:leading-[22px]"
+                  style={{
+                    fontFamily: "Poppins, sans-serif",
+                    fontWeight: 500,
+                    letterSpacing: "-0.18px",
+                  }}
+                >
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
       ) : null}
 
       {/* Video Preview — always shown; falls back to "Preview Not Available"
@@ -1227,183 +1559,183 @@ export function SingleListingPageContent({
 
       {/* On the Map — hidden until the listing has geocoded coordinates */}
       {listing.latitude !== null && listing.longitude !== null ? (
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
-  <h2
-    className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
-    style={{
-      fontFamily: "Poppins, sans-serif",
-      fontWeight: 500,
-      letterSpacing: "-0.24px",
-    }}
-  >
-    On the Map
-  </h2>
-
-  <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px]">
-    <PropertyLocationMap
-      latitude={listing.latitude}
-      longitude={listing.longitude}
-      title={listing.title}
-    />
-
-    {/* Location Card */}
-    <div className="absolute top-3 left-3 sm:top-5 sm:left-5 w-[290px] max-w-[calc(100%-24px)] rounded-[14px] bg-white px-4 py-3.5 shadow-sm">
-  {/* Location Name */}
-  <p
-    className="mb-2 truncate text-[16px] leading-[22px] text-[#232323]"
-    style={{
-      fontFamily: "Montserrat, sans-serif",
-      fontWeight: 500,
-      letterSpacing: "-0.16px",
-    }}
-  >
-    {listing.location}
-  </p>
-
-  {/* Full Address */}
-  <p
-    className="mb-3 truncate text-[14px] leading-[20px] text-[#6B6B6B]"
-    style={{
-      fontFamily: "Poppins, sans-serif",
-      fontWeight: 400,
-      letterSpacing: "-0.14px",
-    }}
-  >
-    {listing.fullAddress}
-  </p>
-
-  {/* Rating and Reviews */}
-  <div className="flex items-center gap-2 whitespace-nowrap">
-    <span
-      className="text-[16px] font-medium text-[#232323]"
-      style={{ fontFamily: "Poppins, sans-serif" }}
-    >
-      5.0
-    </span>
-
-    <div className="flex items-center gap-[2px] text-[19px] leading-none text-[#F5A000]">
-      {Array.from({ length: 5 }).map((_, index) => (
-        <span key={index}>★</span>
-      ))}
-    </div>
-
-    <span
-      className="text-[14px] text-[#369BCB]"
-      style={{ fontFamily: "Poppins, sans-serif" }}
-    >
-      {(6546).toLocaleString()} reviews
-    </span>
-  </div>
-</div>
-  </div>
-</div>
-      ) : null}
-
-      {/* Agent Contact Banner */}
-      <div className="w-[calc(100%-38px)] max-w-[1196px] mx-auto py-8 sm:py-12 lg:py-16">
-  <div className="bg-[#112b4a] rounded-[22px] sm:rounded-[28px] lg:rounded-[36px] relative overflow-hidden min-h-[auto] lg:min-h-[320px]">
-    {/* Background image */}
-    <div className="absolute inset-0">
-      <img
-        src={footerBgImg}
-        alt=""
-        className="w-full h-full object-cover opacity-10"
-      />
-    </div>
-
-    <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-stretch gap-7 lg:gap-8 p-5 sm:p-8 lg:p-16">
-      {agent ? (
-      <>
-      {/* Left: Agent */}
-      <div className="flex flex-col items-start gap-4 sm:gap-5 lg:w-[280px]">
-        <div className="rounded-full overflow-hidden w-[64px] h-[64px] sm:w-[80px] sm:h-[80px] shrink-0">
-          <img
-            src={agent.avatarUrl ?? agentImg}
-            alt={agent.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div>
-          <p
-            className="text-white text-[20px] sm:text-[24px] mb-1 leading-[28px] sm:leading-[32px]"
+        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+          <h2
+            className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 500,
               letterSpacing: "-0.24px",
             }}
           >
-            {agent.name}
-          </p>
+            On the Map
+          </h2>
 
-          <p
-            className="text-white text-[14px] sm:text-[16px] opacity-80"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            Listing Agent
-          </p>
+          <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px]">
+            <PropertyLocationMap
+              latitude={listing.latitude}
+              longitude={listing.longitude}
+              title={listing.title}
+            />
+
+            {/* Location Card */}
+            <div className="absolute top-3 left-3 sm:top-5 sm:left-5 w-[290px] max-w-[calc(100%-24px)] rounded-[14px] bg-white px-4 py-3.5 shadow-sm">
+              {/* Location Name */}
+              <p
+                className="mb-2 truncate text-[16px] leading-[22px] text-[#232323]"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: "-0.16px",
+                }}
+              >
+                {listing.location}
+              </p>
+
+              {/* Full Address */}
+              <p
+                className="mb-3 truncate text-[14px] leading-[20px] text-[#6B6B6B]"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 400,
+                  letterSpacing: "-0.14px",
+                }}
+              >
+                {listing.fullAddress}
+              </p>
+
+              {/* Rating and Reviews */}
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <span
+                  className="text-[16px] font-medium text-[#232323]"
+                  style={{ fontFamily: "Poppins, sans-serif" }}
+                >
+                  5.0
+                </span>
+
+                <div className="flex items-center gap-[2px] text-[19px] leading-none text-[#F5A000]">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <span key={index}>★</span>
+                  ))}
+                </div>
+
+                <span
+                  className="text-[14px] text-[#369BCB]"
+                  style={{ fontFamily: "Poppins, sans-serif" }}
+                >
+                  {(6546).toLocaleString()} reviews
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Divider */}
-      <div className="hidden lg:block w-px bg-[#2B3038] self-stretch" />
-
-      {/* Mobile Divider */}
-      <div className="block lg:hidden w-full  bg-white/15" />
-      </>
       ) : null}
 
-      {/* Middle: CTA text */}
-      <div className="flex flex-col gap-3 sm:gap-4 flex-1">
-        <h2
-          className="text-white text-[26px] sm:text-[30px] lg:text-[36px] leading-[34px] sm:leading-[40px] lg:leading-[48px]"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: 600,
-            letterSpacing: "-0.36px",
-          }}
-        >
-          Ready to see this property
-        </h2>
+      {/* Agent Contact Banner */}
+      <div className="w-[calc(100%-38px)] max-w-[1196px] mx-auto py-8 sm:py-12 lg:py-16">
+        <div className="bg-[#112b4a] rounded-[22px] sm:rounded-[28px] lg:rounded-[36px] relative overflow-hidden min-h-[auto] lg:min-h-[320px]">
+          {/* Background image */}
+          <div className="absolute inset-0">
+            <img
+              src={footerBgImg}
+              alt=""
+              className="w-full h-full object-cover opacity-10"
+            />
+          </div>
 
-        <p
-          className="text-white text-[14px] sm:text-[16px] opacity-80 leading-[22px] sm:leading-[24px]"
-          style={{
-            fontFamily: "Montserrat, sans-serif",
-            letterSpacing: "-0.16px",
-          }}
-        >
-          Book a private tour or send a message directly to{" "}
-          {agent ? agent.name.split(" ")[0] : "our team"}.
-          <br className="hidden sm:block" />
-          No commitment needed
-        </p>
+          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-stretch gap-7 lg:gap-8 p-5 sm:p-8 lg:p-16">
+            {agent ? (
+              <>
+                {/* Left: Agent */}
+                <div className="flex flex-col items-start gap-4 sm:gap-5 lg:w-[280px]">
+                  <div className="rounded-full overflow-hidden w-[64px] h-[64px] sm:w-[80px] sm:h-[80px] shrink-0">
+                    <img
+                      src={agent.avatarUrl ?? agentImg}
+                      alt={agent.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div>
+                    <p
+                      className="text-white text-[20px] sm:text-[24px] mb-1 leading-[28px] sm:leading-[32px]"
+                      style={{
+                        fontFamily: "Poppins, sans-serif",
+                        fontWeight: 500,
+                        letterSpacing: "-0.24px",
+                      }}
+                    >
+                      {agent.name}
+                    </p>
+
+                    <p
+                      className="text-white text-[14px] sm:text-[16px] opacity-80"
+                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                    >
+                      Listing Agent
+                    </p>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="hidden lg:block w-px bg-[#2B3038] self-stretch" />
+
+                {/* Mobile Divider */}
+                <div className="block lg:hidden w-full  bg-white/15" />
+              </>
+            ) : null}
+
+            {/* Middle: CTA text */}
+            <div className="flex flex-col gap-3 sm:gap-4 flex-1">
+              <h2
+                className="text-white text-[26px] sm:text-[30px] lg:text-[36px] leading-[34px] sm:leading-[40px] lg:leading-[48px]"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: 600,
+                  letterSpacing: "-0.36px",
+                }}
+              >
+                Ready to see this property
+              </h2>
+
+              <p
+                className="text-white text-[14px] sm:text-[16px] opacity-80 leading-[22px] sm:leading-[24px]"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  letterSpacing: "-0.16px",
+                }}
+              >
+                Book a private tour or send a message directly to{" "}
+                {agent ? agent.name.split(" ")[0] : "our team"}.
+                <br className="hidden sm:block" />
+                No commitment needed
+              </p>
+            </div>
+
+            {/* Right: Buttons */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 lg:gap-5 w-full lg:w-[257px] justify-center">
+              <button
+                onClick={() => setTourModalOpen(true)}
+                className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] transition-opacity hover:opacity-90"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  background: "linear-gradient(to bottom, #005ea4, #006fc2)",
+                  border: "1px solid #0088ff",
+                }}
+              >
+                Schedule a Visit
+              </button>
+
+              <button
+                className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] border border-[#b9c8d9] hover:bg-white/10 transition-colors"
+                style={{ fontFamily: "Poppins, sans-serif" }}
+              >
+                Send Inquiry
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Right: Buttons */}
-      <div className="flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 lg:gap-5 w-full lg:w-[257px] justify-center">
-        <button
-          onClick={() => setTourModalOpen(true)}
-          className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] transition-opacity hover:opacity-90"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-            border: "1px solid #0088ff",
-          }}
-        >
-          Schedule a Visit
-        </button>
-
-        <button
-          className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] border border-[#b9c8d9] hover:bg-white/10 transition-colors"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          Send Inquiry
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
       {/* Footer spacer */}
       <div className="h-8" />
