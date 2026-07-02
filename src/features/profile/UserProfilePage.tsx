@@ -74,7 +74,7 @@ type SavedListing = {
   rentPrice: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
-  areaSqft: number | null;
+  totalAreaM2: number | null;
   coverImageUrl: string | null;
   savedAt: string;
 };
@@ -178,11 +178,11 @@ function SavedCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-x-[16px] gap-y-[8px] sm:gap-[20px]">
-          {listing.areaSqft !== null && (
+          {listing.totalAreaM2 !== null && (
             <div className="flex items-center gap-[6px] sm:gap-[8px]">
               <img src={iconSqft} alt="" className="w-[20px] h-[20px] shrink-0" />
               <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
-                {formatArea(listing.areaSqft)}
+                {formatArea(listing.totalAreaM2)}
               </span>
             </div>
           )}

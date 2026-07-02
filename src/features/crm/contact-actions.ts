@@ -33,7 +33,7 @@ function contactRecordScope(profile: Profile): Prisma.ContactWhereInput {
       { createdById: profile.id },
       { assignedAgentId: profile.id },
       { leads: { some: { assignedAgentId: profile.id } } },
-      { opportunities: { some: { assignedAgentId: profile.id } } },
+      { opportunityParticipants: { some: { opportunity: { assignedAgentId: profile.id } } } },
       { tours: { some: { assignedAgentId: profile.id } } },
       { properties: { some: { property: { assignedAgentId: profile.id } } } },
     ],
@@ -103,7 +103,7 @@ const contactInclude = {
       property: { select: { id: true, listingId: true, title: true, location: true, slug: true } },
     },
   },
-  _count: { select: { opportunities: true } },
+  _count: { select: { opportunityParticipants: { where: { opportunity: { isDeleted: false } } } } },
 } satisfies Prisma.ContactInclude;
 
 // ── List ──────────────────────────────────────────────────────────────────────
@@ -148,10 +148,11 @@ export async function listContacts(search?: string, limit?: number): Promise<
     contacts: dtos,
     metrics: {
       total: dtos.length,
-      buyers: dtos.filter((c) => c.type === ContactType.BUYER || c.type === ContactType.BOTH).length,
-      sellers: dtos.filter((c) => c.type === ContactType.SELLER || c.type === ContactType.BOTH).length,
+      buyers: dtos.filter((c) => c.type === ContactType.BUYER).length,
+      sellers: dtos.filter((c) => c.type === ContactType.SELLER).length,
+      both: dtos.filter((c) => c.type === ContactType.BOTH).length,
       withListings: dtos.filter((c) => c.properties.length > 0).length,
-      withOpportunities: contacts.filter((c) => c._count.opportunities > 0).length,
+      withOpportunities: contacts.filter((c) => c._count.opportunityParticipants > 0).length,
     },
   };
 }

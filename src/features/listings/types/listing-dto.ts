@@ -35,7 +35,12 @@ export type DashboardListingDto = {
   bedrooms: number | null;
   bathrooms: number | null;
   toilets: number | null;
-  areaSqft: number | null;
+  totalAreaM2: number | null;
+  coveredAreaM2: number | null;
+  semiCoveredAreaM2: number | null;
+  lotSizeM2: number | null;
+  lotFrontageM2: number | null;
+  lotDepthM2: number | null;
   yearBuilt: number | null;
   isFeatured: boolean;
   videoUrl: string | null;
@@ -80,8 +85,12 @@ export type PublicListingDto = {
   bedrooms: number | null;
   bathrooms: number | null;
   toilets: number | null;
-  areaSqft: number | null;
-  lotSizeSqft: number | null;
+  totalAreaM2: number | null;
+  coveredAreaM2: number | null;
+  semiCoveredAreaM2: number | null;
+  lotSizeM2: number | null;
+  lotFrontageM2: number | null;
+  lotDepthM2: number | null;
   parkingSpaces: number | null;
   yearBuilt: number | null;
   floors: number | null;

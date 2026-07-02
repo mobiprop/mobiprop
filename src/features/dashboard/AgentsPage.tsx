@@ -537,16 +537,24 @@ export function AgentsPage({ role }: AgentsPageProps) {
               >
                 <td className="w-[220px] px-4 py-4">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white"
-                      style={mont}
-                    >
-                      {agent.name
-                        .split(" ")
-                        .map((name) => name[0])
-                        .join("")
-                        .slice(0, 2)}
-                    </div>
+                    {agent.avatarUrl ? (
+                      <img
+                        src={agent.avatarUrl}
+                        alt={agent.name}
+                        className="size-8 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white"
+                        style={mont}
+                      >
+                        {agent.name
+                          .split(" ")
+                          .map((name) => name[0])
+                          .join("")
+                          .slice(0, 2)}
+                      </div>
+                    )}
 
                     <Link
                       href={`/dashboard/agents/${agent.id}`}
@@ -718,16 +726,24 @@ export function AgentsPage({ role }: AgentsPageProps) {
               {/* Agent top details */}
               <div className="flex items-start justify-between gap-3 p-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
-                    style={mont}
-                  >
-                    {agent.name
-                      .split(" ")
-                      .map((name) => name[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </div>
+                  {agent.avatarUrl ? (
+                    <img
+                      src={agent.avatarUrl}
+                      alt={agent.name}
+                      className="size-11 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
+                      style={mont}
+                    >
+                      {agent.name
+                        .split(" ")
+                        .map((name) => name[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+                  )}
 
                   <div className="min-w-0">
                     <Link

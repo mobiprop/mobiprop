@@ -32,15 +32,13 @@ async function nextLocationId(): Promise<string> {
 // per location by exact Property.locationId match. Avoids N+1 round trips
 // while still deriving every number live from real rows.
 
-const SQFT_PER_SQM = 0.092903;
-
 type StatsProperty = {
   id: string;
   locationId: string | null;
   type: PropertyType;
   status: PropertyStatus;
   salePrice: { toString(): string } | null;
-  areaSqft: number | null;
+  totalAreaM2: number | null;
   assignedAgentId: string | null;
   createdAt: Date;
 };
@@ -119,11 +117,11 @@ function buildLocationDtos(
         .filter((id): id is string => Boolean(id) && activeProfileIds.has(id!)),
     ).size;
 
-    const withPriceAndArea = matched.filter((p) => p.salePrice != null && p.areaSqft);
+    const withPriceAndArea = matched.filter((p) => p.salePrice != null && p.totalAreaM2);
     const avgPricePerM2 = withPriceAndArea.length
       ? Math.round(
           withPriceAndArea.reduce((sum, p) => {
-            const sqm = (p.areaSqft ?? 0) * SQFT_PER_SQM;
+            const sqm = p.totalAreaM2 ?? 0;
             return sum + (sqm > 0 ? Number(p.salePrice) / sqm : 0);
           }, 0) / withPriceAndArea.length,
         )
@@ -204,7 +202,7 @@ export async function listLocationsWithStats(): Promise<
       type: true,
       status: true,
       salePrice: true,
-      areaSqft: true,
+      totalAreaM2: true,
       assignedAgentId: true,
       createdAt: true,
     },

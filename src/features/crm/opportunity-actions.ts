@@ -2,16 +2,17 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
-import { OpportunityStage, OpportunityStatus, ContactType } from "@/generated/prisma/enums";
+import { OpportunityStage, OpportunityStatus, OpportunityParticipantRole } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
-import { computeCommissionAmount } from "@/lib/commission";
+import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
-import type { CreateOpportunityInput, UpdateOpportunityInput } from "@/schemas/opportunity.schema";
-import type { OpportunityDto, OpportunityMetrics } from "./types/crm-dto";
+import type { CreateOpportunityInput, UpdateOpportunityInput, ParticipantInput } from "@/schemas/opportunity.schema";
+import type { OpportunityDto, OpportunityMetrics, OpportunityParticipantDto } from "./types/crm-dto";
 
 export type { CrmActionError, CrmActionResult } from "./contact-actions";
 import type { CrmActionError } from "./contact-actions";
@@ -19,10 +20,15 @@ type CrmActionResult<T> = ({ ok: true } & T) | CrmActionError;
 
 // ── Record-level access ──────────────────────────────────────────────────────
 
-/** ADMIN/MANAGER see all opportunities; AGENT only ones they created or are assigned to. */
-function opportunityRecordScope(profile: Profile): Prisma.OpportunityWhereInput {
-  if (hasPermission(profile.role, "opportunities:view_all")) return {};
-  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+/**
+ * ADMIN sees all opportunities. MANAGER sees their own + their team's (agents
+ * whose teamLeaderId points to them). AGENT only ones they created or are
+ * assigned to.
+ */
+async function opportunityRecordScope(profile: Profile): Promise<Prisma.OpportunityWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
 // ── ID generation ─────────────────────────────────────────────────────────────
@@ -36,9 +42,17 @@ async function nextOpportunityId(): Promise<string> {
 
 // ── DTO mapping ───────────────────────────────────────────────────────────────
 
+type ParticipantWithRelations = {
+  id: string;
+  role: OpportunityParticipantRole;
+  contactId: string | null;
+  companyName: string | null;
+  contact: { firstName: string; lastName: string } | null;
+};
+
 type OppWithRelations = {
   id: string; opportunityId: string; title: string;
-  contactId: string | null; propertyId: string | null;
+  propertyId: string | null;
   dealType: string | null; dealSize: unknown;
   stage: OpportunityStage; status: OpportunityStatus;
   probability: number; commission: unknown; commissionUnit: string | null;
@@ -48,9 +62,19 @@ type OppWithRelations = {
   notes: string | null;
   assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
-  contact: { firstName: string; lastName: string; type: ContactType } | null;
+  participants: ParticipantWithRelations[];
   property: { title: string; slug: string } | null;
 };
+
+function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDto {
+  return {
+    id: p.id,
+    role: p.role,
+    contactId: p.contactId,
+    contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
+    companyName: p.companyName,
+  };
+}
 
 function toOpportunityDto(
   o: OppWithRelations,
@@ -64,9 +88,7 @@ function toOpportunityDto(
     id: o.id,
     opportunityId: o.opportunityId,
     title: o.title,
-    contactId: o.contactId,
-    contactName: o.contact ? `${o.contact.firstName} ${o.contact.lastName}`.trim() : null,
-    contactType: o.contact?.type ?? null,
+    participants: o.participants.map(toParticipantDto),
     propertyId: o.propertyId,
     propertyTitle: o.property?.title ?? null,
     propertySlug: o.property?.slug ?? null,
@@ -94,7 +116,10 @@ function toOpportunityDto(
 }
 
 const opportunityInclude = {
-  contact: { select: { firstName: true, lastName: true, type: true } },
+  participants: {
+    include: { contact: { select: { firstName: true, lastName: true } } },
+    orderBy: { createdAt: "asc" },
+  },
   property: { select: { title: true, slug: true } },
 } as const;
 
@@ -106,8 +131,9 @@ export async function listOpportunities(): Promise<
   const gate = await requirePermission("opportunities:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await opportunityRecordScope(gate.profile);
   const rows = await prisma.opportunity.findMany({
-    where: { isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    where: { isDeleted: false, ...scope },
     include: opportunityInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -115,6 +141,9 @@ export async function listOpportunities(): Promise<
   const agentMap = await buildAgentMap(rows.map((r) => r.assignedAgentId));
   const dtos = rows.map((r) => toOpportunityDto(r, agentMap));
   const totalValue = dtos.reduce((sum, o) => sum + (o.dealSize ?? 0), 0);
+  const totalRevenue = rows
+    .filter((r) => r.status === OpportunityStatus.CLOSED_WON)
+    .reduce((sum, r) => sum + resolveCompanyRevenue(r), 0);
 
   return {
     ok: true,
@@ -125,6 +154,7 @@ export async function listOpportunities(): Promise<
       closedWon: dtos.filter((o) => o.status === OpportunityStatus.CLOSED_WON).length,
       closedLost: dtos.filter((o) => o.status === OpportunityStatus.CLOSED_LOST).length,
       totalValue,
+      totalRevenue,
     },
   };
 }
@@ -135,14 +165,38 @@ export async function getOpportunity(id: string): Promise<CrmActionResult<{ oppo
   const gate = await requirePermission("opportunities:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await opportunityRecordScope(gate.profile);
   const opp = await prisma.opportunity.findFirst({
-    where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    where: { id, isDeleted: false, ...scope },
     include: opportunityInclude,
   });
   if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
 
   const agentMap = await buildAgentMap([opp.assignedAgentId]);
   return { ok: true, opportunity: toOpportunityDto(opp, agentMap) };
+}
+
+/** Confirms every BUYER/SELLER participant's contactId is a real, non-deleted Contact. */
+async function validateParticipantContacts(participants: ParticipantInput[]): Promise<string | null> {
+  const contactIds = [...new Set(participants.map((p) => p.contactId).filter((id): id is string => Boolean(id)))];
+  if (contactIds.length === 0) return null;
+
+  const found = await prisma.contact.findMany({
+    where: { id: { in: contactIds }, isDeleted: false },
+    select: { id: true },
+  });
+  if (found.length !== contactIds.length) {
+    return "One of the selected contacts was not found.";
+  }
+  return null;
+}
+
+function participantsCreateData(participants: ParticipantInput[]) {
+  return participants.map((p) => ({
+    role: p.role as OpportunityParticipantRole,
+    contactId: p.role === "AGENCY" ? null : (p.contactId ?? null),
+    companyName: p.role === "AGENCY" ? (p.companyName ?? null) : null,
+  }));
 }
 
 // ── Create ────────────────────────────────────────────────────────────────────
@@ -158,7 +212,11 @@ export async function createOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { contactSide, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+
+  const contactError = await validateParticipantContacts(participants);
+  if (contactError) return { ok: false, error: contactError, status: 422 };
+
   const opportunityId = await nextOpportunityId();
 
   const opp = await prisma.opportunity.create({
@@ -176,6 +234,7 @@ export async function createOpportunity(
       contractEnd: contractEnd ? new Date(contractEnd) : null,
       expectedCloseAt: expectedCloseAt ? new Date(expectedCloseAt) : null,
       createdById: gate.profile.id,
+      participants: { create: participantsCreateData(participants) },
     },
     include: opportunityInclude,
   });
@@ -185,7 +244,13 @@ export async function createOpportunity(
     action: "OPPORTUNITY_CREATED",
     entityType: "OPPORTUNITY",
     entityId: opp.id,
-    newValues: { title: opp.title, contactId: opp.contactId, stage: opp.stage, status: opp.status, dealSize: fields.dealSize ?? null },
+    newValues: {
+      title: opp.title,
+      participants: opp.participants.map((p) => ({ role: p.role, contactId: p.contactId })),
+      stage: opp.stage,
+      status: opp.status,
+      dealSize: fields.dealSize ?? null,
+    },
   });
 
   const agentMap = await buildAgentMap([opp.assignedAgentId]);
@@ -206,8 +271,12 @@ export async function updateOpportunity(
     select: { isDeleted: true, assignedAgentId: true, createdById: true, title: true, stage: true, status: true, dealSize: true },
   });
   if (!existing || existing.isDeleted) return { ok: false, error: "Opportunity not found.", status: 404 };
-  if (!hasPermission(gate.profile.role, "opportunities:view_all")) {
-    if (existing.assignedAgentId !== gate.profile.id && existing.createdById !== gate.profile.id) {
+  const scopeIds = await resolveOwnerScopeIds(gate.profile);
+  if (scopeIds !== null) {
+    const visible =
+      (existing.assignedAgentId !== null && scopeIds.includes(existing.assignedAgentId)) ||
+      (existing.createdById !== null && scopeIds.includes(existing.createdById));
+    if (!visible) {
       return { ok: false, error: "You can only update your own or assigned opportunities.", status: 403 };
     }
   }
@@ -217,17 +286,26 @@ export async function updateOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { contactSide, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+
+  if (participants !== undefined) {
+    const contactError = await validateParticipantContacts(participants);
+    if (contactError) return { ok: false, error: contactError, status: 422 };
+  }
 
   const opp = await prisma.opportunity.update({
     where: { id },
     data: {
       ...fields,
-      contactId: fields.contactId !== undefined ? (fields.contactId || null) : undefined,
       propertyId: fields.propertyId !== undefined ? (fields.propertyId || null) : undefined,
       contractStart: contractStart !== undefined ? (contractStart ? new Date(contractStart) : null) : undefined,
       contractEnd: contractEnd !== undefined ? (contractEnd ? new Date(contractEnd) : null) : undefined,
       expectedCloseAt: expectedCloseAt !== undefined ? (expectedCloseAt ? new Date(expectedCloseAt) : null) : undefined,
+      // Full replace, mirroring how listing amenities are updated — simplest
+      // correct behavior for a small per-deal participant list.
+      ...(participants !== undefined
+        ? { participants: { deleteMany: {}, create: participantsCreateData(participants) } }
+        : {}),
     },
     include: opportunityInclude,
   });
@@ -294,9 +372,12 @@ export async function deleteOpportunity(id: string): Promise<CrmActionResult<{ i
 export type ContractDraft = {
   title: string;
   contactId: string | null;
+  contactName: string | null;
   propertyId: string | null;
+  propertyTitle: string | null;
   assignedAgentId: string | null;
   opportunityId: string;
+  opportunityNumber: string;
   value: number | null;
   startDate: string | null;
   endDate: string | null;
@@ -313,20 +394,35 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
   const gate = await requirePermission("contracts:create");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await opportunityRecordScope(gate.profile);
   const opp = await prisma.opportunity.findFirst({
-    where: { id, isDeleted: false, ...opportunityRecordScope(gate.profile) },
+    where: { id, isDeleted: false, ...scope },
+    include: {
+      participants: { include: { contact: { select: { firstName: true, lastName: true } } } },
+      property: { select: { title: true } },
+    },
   });
   if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
   if (opp.status !== OpportunityStatus.CLOSED_WON) {
     return { ok: false, error: "Only a Closed Won opportunity can be turned into a contract.", status: 400 };
   }
 
+  // A Contract still has a single counterparty — prefer the Buyer, falling
+  // back to the Seller, when the opportunity has multiple participants.
+  const primaryContact =
+    opp.participants.find((p) => p.role === "BUYER" && p.contact) ??
+    opp.participants.find((p) => p.role === "SELLER" && p.contact) ??
+    null;
+
   const draft: ContractDraft = {
     title: opp.title,
-    contactId: opp.contactId,
+    contactId: primaryContact?.contactId ?? null,
+    contactName: primaryContact?.contact ? `${primaryContact.contact.firstName} ${primaryContact.contact.lastName}`.trim() : null,
     propertyId: opp.propertyId,
+    propertyTitle: opp.property?.title ?? null,
     assignedAgentId: opp.assignedAgentId,
     opportunityId: opp.id,
+    opportunityNumber: opp.opportunityId,
     value: opp.dealSize !== null ? Number(opp.dealSize) : null,
     startDate: opp.contractStart?.toISOString() ?? null,
     endDate: opp.contractEnd?.toISOString() ?? null,

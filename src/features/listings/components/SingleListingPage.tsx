@@ -367,6 +367,26 @@ const statCatalog = [
     icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Size" width={24} height={24} />,
   },
   {
+    label: "Covered Area",
+    value: "95 m²",
+    icon: <img src="/assets/figma-temp/UserProfile/size.svg" alt="Covered Area" width={28} height={24} />,
+  },
+  {
+    label: "Semi-covered Area",
+    value: "15 m²",
+    icon: <img src="/assets/figma-temp/UserProfile/size.svg" alt="Semi-covered Area" width={28} height={24} />,
+  },
+  {
+    label: "Lot Frontage",
+    value: "20 m²",
+    icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Frontage" width={24} height={24} />,
+  },
+  {
+    label: "Lot Depth",
+    value: "25 m²",
+    icon: <img src="/assets/figma-temp/UserProfile/lot-size.svg" alt="Lot Depth" width={24} height={24} />,
+  },
+  {
     label: "Built in",
     value: "2021",
     icon: <img src="/assets/figma-temp/UserProfile/built.svg" alt="Built in" width={26} height={28} />,
@@ -411,10 +431,21 @@ function buildStats(listing: PublicListingDto) {
   else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice));
   if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
   if (listing.bathrooms !== null) push("Baths", String(listing.bathrooms));
-  if (listing.areaSqft !== null) push("Size", `${listing.areaSqft.toLocaleString("en-US")} sq ft`);
+  if (listing.totalAreaM2 !== null) push("Size", `${listing.totalAreaM2.toLocaleString("en-US")} m²`);
   if (listing.parkingSpaces !== null) push("Parking", String(listing.parkingSpaces));
-  if (listing.lotSizeSqft !== null)
-    push("Lot Size", `${listing.lotSizeSqft.toLocaleString("en-US")} sq ft`);
+  if (listing.type === "LOT") {
+    if (listing.lotFrontageM2 !== null)
+      push("Lot Frontage", `${listing.lotFrontageM2.toLocaleString("en-US")} m²`);
+    if (listing.lotDepthM2 !== null)
+      push("Lot Depth", `${listing.lotDepthM2.toLocaleString("en-US")} m²`);
+  } else {
+    if (listing.coveredAreaM2 !== null)
+      push("Covered Area", `${listing.coveredAreaM2.toLocaleString("en-US")} m²`);
+    if (listing.semiCoveredAreaM2 !== null)
+      push("Semi-covered Area", `${listing.semiCoveredAreaM2.toLocaleString("en-US")} m²`);
+    if (listing.lotSizeM2 !== null)
+      push("Lot Size", `${listing.lotSizeM2.toLocaleString("en-US")} m²`);
+  }
   if (listing.yearBuilt !== null) push("Built in", String(listing.yearBuilt));
   if (listing.floors !== null)
     push("Floors", listing.floors === 1 ? "1 story" : `${listing.floors} stories`);

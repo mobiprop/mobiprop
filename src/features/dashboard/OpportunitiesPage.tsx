@@ -23,6 +23,12 @@ import { AddOpportunityModal, type OpportunityFormValues } from "./components/Ad
 import { OpportunityFilterModal } from "./components/OpportunityFilterModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
+
+/** Display label for the participants column/search — joins every named party. */
+function participantsLabel(o: OpportunityDto): string {
+  const names = o.participants.map((p) => p.contactName ?? p.companyName).filter((n): n is string => Boolean(n));
+  return names.length ? names.join(", ") : "—";
+}
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 // ── Stage config ──────────────────────────────────────────────────────────────
@@ -239,7 +245,7 @@ export function OpportunitiesPage({
       const matchesSearch =
         !q ||
         o.title.toLowerCase().includes(q) ||
-        (o.contactName ?? "").toLowerCase().includes(q) ||
+        participantsLabel(o).toLowerCase().includes(q) ||
         (o.propertyTitle ?? "").toLowerCase().includes(q) ||
         o.opportunityId.toLowerCase().includes(q);
       return matchesTab && matchesSearch;
@@ -249,7 +255,11 @@ export function OpportunitiesPage({
   async function handleSubmit(values: OpportunityFormValues) {
     const payload = {
       title: values.title || "Untitled Opportunity",
-      contactId: values.contactId || undefined,
+      participants: values.participants.map((row) =>
+        row.role === "AGENCY"
+          ? { role: row.role, companyName: row.companyName.trim() }
+          : { role: row.role, contactId: row.contactId },
+      ),
       propertyId: values.propertyId || undefined,
       dealType: values.dealType,
       dealSize: values.dealSize ? Number(values.dealSize) : undefined,
@@ -393,7 +403,7 @@ export function OpportunitiesPage({
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-[14px] text-[#6a7282]" style={mont}>{opp.contactName ?? "—"}</span>
+                      <span className="text-[14px] text-[#6a7282]" style={mont}>{participantsLabel(opp)}</span>
                     </td>
                     <td className="px-5 py-4">
                       <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{fmt(opp.dealSize)}</span>

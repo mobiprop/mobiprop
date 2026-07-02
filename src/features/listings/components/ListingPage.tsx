@@ -283,7 +283,7 @@ return (
          className="text-[14px] text-[#2b3038]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         {formatArea(item.areaSqft)}
+         {formatArea(item.totalAreaM2)}
          </span>
       </div>
       <div className="flex items-center gap-[7px]">

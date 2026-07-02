@@ -46,6 +46,11 @@ model Profile {
   timezone    String?
   address     String?
   description String?
+  // Private admin-only notes about a staff member (Edit Agent modal) —
+  // distinct from `description`, which is the user's own public bio.
+  notes       String?
+  // Manager/Admin this AGENT reports to (Edit/Add Agent "Team Leader" field).
+  teamLeaderId String?   @map("team_leader_id") @db.Uuid
   // Notification / security / locale settings edited from the profile modal.
   preferences Json?
   role        UserRole   @default(USER)
@@ -64,6 +69,12 @@ model Profile {
 
   pushSubscriptions PushSubscription[]
 
+  teamLeader  Profile?  @relation("TeamLeadership", fields: [teamLeaderId], references: [id], onDelete: SetNull)
+  teamMembers Profile[] @relation("TeamLeadership")
+
+  invitationsAsTeamLeader AgentInvitation[] @relation("InvitationTeamLeader")
+
+  @@index([teamLeaderId], map: "profiles_team_leader_idx")
   @@map("profiles")
 }
 
@@ -84,12 +95,22 @@ model AgentInvitation {
   phone       String?
   location    String?
   notes       String?
+  // Manager/Admin picked as this invitee's team leader — applied to the
+  // Profile once the invite is accepted (see applyInvitationExtras).
+  teamLeaderId String?         @map("team_leader_id") @db.Uuid
+  // Storage path (avatars bucket) of a photo picked before the invite is
+  // accepted — no Profile id exists yet, so it can't live at its final path.
+  // Promoted to the new Profile's avatar path on acceptance.
+  avatarPath  String?          @map("avatar_path")
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  teamLeader Profile? @relation("InvitationTeamLeader", fields: [teamLeaderId], references: [id], onDelete: SetNull)
 
   @@index([email], map: "agent_invitations_email_idx")
   @@index([status], map: "agent_invitations_status_idx")
   @@index([expiresAt], map: "agent_invitations_expires_at_idx")
+  @@index([teamLeaderId], map: "agent_invitations_team_leader_idx")
   @@map("agent_invitations")
 }
 
@@ -273,8 +294,16 @@ model Property {
   bedrooms        Int?
   bathrooms       Int?
   toilets         Int?
-  areaSqft        Int?                  @map("area_sqft")
-  lotSizeSqft     Int?                  @map("lot_size_sqft")
+  // All measurements in square meters. totalAreaM2 applies to every listing
+  // type (whole property area for non-LOT types, parcel area for LOT).
+  // coveredAreaM2/semiCoveredAreaM2/lotSizeM2 apply to non-LOT types only;
+  // lotFrontageM2/lotDepthM2 apply only when type is LOT.
+  totalAreaM2       Int?                @map("total_area_m2")
+  coveredAreaM2     Int?                @map("covered_area_m2")
+  semiCoveredAreaM2 Int?                @map("semi_covered_area_m2")
+  lotSizeM2         Int?                @map("lot_size_m2")
+  lotFrontageM2     Int?                @map("lot_frontage_m2")
+  lotDepthM2        Int?                @map("lot_depth_m2")
   parkingSpaces   Int?                  @map("parking_spaces")
   yearBuilt       Int?                  @map("year_built")
   floors          Int?
@@ -448,11 +477,11 @@ model Contact {
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
-  properties    ContactProperty[]
-  opportunities Opportunity[]
-  contracts     Contract[]
-  leads         Lead[]
-  tours         Tour[]
+  properties              ContactProperty[]
+  opportunityParticipants OpportunityParticipant[]
+  contracts               Contract[]
+  leads                   Lead[]
+  tours                   Tour[]
 
   @@index([email], map: "contacts_email_idx")
   @@index([type], map: "contacts_type_idx")
@@ -480,7 +509,6 @@ model Opportunity {
   id              String            @id @default(cuid())
   opportunityId   String            @unique @map("opportunity_id")
   title           String
-  contactId       String?           @map("contact_id")
   propertyId      String?           @map("property_id")
   dealType        String?           @map("deal_type")
   dealSize        Decimal?          @map("deal_size") @db.Decimal(14, 2)
@@ -503,19 +531,44 @@ model Opportunity {
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
 
-  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
   property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
   // Inverse side of Lead.convertedOpportunity — traces this Opportunity back
   // to the Lead it was converted from, when applicable.
-  sourceLead Lead?     @relation("LeadConversion")
-  contracts  Contract[]
+  sourceLead   Lead?                    @relation("LeadConversion")
+  contracts    Contract[]
+  participants OpportunityParticipant[]
 
-  @@index([contactId], map: "opportunities_contact_idx")
   @@index([propertyId], map: "opportunities_property_idx")
   @@index([status], map: "opportunities_status_idx")
   @@index([isDeleted], map: "opportunities_is_deleted_idx")
   @@map("opportunities")
+}
+
+enum OpportunityParticipantRole {
+  BUYER
+  SELLER
+  // No Contact record needed — just a free-text company name.
+  AGENCY
+}
+
+// Multiple parties on one deal (buyer, seller, co-buyers, a co-broking
+// agency, etc.) — replaces the old single Opportunity.contactId. BUYER/SELLER
+// rows must reference a real Contact; AGENCY rows are just a company name.
+model OpportunityParticipant {
+  id            String                     @id @default(cuid())
+  opportunityId String                     @map("opportunity_id")
+  role          OpportunityParticipantRole
+  contactId     String?                    @map("contact_id")
+  companyName   String?                    @map("company_name")
+  createdAt     DateTime                   @default(now()) @map("created_at")
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  contact     Contact?    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId], map: "opportunity_participants_opportunity_idx")
+  @@index([contactId], map: "opportunity_participants_contact_idx")
+  @@map("opportunity_participants")
 }
 
 // CRM contract — executed deal between the agency and a contact.

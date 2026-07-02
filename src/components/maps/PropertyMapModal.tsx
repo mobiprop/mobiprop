@@ -186,7 +186,7 @@ function SidebarCard({
             className="text-[11px] text-[#6a7282] leading-[15px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {[formatBeds(item.bedrooms), formatBaths(item.bathrooms), formatArea(item.areaSqft)]
+            {[formatBeds(item.bedrooms), formatBaths(item.bathrooms), formatArea(item.totalAreaM2)]
               .filter(Boolean)
               .join(" · ")}
           </p>
@@ -314,7 +314,7 @@ function MapPropertyCard({
           </div>
 
           <p className="text-[12px] text-[#2b3038]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-            {[formatArea(item.areaSqft), formatBeds(item.bedrooms), formatBaths(item.bathrooms)]
+            {[formatArea(item.totalAreaM2), formatBeds(item.bedrooms), formatBaths(item.bathrooms)]
               .filter(Boolean)
               .join(" · ")}
           </p>

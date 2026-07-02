@@ -36,19 +36,30 @@ export type ContactMetrics = {
   total: number;
   buyers: number;
   sellers: number;
+  both: number;
   withListings: number;
   withOpportunities: number;
 };
 
 // ── Opportunity ───────────────────────────────────────────────────────────────
 
+export type OpportunityParticipantRole = "BUYER" | "SELLER" | "AGENCY";
+
+export type OpportunityParticipantDto = {
+  id: string;
+  role: OpportunityParticipantRole;
+  /** Set for BUYER/SELLER rows (a linked Contact); null for AGENCY rows. */
+  contactId: string | null;
+  contactName: string | null;
+  /** Set for AGENCY rows only — free text, no Contact record. */
+  companyName: string | null;
+};
+
 export type OpportunityDto = {
   id: string;
   opportunityId: string;
   title: string;
-  contactId: string | null;
-  contactName: string | null;
-  contactType: ContactType | null;
+  participants: OpportunityParticipantDto[];
   propertyId: string | null;
   propertyTitle: string | null;
   propertySlug: string | null;
@@ -82,6 +93,9 @@ export type OpportunityMetrics = {
   closedWon: number;
   closedLost: number;
   totalValue: number;
+  /** Sum of resolved commission amounts for CLOSED_WON opportunities — the
+   * brokerage's actual revenue, not the raw deal size. */
+  totalRevenue: number;
 };
 
 // ── Contract ──────────────────────────────────────────────────────────────────

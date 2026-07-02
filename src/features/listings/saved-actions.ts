@@ -85,7 +85,7 @@ export async function getSavedListings() {
         rentPrice: p.rentPrice ? Number(p.rentPrice) : null,
         bedrooms: p.bedrooms,
         bathrooms: p.bathrooms,
-        areaSqft: p.areaSqft,
+        totalAreaM2: p.totalAreaM2,
         coverImageUrl: p.images[0]?.url ?? null,
         savedAt: s.createdAt.toISOString(),
       };

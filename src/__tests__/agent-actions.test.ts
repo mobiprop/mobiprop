@@ -18,6 +18,13 @@ vi.mock("react", async (importOriginal) => {
 const mockLogActivity = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/activity-log", () => ({ logActivity: mockLogActivity }));
 
+// Avoid pulling in @/lib/supabase/admin (which eagerly validates Supabase env
+// vars at import time) via updateAgentAvatar/removeAgentAvatar's storage import.
+vi.mock("@/lib/supabase/storage", () => ({
+  uploadAvatar: vi.fn().mockResolvedValue("https://example.com/avatar.jpg"),
+  removeAvatar: vi.fn().mockResolvedValue(undefined),
+}));
+
 let mockRequirePermissionResult: Record<string, unknown> = {};
 
 vi.mock("@/lib/require-permission", () => ({

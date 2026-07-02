@@ -16,6 +16,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { canAccessDashboard, isAdmin } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
 import { generateInviteToken, hashInviteToken } from "@/lib/security/token";
+import {
+  promoteInvitationAvatar,
+  uploadInvitationAvatar,
+} from "@/lib/supabase/storage";
 import { acceptInvitationApiSchema, createInvitationSchema } from "@/schemas/invitation.schema";
 import type { InvitationStatus, UserRole } from "@/generated/prisma/enums";
 
@@ -73,7 +77,7 @@ export async function signInStaff(input: unknown): Promise<StaffAuthResult> {
 }
 
 export type CreateInvitationResult =
-  | { ok: true; inviteUrl: string; emailSent: boolean }
+  | { ok: true; invitationId: string; inviteUrl: string; emailSent: boolean }
   | { ok: false; error: string };
 
 /**
@@ -95,12 +99,22 @@ export async function createAgentInvitation(
   if (!authz.ok) return { ok: false, error: authz.error };
   const inviter = authz.profile;
 
-  const { email, role, firstName, lastName, phone, location, notes } = parsed.data;
+  const { email, role, firstName, lastName, phone, location, notes, teamLeaderId } = parsed.data;
 
   // Defense-in-depth for the optional future where MANAGER gets agents:invite:
   // a non-ADMIN inviter may only ever invite AGENTs, never MANAGERs (or above).
   if (!isAdmin(inviter.role) && role !== "AGENT") {
     return { ok: false, error: "You can only invite agents." };
+  }
+
+  if (teamLeaderId) {
+    const leader = await prisma.profile.findUnique({
+      where: { id: teamLeaderId },
+      select: { role: true, status: true },
+    });
+    if (!leader || (leader.role !== "MANAGER" && leader.role !== "ADMIN") || leader.status !== "ACTIVE") {
+      return { ok: false, error: "Team leader must be an active Manager or Admin." };
+    }
   }
 
   // Reject if the email already belongs to an account.
@@ -133,6 +147,7 @@ export async function createAgentInvitation(
       phone,
       location,
       notes,
+      teamLeaderId,
     },
   });
 
@@ -159,7 +174,71 @@ export async function createAgentInvitation(
     expiresInDays: INVITATION_TTL_DAYS,
   });
 
-  return { ok: true, inviteUrl, emailSent: emailResult.sent };
+  return { ok: true, invitationId: invitation.id, inviteUrl, emailSent: emailResult.sent };
+}
+
+const MAX_INVITATION_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB, matches the agent/self-service photo limit
+const ALLOWED_INVITATION_AVATAR_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+
+export type SetInvitationAvatarResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Admin-only: stage a photo for a not-yet-accepted invitation (no Profile id
+ * exists yet to upload against). Promoted to the real Profile's avatar path
+ * once the invite is accepted — see promoteInvitationAvatar.
+ */
+export async function setInvitationAvatar(
+  invitationId: string,
+  file: File,
+): Promise<SetInvitationAvatarResult> {
+  const authz = await requirePermission("agents:invite");
+  if (!authz.ok) return { ok: false, error: authz.error };
+
+  const invitation = await prisma.agentInvitation.findUnique({ where: { id: invitationId } });
+  if (!invitation || invitation.status !== "PENDING") {
+    return { ok: false, error: "Invitation not found." };
+  }
+
+  if (file.size > MAX_INVITATION_AVATAR_BYTES) {
+    return { ok: false, error: "Image must be smaller than 5MB." };
+  }
+  if (!ALLOWED_INVITATION_AVATAR_TYPES.has(file.type)) {
+    return { ok: false, error: "Image must be a PNG, JPEG, WEBP or GIF." };
+  }
+
+  try {
+    const avatarPath = await uploadInvitationAvatar(invitationId, file);
+    await prisma.agentInvitation.update({ where: { id: invitationId }, data: { avatarPath } });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Failed to upload photo." };
+  }
+}
+
+/**
+ * Copies the invite's staged extras (city/notes/team leader/avatar) onto the
+ * just-created Profile. Called after both accept flows' upsert. Best-effort:
+ * an avatar-promotion failure never blocks account creation.
+ */
+async function applyInvitationExtras(
+  invitation: { location: string | null; notes: string | null; teamLeaderId: string | null; avatarPath: string | null },
+  profileId: string,
+): Promise<void> {
+  const avatarUrl = invitation.avatarPath
+    ? await promoteInvitationAvatar(invitation.avatarPath, profileId)
+    : null;
+
+  if (invitation.location || invitation.notes || invitation.teamLeaderId || avatarUrl) {
+    await prisma.profile.update({
+      where: { id: profileId },
+      data: {
+        ...(invitation.location ? { city: invitation.location } : {}),
+        ...(invitation.notes ? { notes: invitation.notes } : {}),
+        ...(invitation.teamLeaderId ? { teamLeaderId: invitation.teamLeaderId } : {}),
+        ...(avatarUrl ? { avatarUrl } : {}),
+      },
+    });
+  }
 }
 
 export type InvitationInfo = {
@@ -286,6 +365,8 @@ export async function acceptAgentInvitation(input: unknown): Promise<StaffAuthRe
     update: { fullName, role: invitation.role, status: "ACTIVE" },
   });
 
+  await applyInvitationExtras(invitation, created.user.id);
+
   await prisma.agentInvitation.update({
     where: { id: invitation.id },
     data: { status: "ACCEPTED", acceptedAt: new Date() },
@@ -405,6 +486,8 @@ export async function acceptInvitationApi(input: unknown): Promise<AcceptInvitat
     },
     update: { fullName, phone, role: invitation.role, status: "ACTIVE" },
   });
+
+  await applyInvitationExtras(invitation, created.user.id);
 
   await prisma.agentInvitation.update({
     where: { id: invitation.id },

@@ -73,6 +73,65 @@ export async function removeAvatar(userId: string): Promise<void> {
   }
 }
 
+/**
+ * Stages a photo picked before an invite is accepted — no Profile id exists
+ * yet, so it can't live at its final `${userId}/avatar.*` path. Returns the
+ * storage path (not a public URL); promoted via promoteInvitationAvatar once
+ * the invite is accepted.
+ */
+export async function uploadInvitationAvatar(invitationId: string, file: File): Promise<string> {
+  const supabase = createAdminClient();
+
+  await removeInvitationAvatar(invitationId);
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `invites/${invitationId}/avatar.${ext}`;
+
+  const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
+    contentType: file.type,
+    upsert: true,
+  });
+  if (error) throw new Error(`Failed to upload photo: ${error.message}`);
+
+  return path;
+}
+
+/** Removes any staged invitation avatar(s). */
+export async function removeInvitationAvatar(invitationId: string): Promise<void> {
+  const supabase = createAdminClient();
+
+  const { data: existing } = await supabase.storage.from(AVATAR_BUCKET).list(`invites/${invitationId}`);
+  if (existing?.length) {
+    await supabase.storage
+      .from(AVATAR_BUCKET)
+      .remove(existing.map((f) => `invites/${invitationId}/${f.name}`));
+  }
+}
+
+/**
+ * Moves a staged invitation avatar to the new Profile's permanent path once
+ * the invite is accepted. Best-effort: a failure here never blocks account
+ * creation — the agent can just re-upload their photo from Edit Agent.
+ */
+export async function promoteInvitationAvatar(
+  avatarPath: string,
+  profileId: string,
+): Promise<string | null> {
+  const supabase = createAdminClient();
+  const ext = avatarPath.split(".").pop()?.toLowerCase() || "jpg";
+  const newPath = `${profileId}/avatar.${ext}`;
+
+  const { error: copyError } = await supabase.storage.from(AVATAR_BUCKET).copy(avatarPath, newPath);
+  if (copyError) {
+    console.error("[storage] failed to promote invitation avatar", copyError);
+    return null;
+  }
+  await supabase.storage.from(AVATAR_BUCKET).remove([avatarPath]);
+
+  const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(newPath);
+  return `${data.publicUrl}?v=${Date.now()}`;
+}
+
 // ── Property images ───────────────────────────────────────────────────────────
 //
 // Listings are public, so the bucket is public-read; writes only ever happen

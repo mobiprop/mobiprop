@@ -48,8 +48,8 @@ export function listingTags(listing: PublicListingDto): string[] {
   return tags;
 }
 
-export function formatArea(areaSqft: number | null): string {
-  return areaSqft === null ? "—" : `${areaSqft.toLocaleString("en-US")} sq.ft`;
+export function formatArea(areaM2: number | null): string {
+  return areaM2 === null ? "—" : `${areaM2.toLocaleString("en-US")} m²`;
 }
 
 export function formatBeds(bedrooms: number | null): string {

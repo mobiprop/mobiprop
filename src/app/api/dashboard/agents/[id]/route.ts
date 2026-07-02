@@ -27,14 +27,20 @@ export async function PATCH(
   // buttons, and the Edit Agent modal's profile fields. Dispatch based on which
   // keys are present rather than overloading one schema for both.
   const hasProfileFields =
-    body && ("fullName" in body || "phone" in body || "city" in body || "role" in body);
+    body &&
+    ("fullName" in body ||
+      "phone" in body ||
+      "city" in body ||
+      "role" in body ||
+      "notes" in body ||
+      "teamLeaderId" in body);
 
   if (hasProfileFields) {
-    const { fullName, phone, city, role } = body;
+    const { fullName, phone, city, role, notes, teamLeaderId } = body;
     if (role !== undefined && role !== "AGENT" && role !== "MANAGER") {
       return NextResponse.json({ success: false, error: "Role must be AGENT or MANAGER." }, { status: 400 });
     }
-    const result = await updateAgent(id, { fullName, phone, city, role });
+    const result = await updateAgent(id, { fullName, phone, city, role, notes, teamLeaderId });
     if (!result.ok) {
       return NextResponse.json({ success: false, error: result.error }, { status: result.status });
     }

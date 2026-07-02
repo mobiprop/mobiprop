@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { X, Upload, ChevronDown, Check, Copy } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { X, Upload, Check, Copy } from "lucide-react";
 
 import { createAgentInvitation } from "@/features/auth/staff-actions";
+import type { AgentDto } from "@/features/agents/agent-actions";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -14,6 +16,7 @@ type AddAgentModalProps = {
 const ROLES = ["Agent", "Manager"] as const;
 
 type InviteSuccess = { inviteUrl: string; emailSent: boolean; email: string };
+type TeamLeaderOption = { id: string; name: string };
 
 export function AddAgentModal({ onClose }: AddAgentModalProps) {
   const [firstName, setFirstName] = useState("");
@@ -23,7 +26,10 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
   const [role, setRole] = useState<string>("Agent");
   const [location, setLocation] = useState("");
   const [teamLeader, setTeamLeader] = useState("");
+  const [teamLeaders, setTeamLeaders] = useState<TeamLeaderOption[]>([]);
+  const [teamLeadersLoading, setTeamLeadersLoading] = useState(true);
   const [notes, setNotes] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -32,11 +38,26 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
   const [success, setSuccess] = useState<InviteSuccess | null>(null);
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    fetch("/api/dashboard/agents")
+      .then((res) => res.json())
+      .then((json) => {
+        const agents: AgentDto[] = json.agents ?? [];
+        setTeamLeaders(
+          agents
+            .filter((a) => a.status === "ACTIVE" && (a.role === "MANAGER" || a.role === "ADMIN"))
+            .map((a) => ({ id: a.id, name: a.name })),
+        );
+      })
+      .catch(() => undefined)
+      .finally(() => setTeamLeadersLoading(false));
+  }, []);
+
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPhotoPreview(url);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,13 +74,26 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
       phone: phone.trim() || undefined,
       location: location.trim() || undefined,
       notes: notes.trim() || undefined,
+      teamLeaderId: role === "Agent" ? teamLeader || undefined : undefined,
     });
 
-    setSubmitting(false);
     if (!result.ok) {
+      setSubmitting(false);
       setError(result.error);
       return;
     }
+
+    // Best-effort: a photo-upload failure never blocks the invitation itself.
+    if (photoFile) {
+      const formData = new FormData();
+      formData.set("avatar", photoFile);
+      await fetch(`/api/invitations/${result.invitationId}/avatar`, {
+        method: "POST",
+        body: formData,
+      }).catch(() => undefined);
+    }
+
+    setSubmitting(false);
     setSuccess({ inviteUrl: result.inviteUrl, emailSent: result.emailSent, email: email.trim() });
   }
 
@@ -303,26 +337,14 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
               Role *
             </label>
 
-            <div className="relative">
-              <select
-                required
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-white pl-3 pr-8 text-[12px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] sm:h-[38px]"
-                style={mont}
-              >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]"
-              />
-            </div>
+            <SearchableSelect
+              value={role}
+              onChange={setRole}
+              options={ROLES.map((r) => ({ value: r, label: r }))}
+              placeholder="Select role"
+              searchable={false}
+              size="sm"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -351,24 +373,23 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Team Leader *
+              Team Leader
             </label>
 
-            <div className="relative">
-              <select
-                value={teamLeader}
-                onChange={(e) => setTeamLeader(e.target.value)}
-                className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-white pl-3 pr-8 text-[12px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] sm:h-[38px]"
-                style={mont}
-              >
-                <option value="">Select Team Leader</option>
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a7282]"
-              />
-            </div>
+            <SearchableSelect
+              value={teamLeader}
+              onChange={setTeamLeader}
+              options={[
+                // Explicit empty option so a picked leader can be cleared.
+                ...(teamLeader ? [{ value: "", label: "— No team leader —" }] : []),
+                ...teamLeaders.map((leader) => ({ value: leader.id, label: leader.name })),
+              ]}
+              placeholder="Select Team Leader"
+              searchPlaceholder="Search team leaders..."
+              emptyLabel="No team leaders found."
+              loading={teamLeadersLoading}
+              size="sm"
+            />
           </div>
         )}
 
