@@ -205,12 +205,20 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
             {/* Agent information */}
             <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
               {/* Avatar */}
-              <div
-                className="flex size-16 shrink-0 items-center justify-center rounded-full border border-[#e5e7eb] bg-[#1e4f86] text-[18px] font-semibold text-white sm:size-[70px] sm:text-[20px]"
-                style={mont}
-              >
-                {initials}
-              </div>
+              {agent.avatarUrl ? (
+                <img
+                  src={agent.avatarUrl}
+                  alt={agent.name}
+                  className="size-16 shrink-0 rounded-full border border-[#e5e7eb] object-cover sm:size-[70px]"
+                />
+              ) : (
+                <div
+                  className="flex size-16 shrink-0 items-center justify-center rounded-full border border-[#e5e7eb] bg-[#1e4f86] text-[18px] font-semibold text-white sm:size-[70px] sm:text-[20px]"
+                  style={mont}
+                >
+                  {initials}
+                </div>
+              )}
 
               {/* Name and details */}
               <div className="min-w-0 flex-1">

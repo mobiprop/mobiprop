@@ -7,6 +7,7 @@ import { notifyTourRequested, notifyTourStatusChanged } from "@/features/notific
 import { TourStatus, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { getValidAccessToken, createEvent, patchEventTime, deleteEvent } from "@/lib/google-calendar";
 import { isSlotAvailable, findAvailableSlots } from "./tour-availability";
 import {
@@ -230,9 +231,15 @@ async function buildAgentMap(
 
 // ── Record-level scope ────────────────────────────────────────────────────────
 
-function tourRecordScope(profile: Profile): Prisma.TourWhereInput {
-  if (hasPermission(profile.role, "tours:view_all")) return {};
-  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+/**
+ * ADMIN sees all tours. MANAGER sees their own + their team's (agents whose
+ * teamLeaderId points to them). AGENT only ones they created or are assigned
+ * to.
+ */
+async function tourRecordScope(profile: Profile): Promise<Prisma.TourWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
 // ── Contact find-or-create helper ─────────────────────────────────────────────
@@ -374,7 +381,7 @@ export async function listTours(
   const { search, status, assignedAgentId, unassigned, propertyId, leadId, fromDate, toDate, upcoming, sortBy, page, limit } =
     parsed.data;
 
-  const scope = tourRecordScope(gate.profile);
+  const scope = await tourRecordScope(gate.profile);
   const andConditions: Prisma.TourWhereInput[] = [];
   if (Object.keys(scope).length > 0) andConditions.push(scope);
 
@@ -441,7 +448,7 @@ export async function getTour(id: string): Promise<TourActionResult<{ tour: Tour
   const gate = await requirePermission("tours:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
-  const scope = tourRecordScope(gate.profile);
+  const scope = await tourRecordScope(gate.profile);
   const row = await prisma.tour.findFirst({
     where: { id, ...scope },
     include: tourInclude,
@@ -579,7 +586,7 @@ export async function updateTour(
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 422 };
 
-  const scope = tourRecordScope(gate.profile);
+  const scope = await tourRecordScope(gate.profile);
   const existing = await prisma.tour.findFirst({
     where: { id, ...scope },
     select: {
@@ -686,7 +693,7 @@ export async function updateTourStatus(
   const { status: newStatus, confirmationNote, rescheduleNote, cancellationReason, completionNote, scheduledAt, force } =
     parsed.data;
 
-  const scope = tourRecordScope(gate.profile);
+  const scope = await tourRecordScope(gate.profile);
   const existing = await prisma.tour.findFirst({
     where: { id, ...scope },
     select: {

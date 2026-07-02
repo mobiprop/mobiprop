@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { X, Plus, Calendar } from "lucide-react";
+import { X, Plus, Calendar, Trash2 } from "lucide-react";
 
 import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
-import type { OpportunityDto } from "@/features/crm/types/crm-dto";
-import { ContactType } from "@/generated/prisma/enums";
+import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
 import { computeCommissionAmount } from "@/lib/commission";
 import { QuickAddContactModal } from "./QuickAddContactModal";
 import { SearchableSelect } from "./SearchableSelect";
@@ -16,10 +15,19 @@ import { DatePickerField } from "./DatePickerField";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
+export type ParticipantFormRow = {
+  /** Local-only React key — never sent to the server. */
+  key: string;
+  role: OpportunityParticipantRole;
+  contactId: string;
+  contactLabel: string;
+  /** AGENCY rows only — free text, no Contact record. */
+  companyName: string;
+};
+
 export type OpportunityFormValues = {
   title: string;
-  contactSide: "Buyer" | "Seller";
-  contactId: string;
+  participants: ParticipantFormRow[];
   dealType: "Rent" | "Sale";
   dealSize: string;
   contractStart: string;
@@ -70,6 +78,40 @@ const STATUS_OPTIONS: { value: OpportunityStatus; label: string }[] = [
   { value: OpportunityStatus.CLOSED_LOST, label: "Closed Lost" },
 ];
 
+const ROLE_LABELS: Record<OpportunityParticipantRole, string> = {
+  BUYER: "Buyer",
+  SELLER: "Seller",
+  AGENCY: "Real Estate Company",
+};
+const ROLE_BADGE_CLASS: Record<OpportunityParticipantRole, string> = {
+  BUYER: "bg-[#eff6ff] text-[#1e4f86] border-[#bfdbfe]",
+  SELLER: "bg-[#fdf4ff] text-[#a21caf] border-[#f3e8ff]",
+  AGENCY: "bg-[#f8fafc] text-[#475569] border-[#e2e8f0]",
+};
+
+let rowKeySeq = 0;
+function newRowKey() {
+  rowKeySeq += 1;
+  return `participant-${rowKeySeq}`;
+}
+
+function emptyParticipantRow(role: OpportunityParticipantRole): ParticipantFormRow {
+  return { key: newRowKey(), role, contactId: "", contactLabel: "", companyName: "" };
+}
+
+function participantsFromInitial(initial?: OpportunityDto): ParticipantFormRow[] {
+  if (!initial || initial.participants.length === 0) {
+    return [emptyParticipantRow("BUYER")];
+  }
+  return initial.participants.map((p) => ({
+    key: newRowKey(),
+    role: p.role,
+    contactId: p.contactId ?? "",
+    contactLabel: p.contactName ?? "",
+    companyName: p.companyName ?? "",
+  }));
+}
+
 function fmtPreview(amount: number | null) {
   if (amount === null) return null;
   return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
@@ -77,12 +119,9 @@ function fmtPreview(amount: number | null) {
 
 export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving, lockedAgent }: AddOpportunityModalProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [contactSide, setContactSide] = useState<"Buyer" | "Seller">(
-    initial?.contactType === ContactType.SELLER ? "Seller" : "Buyer",
-  );
-  const [contactId, setContactId] = useState(initial?.contactId ?? "");
-  const [contactLabel, setContactLabel] = useState(initial?.contactName ?? "");
-  const [showAddContact, setShowAddContact] = useState(false);
+  const [participants, setParticipants] = useState<ParticipantFormRow[]>(() => participantsFromInitial(initial));
+  const [addContactForKey, setAddContactForKey] = useState<string | null>(null);
+  const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [dealType, setDealType] = useState<"Rent" | "Sale">(initial?.dealType === "Rent" ? "Rent" : "Sale");
   const [dealSize, setDealSize] = useState(initial?.dealSize != null ? String(initial.dealSize) : "");
   const [contractStart, setContractStart] = useState(initial?.contractStart?.slice(0, 10) ?? "");
@@ -117,12 +156,41 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     [commissionAmount, agentCommissionValue, agentCommissionUnit],
   );
 
+  function addParticipant(role: OpportunityParticipantRole) {
+    setParticipants((rows) => [...rows, emptyParticipantRow(role)]);
+    setParticipantsError(null);
+  }
+
+  function removeParticipant(key: string) {
+    setParticipants((rows) => rows.filter((r) => r.key !== key));
+  }
+
+  function updateParticipant(key: string, patch: Partial<ParticipantFormRow>) {
+    setParticipants((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+    setParticipantsError(null);
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const hasBuyerOrSeller = participants.some(
+      (r) => (r.role === "BUYER" || r.role === "SELLER") && r.contactId,
+    );
+    if (!hasBuyerOrSeller) {
+      setParticipantsError("At least one Buyer or Seller contact is required.");
+      return;
+    }
+    const incomplete = participants.some((r) =>
+      r.role === "AGENCY" ? !r.companyName.trim() : !r.contactId,
+    );
+    if (incomplete) {
+      setParticipantsError("Fill in every participant row, or remove the empty one.");
+      return;
+    }
+
     onSubmit({
       title: title.trim(),
-      contactSide,
-      contactId,
+      participants,
       dealType,
       dealSize,
       contractStart,
@@ -166,42 +234,80 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter opportunity name" className={inputClass} style={mont} />
           </div>
 
-          {/* Contact */}
-          <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Contact *</label>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                {(["Buyer", "Seller"] as const).map((side) => (
-                  <button
-                    key={side}
-                    type="button"
-                    onClick={() => setContactSide(side)}
-                    className={`h-10 px-4 rounded-[8px] border text-[12px] font-medium transition-colors ${
-                      contactSide === side ? "bg-[#1e4f86] border-[#1e4f86] text-white" : "bg-white border-[#e5e7eb] text-[#1f2937] hover:bg-[#f9fafb]"
-                    }`}
+          {/* Participants */}
+          <div className="flex flex-col gap-2.5">
+            <label className={labelClass} style={mont}>Participants *</label>
+
+            <div className="flex flex-col gap-2.5">
+              {participants.map((row) => (
+                <div key={row.key} className="flex items-center gap-2">
+                  <span
+                    className={`shrink-0 rounded-[8px] border px-2.5 py-2 text-[11px] font-medium ${ROLE_BADGE_CLASS[row.role]}`}
                     style={mont}
                   >
-                    {side}
+                    {ROLE_LABELS[row.role]}
+                  </span>
+
+                  {row.role === "AGENCY" ? (
+                    <input
+                      value={row.companyName}
+                      onChange={(e) => updateParticipant(row.key, { companyName: e.target.value })}
+                      placeholder="Real estate company name"
+                      className={`flex-1 ${inputClass}`}
+                      style={mont}
+                    />
+                  ) : (
+                    <>
+                      <ContactPicker
+                        className="flex-1"
+                        value={row.contactId}
+                        label={row.contactLabel}
+                        onSelect={(id, lbl) => updateParticipant(row.key, { contactId: id, contactLabel: lbl })}
+                        placeholder="Search and select contact…"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setAddContactForKey(row.key)}
+                        title="Add new contact"
+                        className="h-10 px-3 bg-[#1e4f86] rounded-[8px] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors shrink-0"
+                        style={mont}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => removeParticipant(row.key)}
+                    disabled={participants.length === 1}
+                    title="Remove participant"
+                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-[#fef2f2] hover:text-[#dc2626] transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#6a7282]"
+                  >
+                    <Trash2 size={15} />
                   </button>
-                ))}
-              </div>
-              <ContactPicker
-                className="flex-1"
-                value={contactId}
-                label={contactLabel}
-                onSelect={(id, lbl) => { setContactId(id); setContactLabel(lbl); }}
-                placeholder="Search and select contact…"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAddContact(true)}
-                className="h-10 px-4 bg-[#1e4f86] rounded-[8px] flex items-center gap-2 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors shrink-0"
-                style={mont}
-              >
-                <Plus size={16} />
-                Add Contact
-              </button>
+                </div>
+              ))}
             </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {(["BUYER", "SELLER", "AGENCY"] as const).map((role) => (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => addParticipant(role)}
+                  className="h-9 px-3 rounded-[8px] border border-[#e5e7eb] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1f2937] hover:bg-[#f9fafb] transition-colors"
+                  style={mont}
+                >
+                  <Plus size={14} />
+                  {ROLE_LABELS[role]}
+                </button>
+              ))}
+            </div>
+
+            {participantsError && (
+              <p className="text-[11px] text-[#dc2626]" style={mont}>{participantsError}</p>
+            )}
           </div>
 
           {/* Deal type / size */}
@@ -378,16 +484,14 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
         </form>
       </div>
 
-      {showAddContact && (
+      {addContactForKey && (
         <QuickAddContactModal
-          onClose={() => setShowAddContact(false)}
+          onClose={() => setAddContactForKey(null)}
           onCreate={(c) => {
             if (c.fullName) {
-              setContactId(c.id);
-              setContactLabel(c.fullName);
-              setContactSide(c.type === ContactType.SELLER ? "Seller" : "Buyer");
+              updateParticipant(addContactForKey, { contactId: c.id, contactLabel: c.fullName });
             }
-            setShowAddContact(false);
+            setAddContactForKey(null);
           }}
         />
       )}

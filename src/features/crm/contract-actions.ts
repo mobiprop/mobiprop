@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/require-permission";
 import { ContractType, ContractStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
 import { notifyContractCreated } from "@/features/notifications/server/notify-events";
@@ -22,10 +23,15 @@ type CrmActionResult<T> = ({ ok: true } & T) | CrmActionError;
 
 // ── Record-level access ──────────────────────────────────────────────────────
 
-/** ADMIN/MANAGER see all contracts; AGENT only ones they created or are assigned to. */
-function contractRecordScope(profile: Profile): Prisma.ContractWhereInput {
-  if (hasPermission(profile.role, "contracts:view_all")) return {};
-  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+/**
+ * ADMIN sees all contracts. MANAGER sees their own + their team's (agents
+ * whose teamLeaderId points to them). AGENT only ones they created or are
+ * assigned to.
+ */
+async function contractRecordScope(profile: Profile): Promise<Prisma.ContractWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
 // ── ID generation ─────────────────────────────────────────────────────────────
@@ -106,8 +112,9 @@ export async function listContracts(): Promise<
   const gate = await requirePermission("contracts:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await contractRecordScope(gate.profile);
   const rows = await prisma.contract.findMany({
-    where: { isDeleted: false, ...contractRecordScope(gate.profile) },
+    where: { isDeleted: false, ...scope },
     include: contractInclude,
     orderBy: { createdAt: "desc" },
   });
@@ -135,8 +142,9 @@ export async function getContract(id: string): Promise<CrmActionResult<{ contrac
   const gate = await requirePermission("contracts:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
+  const scope = await contractRecordScope(gate.profile);
   const contract = await prisma.contract.findFirst({
-    where: { id, isDeleted: false, ...contractRecordScope(gate.profile) },
+    where: { id, isDeleted: false, ...scope },
     include: contractInclude,
   });
   if (!contract) return { ok: false, error: "Contract not found.", status: 404 };
@@ -214,8 +222,12 @@ export async function updateContract(
     select: { isDeleted: true, assignedAgentId: true, createdById: true, title: true, type: true, status: true, value: true },
   });
   if (!existing || existing.isDeleted) return { ok: false, error: "Contract not found.", status: 404 };
-  if (!hasPermission(gate.profile.role, "contracts:view_all")) {
-    if (existing.assignedAgentId !== gate.profile.id && existing.createdById !== gate.profile.id) {
+  const scopeIds = await resolveOwnerScopeIds(gate.profile);
+  if (scopeIds !== null) {
+    const visible =
+      (existing.assignedAgentId !== null && scopeIds.includes(existing.assignedAgentId)) ||
+      (existing.createdById !== null && scopeIds.includes(existing.createdById));
+    if (!visible) {
       return { ok: false, error: "You can only update your own or assigned contracts.", status: 403 };
     }
   }
@@ -281,8 +293,9 @@ export async function deleteContract(id: string): Promise<CrmActionResult<{ id: 
 // ── Documents ─────────────────────────────────────────────────────────────────
 
 async function assertContractAccess(id: string, gate: { profile: Profile }): Promise<CrmActionError | null> {
+  const scope = await contractRecordScope(gate.profile);
   const contract = await prisma.contract.findFirst({
-    where: { id, isDeleted: false, ...contractRecordScope(gate.profile) },
+    where: { id, isDeleted: false, ...scope },
     select: { id: true },
   });
   if (!contract) return { ok: false, error: "Contract not found.", status: 404 };

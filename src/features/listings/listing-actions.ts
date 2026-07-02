@@ -14,6 +14,7 @@ import {
 } from "@/features/notifications/server/notify-events";
 import { hasPermission } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { geocodeAddress } from "@/lib/maps";
 import {
   mintPropertyImageUploadTickets,
@@ -101,18 +102,25 @@ async function syncOwnerContact(propertyId: string, ownerContactId: string | nul
 type PropertyRecord = { createdById: string | null; assignedAgentId: string | null };
 
 /**
- * ADMIN/MANAGER manage all listings; AGENT only listings they created or are
- * assigned to. Called after the role-level permission check passed.
+ * ADMIN manages every listing. MANAGER manages their own + their team's
+ * (agents whose teamLeaderId points to them). AGENT only listings they
+ * created or are assigned to. Called after the role-level permission check
+ * passed.
  */
-function canManageRecord(profile: Profile, property: PropertyRecord): boolean {
-  if (profile.role === UserRole.ADMIN || profile.role === UserRole.MANAGER) return true;
-  return property.createdById === profile.id || property.assignedAgentId === profile.id;
+async function canManageRecord(profile: Profile, property: PropertyRecord): Promise<boolean> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return true;
+  return (
+    (property.createdById !== null && scopeIds.includes(property.createdById)) ||
+    (property.assignedAgentId !== null && scopeIds.includes(property.assignedAgentId))
+  );
 }
 
-/** Prisma `where` scoping listings an AGENT may see; empty for ADMIN/MANAGER. */
-function recordScope(profile: Profile): Prisma.PropertyWhereInput {
-  if (profile.role === UserRole.ADMIN || profile.role === UserRole.MANAGER) return {};
-  return { OR: [{ createdById: profile.id }, { assignedAgentId: profile.id }] };
+/** Prisma `where` scoping listings a profile may see; unrestricted for ADMIN. */
+async function recordScope(profile: Profile): Promise<Prisma.PropertyWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ createdById: { in: scopeIds } }, { assignedAgentId: { in: scopeIds } }] };
 }
 
 // ── DTO mapping ───────────────────────────────────────────────────────────────
@@ -296,7 +304,7 @@ export async function prepareExistingListingUploads(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(gate.profile, existing)) return forbidden();
+  if (!(await canManageRecord(gate.profile, existing))) return forbidden();
 
   const parsed = listingUploadTicketRequestSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssueMessage(parsed.error), status: 400 };
@@ -580,7 +588,7 @@ export async function listDashboardListings(search?: string, limit?: number): Pr
   const gate = await requirePermission("listings:view");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
-  const scope = recordScope(gate.profile);
+  const scope = await recordScope(gate.profile);
   const where: import("@/generated/prisma/client").Prisma.PropertyWhereInput = {
     ...scope,
     ...(search && {
@@ -632,7 +640,7 @@ export async function updateListing(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
 
   if (
     data.status !== undefined &&
@@ -814,7 +822,7 @@ export async function setListingStatus(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
 
   const property = await prisma.property.update({
     where: { id },
@@ -863,7 +871,7 @@ export async function setListingFeatured(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
 
   const property = await prisma.property.update({
     where: { id },
@@ -934,7 +942,7 @@ export async function addListingImages(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
 
   const descriptorsParsed = listingImageDescriptorsSchema.safeParse(images);
   if (!descriptorsParsed.success) {
@@ -999,7 +1007,7 @@ export async function removeListingImage(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
 
   const image = existing.images.find((i) => i.id === imageId);
   if (!image) return { ok: false, error: "Image not found.", status: 404 };
@@ -1042,7 +1050,7 @@ export async function setListingCoverImage(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
   if (!existing.images.some((i) => i.id === imageId)) {
     return { ok: false, error: "Image not found.", status: 404 };
   }
@@ -1075,7 +1083,7 @@ export async function reorderListingImages(
 
   const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
   if (!existing) return notFound();
-  if (!canManageRecord(profile, existing)) return forbidden();
+  if (!(await canManageRecord(profile, existing))) return forbidden();
 
   const existingIds = new Set(existing.images.map((i) => i.id));
   const isCompleteReorder =

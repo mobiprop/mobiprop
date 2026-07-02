@@ -17,6 +17,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { hasPermission } from "@/lib/permissions";
+import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
 import { OpportunityStatus, PropertyStatus, PropertyOperationType } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
@@ -39,13 +40,15 @@ function statusFor(reason: string): number {
 }
 
 // ── Record-level access ──────────────────────────────────────────────────────
-// Mirrors opportunityRecordScope in opportunity-actions.ts: ADMIN/MANAGER see
-// company-wide figures; AGENT is scoped to opportunities they created or are
-// assigned to — the one place revenue stays scoped per the Milestone-3 decision.
+// Mirrors opportunityRecordScope in opportunity-actions.ts: ADMIN sees
+// company-wide figures; MANAGER is scoped to their own + their team's (agents
+// whose teamLeaderId points to them); AGENT is scoped to opportunities they
+// created or are assigned to.
 
-function opportunityScope(profile: Profile): Prisma.OpportunityWhereInput {
-  if (hasPermission(profile.role, "opportunities:view_all")) return {};
-  return { OR: [{ assignedAgentId: profile.id }, { createdById: profile.id }] };
+async function opportunityScope(profile: Profile): Promise<Prisma.OpportunityWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
 // ── Date range resolution ─────────────────────────────────────────────────────
@@ -150,17 +153,19 @@ export async function getDashboardMetrics(
   const { profile } = gate;
   const { start, end, prevStart } = resolveDateRange(input);
   const isCompanyView = hasPermission(profile.role, "dashboard:viewCompanyRevenue");
+  const scopeIds = await resolveOwnerScopeIds(profile);
 
   const opportunityWhere: Prisma.OpportunityWhereInput = {
     AND: [
-      opportunityScope(profile),
+      await opportunityScope(profile),
       { OR: [{ createdAt: { gte: prevStart, lte: end } }, { updatedAt: { gte: prevStart, lte: end } }] },
     ],
   };
 
-  const propertyWhere: Prisma.PropertyWhereInput = isCompanyView
-    ? { status: PropertyStatus.ACTIVE }
-    : { status: PropertyStatus.ACTIVE, assignedAgentId: profile.id };
+  const propertyWhere: Prisma.PropertyWhereInput =
+    scopeIds === null
+      ? { status: PropertyStatus.ACTIVE }
+      : { status: PropertyStatus.ACTIVE, assignedAgentId: { in: scopeIds } };
 
   const [listingsTotal, listingRows, opportunityRows] = await Promise.all([
     prisma.property.count({ where: propertyWhere }),
@@ -335,10 +340,11 @@ export async function getRevenueChart(
   const { start, end } = resolveDateRange(input);
   const granularity = input.granularity ?? "monthly";
 
+  const scope = await opportunityScope(gate.profile);
   const rows = await prisma.opportunity.findMany({
     where: {
       AND: [
-        opportunityScope(gate.profile),
+        scope,
         { OR: [{ createdAt: { gte: start, lte: end } }, { updatedAt: { gte: start, lte: end } }] },
       ],
     },
@@ -375,9 +381,10 @@ export async function getSalesByAgent(
 
   const { start, end } = resolveDateRange(input);
 
+  const scope = await opportunityScope(gate.profile);
   const rows = await prisma.opportunity.findMany({
     where: {
-      AND: [opportunityScope(gate.profile), { status: OpportunityStatus.CLOSED_WON }, { updatedAt: { gte: start, lte: end } }],
+      AND: [scope, { status: OpportunityStatus.CLOSED_WON }, { updatedAt: { gte: start, lte: end } }],
     },
     select: {
       opportunityId: true,
