@@ -27,7 +27,8 @@ export type NotificationType =
   | "OPPORTUNITY_LOST"
   | "CONTRACT_CREATED"
   | "CONTRACT_EXPIRING"
-  | "CONTRACT_EXPIRED";
+  | "CONTRACT_EXPIRED"
+  | "MESSAGE_RECEIVED";
 
 /** Audience separation — staff-only operational events vs client-facing ones. */
 export type NotificationAudience = "STAFF" | "CLIENT";
@@ -57,7 +58,8 @@ export type RecipientStrategy =
   | "NEW_AND_PREV_AGENT_PLUS_ADMINS"
   | "LISTING_AGENT_WITH_MANAGEMENT_FALLBACK"
   | "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK"
-  | "CONTRACT_STAKEHOLDERS";
+  | "CONTRACT_STAKEHOLDERS"
+  | "DIRECT_RECIPIENT";
 
 /** Safe status shape returned by GET /api/push/status (never exposes keys). */
 export type PushStatus = {

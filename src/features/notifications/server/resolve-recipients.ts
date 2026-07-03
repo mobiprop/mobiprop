@@ -19,6 +19,8 @@ export type RecipientContext = {
   assignedAgentId?: string | null;
   /** Previous agent, for reassignment events. */
   previousAgentId?: string | null;
+  /** Exact single recipient for DIRECT_RECIPIENT (e.g. a chat message's other participant). */
+  recipientId?: string | null;
 };
 
 async function keepActive(ids: (string | null | undefined)[]): Promise<string[]> {
@@ -83,6 +85,9 @@ export async function resolveByStrategy(
 
     case "CONTRACT_STAKEHOLDERS":
       return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN", "MANAGER"]))]);
+
+    case "DIRECT_RECIPIENT":
+      return keepActive([ctx.recipientId]);
 
     default: {
       // Exhaustiveness guard — a new strategy must be handled here.

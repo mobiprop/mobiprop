@@ -65,9 +65,15 @@ export const queryKeys = {
   accountNotifications: (userId: string) => ["account-notifications", userId] as const,
 
   // Messages / inbox
-  messageThreads: () => ["message-threads"] as const,
+  // A bare call (no arg) invalidates both the active and archived lists too,
+  // since TanStack Query's default invalidation matches by key prefix.
+  messageThreads: (archivedOnly?: boolean) =>
+    (archivedOnly ? ["message-threads", "archived"] : ["message-threads"]) as
+      | readonly ["message-threads"]
+      | readonly ["message-threads", "archived"],
   messageThread: (threadId: string) => ["message-thread", threadId] as const,
   unreadMessageCount: () => ["unread-message-count"] as const,
+  messageableStaff: () => ["messageable-staff"] as const,
 
   // Notifications
   notifications: () => ["notifications"] as const,
