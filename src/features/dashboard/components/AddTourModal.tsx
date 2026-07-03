@@ -7,6 +7,7 @@ import type { Role } from "@/lib/permissions";
 import { useCreateTourMutation } from "@/hooks/mutations/useTourMutations";
 import { CalendarPanel } from "./CalendarPanel";
 import { TimePanel } from "./TimePanel";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const inputCls =
@@ -232,16 +233,15 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
           {/* Duration */}
           <div className="flex flex-col gap-1">
             <label className={labelCls} style={mont}>Duration (min)</label>
-            <select
-              className="h-10 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
-              style={mont}
-              value={duration}
-              onChange={(e) => setDuration(Number(e.target.value))}
-            >
-              {[30, 45, 60, 90, 120].map((m) => (
-                <option key={m} value={m}>{m} min</option>
-              ))}
-            </select>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={String(duration)}
+              onChange={(next) => setDuration(Number(next))}
+              options={[30, 45, 60, 90, 120].map((m) => ({ value: String(m), label: `${m} min` }))}
+              placeholder="Select duration"
+              ariaLabel="Tour duration"
+            />
           </div>
 
           {/* Listing search */}
@@ -290,17 +290,16 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
           {/* Agent */}
           <div className="flex flex-col gap-1">
             <label className={labelCls} style={mont}>Assign Agent (optional)</label>
-            <select
-              className="h-10 px-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
-              style={mont}
+            <SearchableSelect
+              size="sm"
               value={agentId}
-              onChange={(e) => setAgentId(e.target.value)}
-            >
-              <option value="">No agent</option>
-              {agents.map((a) => (
-                <option key={a.id} value={a.id}>{a.fullName ?? a.email}</option>
-              ))}
-            </select>
+              onChange={setAgentId}
+              options={agents.map((a) => ({ value: a.id, label: a.fullName ?? a.email }))}
+              placeholder="No agent"
+              searchPlaceholder="Search agents..."
+              emptyLabel="No agents found."
+              ariaLabel="Assign agent"
+            />
           </div>
 
           {/* Message */}

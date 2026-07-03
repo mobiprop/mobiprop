@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Ban, Filter, Plus, RefreshCw, Search } from "lucide-react";
+import { ArrowLeft, Ban, Plus, RefreshCw, Search } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
@@ -14,6 +14,7 @@ import {
   type InvitationListItem,
 } from "@/features/auth/staff-actions";
 import { AddAgentModal } from "./components/AddAgentModal";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -177,21 +178,21 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
               />
             </div>
             {/* Status filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as InviteStatus | "All")}
-                className="h-9 pl-3 pr-8 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
-                style={mont}
-              >
-                <option value="All">All</option>
-                <option value="PENDING">Pending</option>
-                <option value="ACCEPTED">Accepted</option>
-                <option value="EXPIRED">Expired</option>
-                <option value="REVOKED">Revoked</option>
-              </select>
-              <Filter size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
-            </div>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={statusFilter}
+              onChange={(next) => setStatusFilter(next as InviteStatus | "All")}
+              options={[
+                { value: "All", label: "All" },
+                { value: "PENDING", label: "Pending" },
+                { value: "ACCEPTED", label: "Accepted" },
+                { value: "EXPIRED", label: "Expired" },
+                { value: "REVOKED", label: "Revoked" },
+              ]}
+              placeholder="All"
+              ariaLabel="Filter by status"
+            />
           </div>
         </div>
 

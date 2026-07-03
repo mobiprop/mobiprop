@@ -16,6 +16,9 @@ export type SearchableSelectOption = {
 
 type SearchableSelectProps = {
   id?: string;
+  /** Accessible name for the trigger button — needed when there's no visible
+   * <label> pointing at `id` (e.g. compact toolbar filters). */
+  ariaLabel?: string;
   value: string;
   onChange: (value: string) => void;
   options: SearchableSelectOption[];
@@ -66,6 +69,7 @@ type PanelPosition = { top: number; left: number; width: number };
  */
 export function SearchableSelect({
   id,
+  ariaLabel,
   value,
   onChange,
   options,
@@ -149,6 +153,7 @@ export function SearchableSelect({
       <button
         ref={triggerRef}
         id={id}
+        aria-label={ariaLabel}
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((current) => !current)}

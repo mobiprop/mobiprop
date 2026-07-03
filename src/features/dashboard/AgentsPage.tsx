@@ -7,8 +7,6 @@ import {
   Search,
   Plus,
   DollarSign,
-  ChevronDown,
-  Filter,
   Check,
   X,
   Mail,
@@ -25,6 +23,7 @@ import type { Role } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/formatters";
 import { AddAgentModal } from "./components/AddAgentModal";
 import { EditAgentModal } from "./components/EditAgentModal";
+import { SearchableSelect } from "./components/SearchableSelect";
 import { useDashboardAgentsQuery } from "@/hooks/queries/useDashboardAgentsQuery";
 import type { AgentDto } from "@/features/agents/agent-actions";
 
@@ -42,6 +41,16 @@ const PERIOD_LABELS: Record<PeriodFilter, string> = {
   last_month: "Last Month",
   all:        "All Time",
 };
+
+const STATUS_FILTER_OPTIONS = (["All", "Approved", "Pending", "Denied"] as const).map((value) => ({
+  value,
+  label: value,
+}));
+
+const PERIOD_FILTER_OPTIONS = (Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((value) => ({
+  value,
+  label: PERIOD_LABELS[value],
+}));
 
 function getPeriodBounds(period: PeriodFilter): { from: Date; to: Date } | null {
   if (period === "all") return null;
@@ -440,45 +449,28 @@ export function AgentsPage({ role }: AgentsPageProps) {
               </div>
 
               {/* Status filter */}
-              <div className="relative min-w-0">
-                <select
-                  value={statusFilter}
-                  onChange={(e) =>
-                    setStatusFilter(e.target.value as AgentStatus | "All")
-                  }
-                  className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
-                  style={mont}
-                >
-                  <option value="All">All</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Denied">Denied</option>
-                </select>
-
-                <Filter
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
-                />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={statusFilter}
+                onChange={(next) => setStatusFilter(next as AgentStatus | "All")}
+                options={STATUS_FILTER_OPTIONS}
+                placeholder="All"
+                ariaLabel="Filter by status"
+                className="min-w-0 sm:min-w-[120px]"
+              />
 
               {/* Period */}
-              <div className="relative min-w-0">
-                <select
-                  value={period}
-                  onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
-                  className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#6a7282] outline-none sm:h-9 sm:min-w-[120px] sm:text-[12px]"
-                  style={mont}
-                >
-                  {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((key) => (
-                    <option key={key} value={key}>{PERIOD_LABELS[key]}</option>
-                  ))}
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
-                />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={period}
+                onChange={(next) => setPeriod(next as PeriodFilter)}
+                options={PERIOD_FILTER_OPTIONS}
+                placeholder="Period"
+                ariaLabel="Filter by period"
+                className="min-w-0 sm:min-w-[120px]"
+              />
             </div>
           </div>
         </div>

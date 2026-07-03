@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -104,33 +105,30 @@ export function CalendarPanel({
         {/* Month / Year selects */}
         <div className="flex flex-1 items-center gap-1.5">
           {/* Month */}
-          <div className="relative flex-1">
-            <select
-              value={viewMonth}
-              onChange={(e) => setViewMonth(Number(e.target.value))}
-              className="w-full h-8 pl-2.5 pr-6 rounded-full text-[12px] font-medium text-[#0d2138] bg-white appearance-none outline-none cursor-pointer"
-              style={mont}
-            >
-              {MONTHS.map((m, i) => (
-                <option key={m} value={i}>{m}</option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-          </div>
+          <SearchableSelect
+            size="sm"
+            searchable={false}
+            value={String(viewMonth)}
+            onChange={(next) => setViewMonth(Number(next))}
+            options={MONTHS.map((m, i) => ({ value: String(i), label: m }))}
+            placeholder="Month"
+            ariaLabel="Select month"
+            className="flex-1"
+          />
           {/* Year */}
-          <div className="relative w-[76px]">
-            <select
-              value={viewYear}
-              onChange={(e) => setViewYear(Number(e.target.value))}
-              className="w-full h-8 pl-2.5 pr-6 rounded-full text-[12px] font-medium text-[#0d2138] bg-white appearance-none outline-none cursor-pointer"
-              style={mont}
-            >
-              {Array.from({ length: 10 }, (_, i) => today.getFullYear() - 3 + i).map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-          </div>
+          <SearchableSelect
+            size="sm"
+            searchable={false}
+            value={String(viewYear)}
+            onChange={(next) => setViewYear(Number(next))}
+            options={Array.from({ length: 10 }, (_, i) => today.getFullYear() - 3 + i).map((y) => ({
+              value: String(y),
+              label: String(y),
+            }))}
+            placeholder="Year"
+            ariaLabel="Select year"
+            className="w-[86px]"
+          />
         </div>
 
         {/* Next */}

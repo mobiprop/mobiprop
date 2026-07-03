@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, ChevronDown, Search, Loader2 } from "lucide-react";
+import { X, Search, Loader2 } from "lucide-react";
 
 import { LeadSource, LeadTemperature, LeadLifecycleStatus } from "@/generated/prisma/enums";
 import { useCreateLeadMutation } from "@/hooks/mutations/useLeadMutations";
+import { SearchableSelect } from "./SearchableSelect";
 
 function suggestTemperature(score: number): LeadTemperature {
   if (score >= 70) return LeadTemperature.HOT;
@@ -18,8 +19,6 @@ const mont = { fontFamily: "'Montserrat', sans-serif" };
 const inputCls =
   "h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelCls = "text-[12px] font-medium text-[#1f2937]";
-const selectCls =
-  "w-full h-10 pl-3 pr-9 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] bg-white appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer";
 
 const SOURCE_OPTIONS: { value: LeadSource; label: string }[] = [
   { value: LeadSource.MANUAL,                   label: "Manual Entry" },
@@ -390,31 +389,15 @@ return (
                 Lead Source *
               </label>
 
-              <div className="relative">
-                <select
-                  required
-                  value={source}
-                  onChange={(e) =>
-                    setSource(e.target.value as LeadSource)
-                  }
-                  className={selectCls}
-                  style={mont}
-                >
-                  {SOURCE_OPTIONS.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={source}
+                onChange={(next) => setSource(next as LeadSource)}
+                options={SOURCE_OPTIONS}
+                placeholder="Select source"
+                ariaLabel="Lead source"
+              />
             </div>
 
             <div className="flex min-w-0 flex-col gap-1.5">
@@ -536,25 +519,19 @@ return (
                 />
               </div>
 
-              <div className="relative">
-                <select
-                  value={currency}
-                  onChange={(e) =>
-                    setCurrency(e.target.value)
-                  }
-                  className={selectCls}
-                  style={mont}
-                >
-                  <option value="ARS">ARS</option>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={currency}
+                onChange={setCurrency}
+                options={[
+                  { value: "ARS", label: "ARS" },
+                  { value: "USD", label: "USD" },
+                  { value: "EUR", label: "EUR" },
+                ]}
+                placeholder="Currency"
+                ariaLabel="Budget currency"
+              />
             </div>
           </div>
 
@@ -604,32 +581,15 @@ return (
                 Temperature
               </label>
 
-              <div className="relative">
-                <select
-                  value={temperature}
-                  onChange={(e) =>
-                    handleTemperatureChange(
-                      e.target.value as LeadTemperature,
-                    )
-                  }
-                  className={selectCls}
-                  style={mont}
-                >
-                  {TEMP_OPTIONS.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={temperature}
+                onChange={(next) => handleTemperatureChange(next as LeadTemperature)}
+                options={TEMP_OPTIONS}
+                placeholder="Select temperature"
+                ariaLabel="Lead temperature"
+              />
 
               {!tempManual && (
                 <p
@@ -646,32 +606,15 @@ return (
                 Lifecycle Status
               </label>
 
-              <div className="relative">
-                <select
-                  value={lifecycleStatus}
-                  onChange={(e) =>
-                    setLifecycle(
-                      e.target.value as LeadLifecycleStatus,
-                    )
-                  }
-                  className={selectCls}
-                  style={mont}
-                >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={lifecycleStatus}
+                onChange={(next) => setLifecycle(next as LeadLifecycleStatus)}
+                options={STATUS_OPTIONS}
+                placeholder="Select status"
+                ariaLabel="Lifecycle status"
+              />
             </div>
           </div>
 
@@ -681,29 +624,19 @@ return (
               Assigned Agent
             </label>
 
-            <div className="relative">
-              <select
-                value={assignedAgentId}
-                onChange={(e) =>
-                  setAgentId(e.target.value)
-                }
-                className={selectCls}
-                style={mont}
-              >
-                <option value="">— Unassigned —</option>
-
-                {agents.map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.fullName ?? agent.email}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-              />
-            </div>
+            <SearchableSelect
+              size="sm"
+              value={assignedAgentId}
+              onChange={setAgentId}
+              options={agents.map((agent) => ({
+                value: agent.id,
+                label: agent.fullName ?? agent.email,
+              }))}
+              placeholder="— Unassigned —"
+              searchPlaceholder="Search agents..."
+              emptyLabel="No agents found."
+              ariaLabel="Assigned agent"
+            />
           </div>
 
           {/* Notes */}

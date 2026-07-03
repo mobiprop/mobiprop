@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 
 import { Toggle } from "./Toggle";
+import { SearchableSelect } from "../SearchableSelect";
 
 const mont = {
   fontFamily: "'Montserrat', sans-serif",
@@ -61,34 +61,16 @@ export function PrivacyTab() {
             </p>
           </div>
 
-          <div className="relative  shrink-0 sm:w-[150px]">
-            <select
-              id="profile-visibility"
-              value={visibility}
-              onChange={(event) =>
-                setVisibility(
-                  event.target.value as VisibilityOption,
-                )
-              }
-              aria-label="Profile visibility"
-              className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#d1d5dc] bg-white pl-3.5 pr-10 text-[14px] font-medium text-[#0d2138] outline-none transition-all focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10"
-              style={mont}
-            >
-              {VISIBILITY_OPTIONS.map((option) => (
-                <option
-                  key={option}
-                  value={option}
-                >
-                  {option}
-                </option>
-              ))}
-            </select>
-
-            <ChevronDown
-              size={17}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-            />
-          </div>
+          <SearchableSelect
+            id="profile-visibility"
+            searchable={false}
+            value={visibility}
+            onChange={(next) => setVisibility(next as VisibilityOption)}
+            options={VISIBILITY_OPTIONS.map((option) => ({ value: option, label: option }))}
+            placeholder="Select visibility"
+            ariaLabel="Profile visibility"
+            className="shrink-0 sm:w-[150px]"
+          />
         </section>
 
         {/* Data sharing */}

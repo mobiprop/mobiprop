@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   Search, Plus, Share2, Building2, TrendingUp, DollarSign, Banknote,
-  ChevronDown, Filter, MoreVertical, Pencil, Trash2, Loader2,
+  Filter, MoreVertical, Pencil, Trash2, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -23,6 +23,7 @@ import {
 } from "@/hooks/mutations/useCrmMutations";
 import { AddContractModal, type ContractFormValues } from "./components/AddContractModal";
 import { ContractFilterPopover } from "./components/ContractFilterPopover";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -359,22 +360,22 @@ export function ContractsPage({
               <Search size={16} className="text-[#99a1af] shrink-0" />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contracts..." className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full" style={mont} />
             </div>
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as ContractStatus | "All")}
-                className="h-9 pl-4 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
-                style={mont}
-              >
-                <option value="All">Status</option>
-                <option value={ContractStatus.ACTIVE}>Active</option>
-                <option value={ContractStatus.PENDING}>Pending</option>
-                <option value={ContractStatus.COMPLETED}>Completed</option>
-                <option value={ContractStatus.DRAFT}>Draft</option>
-                <option value={ContractStatus.CANCELLED}>Cancelled</option>
-              </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
-            </div>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={statusFilter}
+              onChange={(next) => setStatusFilter(next as ContractStatus | "All")}
+              options={[
+                { value: "All", label: "Status" },
+                { value: ContractStatus.ACTIVE, label: "Active" },
+                { value: ContractStatus.PENDING, label: "Pending" },
+                { value: ContractStatus.COMPLETED, label: "Completed" },
+                { value: ContractStatus.DRAFT, label: "Draft" },
+                { value: ContractStatus.CANCELLED, label: "Cancelled" },
+              ]}
+              placeholder="Status"
+              ariaLabel="Filter by status"
+            />
             <div className="relative">
               <button type="button" onClick={() => setShowFilter((v) => !v)} className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
                 Filter <Filter size={16} />

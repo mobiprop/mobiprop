@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown, Upload, Trash2, FileText, Loader2 } from "lucide-react";
+import { X, Upload, Trash2, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ContractType, ContractStatus } from "@/generated/prisma/enums";
@@ -15,6 +15,7 @@ import { ContactPicker } from "./ContactPicker";
 import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -210,20 +211,19 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
 
               <div className="flex min-w-0 flex-col gap-2">
                 <label className={labelClass} style={mont}>Contract Type *</label>
-                <div className="relative">
-                  <select
-                    required
-                    value={type}
-                    onChange={(e) => setType(e.target.value as ContractType)}
-                    className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
-                    style={mont}
-                  >
-                    <option value={ContractType.SALE}>Sale</option>
-                    <option value={ContractType.RENT}>Rent</option>
-                    <option value={ContractType.SALE_AND_RENT}>Sale &amp; Rent</option>
-                  </select>
-                  <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]" />
-                </div>
+                <SearchableSelect
+                  size="sm"
+                  searchable={false}
+                  value={type}
+                  onChange={(next) => setType(next as ContractType)}
+                  options={[
+                    { value: ContractType.SALE, label: "Sale" },
+                    { value: ContractType.RENT, label: "Rent" },
+                    { value: ContractType.SALE_AND_RENT, label: "Sale & Rent" },
+                  ]}
+                  placeholder="Select type"
+                  ariaLabel="Contract type"
+                />
               </div>
             </div>
           </div>
@@ -290,22 +290,21 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
             </div>
             <div className="flex min-w-0 flex-col gap-2">
               <label className={labelClass} style={mont}>Status *</label>
-              <div className="relative">
-                <select
-                  required
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as ContractStatus)}
-                  className="h-10 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-3 pr-9 text-[12px] text-[#232323] outline-none transition-colors focus:border-[#1e4f86]"
-                  style={mont}
-                >
-                  <option value={ContractStatus.ACTIVE}>Active</option>
-                  <option value={ContractStatus.PENDING}>Pending</option>
-                  <option value={ContractStatus.COMPLETED}>Completed</option>
-                  <option value={ContractStatus.DRAFT}>Draft</option>
-                  <option value={ContractStatus.CANCELLED}>Cancelled</option>
-                </select>
-                <ChevronDown size={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]" />
-              </div>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={status}
+                onChange={(next) => setStatus(next as ContractStatus)}
+                options={[
+                  { value: ContractStatus.ACTIVE, label: "Active" },
+                  { value: ContractStatus.PENDING, label: "Pending" },
+                  { value: ContractStatus.COMPLETED, label: "Completed" },
+                  { value: ContractStatus.DRAFT, label: "Draft" },
+                  { value: ContractStatus.CANCELLED, label: "Cancelled" },
+                ]}
+                placeholder="Select status"
+                ariaLabel="Contract status"
+              />
             </div>
           </div>
 
