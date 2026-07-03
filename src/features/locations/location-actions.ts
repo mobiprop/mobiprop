@@ -249,7 +249,7 @@ export async function listLocationNameSuggestions(): Promise<
   if (!gate.ok) return { ok: false, error: gate.error, status: 401 };
 
   const locations = await prisma.location.findMany({
-    select: { id: true, name: true, region: true },
+    select: { id: true, name: true, region: true, address: true },
     orderBy: { name: "asc" },
   });
 

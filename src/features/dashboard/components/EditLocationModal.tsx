@@ -27,6 +27,10 @@ type EditLocationModalProps = {
   location?: LocationDto | null;
   onClose: () => void;
   onSubmit: (values: LocationFormValues) => void;
+  /** True while the parent's create/update mutation is in flight — disables
+   * the submit button so a double click or double Enter can't fire two
+   * requests and create a duplicate location. */
+  isSubmitting?: boolean;
 };
 
 const inputClass =
@@ -38,6 +42,7 @@ export function EditLocationModal({
   location,
   onClose,
   onSubmit,
+  isSubmitting = false,
 }: EditLocationModalProps) {
   const [name, setName] = useState(location?.name ?? "");
   const [region, setRegion] = useState(location?.region ?? "");
@@ -52,6 +57,7 @@ export function EditLocationModal({
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+    if (isSubmitting) return;
 
     onSubmit({
       name: name.trim(),
@@ -226,7 +232,8 @@ export function EditLocationModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-10 w-full flex-1 rounded-[10px] border border-[#e5e7eb] bg-white px-5 text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/20"
+                disabled={isSubmitting}
+                className="min-h-10 w-full flex-1 rounded-[10px] border border-[#e5e7eb] bg-white px-5 text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/20 disabled:cursor-not-allowed disabled:opacity-60"
                 style={mont}
               >
                 Cancel
@@ -234,12 +241,15 @@ export function EditLocationModal({
 
               <button
                 type="submit"
-                className="min-h-10 w-full flex-1 rounded-[10px] bg-[#1e4f86] px-5 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
+                disabled={isSubmitting}
+                className="min-h-10 w-full flex-1 rounded-[10px] bg-[#1e4f86] px-5 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 disabled:cursor-not-allowed disabled:opacity-60"
                 style={mont}
               >
-                {isEdit
-                  ? "Save Changes"
-                  : "Add Location"}
+                {isSubmitting
+                  ? "Saving..."
+                  : isEdit
+                    ? "Save Changes"
+                    : "Add Location"}
               </button>
             </div>
           </div>
