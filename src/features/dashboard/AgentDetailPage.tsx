@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   Building2,
+  Check,
   ChevronDown,
   DollarSign,
   Eye,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { useAgentDetailQuery } from "@/hooks/queries/useAgentDetailQuery";
+import type { AgentDetailPeriod } from "@/features/agents/agent-actions";
 import {
   TYPE_LABELS,
   STATUS_LABELS,
@@ -28,6 +30,15 @@ import type { PropertyType, PropertyStatus } from "@/generated/prisma/enums";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
+
+const PERIOD_LABELS: Record<AgentDetailPeriod, string> = {
+  current_month: "Current Month",
+  last_month: "Last Month",
+  this_quarter: "This Quarter",
+  this_year: "This Year",
+};
+
+const PERIOD_OPTIONS = Object.keys(PERIOD_LABELS) as AgentDetailPeriod[];
 
 const priceFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
@@ -125,8 +136,21 @@ type AgentDetailPageProps = {
 };
 
 export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
-  const { data: agent, isLoading, isError } = useAgentDetailQuery(agentId);
+  const [period, setPeriod] = useState<AgentDetailPeriod>("current_month");
+  const { data: agent, isLoading, isFetching, isError } = useAgentDetailQuery(agentId, period);
   const [propertySearch, setPropertySearch] = useState("");
+  const [isPeriodOpen, setIsPeriodOpen] = useState(false);
+  const periodMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isPeriodOpen) return;
+    function handleMouseDown(event: MouseEvent) {
+      if (periodMenuRef.current?.contains(event.target as Node)) return;
+      setIsPeriodOpen(false);
+    }
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [isPeriodOpen]);
 
   const normalizedSearch = propertySearch.trim().toLowerCase();
 
@@ -297,16 +321,50 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
             </div>
 
             {/* Period selector */}
-            <button
-              type="button"
-              aria-label="Select reporting period"
-              className="flex h-11 w-full shrink-0 items-center justify-between gap-2 rounded-[9px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#183f6b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 lg:h-10 lg:w-auto lg:justify-center"
-              style={mont}
-            >
-              <span>Current Month</span>
+            <div ref={periodMenuRef} className="relative w-full shrink-0 lg:w-auto">
+              <button
+                type="button"
+                aria-label="Select reporting period"
+                aria-haspopup="listbox"
+                aria-expanded={isPeriodOpen}
+                onClick={() => setIsPeriodOpen((open) => !open)}
+                className="flex h-11 w-full items-center justify-between gap-2 rounded-[9px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#183f6b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 lg:h-10 lg:w-auto lg:justify-center"
+                style={mont}
+              >
+                <span>{PERIOD_LABELS[period]}</span>
 
-              <ChevronDown size={16} className="shrink-0" />
-            </button>
+                {isFetching ? (
+                  <Loader2 size={16} className="shrink-0 animate-spin" />
+                ) : (
+                  <ChevronDown size={16} className="shrink-0" />
+                )}
+              </button>
+
+              {isPeriodOpen && (
+                <div
+                  role="listbox"
+                  className="absolute right-0 z-20 mt-1.5 w-full min-w-[180px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg lg:w-auto"
+                >
+                  {PERIOD_OPTIONS.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      role="option"
+                      aria-selected={option === period}
+                      onClick={() => {
+                        setPeriod(option);
+                        setIsPeriodOpen(false);
+                      }}
+                      className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-[14px] text-[#0d2138] transition-colors hover:bg-[#f3f4f6]"
+                      style={mont}
+                    >
+                      {PERIOD_LABELS[option]}
+                      {option === period && <Check size={15} className="shrink-0 text-[#1e4f86]" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </section>
 

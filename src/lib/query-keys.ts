@@ -35,7 +35,7 @@ export const queryKeys = {
 
   // CRM tables
   agents: prefixed("agents"),
-  agentDetail: (id: string) => ["agents", "detail", id] as const,
+  agentDetail: (id: string, period?: string) => ["agents", "detail", id, period] as const,
   dashboardContacts: prefixed("dashboard-contacts"),
   contacts: prefixed("contacts"),
   dashboardListings: prefixed("dashboard-listings"),
