@@ -159,6 +159,16 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
     channels: ["IN_APP", "PUSH"], priority: "CRITICAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
     audience: STAFF, pushCategory: "contractUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
   },
+
+  // ── Internal staff chat. excludeActor stays false since DIRECT_RECIPIENT
+  //    never resolves to the actor by construction (it's always "the other
+  //    participant"), not because actor-exclusion is meaningfully skipped.
+  //    Grouped push copy ("N messages from M conversations") is computed live
+  //    in process-notification-deliveries.ts, not here. ──
+  MESSAGE_RECEIVED: {
+    channels: ["IN_APP", "PUSH"], priority: "NORMAL", recipientStrategy: "DIRECT_RECIPIENT",
+    audience: STAFF, pushCategory: "newMessages", excludeActor: false, deduplicate: false, customerSafe: false,
+  },
 };
 
 export function getPolicy(type: NotificationType): NotificationPolicy | null {

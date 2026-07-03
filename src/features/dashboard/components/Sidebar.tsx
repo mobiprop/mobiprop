@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { DASHBOARD_NAV } from "@/config/dashboard-nav";
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
+import { useUnreadMessageCountQuery } from "@/hooks/queries/useMessagesQuery";
 
 const mont = {
   fontFamily: "'Montserrat', sans-serif",
@@ -39,6 +40,7 @@ function isActive(pathname: string, href: string) {
 export function Sidebar({ role, fullName, email }: SidebarProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: unreadMessageCount = 0 } = useUnreadMessageCountQuery();
 
   const initials = (fullName || email || "ST").trim().slice(0, 2).toUpperCase();
 
@@ -233,7 +235,16 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                         }`}
                       />
 
-                      <span className="min-w-0 truncate">{item.label}</span>
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+
+                      {item.href === "/dashboard/messages" && unreadMessageCount > 0 && (
+                        <span
+                          className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] px-1.5 text-[11px] font-semibold text-white"
+                          style={mont}
+                        >
+                          {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

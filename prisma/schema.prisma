@@ -36,27 +36,27 @@ enum InvitationStatus {
 
 // Mirrors auth.users — id matches the Supabase Auth user id (no FK across schemas).
 model Profile {
-  id          String     @id @db.Uuid
-  email       String     @unique
-  fullName    String?    @map("full_name")
-  phone       String?
-  avatarUrl   String?    @map("avatar_url")
-  country     String?
-  city        String?
-  timezone    String?
-  address     String?
-  description String?
+  id           String     @id @db.Uuid
+  email        String     @unique
+  fullName     String?    @map("full_name")
+  phone        String?
+  avatarUrl    String?    @map("avatar_url")
+  country      String?
+  city         String?
+  timezone     String?
+  address      String?
+  description  String?
   // Private admin-only notes about a staff member (Edit Agent modal) —
   // distinct from `description`, which is the user's own public bio.
-  notes       String?
+  notes        String?
   // Manager/Admin this AGENT reports to (Edit/Add Agent "Team Leader" field).
-  teamLeaderId String?   @map("team_leader_id") @db.Uuid
+  teamLeaderId String?    @map("team_leader_id") @db.Uuid
   // Notification / security / locale settings edited from the profile modal.
-  preferences Json?
-  role        UserRole   @default(USER)
-  status      UserStatus @default(ACTIVE)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  preferences  Json?
+  role         UserRole   @default(USER)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
 
   // Google Calendar integration (Integrations page) — tokens stored encrypted
   // (see src/lib/crypto.ts). Presence of googleCalendarRefreshToken is the
@@ -82,28 +82,28 @@ model Profile {
 // Created by an existing staff member; the invited person completes
 // registration via /invite/[token] and the role is fixed by the invite.
 model AgentInvitation {
-  id          String           @id @default(cuid())
-  email       String
-  role        UserRole
-  tokenHash   String           @unique @map("token_hash")
-  invitedById String?          @map("invited_by_id") @db.Uuid
-  expiresAt   DateTime         @map("expires_at")
-  acceptedAt  DateTime?        @map("accepted_at")
-  status      InvitationStatus @default(PENDING)
-  firstName   String?          @map("first_name")
-  lastName    String?          @map("last_name")
-  phone       String?
-  location    String?
-  notes       String?
+  id           String           @id @default(cuid())
+  email        String
+  role         UserRole
+  tokenHash    String           @unique @map("token_hash")
+  invitedById  String?          @map("invited_by_id") @db.Uuid
+  expiresAt    DateTime         @map("expires_at")
+  acceptedAt   DateTime?        @map("accepted_at")
+  status       InvitationStatus @default(PENDING)
+  firstName    String?          @map("first_name")
+  lastName     String?          @map("last_name")
+  phone        String?
+  location     String?
+  notes        String?
   // Manager/Admin picked as this invitee's team leader — applied to the
   // Profile once the invite is accepted (see applyInvitationExtras).
-  teamLeaderId String?         @map("team_leader_id") @db.Uuid
+  teamLeaderId String?          @map("team_leader_id") @db.Uuid
   // Storage path (avatars bucket) of a photo picked before the invite is
   // accepted — no Profile id exists yet, so it can't live at its final path.
   // Promoted to the new Profile's avatar path on acceptance.
-  avatarPath  String?          @map("avatar_path")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
+  avatarPath   String?          @map("avatar_path")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
 
   teamLeader Profile? @relation("InvitationTeamLeader", fields: [teamLeaderId], references: [id], onDelete: SetNull)
 
@@ -269,64 +269,64 @@ enum PropertyOperationType {
 // public site. Tables are RLS deny-all: every read/write goes through server
 // code, which scopes AGENT access to created/assigned listings.
 model Property {
-  id              String                @id @default(cuid())
-  listingId       String                @unique @map("listing_id")
-  slug            String                @unique
-  title           String
-  description     String
-  type            PropertyType
-  status          PropertyStatus        @default(ACTIVE)
-  operationType   PropertyOperationType @map("operation_type")
-  salePrice       Decimal?              @map("sale_price") @db.Decimal(14, 2)
-  rentPrice       Decimal?              @map("rent_price") @db.Decimal(14, 2)
-  location        String
+  id                String                @id @default(cuid())
+  listingId         String                @unique @map("listing_id")
+  slug              String                @unique
+  title             String
+  description       String
+  type              PropertyType
+  status            PropertyStatus        @default(ACTIVE)
+  operationType     PropertyOperationType @map("operation_type")
+  salePrice         Decimal?              @map("sale_price") @db.Decimal(14, 2)
+  rentPrice         Decimal?              @map("rent_price") @db.Decimal(14, 2)
+  location          String
   // Operational area (curated Locations sector). Kept alongside `location`
   // (free-text display string, still the source for public search/cards).
-  locationId      String?               @map("location_id")
-  fullAddress     String                @map("full_address")
-  city            String?
-  province        String?
-  country         String?
-  postalCode      String?               @map("postal_code")
+  locationId        String?               @map("location_id")
+  fullAddress       String                @map("full_address")
+  city              String?
+  province          String?
+  country           String?
+  postalCode        String?               @map("postal_code")
   // Filled by Google Maps geocoding once credentials are available.
-  latitude        Decimal?              @db.Decimal(9, 6)
-  longitude       Decimal?              @db.Decimal(9, 6)
-  bedrooms        Int?
-  bathrooms       Int?
-  toilets         Int?
+  latitude          Decimal?              @db.Decimal(9, 6)
+  longitude         Decimal?              @db.Decimal(9, 6)
+  bedrooms          Int?
+  bathrooms         Int?
+  toilets           Int?
   // All measurements in square meters. totalAreaM2 applies to every listing
   // type (whole property area for non-LOT types, parcel area for LOT).
   // coveredAreaM2/semiCoveredAreaM2/lotSizeM2 apply to non-LOT types only;
   // lotFrontageM2/lotDepthM2 apply only when type is LOT.
-  totalAreaM2       Int?                @map("total_area_m2")
-  coveredAreaM2     Int?                @map("covered_area_m2")
-  semiCoveredAreaM2 Int?                @map("semi_covered_area_m2")
-  lotSizeM2         Int?                @map("lot_size_m2")
-  lotFrontageM2     Int?                @map("lot_frontage_m2")
-  lotDepthM2        Int?                @map("lot_depth_m2")
-  parkingSpaces   Int?                  @map("parking_spaces")
-  yearBuilt       Int?                  @map("year_built")
-  floors          Int?
-  isFeatured      Boolean               @default(false) @map("is_featured")
+  totalAreaM2       Int?                  @map("total_area_m2")
+  coveredAreaM2     Int?                  @map("covered_area_m2")
+  semiCoveredAreaM2 Int?                  @map("semi_covered_area_m2")
+  lotSizeM2         Int?                  @map("lot_size_m2")
+  lotFrontageM2     Int?                  @map("lot_frontage_m2")
+  lotDepthM2        Int?                  @map("lot_depth_m2")
+  parkingSpaces     Int?                  @map("parking_spaces")
+  yearBuilt         Int?                  @map("year_built")
+  floors            Int?
+  isFeatured        Boolean               @default(false) @map("is_featured")
   // YouTube/Vimeo/direct video link shown above the map on the public listing page.
-  videoUrl        String?               @map("video_url")
-  viewsCount      Int                   @default(0) @map("views_count")
-  assignedAgentId String?               @map("assigned_agent_id") @db.Uuid
-  ownerContactId  String?               @map("owner_contact_id")
-  createdById     String?               @map("created_by_id") @db.Uuid
-  updatedById     String?               @map("updated_by_id") @db.Uuid
-  publishedAt     DateTime?             @map("published_at")
-  createdAt       DateTime              @default(now()) @map("created_at")
-  updatedAt       DateTime              @updatedAt @map("updated_at")
+  videoUrl          String?               @map("video_url")
+  viewsCount        Int                   @default(0) @map("views_count")
+  assignedAgentId   String?               @map("assigned_agent_id") @db.Uuid
+  ownerContactId    String?               @map("owner_contact_id")
+  createdById       String?               @map("created_by_id") @db.Uuid
+  updatedById       String?               @map("updated_by_id") @db.Uuid
+  publishedAt       DateTime?             @map("published_at")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
 
-  images        PropertyImage[]
-  amenities     PropertyAmenity[]
-  contacts      ContactProperty[]
-  opportunities Opportunity[]
-  contracts     Contract[]
-  leads         Lead[]            @relation("LeadPrimaryListing")
-  tours         Tour[]
-  operationalLocation Location?   @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  images              PropertyImage[]
+  amenities           PropertyAmenity[]
+  contacts            ContactProperty[]
+  opportunities       Opportunity[]
+  contracts           Contract[]
+  leads               Lead[]            @relation("LeadPrimaryListing")
+  tours               Tour[]
+  operationalLocation Location?         @relation(fields: [locationId], references: [id], onDelete: SetNull)
 
   @@index([status], map: "properties_status_idx")
   @@index([type], map: "properties_type_idx")
@@ -506,30 +506,30 @@ model ContactProperty {
 
 // CRM opportunity — tracks a deal from lead to close.
 model Opportunity {
-  id              String            @id @default(cuid())
-  opportunityId   String            @unique @map("opportunity_id")
-  title           String
-  propertyId      String?           @map("property_id")
-  dealType        String?           @map("deal_type")
-  dealSize        Decimal?          @map("deal_size") @db.Decimal(14, 2)
-  stage           OpportunityStage  @default(QUALIFICATION)
-  status          OpportunityStatus @default(OPEN)
-  probability     Int               @default(50)
-  commission      Decimal?          @db.Decimal(14, 2)
-  commissionUnit  String?           @map("commission_unit")
-  paymentTerms    String?           @map("payment_terms")
-  contractStart       DateTime?         @map("contract_start")
-  contractEnd         DateTime?         @map("contract_end")
-  expectedCloseAt     DateTime?         @map("expected_close_at")
-  agentCommissionValue Decimal?         @map("agent_commission_value") @db.Decimal(14, 2)
-  agentCommissionUnit String?           @map("agent_commission_unit")
-  notes           String?
-  isDeleted       Boolean           @default(false) @map("is_deleted")
-  deletedAt       DateTime?         @map("deleted_at")
-  assignedAgentId String?           @map("assigned_agent_id") @db.Uuid
-  createdById     String?           @map("created_by_id") @db.Uuid
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  id                   String            @id @default(cuid())
+  opportunityId        String            @unique @map("opportunity_id")
+  title                String
+  propertyId           String?           @map("property_id")
+  dealType             String?           @map("deal_type")
+  dealSize             Decimal?          @map("deal_size") @db.Decimal(14, 2)
+  stage                OpportunityStage  @default(QUALIFICATION)
+  status               OpportunityStatus @default(OPEN)
+  probability          Int               @default(50)
+  commission           Decimal?          @db.Decimal(14, 2)
+  commissionUnit       String?           @map("commission_unit")
+  paymentTerms         String?           @map("payment_terms")
+  contractStart        DateTime?         @map("contract_start")
+  contractEnd          DateTime?         @map("contract_end")
+  expectedCloseAt      DateTime?         @map("expected_close_at")
+  agentCommissionValue Decimal?          @map("agent_commission_value") @db.Decimal(14, 2)
+  agentCommissionUnit  String?           @map("agent_commission_unit")
+  notes                String?
+  isDeleted            Boolean           @default(false) @map("is_deleted")
+  deletedAt            DateTime?         @map("deleted_at")
+  assignedAgentId      String?           @map("assigned_agent_id") @db.Uuid
+  createdById          String?           @map("created_by_id") @db.Uuid
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
 
   property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
@@ -573,31 +573,31 @@ model OpportunityParticipant {
 
 // CRM contract — executed deal between the agency and a contact.
 model Contract {
-  id              String         @id @default(cuid())
-  contractId      String         @unique @map("contract_id")
-  title           String
-  contactId       String?        @map("contact_id")
-  propertyId      String?        @map("property_id")
-  opportunityId   String?        @map("opportunity_id")
-  type            ContractType   @default(SALE)
-  status          ContractStatus @default(ACTIVE)
-  value           Decimal?       @db.Decimal(14, 2)
-  startDate       DateTime?      @map("start_date")
-  endDate         DateTime?      @map("end_date")
-  signedAt        DateTime?      @map("signed_at")
-  terms           String?
-  notes           String?
+  id               String         @id @default(cuid())
+  contractId       String         @unique @map("contract_id")
+  title            String
+  contactId        String?        @map("contact_id")
+  propertyId       String?        @map("property_id")
+  opportunityId    String?        @map("opportunity_id")
+  type             ContractType   @default(SALE)
+  status           ContractStatus @default(ACTIVE)
+  value            Decimal?       @db.Decimal(14, 2)
+  startDate        DateTime?      @map("start_date")
+  endDate          DateTime?      @map("end_date")
+  signedAt         DateTime?      @map("signed_at")
+  terms            String?
+  notes            String?
   isDeleted        Boolean        @default(false) @map("is_deleted")
   deletedAt        DateTime?      @map("deleted_at")
   expiryNotifiedAt DateTime?      @map("expiry_notified_at")
-  assignedAgentId String?        @map("assigned_agent_id") @db.Uuid
-  createdById     String?        @map("created_by_id") @db.Uuid
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
+  assignedAgentId  String?        @map("assigned_agent_id") @db.Uuid
+  createdById      String?        @map("created_by_id") @db.Uuid
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  property    Property?    @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  contact     Contact?           @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  property    Property?          @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  opportunity Opportunity?       @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
   documents   ContractDocument[]
 
   @@index([contactId], map: "contracts_contact_idx")
@@ -826,4 +826,101 @@ model LeadActivity {
   @@index([leadId, createdAt], map: "lead_activities_lead_created_idx")
   @@index([actorId], map: "lead_activities_actor_idx")
   @@map("lead_activities")
+}
+
+// ── Messaging (staff-to-staff, 1:1 only) ────────────────────────────────────
+
+// One row per unique staff pair. participantOneId/participantTwoId are ALWAYS
+// stored with the lexicographically-smaller Profile.id first (enforced in
+// message-actions.ts via `[a, b].sort()` before create, not by the DB) so
+// getOrCreateConversation can look up existence via the unique constraint
+// instead of an OR query.
+model Conversation {
+  id                 String    @id @default(cuid())
+  participantOneId   String    @map("participant_one_id") @db.Uuid
+  participantTwoId   String    @map("participant_two_id") @db.Uuid
+  lastMessageAt      DateTime? @map("last_message_at")
+  lastMessagePreview String?   @map("last_message_preview")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@unique([participantOneId, participantTwoId], map: "conversations_pair_unique")
+  @@index([participantOneId], map: "conversations_participant_one_idx")
+  @@index([participantTwoId], map: "conversations_participant_two_idx")
+  @@index([lastMessageAt], map: "conversations_last_message_at_idx")
+  @@map("conversations")
+}
+
+// Per-user mutable state for a conversation — always exactly 2 rows per
+// Conversation (one per participant). Kept separate from Conversation because
+// starred/archived/muted/lastReadAt are inherently per-user, not shared.
+model ConversationParticipant {
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
+  profileId      String    @map("profile_id") @db.Uuid
+  isStarred      Boolean   @default(false) @map("is_starred")
+  isArchived     Boolean   @default(false) @map("is_archived")
+  isMuted        Boolean   @default(false) @map("is_muted")
+  lastReadAt     DateTime? @map("last_read_at")
+  // "Delete conversation" (soft, per-user) — hides it from this participant
+  // entirely (active AND archived views), without touching Message rows or
+  // the other participant's row. Cleared automatically if either side sends
+  // a new message afterward (see message-actions.ts), same spirit as the
+  // per-message soft delete on Message.deletedAt.
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, profileId], map: "conversation_participants_unique")
+  @@index([profileId, isArchived], map: "conversation_participants_profile_archived_idx")
+  @@map("conversation_participants")
+}
+
+// A single chat message. recipientId is DENORMALIZED (the other participant)
+// — same rationale as Notification.recipientId: lets Realtime filter on a
+// single column (recipient_id=eq.userId) and keeps unread-count / grouped-
+// push queries a plain `where: { recipientId, readAt: null }` with no join.
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id") @db.Uuid
+  recipientId    String    @map("recipient_id") @db.Uuid
+  body           String
+  readAt         DateTime? @map("read_at")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  conversation Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  attachments  MessageAttachment[]
+
+  @@index([conversationId, createdAt], map: "messages_conversation_created_idx")
+  @@index([recipientId, readAt], map: "messages_recipient_read_idx")
+  @@index([senderId], map: "messages_sender_idx")
+  @@map("messages")
+}
+
+// A file/image attached to a Message, stored in Supabase Storage (private
+// bucket). Mirrors ContractDocument field-for-field, plus width/height for
+// image attachments (mirrors PropertyImage).
+model MessageAttachment {
+  id          String   @id @default(cuid())
+  messageId   String   @map("message_id")
+  fileName    String   @map("file_name")
+  storagePath String   @map("storage_path")
+  url         String
+  mimeType    String   @map("mime_type")
+  sizeBytes   Int      @map("size_bytes")
+  width       Int?
+  height      Int?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId], map: "message_attachments_message_idx")
+  @@map("message_attachments")
 }

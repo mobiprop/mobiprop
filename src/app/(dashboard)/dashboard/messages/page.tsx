@@ -6,6 +6,6 @@ import { MessagesPage } from "@/features/dashboard/MessagesPage";
 export const metadata: Metadata = { title: "Messages — Ulrich Propiedades" };
 
 export default async function DashboardMessagesPage() {
-  await requireDashboardAccess();
-  return <MessagesPage />;
+  const profile = await requireDashboardAccess();
+  return <MessagesPage currentUserId={profile.id} />;
 }
