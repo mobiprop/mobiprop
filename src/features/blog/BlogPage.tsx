@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+
+import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const heroBgOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.webp";
-const featuredBlogImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/BlogPage/featured-blog-img.webp";
 const arrowRightWhite = "/assets/figma-temp/BlogPage/arrow-right-white.svg";
 const blogCardImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/blogimg1.webp";
 const blogCardImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/worker.webp";
 const blogCardImg2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/woodenfloor.webp";
 
-// One image per column: col 1 -> blogCardImg, col 2 -> worker, col 3 -> woodenfloor
+// Fallback covers (one per column) for posts uploaded without a cover image.
 const columnImages = [blogCardImg, blogCardImg1, blogCardImg2];
 
 const paginationArrowLeft = "/assets/figma-temp/BlogPage/pagination-arrow-left.svg";
@@ -21,53 +23,18 @@ const paginationArrowDown = "/assets/figma-temp/BlogPage/pagination-arrow-down.s
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
-interface BlogPost {
-  id: number;
-  slug: string;
-  category: string;
-  date: string;
-  author: string;
-  title: string;
-  img: string;
+function postDate(post: BlogPostDto): string {
+  const iso = post.publishedAt ?? post.createdAt;
+  try {
+    return format(new Date(iso), "MMM d, yyyy");
+  } catch {
+    return "";
+  }
 }
 
-const BLOG_POSTS: BlogPost[] = Array.from({ length: 9 }, (_, i) => ({
-  id: i + 1,
-  slug: [
-    "future-of-sustainable-architecture",
-    "minimalist-interiors-luxury-living",
-    "top-5-investment-locations-2025",
-    "natural-light-modern-architecture",
-    "sustainable-materials-home-construction",
-    "property-market-cycles-investment",
-    "aesthetics-functionality-open-plan-living",
-    "location-shapes-property-value",
-    "designing-for-wellness-home-building",
-  ][i],
-  category: ["Architecture", "Interior", "Real Estate", "Design", "Investment", "Lifestyle"][i % 6],
-  date: [
-    "Jun 9, 2025", "Jul 14, 2025", "Aug 3, 2025", "Sep 22, 2025", "Oct 5, 2025",
-    "Nov 18, 2025", "Dec 1, 2025", "Jan 12, 2026", "Feb 28, 2026",
-  ][i],
-  author: [
-    "Jane Li", "Mark Davis", "Sara Kim", "Tom Allen", "Priya Patel",
-    "Luis Gomez", "Amy Chen", "Ben Foster", "Nora Webb",
-  ][i],
-  title: [
-    "Discover how smart design transforms daily life for the better",
-    "How minimalist interiors are redefining luxury living spaces",
-    "Top 5 investment locations for property buyers in 2025",
-    "The role of natural light in modern architectural design",
-    "Why sustainable materials are the future of home construction",
-    "Understanding property market cycles for smarter investment",
-    "Balancing aesthetics and functionality in open-plan living",
-    "How location shapes property value over the long term",
-    "Designing for wellness — the new standard in home building",
-  ][i],
-  img: columnImages[i % 3],
-}));
-
-const TOTAL_PAGES = 16;
+function coverFor(post: BlogPostDto, index: number): string {
+  return post.coverImageUrl || columnImages[index % columnImages.length];
+}
 
 /* ─── section tag (dot + label) ─── */
 function SectionTag({ label }: { label: string }) {
@@ -85,108 +52,110 @@ function SectionTag({ label }: { label: string }) {
 }
 
 /* ─── Featured blog card ─── */
-function FeaturedBlog() {
+function FeaturedBlog({ post }: { post: BlogPostDto }) {
   return (
-   <div className="relative w-full h-[360px] sm:h-[420px] lg:h-[539px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
-  <img
-    src={featuredBlogImg}
-    alt="Featured blog"
-    className="absolute inset-0 w-full h-full object-cover object-top"
-  />
-
-  {/* dark gradient overlay */}
-  <div
-    className="absolute inset-0"
-    style={{
-      background:
-        "linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.95) 100%)",
-    }}
-  />
-
-  <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 lg:p-10">
-    {/* badge */}
-    <span
-      className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
-      style={{ fontFamily: montserrat }}
+    <Link
+      href={`/blog/${post.slug}`}
+      className="relative block w-full h-[360px] sm:h-[420px] lg:h-[539px] rounded-[16px] sm:rounded-[20px] overflow-hidden group"
     >
-      Architecture
-    </span>
+      <img
+        src={coverFor(post, 0)}
+        alt={post.title}
+        className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+      />
 
-    {/* bottom row */}
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4">
-      <div className="flex flex-col gap-4 sm:gap-5 max-w-[695px]">
-        <h2
-          className="text-[22px] sm:text-[26px] lg:text-[36px] font-semibold text-white leading-[1.25] lg:leading-[48px] tracking-[-0.36px]"
-          style={{ fontFamily: poppins }}
+      {/* dark gradient overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.95) 100%)",
+        }}
+      />
+
+      <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 lg:p-10">
+        {/* badge */}
+        <span
+          className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
+          style={{ fontFamily: montserrat }}
         >
-          The Future of Sustainable Architecture: Trends to Watch in 2025
-        </h2>
+          {post.category}
+        </span>
 
-        <button className="flex items-center gap-3 sm:gap-[24px] cursor-pointer w-fit">
+        {/* bottom row */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4">
+          <div className="flex flex-col gap-4 sm:gap-5 max-w-[695px]">
+            <h2
+              className="text-[22px] sm:text-[26px] lg:text-[36px] font-semibold text-white leading-[1.25] lg:leading-[48px] tracking-[-0.36px] line-clamp-3"
+              style={{ fontFamily: poppins }}
+            >
+              {post.title}
+            </h2>
+
+            <span className="flex items-center gap-3 sm:gap-[24px] w-fit">
+              <span
+                className="text-[14px] sm:text-[16px] font-medium text-white tracking-[-0.16px]"
+                style={{ fontFamily: montserrat }}
+              >
+                Read More
+              </span>
+              <img src={arrowRightWhite} alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
+            </span>
+          </div>
+
           <span
-            className="text-[14px] sm:text-[16px] font-medium text-white tracking-[-0.16px]"
+            className="text-[14px] sm:text-[16px] font-medium text-[#f9fafb] tracking-[-0.16px] whitespace-nowrap"
             style={{ fontFamily: montserrat }}
           >
-            Read More
+            {postDate(post)}
           </span>
-          <img src={arrowRightWhite} alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
+        </div>
       </div>
-
-      <span
-        className="text-[14px] sm:text-[16px] font-medium text-[#f9fafb] tracking-[-0.16px] whitespace-nowrap"
-        style={{ fontFamily: montserrat }}
-      >
-        March 5, 2026
-      </span>
-    </div>
-  </div>
-</div>
+    </Link>
   );
 }
 
 /* ─── Blog card ─── */
-function BlogCard({ post }: { post: BlogPost }) {
+function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
   return (
-   <Link
-  href={`/blog/${post.slug}`}
-  className="flex flex-col gap-4 sm:gap-5 cursor-pointer group"
->
-  {/* image */}
-  <div className="relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
-    <img
-      src={post.img}
-      alt={post.title}
-      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-    />
-
-    <span
-      className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
-      style={{ fontFamily: montserrat }}
+    <Link
+      href={`/blog/${post.slug}`}
+      className="flex flex-col gap-4 sm:gap-5 cursor-pointer group"
     >
-      {post.category}
-    </span>
-  </div>
+      {/* image */}
+      <div className="relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
+        <img
+          src={coverFor(post, index)}
+          alt={post.title}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        />
 
-  {/* meta + title */}
-  <div className="flex flex-col gap-2">
-    <div
-      className="flex items-center flex-wrap gap-y-1 text-[12px] sm:text-[14px] text-[#2b3038] tracking-[-0.14px]"
-      style={{ fontFamily: montserrat }}
-    >
-      <span className="whitespace-nowrap">{post.date}</span>
-      <span className="w-[4px] h-[4px] sm:w-[5px] sm:h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
-      <span className="whitespace-nowrap">{post.author}</span>
-    </div>
+        <span
+          className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
+          style={{ fontFamily: montserrat }}
+        >
+          {post.category}
+        </span>
+      </div>
 
-    <h3
-      className="text-[18px] sm:text-[20px] font-medium text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.2px] line-clamp-2"
-      style={{ fontFamily: poppins }}
-    >
-      {post.title}
-    </h3>
-  </div>
-</Link>
+      {/* meta + title */}
+      <div className="flex flex-col gap-2">
+        <div
+          className="flex items-center flex-wrap gap-y-1 text-[12px] sm:text-[14px] text-[#2b3038] tracking-[-0.14px]"
+          style={{ fontFamily: montserrat }}
+        >
+          <span className="whitespace-nowrap">{postDate(post)}</span>
+          <span className="w-[4px] h-[4px] sm:w-[5px] sm:h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
+          <span className="whitespace-nowrap">{post.author}</span>
+        </div>
+
+        <h3
+          className="text-[18px] sm:text-[20px] font-medium text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.2px] line-clamp-2"
+          style={{ fontFamily: poppins }}
+        >
+          {post.title}
+        </h3>
+      </div>
+    </Link>
   );
 }
 
@@ -201,7 +170,9 @@ function Pagination({
   onPageChange: (page: number) => void;
 }) {
   const pages: (number | "...")[] =
-    currentPage <= 4
+    totalPages <= 7
+      ? Array.from({ length: totalPages }, (_, i) => i + 1)
+      : currentPage <= 4
       ? [1, 2, 3, 4, 5, "...", totalPages]
       : currentPage >= totalPages - 3
       ? [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
@@ -219,55 +190,55 @@ function Pagination({
 
       {/* center */}
       <div className="flex-1 flex items-center justify-center gap-2">
-  <button
-    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-    disabled={currentPage === 1}
-    aria-label="Previous page"
-    className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-  >
-    <img src={paginationArrowLeft} alt="" className="w-5 h-5" />
-  </button>
+        <button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          aria-label="Previous page"
+          className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <img src={paginationArrowLeft} alt="" className="w-5 h-5" />
+        </button>
 
-  {pages.map((p, i) =>
-    p === "..." ? (
-      <span
-        key={`e-${i}`}
-        className="w-8 h-8 flex items-center justify-center text-[14px] text-[#6a7282]"
-        style={{ fontFamily: montserrat }}
-      >
-        ...
-      </span>
-    ) : (
-      <button
-        key={p}
-        onClick={() => onPageChange(p)}
-        className="w-8 h-8 rounded-[6px] border border-[#e6e6e6] flex items-center justify-center text-[16px] tracking-[-0.16px] transition-colors cursor-pointer"
-        style={{
-          fontFamily: montserrat,
-          backgroundColor: currentPage === p ? "#fafafa" : "#ffffff",
-          color: currentPage === p ? "#0d2138" : "#2b3038",
-          boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)",
-        }}
-      >
-        {p}
-      </button>
-    )
-  )}
+        {pages.map((p, i) =>
+          p === "..." ? (
+            <span
+              key={`e-${i}`}
+              className="w-8 h-8 flex items-center justify-center text-[14px] text-[#6a7282]"
+              style={{ fontFamily: montserrat }}
+            >
+              ...
+            </span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPageChange(p)}
+              className="w-8 h-8 rounded-[6px] border border-[#e6e6e6] flex items-center justify-center text-[16px] tracking-[-0.16px] transition-colors cursor-pointer"
+              style={{
+                fontFamily: montserrat,
+                backgroundColor: currentPage === p ? "#fafafa" : "#ffffff",
+                color: currentPage === p ? "#0d2138" : "#2b3038",
+                boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)",
+              }}
+            >
+              {p}
+            </button>
+          )
+        )}
 
-  <button
-    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-    disabled={currentPage === totalPages}
-    aria-label="Next page"
-    className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-  >
-    <img src={paginationArrowRight} alt="" className="w-5 h-5" />
-  </button>
-</div>
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          aria-label="Next page"
+          className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <img src={paginationArrowRight} alt="" className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* right */}
       <div className="lg:w-[200px] shrink-0 flex justify-center xl:justify-end">
         <div
-          className="flex items-center gap-1 bg-white border border-[#e6e6e6] rounded-lg pl-3 pr-1.5 py-1.5 cursor-pointer"
+          className="flex items-center gap-1 bg-white border border-[#e6e6e6] rounded-lg pl-3 pr-1.5 py-1.5"
           style={{ boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)" }}
         >
           <span className="text-[16px] text-[#2b3038] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
@@ -281,8 +252,21 @@ function Pagination({
 }
 
 /* ─── main export ─── */
-export function BlogPageContent() {
-  const [currentPage, setCurrentPage] = useState(1);
+type BlogPageContentProps = {
+  posts: BlogPostDto[];
+  featured: BlogPostDto | null;
+  currentPage: number;
+  totalPages: number;
+};
+
+export function BlogPageContent({ posts, featured, currentPage, totalPages }: BlogPageContentProps) {
+  const router = useRouter();
+
+  function goToPage(page: number) {
+    router.push(page <= 1 ? "/blog" : `/blog?page=${page}`);
+  }
+
+  const hasContent = Boolean(featured) || posts.length > 0;
 
   return (
     <>
@@ -320,23 +304,31 @@ export function BlogPageContent() {
 
       {/* ── Content ── */}
       <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
-  <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[60px]">
-    <FeaturedBlog />
+        {hasContent ? (
+          <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[60px] w-full">
+            {featured && <FeaturedBlog post={featured} />}
 
-    {/* responsive grid */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-[30px]">
-      {BLOG_POSTS.map((post) => (
-        <BlogCard key={post.id} post={post} />
-      ))}
-    </div>
+            {posts.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-[30px]">
+                {posts.map((post, i) => (
+                  <BlogCard key={post.id} post={post} index={i} />
+                ))}
+              </div>
+            )}
 
-    <Pagination
-      currentPage={currentPage}
-      totalPages={TOTAL_PAGES}
-      onPageChange={setCurrentPage}
-    />
-  </div>
-</div>
+            {totalPages > 1 && (
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+            )}
+          </div>
+        ) : (
+          <p
+            className="py-16 text-[16px] text-[#6a7282] text-center"
+            style={{ fontFamily: montserrat }}
+          >
+            No blog posts published yet. Check back soon.
+          </p>
+        )}
+      </div>
     </>
   );
 }

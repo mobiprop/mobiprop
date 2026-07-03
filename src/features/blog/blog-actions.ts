@@ -1,5 +1,7 @@
 import "server-only";
 
+import { revalidatePath } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
@@ -18,6 +20,15 @@ import { filterDummyBlogPosts, dummyBlogMetrics } from "./blog-dummy-data";
 
 export type BlogActionError = { ok: false; error: string; status: number };
 export type BlogActionResult<T> = ({ ok: true } & T) | BlogActionError;
+
+// Refresh the public marketing pages that read published posts after any write.
+// The public blog pages are force-dynamic, but the homepage "Continue Reading"
+// section benefits from an explicit revalidate.
+function revalidatePublicBlog(slug?: string) {
+  revalidatePath("/");
+  revalidatePath("/blog");
+  if (slug) revalidatePath(`/blog/${slug}`);
+}
 
 // The `blog_posts` migration is intentionally not applied yet (scaffold-first).
 // Until it is, Prisma throws P2021 ("table does not exist") — detect that so the
@@ -216,6 +227,8 @@ export async function createBlogPost(
     newValues: { slug: post.slug, title: post.title, status: post.status },
   });
 
+  if (post.status === BlogStatus.PUBLISHED) revalidatePublicBlog(post.slug);
+
   return { ok: true, post: toBlogDto(post) };
 }
 
@@ -271,6 +284,10 @@ export async function updateBlogPost(
     newValues: { title: post.title, status: post.status },
   });
 
+  // Revalidate for both the old and new slug (a title change moves the URL).
+  revalidatePublicBlog(post.slug);
+  if (existing.slug !== post.slug) revalidatePublicBlog(existing.slug);
+
   return { ok: true, post: toBlogDto(post) };
 }
 
@@ -292,6 +309,8 @@ export async function deleteBlogPost(id: string): Promise<BlogActionResult<{ id:
     entityId: id,
     oldValues: { slug: existing.slug, title: existing.title, status: existing.status },
   });
+
+  revalidatePublicBlog(existing.slug);
 
   return { ok: true, id };
 }
