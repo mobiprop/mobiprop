@@ -637,7 +637,14 @@ const statCatalog = [
   {
     label: "Parking",
     value: "3",
-    icon: <img src="/assets/figma-temp/UserProfile/parking.svg" alt="Parking" width={32} height={25} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.1668 19.8333H24.5002C25.2002 19.8333 25.6668 19.3666 25.6668 18.6666V15.1666C25.6668 14.1166 24.8502 13.1833 23.9168 12.95C21.8168 12.3666 18.6668 11.6666 18.6668 11.6666C18.6668 11.6666 17.1502 10.0333 16.1002 8.98329C15.5168 8.51663 14.8168 8.16663 14.0002 8.16663H5.8335C5.1335 8.16663 4.55016 8.63329 4.20016 9.21663L2.56683 12.6C2.41234 13.0506 2.3335 13.5236 2.3335 14V18.6666C2.3335 19.3666 2.80016 19.8333 3.50016 19.8333H5.8335" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8.16683 22.1667C9.45549 22.1667 10.5002 21.122 10.5002 19.8333C10.5002 18.5447 9.45549 17.5 8.16683 17.5C6.87816 17.5 5.8335 18.5447 5.8335 19.8333C5.8335 21.122 6.87816 22.1667 8.16683 22.1667Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.5 19.8334H17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M19.8333 22.1667C21.122 22.1667 22.1667 21.122 22.1667 19.8333C22.1667 18.5447 21.122 17.5 19.8333 17.5C18.5447 17.5 17.5 18.5447 17.5 19.8333C17.5 21.122 18.5447 22.1667 19.8333 22.1667Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Lot Size",
@@ -658,10 +665,8 @@ const statCatalog = [
     value: "95 m²",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17.5 3.5H24.5V10.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M10.5 24.5H3.5V17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M24.5002 3.5L16.3335 11.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M3.5 24.5L11.6667 16.3334" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 24.5V15.1667C17.5 14.8572 17.3771 14.5605 17.1583 14.3417C16.9395 14.1229 16.6428 14 16.3333 14H11.6667C11.3572 14 11.0605 14.1229 10.8417 14.3417C10.6229 14.5605 10.5 14.8572 10.5 15.1667V24.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3.5 11.6667C3.49992 11.3273 3.57389 10.9919 3.71675 10.684C3.85962 10.3762 4.06793 10.1031 4.32717 9.88404L12.4938 2.88521C12.915 2.52927 13.4486 2.33398 14 2.33398C14.5514 2.33398 15.085 2.52927 15.5062 2.88521L23.6728 9.88404C23.9321 10.1031 24.1404 10.3762 24.2832 10.684C24.4261 10.9919 24.5001 11.3273 24.5 11.6667V22.1667C24.5 22.7855 24.2542 23.379 23.8166 23.8166C23.379 24.2542 22.7855 24.5 22.1667 24.5H5.83333C5.21449 24.5 4.621 24.2542 4.18342 23.8166C3.74583 23.379 3.5 22.7855 3.5 22.1667V11.6667Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -670,10 +675,9 @@ const statCatalog = [
     value: "15 m²",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17.5 3.5H24.5V10.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M10.5 24.5H3.5V17.5" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M24.5002 3.5L16.3335 11.6667" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M3.5 24.5L11.6667 16.3334" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M25.6668 13.9999C25.3515 11.126 23.9866 8.46964 21.8337 6.53998C19.6807 4.61033 16.8913 3.54321 14.0002 3.54321C11.109 3.54321 8.31961 4.61033 6.16667 6.53998C4.01374 8.46964 2.64879 11.126 2.3335 13.9999H25.6668Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M14 14V23.3333C14 23.9522 14.2458 24.5457 14.6834 24.9832C15.121 25.4208 15.7145 25.6667 16.3333 25.6667C16.9522 25.6667 17.5457 25.4208 17.9832 24.9832C18.4208 24.5457 18.6667 23.9522 18.6667 23.3333" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M14 2.33337V3.50004" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -720,7 +724,13 @@ const statCatalog = [
   {
     label: "Floors",
     value: "2 stories",
-    icon: <img src="/assets/figma-temp/UserProfile/floor.svg" alt="Floors" width={24} height={28} />,
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14.9684 2.5433C14.6644 2.40464 14.3342 2.33289 14 2.33289C13.6659 2.33289 13.3357 2.40464 13.0317 2.5433L3.03337 7.0933C2.82635 7.18459 2.65033 7.3341 2.52676 7.52363C2.40319 7.71317 2.3374 7.93454 2.3374 8.1608C2.3374 8.38706 2.40319 8.60844 2.52676 8.79797C2.65033 8.9875 2.82635 9.13702 3.03337 9.2283L13.0434 13.79C13.3474 13.9286 13.6776 14.0004 14.0117 14.0004C14.3458 14.0004 14.676 13.9286 14.98 13.79L24.99 9.23997C25.1971 9.14868 25.3731 8.99917 25.4966 8.80964C25.6202 8.6201 25.686 8.39873 25.686 8.17247C25.686 7.94621 25.6202 7.72484 25.4966 7.5353C25.3731 7.34577 25.1971 7.19625 24.99 7.10497L14.9684 2.5433Z" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 14C2.33295 14.2231 2.3964 14.4418 2.51634 14.6299C2.63627 14.8181 2.80766 14.9679 3.01017 15.0617L13.0435 19.6233C13.3459 19.7603 13.674 19.8311 14.006 19.8311C14.338 19.8311 14.6661 19.7603 14.9685 19.6233L24.9785 15.0733C25.185 14.9805 25.36 14.8296 25.4823 14.639C25.6045 14.4484 25.6686 14.2264 25.6668 14" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M2.3335 19.8334C2.33295 20.0565 2.3964 20.2751 2.51634 20.4633C2.63627 20.6515 2.80766 20.8013 3.01017 20.895L13.0435 25.4567C13.3459 25.5936 13.674 25.6645 14.006 25.6645C14.338 25.6645 14.6661 25.5936 14.9685 25.4567L24.9785 20.9067C25.185 20.8139 25.36 20.663 25.4823 20.4724C25.6045 20.2818 25.6686 20.0598 25.6668 19.8334" stroke="#232323" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
   },
   {
     label: "Property ID",
@@ -1446,7 +1456,7 @@ export function SingleListingPageContent({
                     `}
                   >
                     <div className="flex flex-col items-center text-left lg:gap-0.5">
-                      <div className="mb-[10px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[22px] [&>svg]:w-[22px] [&>svg]:stroke-[1.8]">
+                      <div className="mb-[10px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[28px] [&>svg]:w-[28px] [&>svg]:stroke-[1.8]">
                         {stat.icon}
                       </div>
 
