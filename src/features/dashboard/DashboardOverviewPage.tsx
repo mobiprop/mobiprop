@@ -44,10 +44,10 @@ const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 const DATE_RANGE_LABEL: Record<DashboardDateRange, string> = {
-  LAST_WEEK: "Última Semana",
-  "60_DAYS": "Últimos 60 Días",
-  "90_DAYS": "Últimos 90 Días",
-  CUSTOM: "Rango Personalizado",
+  LAST_WEEK: "Last Week",
+  "60_DAYS": "Last 60 Days",
+  "90_DAYS": "Last 90 Days",
+  CUSTOM: "Custom Range",
 };
 
 const DATE_RANGE_OPTIONS = (["LAST_WEEK", "60_DAYS", "90_DAYS", "CUSTOM"] as const).map((value) => ({
@@ -129,12 +129,18 @@ function MetricCardView({ card }: { card: MetricCard }) {
           <ArrowDownRight size={14} className="text-[#fb2c36]" />
         )}
 
-        <span
-          className={`text-[12px] font-medium ${isUp ? "text-[#00c950]" : "text-[#fb2c36]"}`}
-          style={mont}
-        >
-          {card.trendLabel}
-        </span>
+        <div className="flex items-center gap-1 text-[12px]" style={mont}>
+          <span
+            className={`font-semibold ${isUp ? "text-[#00c950]" : "text-[#fb2c36]"
+              }`}
+          >
+            {card.trendValue}
+          </span>
+
+          <span className="font-normal text-[#6a7282]">
+            {card.trendText}
+          </span>
+        </div>
       </div>
 
       <div className="h-7 w-full">
@@ -547,9 +553,8 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     key={tab}
                     type="button"
                     onClick={() => setChartTab(tab)}
-                    className={`min-w-0 rounded-[6px] px-2 py-1.5 text-[10px] font-medium transition-colors sm:px-3 ${
-                      chartTab === tab ? "bg-white text-[#1e4f86] shadow-sm" : "text-[#99a1af]"
-                    }`}
+                    className={`min-w-0 rounded-[6px] px-2 py-1.5 text-[10px] font-medium transition-colors sm:px-3 ${chartTab === tab ? "bg-white text-[#1e4f86] shadow-sm" : "text-[#99a1af]"
+                      }`}
                     style={mont}
                   >
                     <span className="block truncate">{tab}</span>

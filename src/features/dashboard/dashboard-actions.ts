@@ -97,19 +97,37 @@ function fmtMoney(n: number): string {
   return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 
-function trendFrom(current: number, previous: number): { trendLabel: string; trendDirection: TrendDirection } {
+function trendFrom(
+  current: number,
+  previous: number,
+): {
+  trendValue: string;
+  trendText: string;
+  trendDirection: TrendDirection;
+} {
   if (previous === 0) {
     return current === 0
-      ? { trendLabel: "Sin cambios vs. período anterior", trendDirection: "up" }
-      : { trendLabel: "+100% vs. período anterior", trendDirection: "up" };
+      ? {
+        trendValue: "0%",
+        trendText: "from last month",
+        trendDirection: "up",
+      }
+      : {
+        trendValue: "+100%",
+        trendText: "from last month",
+        trendDirection: "up",
+      };
   }
-  const pct = Math.round(((current - previous) / previous) * 1000) / 10;
+
+  const percentage =
+    Math.round(((current - previous) / previous) * 1000) / 10;
+
   return {
-    trendLabel: `${pct >= 0 ? "+" : ""}${pct}% vs. período anterior`,
-    trendDirection: pct >= 0 ? "up" : "down",
+    trendValue: `${percentage >= 0 ? "+" : ""}${percentage}%`,
+    trendText: "from last month",
+    trendDirection: percentage >= 0 ? "up" : "down",
   };
 }
-
 function sparklineFromDates(dates: Date[], start: Date, end: Date, points = 7): number[] {
   const spanMs = Math.max(end.getTime() - start.getTime(), 1);
   const bucketMs = spanMs / points;
