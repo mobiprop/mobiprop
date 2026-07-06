@@ -864,6 +864,57 @@ model LeadActivity {
   @@map("lead_activities")
 }
 
+// ── Blog / CMS ───────────────────────────────────────────────────────────────
+
+enum BlogStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+// Manageable editorial taxonomy (dashboard "Manage Categories"). BlogPost.category
+// stays a denormalized text column (not a FK) so deleting a category never
+// orphans a post — it just clears that post's category to null.
+model BlogCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("blog_categories")
+}
+
+// Editorial content authored from the dashboard Blog module. Body is Tiptap
+// HTML. Not yet wired to the public site — the public blog still renders static
+// content until this is connected.
+model BlogPost {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  title         String
+  // Free text, validated against BlogCategory rows at the action layer. Nullable
+  // because deleting a category clears it on posts that referenced it.
+  category      String?
+  excerpt       String?
+  content       String     // Tiptap-authored HTML
+  coverImageUrl String?    @map("cover_image_url")
+  author        String
+  tags          String[]   @default([])
+  status        BlogStatus @default(DRAFT)
+  // Target publish date/time while status is SCHEDULED; a lazy check on read
+  // promotes SCHEDULED -> PUBLISHED once this is in the past (see blog-actions.ts).
+  scheduledAt   DateTime?  @map("scheduled_at")
+  publishedAt   DateTime?  @map("published_at")
+  createdById   String?    @map("created_by_id") @db.Uuid
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt], map: "blog_posts_status_published_idx")
+  @@index([category], map: "blog_posts_category_idx")
+  @@map("blog_posts")
+}
+
 // ── Messaging (staff-to-staff, 1:1 only) ────────────────────────────────────
 
 // One row per unique staff pair. participantOneId/participantTwoId are ALWAYS
