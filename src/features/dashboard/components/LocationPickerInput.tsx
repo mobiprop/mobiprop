@@ -13,7 +13,7 @@ function displayName(location: { name: string; region: string }) {
 type LocationPickerInputProps = {
   id: string;
   value: string;
-  onSelect: (locationId: string, displayName: string) => void;
+  onSelect: (locationId: string, displayName: string, address: string) => void;
   placeholder?: string;
   className: string;
 };
@@ -95,7 +95,7 @@ export function LocationPickerInput({
               key={suggestion.id}
               type="button"
               onClick={() => {
-                onSelect(suggestion.id, displayName(suggestion));
+                onSelect(suggestion.id, displayName(suggestion), suggestion.address);
                 setQuery(displayName(suggestion));
                 setIsOpen(false);
               }}

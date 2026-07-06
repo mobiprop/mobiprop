@@ -164,12 +164,14 @@ export const listingBaseSchema = z.object({
   lotSizeM2: optionalArea("Lot size"),
   lotFrontageM2: optionalArea("Lot frontage"),
   lotDepthM2: optionalArea("Lot depth"),
-  yearBuilt: numberFromInput.pipe(
+  yearBuilt: z.preprocess(
+    (value) => (value === "" || value === null || value === undefined ? undefined : Number(value)),
     z
-      .number({ error: "Year built is required" })
+      .number()
       .int()
       .min(1800, "Year built must be 1800 or later")
-      .max(CURRENT_YEAR, `Year built can't be after ${CURRENT_YEAR}`),
+      .max(CURRENT_YEAR, `Year built can't be after ${CURRENT_YEAR}`)
+      .optional(),
   ),
   description: z.string().trim().min(20, "Description must be at least 20 characters"),
   amenities: z.array(z.enum(AMENITY_KEYS)).default([]),

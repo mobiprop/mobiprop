@@ -85,6 +85,29 @@ body {
   animation: global-loading-bar 1.1s ease-in-out infinite;
 }
 
+/* Subtle entrance for newly rendered chat bubbles — skipped entirely under
+   reduced-motion so it never becomes a distraction. */
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-message-in {
+  animation: message-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-message-in {
+    animation: none;
+  }
+}
+
 /*
  * iOS Safari auto-zooms into any form control with a font-size below 16px on
  * focus and never zooms back out. Force at least 16px on touch devices so the

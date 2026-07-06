@@ -369,12 +369,18 @@ export async function deleteOpportunity(id: string): Promise<CrmActionResult<{ i
 
 // ── Create Contract from a Won Opportunity (Option A pre-fill) ─────────────────
 
-export type ContractDraft = {
-  title: string;
+export type ContractDraftParticipant = {
+  role: OpportunityParticipantRole;
   contactId: string | null;
   contactName: string | null;
-  propertyId: string | null;
-  propertyTitle: string | null;
+  companyName: string | null;
+};
+
+export type ContractDraft = {
+  title: string;
+  participants: ContractDraftParticipant[];
+  propertyIds: string[];
+  propertyTitles: string[];
   assignedAgentId: string | null;
   opportunityId: string;
   opportunityNumber: string;
@@ -407,19 +413,19 @@ export async function createContractFromOpportunity(id: string): Promise<CrmActi
     return { ok: false, error: "Only a Closed Won opportunity can be turned into a contract.", status: 400 };
   }
 
-  // A Contract still has a single counterparty — prefer the Buyer, falling
-  // back to the Seller, when the opportunity has multiple participants.
-  const primaryContact =
-    opp.participants.find((p) => p.role === "BUYER" && p.contact) ??
-    opp.participants.find((p) => p.role === "SELLER" && p.contact) ??
-    null;
-
+  // A Contract can now hold the same multi-party list as the Opportunity —
+  // carry every participant over verbatim instead of picking one "primary"
+  // buyer/seller.
   const draft: ContractDraft = {
     title: opp.title,
-    contactId: primaryContact?.contactId ?? null,
-    contactName: primaryContact?.contact ? `${primaryContact.contact.firstName} ${primaryContact.contact.lastName}`.trim() : null,
-    propertyId: opp.propertyId,
-    propertyTitle: opp.property?.title ?? null,
+    participants: opp.participants.map((p) => ({
+      role: p.role,
+      contactId: p.contactId,
+      contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
+      companyName: p.companyName,
+    })),
+    propertyIds: opp.propertyId ? [opp.propertyId] : [],
+    propertyTitles: opp.property?.title ? [opp.property.title] : [],
     assignedAgentId: opp.assignedAgentId,
     opportunityId: opp.id,
     opportunityNumber: opp.opportunityId,

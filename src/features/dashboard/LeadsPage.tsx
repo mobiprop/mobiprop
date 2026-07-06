@@ -18,7 +18,6 @@ import {
   Flame,
   CircleDot,
   Filter,
-  ChevronDown,
   Download,
   MoreVertical,
   ChevronLeft,
@@ -40,7 +39,18 @@ import {
 import type { LeadDto } from "@/features/crm/types/crm-dto";
 import { AddLeadModal } from "./components/AddLeadModal";
 import { LeadFilterModal } from "./components/LeadFilterModal";
+import { SearchableSelect } from "./components/SearchableSelect";
 import type { LeadListFilters } from "@/schemas/lead.schema";
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "oldest", label: "Oldest" },
+  { value: "score_desc", label: "Highest Score" },
+  { value: "score_asc", label: "Lowest Score" },
+  { value: "budget_desc", label: "Highest Budget" },
+  { value: "budget_asc", label: "Lowest Budget" },
+  { value: "updated", label: "Recently Updated" },
+];
 
 const PAGE_LIMIT = 25;
 const uiFont = {
@@ -561,27 +571,18 @@ export function LeadsPage({ role }: LeadsPageProps) {
             </button>
 
             <div className="relative h-9 min-w-0 sm:w-[105px]">
-              <select
+              <SearchableSelect
+                size="sm"
+                searchable={false}
                 value={sortBy}
-                aria-label="Sort leads"
-                onChange={(event) => {
-                  setSortBy(event.target.value as LeadListFilters["sortBy"]);
+                ariaLabel="Sort leads"
+                onChange={(next) => {
+                  setSortBy(next as LeadListFilters["sortBy"]);
                   setPage(1);
                 }}
-                className="h-full w-full cursor-pointer appearance-none rounded-[9px] border border-[#dfe4ea] bg-[#f8fafc] pl-3 pr-8 text-[14px] font-medium text-[#778397] outline-none"
-              >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-                <option value="score_desc">Highest Score</option>
-                <option value="score_asc">Lowest Score</option>
-                <option value="budget_desc">Highest Budget</option>
-                <option value="budget_asc">Lowest Budget</option>
-                <option value="updated">Recently Updated</option>
-              </select>
-              <ChevronDown
-                size={14}
-                strokeWidth={1.8}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#778397]"
+                options={SORT_OPTIONS}
+                placeholder="Sort by"
+                className="h-full w-full"
               />
             </div>
 

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   Search, Plus, Share2, Building2, TrendingUp, DollarSign, Banknote,
-  ChevronDown, Filter, MoreVertical, Pencil, Trash2, Loader2,
+  Filter, MoreVertical, Pencil, Trash2, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -23,9 +23,22 @@ import {
 } from "@/hooks/mutations/useCrmMutations";
 import { AddContractModal, type ContractFormValues } from "./components/AddContractModal";
 import { ContractFilterPopover } from "./components/ContractFilterPopover";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
+
+/** Display label for the participants column/search — joins every named party. */
+function participantsLabel(c: ContractDto): string {
+  const names = c.participants.map((p) => p.contactName ?? p.companyName).filter((n): n is string => Boolean(n));
+  return names.length ? names.join(", ") : "—";
+}
+
+/** Display label for the property column/search — joins every linked listing's title. */
+function listingsLabel(c: ContractDto): string {
+  const titles = c.listings.map((l) => l.propertyTitle).filter(Boolean);
+  return titles.length ? titles.join(", ") : "—";
+}
 
 // ── Badges ────────────────────────────────────────────────────────────────────
 
@@ -222,8 +235,45 @@ export function ContractsPage({
   const [editing, setEditing] = useState<ContractDto | "new" | null>(null);
   const [draft, setDraft] = useState<ContractDraft | undefined>(undefined);
   const [showFilter, setShowFilter] = useState(false);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const [filterPosition, setFilterPosition] = useState<{ top?: number; bottom?: number; left: number; width: number; maxHeight: number }>({
+    left: 0, width: 520, maxHeight: 480,
+  });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "All">("All");
+
+  // Popover is portaled + fixed-positioned (like RowMenu below) so the table
+  // card's overflow-hidden can't clip it. Flips above the trigger when there
+  // isn't enough room below.
+  useLayoutEffect(() => {
+    if (!showFilter) return;
+    const updatePosition = () => {
+      const button = filterButtonRef.current;
+      if (!button) return;
+      const rect = button.getBoundingClientRect();
+      const gap = 6;
+      const padding = 8;
+      const width = Math.min(520, window.innerWidth - padding * 2);
+      let left = rect.right - width;
+      if (left < padding) left = padding;
+      if (left + width > window.innerWidth - padding) left = window.innerWidth - width - padding;
+
+      const spaceBelow = window.innerHeight - rect.bottom - gap - padding;
+      const spaceAbove = rect.top - gap - padding;
+      if (spaceBelow >= 320 || spaceBelow >= spaceAbove) {
+        setFilterPosition({ top: rect.bottom + gap, left, width, maxHeight: Math.max(200, spaceBelow) });
+      } else {
+        setFilterPosition({ bottom: window.innerHeight - rect.top + gap, left, width, maxHeight: Math.max(200, spaceAbove) });
+      }
+    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [showFilter]);
 
   const { data, isLoading, isError } = useDashboardContractsQuery();
   const createMutation = useCreateContractMutation();
@@ -268,8 +318,8 @@ export function ContractsPage({
       const matchesSearch =
         !q ||
         c.contractId.toLowerCase().includes(q) ||
-        (c.propertyTitle ?? "").toLowerCase().includes(q) ||
-        (c.contactName ?? "").toLowerCase().includes(q);
+        listingsLabel(c).toLowerCase().includes(q) ||
+        participantsLabel(c).toLowerCase().includes(q);
       const matchesStatus = statusFilter === "All" || c.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
@@ -284,8 +334,12 @@ export function ContractsPage({
       title: values.title || "Untitled Contract",
       type: values.type,
       status: values.status,
-      contactId: values.contactId || undefined,
-      propertyId: values.propertyId || undefined,
+      participants: values.participants.map((row) =>
+        row.role === "AGENCY"
+          ? { role: row.role, companyName: row.companyName }
+          : { role: row.role, contactId: row.contactId },
+      ),
+      propertyIds: values.propertyIds,
       assignedAgentId: values.assignedAgentId || undefined,
       opportunityId: values.opportunityId || undefined,
       value: values.value ? Number(values.value) : undefined,
@@ -359,29 +413,36 @@ export function ContractsPage({
               <Search size={16} className="text-[#99a1af] shrink-0" />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search contracts..." className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full" style={mont} />
             </div>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={statusFilter}
+              onChange={(next) => setStatusFilter(next as ContractStatus | "All")}
+              options={[
+                { value: "All", label: "Status" },
+                { value: ContractStatus.ACTIVE, label: "Active" },
+                { value: ContractStatus.PENDING, label: "Pending" },
+                { value: ContractStatus.COMPLETED, label: "Completed" },
+                { value: ContractStatus.DRAFT, label: "Draft" },
+                { value: ContractStatus.CANCELLED, label: "Cancelled" },
+              ]}
+              placeholder="Status"
+              ariaLabel="Filter by status"
+            />
             <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as ContractStatus | "All")}
-                className="h-9 pl-4 pr-9 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] appearance-none outline-none cursor-pointer"
-                style={mont}
-              >
-                <option value="All">Status</option>
-                <option value={ContractStatus.ACTIVE}>Active</option>
-                <option value={ContractStatus.PENDING}>Pending</option>
-                <option value={ContractStatus.COMPLETED}>Completed</option>
-                <option value={ContractStatus.DRAFT}>Draft</option>
-                <option value={ContractStatus.CANCELLED}>Cancelled</option>
-              </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af] pointer-events-none" />
-            </div>
-            <div className="relative">
-              <button type="button" onClick={() => setShowFilter((v) => !v)} className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
+              <button ref={filterButtonRef} type="button" onClick={() => setShowFilter((v) => !v)} className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
                 Filter <Filter size={16} />
               </button>
-              {showFilter && (
-                <ContractFilterPopover resultCount={filtered.length} onApply={() => setShowFilter(false)} onClose={() => setShowFilter(false)} />
-              )}
+              {showFilter &&
+                createPortal(
+                  <ContractFilterPopover
+                    resultCount={filtered.length}
+                    position={filterPosition}
+                    onApply={() => setShowFilter(false)}
+                    onClose={() => setShowFilter(false)}
+                  />,
+                  document.body,
+                )}
             </div>
           </div>
         </div>
@@ -421,10 +482,10 @@ export function ContractsPage({
                         <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{contract.title}</span>
                       </td>
                       <td className="px-4 py-[18px]">
-                        <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{contract.propertyTitle ?? "—"}</span>
+                        <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{listingsLabel(contract)}</span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{contract.contactName ?? "—"}</span>
+                        <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{participantsLabel(contract)}</span>
                       </td>
                       <td className="px-4 py-[18px]">
                         <Badge label={TYPE_LABEL[contract.type] ?? contract.type} bg={typeStyle.bg} text={typeStyle.text} />

@@ -718,6 +718,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
         <EditLocationModal
           onClose={() => setModalMode(null)}
           onSubmit={handleAddLocation}
+          isSubmitting={createMutation.isPending}
         />
       )}
       {modalMode === "edit" && selected && (
@@ -725,6 +726,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
           location={selected}
           onClose={() => setModalMode(null)}
           onSubmit={handleEditLocation}
+          isSubmitting={updateMutation.isPending}
         />
       )}
     </div>

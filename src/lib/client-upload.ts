@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/client";
-import { optimizeImagesForUpload } from "@/lib/client-image";
+import { optimizeImagesForUpload, CHAT_WEBP_QUALITY } from "@/lib/client-image";
 import type { ListingImageDescriptor } from "@/schemas/listing.schema";
 
 // Must match PROPERTY_IMAGES_BUCKET in src/lib/supabase/storage.ts.
 const PROPERTY_IMAGES_BUCKET = "property-images";
 // Must match CONTRACT_DOCUMENTS_BUCKET in src/lib/supabase/storage.ts.
 const CONTRACT_DOCUMENTS_BUCKET = "contract-documents";
+// Must match CHAT_ATTACHMENTS_BUCKET in src/lib/supabase/storage.ts.
+const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
 
 type UploadTicket = { imageId: string; storagePath: string; token: string };
 
@@ -143,4 +145,48 @@ export async function uploadContractDocument(
   return finalized.document as {
     id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: string;
   };
+}
+
+// ── Chat attachments ─────────────────────────────────────────────────────────
+
+type ChatAttachmentTicket = {
+  attachmentId: string;
+  storagePath: string;
+  signedUrl: string;
+  token: string;
+  originalFileName: string;
+  mimeType: string;
+};
+
+/**
+ * Optimizes (images only — non-image files pass through unchanged) and
+ * uploads each file directly to storage via signed tickets, returning the
+ * `{storagePath, fileName}` descriptors to pass into sendMessage. Does not
+ * create the Message row itself — call sendMessage with the result.
+ */
+export async function uploadChatAttachments(
+  conversationId: string,
+  files: File[],
+): Promise<{ storagePath: string; fileName: string }[]> {
+  if (files.length === 0) return [];
+
+  const optimized = await optimizeImagesForUpload(files, CHAT_WEBP_QUALITY);
+  const ticketData = await postJson(`/api/dashboard/messages/${conversationId}/attachments/upload-ticket`, {
+    files: optimized.map((o) => ({ name: o.file.name, type: o.file.type })),
+  });
+  const tickets = ticketData.tickets as ChatAttachmentTicket[];
+
+  const supabase = createClient();
+  await runWithConcurrency(tickets, 4, async (ticket, index) => {
+    const file = optimized[index].file;
+    const { error } = await supabase.storage
+      .from(CHAT_ATTACHMENTS_BUCKET)
+      .uploadToSignedUrl(ticket.storagePath, ticket.token, file, { contentType: file.type });
+    if (error) throw new Error(`Attachment upload failed: ${error.message}`);
+  });
+
+  return tickets.map((ticket, index) => ({
+    storagePath: ticket.storagePath,
+    fileName: files[index].name,
+  }));
 }

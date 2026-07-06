@@ -2,7 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
-import { ContractType, ContractStatus } from "@/generated/prisma/enums";
+import { ContractType, ContractStatus, ContractParticipantRole } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
@@ -15,8 +15,8 @@ import {
   removeContractDocumentObject,
 } from "@/lib/supabase/storage";
 import { createContractSchema, updateContractSchema } from "@/schemas/contract.schema";
-import type { CreateContractInput, UpdateContractInput } from "@/schemas/contract.schema";
-import type { ContractDto, ContractMetrics, ContractDocumentDto } from "./types/crm-dto";
+import type { CreateContractInput, UpdateContractInput, ContractParticipantInput } from "@/schemas/contract.schema";
+import type { ContractDto, ContractMetrics, ContractDocumentDto, ContractParticipantDto, ContractListingDto } from "./types/crm-dto";
 
 import type { CrmActionError } from "./contact-actions";
 type CrmActionResult<T> = ({ ok: true } & T) | CrmActionError;
@@ -45,19 +45,50 @@ async function nextContractId(): Promise<string> {
 
 // ── DTO mapping ───────────────────────────────────────────────────────────────
 
+type ContractParticipantWithRelations = {
+  id: string;
+  role: ContractParticipantRole;
+  contactId: string | null;
+  companyName: string | null;
+  contact: { firstName: string; lastName: string } | null;
+};
+
+type ContractListingWithRelations = {
+  propertyId: string;
+  property: { title: string; slug: string };
+};
+
 type ContractWithRelations = {
   id: string; contractId: string; title: string;
-  contactId: string | null; propertyId: string | null; opportunityId: string | null;
+  opportunityId: string | null;
   type: ContractType; status: ContractStatus;
   value: unknown; startDate: Date | null; endDate: Date | null;
   signedAt: Date | null; terms: string | null; notes: string | null;
   assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
-  contact: { firstName: string; lastName: string } | null;
-  property: { title: string; slug: string } | null;
+  participants: ContractParticipantWithRelations[];
+  listings: ContractListingWithRelations[];
   opportunity: { opportunityId: string } | null;
   documents: { id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: Date }[];
 };
+
+function toContractParticipantDto(p: ContractParticipantWithRelations): ContractParticipantDto {
+  return {
+    id: p.id,
+    role: p.role,
+    contactId: p.contactId,
+    contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
+    companyName: p.companyName,
+  };
+}
+
+function toContractListingDto(l: ContractListingWithRelations): ContractListingDto {
+  return {
+    propertyId: l.propertyId,
+    propertyTitle: l.property.title,
+    propertySlug: l.property.slug,
+  };
+}
 
 function toContractDto(
   c: ContractWithRelations,
@@ -67,11 +98,8 @@ function toContractDto(
     id: c.id,
     contractId: c.contractId,
     title: c.title,
-    contactId: c.contactId,
-    contactName: c.contact ? `${c.contact.firstName} ${c.contact.lastName}`.trim() : null,
-    propertyId: c.propertyId,
-    propertyTitle: c.property?.title ?? null,
-    propertySlug: c.property?.slug ?? null,
+    participants: c.participants.map(toContractParticipantDto),
+    listings: c.listings.map(toContractListingDto),
     opportunityId: c.opportunityId,
     opportunityNumber: c.opportunity?.opportunityId ?? null,
     type: c.type,
@@ -98,8 +126,13 @@ function toContractDto(
 }
 
 const contractInclude = {
-  contact: { select: { firstName: true, lastName: true } },
-  property: { select: { title: true, slug: true } },
+  participants: {
+    include: { contact: { select: { firstName: true, lastName: true } } },
+    orderBy: { createdAt: "asc" as const },
+  },
+  listings: {
+    include: { property: { select: { title: true, slug: true } } },
+  },
   opportunity: { select: { opportunityId: true } },
   documents: { orderBy: { createdAt: "desc" as const } },
 } as const;
@@ -153,6 +186,48 @@ export async function getContract(id: string): Promise<CrmActionResult<{ contrac
   return { ok: true, contract: toContractDto(contract, agentMap) };
 }
 
+/** Confirms every BUYER/SELLER participant's contactId is a real, non-deleted Contact. */
+async function validateParticipantContacts(participants: ContractParticipantInput[]): Promise<string | null> {
+  const contactIds = [...new Set(participants.map((p) => p.contactId).filter((id): id is string => Boolean(id)))];
+  if (contactIds.length === 0) return null;
+
+  const found = await prisma.contact.findMany({
+    where: { id: { in: contactIds }, isDeleted: false },
+    select: { id: true },
+  });
+  if (found.length !== contactIds.length) {
+    return "One of the selected contacts was not found.";
+  }
+  return null;
+}
+
+/** Confirms every linked propertyId is a real Property. */
+async function validateListingProperties(propertyIds: string[]): Promise<string | null> {
+  const ids = [...new Set(propertyIds)];
+  if (ids.length === 0) return null;
+
+  const found = await prisma.property.findMany({
+    where: { id: { in: ids } },
+    select: { id: true },
+  });
+  if (found.length !== ids.length) {
+    return "One of the selected listings was not found.";
+  }
+  return null;
+}
+
+function participantsCreateData(participants: ContractParticipantInput[]) {
+  return participants.map((p) => ({
+    role: p.role as ContractParticipantRole,
+    contactId: p.role === "AGENCY" ? null : (p.contactId ?? null),
+    companyName: p.role === "AGENCY" ? (p.companyName ?? null) : null,
+  }));
+}
+
+function listingsCreateData(propertyIds: string[]) {
+  return propertyIds.map((propertyId) => ({ propertyId }));
+}
+
 // ── Create ────────────────────────────────────────────────────────────────────
 
 export async function createContract(
@@ -166,15 +241,19 @@ export async function createContract(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { startDate, endDate, ...fields } = parsed.data;
+  const { startDate, endDate, participants, propertyIds, ...fields } = parsed.data;
+
+  const contactError = await validateParticipantContacts(participants);
+  if (contactError) return { ok: false, error: contactError, status: 422 };
+  const listingError = await validateListingProperties(propertyIds);
+  if (listingError) return { ok: false, error: listingError, status: 422 };
+
   const contractId = await nextContractId();
 
   const contract = await prisma.contract.create({
     data: {
       ...fields,
       contractId,
-      contactId: fields.contactId || null,
-      propertyId: fields.propertyId || null,
       opportunityId: fields.opportunityId || null,
       // Only ADMIN/MANAGER (agents:view) may assign to an arbitrary agent. Any
       // other role (AGENT) can't see other agents, so their contracts are
@@ -185,6 +264,8 @@ export async function createContract(
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       createdById: gate.profile.id,
+      participants: { create: participantsCreateData(participants) },
+      listings: { create: listingsCreateData(propertyIds) },
     },
     include: contractInclude,
   });
@@ -194,7 +275,13 @@ export async function createContract(
     action: "CONTRACT_CREATED",
     entityType: "CONTRACT",
     entityId: contract.id,
-    newValues: { title: contract.title, contactId: contract.contactId, type: contract.type, status: contract.status, value: fields.value ?? null },
+    newValues: {
+      title: contract.title,
+      participants: contract.participants.map((p) => ({ role: p.role, contactId: p.contactId })),
+      type: contract.type,
+      status: contract.status,
+      value: fields.value ?? null,
+    },
   });
 
   void notifyContractCreated({
@@ -237,17 +324,32 @@ export async function updateContract(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { startDate, endDate, ...fields } = parsed.data;
+  const { startDate, endDate, participants, propertyIds, ...fields } = parsed.data;
+
+  if (participants !== undefined) {
+    const contactError = await validateParticipantContacts(participants);
+    if (contactError) return { ok: false, error: contactError, status: 422 };
+  }
+  if (propertyIds !== undefined) {
+    const listingError = await validateListingProperties(propertyIds);
+    if (listingError) return { ok: false, error: listingError, status: 422 };
+  }
 
   const contract = await prisma.contract.update({
     where: { id },
     data: {
       ...fields,
-      contactId: fields.contactId !== undefined ? (fields.contactId || null) : undefined,
-      propertyId: fields.propertyId !== undefined ? (fields.propertyId || null) : undefined,
       opportunityId: fields.opportunityId !== undefined ? (fields.opportunityId || null) : undefined,
       startDate: startDate !== undefined ? (startDate ? new Date(startDate) : null) : undefined,
       endDate: endDate !== undefined ? (endDate ? new Date(endDate) : null) : undefined,
+      // Full replace, mirroring how opportunity participants are updated —
+      // simplest correct behavior for a small per-contract list.
+      ...(participants !== undefined
+        ? { participants: { deleteMany: {}, create: participantsCreateData(participants) } }
+        : {}),
+      ...(propertyIds !== undefined
+        ? { listings: { deleteMany: {}, create: listingsCreateData(propertyIds) } }
+        : {}),
     },
     include: contractInclude,
   });

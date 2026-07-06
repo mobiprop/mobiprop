@@ -20,7 +20,13 @@ import {
   useDeleteOpportunityMutation,
 } from "@/hooks/mutations/useCrmMutations";
 import { AddOpportunityModal, type OpportunityFormValues } from "./components/AddOpportunityModal";
-import { OpportunityFilterModal } from "./components/OpportunityFilterModal";
+import {
+  OpportunityFilterModal,
+  EMPTY_OPPORTUNITY_FILTERS,
+  hasActiveOpportunityFilters,
+  matchesOpportunityFilters,
+  type OpportunityFilterValues,
+} from "./components/OpportunityFilterModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -219,6 +225,7 @@ export function OpportunitiesPage({
   const router = useRouter();
   const [editing, setEditing] = useState<OpportunityDto | "new" | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState<OpportunityFilterValues>(EMPTY_OPPORTUNITY_FILTERS);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<StageTab>("All");
 
@@ -238,7 +245,9 @@ export function OpportunitiesPage({
   const opportunities = useMemo(() => data?.opportunities ?? [], [data]);
   const metrics = data?.metrics;
 
-  const filtered = useMemo(() => {
+  // Narrowed by the tab + search box — this is what the Filter modal's live
+  // "N results" preview counts against, before its own filters are applied.
+  const searchTabFiltered = useMemo(() => {
     const q = search.toLowerCase();
     return opportunities.filter((o) => {
       const matchesTab = activeTab === "All" || o.stage === activeTab;
@@ -251,6 +260,12 @@ export function OpportunitiesPage({
       return matchesTab && matchesSearch;
     });
   }, [opportunities, search, activeTab]);
+
+  const filtered = useMemo(
+    () => searchTabFiltered.filter((o) => matchesOpportunityFilters(o, filters)),
+    [searchTabFiltered, filters],
+  );
+  const filtersActive = hasActiveOpportunityFilters(filters);
 
   async function handleSubmit(values: OpportunityFormValues) {
     const payload = {
@@ -369,8 +384,18 @@ export function OpportunitiesPage({
             <button type="button" className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
               Export CSV <Download size={16} />
             </button>
-            <button type="button" onClick={() => setShowFilter(true)} className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
+            <button
+              type="button"
+              onClick={() => setShowFilter(true)}
+              className={`relative flex items-center gap-2 h-9 px-4 rounded-[10px] border text-[14px] font-medium transition-colors ${
+                filtersActive
+                  ? "bg-[#eff6ff] border-[#1e4f86] text-[#1e4f86]"
+                  : "bg-[#f8fafc] border-[#e5e7eb] text-[#99a1af] hover:bg-[#f3f4f6]"
+              }`}
+              style={mont}
+            >
               Filter By <Filter size={16} />
+              {filtersActive && <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-[#1e4f86]" />}
             </button>
           </div>
         </div>
@@ -465,8 +490,9 @@ export function OpportunitiesPage({
       )}
       {showFilter && (
         <OpportunityFilterModal
-          resultCount={filtered.length}
-          onApply={() => setShowFilter(false)}
+          initial={filters}
+          baseResults={searchTabFiltered}
+          onApply={(next) => { setFilters(next); setShowFilter(false); }}
           onClose={() => setShowFilter(false)}
         />
       )}

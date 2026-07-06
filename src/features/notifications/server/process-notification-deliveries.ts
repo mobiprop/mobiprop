@@ -17,11 +17,16 @@ import type { Notification, PushSubscription } from "@/generated/prisma/client";
 const DEFAULT_ICON = "/icons/icon-192.png";
 const DEFAULT_BADGE = "/icons/notification-badge.png";
 const DEFAULT_URL = "/dashboard/notifications";
+const MESSAGES_URL = "/dashboard/messages";
 
 export type ProcessSummary = { sent: number; failed: number; skipped: number; retry: number };
 
 /** Build a safe, same-origin push payload from a notification record. */
-function buildPayload(notification: Notification): WebPushPayload {
+async function buildPayload(notification: Notification): Promise<WebPushPayload> {
+  if (notification.type === "MESSAGE_RECEIVED") {
+    return buildMessageGroupedPayload(notification);
+  }
+
   const url =
     notification.actionUrl && isInternalUrl(notification.actionUrl)
       ? notification.actionUrl
@@ -34,6 +39,77 @@ function buildPayload(notification: Notification): WebPushPayload {
     badge: DEFAULT_BADGE,
     url,
     tag: notification.id,
+    notificationId: notification.id,
+  };
+}
+
+/**
+ * WhatsApp-style grouped push for chat messages. Uses a STABLE tag
+ * (`messages:{recipientId}`, not `notification.id`) so the OS notification
+ * collapses/replaces the previous one instead of stacking one banner per
+ * message. Re-queries live unread state at send time rather than trusting the
+ * stored Notification.title/body, since those stay per-message (for the
+ * in-app Notifications panel) while the push itself must reflect the
+ * recipient's CURRENT total across all senders.
+ *
+ * `notification.body` is always the latest message's own snippet by
+ * construction — this only ever runs synchronously right after that specific
+ * message's Notification row was created — so no extra query is needed for
+ * "latest," only the groupBy for counting.
+ */
+async function buildMessageGroupedPayload(notification: Notification): Promise<WebPushPayload> {
+  const recipientId = notification.recipientId;
+  const tag = `messages:${recipientId}`;
+
+  const groups = await prisma.message.groupBy({
+    by: ["senderId"],
+    where: { recipientId, readAt: null, deletedAt: null },
+    _count: { _all: true },
+  });
+
+  const totalUnread = groups.reduce((sum, g) => sum + g._count._all, 0);
+
+  // Race with markConversationRead: the triggering message was already read
+  // by the time the push fires. Fall back to its own per-message content,
+  // still under the stable tag.
+  if (totalUnread === 0) {
+    return {
+      title: notification.title,
+      body: notification.body,
+      icon: DEFAULT_ICON,
+      badge: DEFAULT_BADGE,
+      url: MESSAGES_URL,
+      tag,
+      notificationId: notification.id,
+    };
+  }
+
+  if (groups.length === 1) {
+    const sender = await prisma.profile.findUnique({
+      where: { id: groups[0].senderId },
+      select: { fullName: true },
+    });
+    const senderName = sender?.fullName ?? "a colleague";
+    const title = totalUnread === 1 ? `Message from ${senderName}` : `${totalUnread} messages from ${senderName}`;
+
+    return {
+      title,
+      body: notification.body,
+      icon: DEFAULT_ICON,
+      badge: DEFAULT_BADGE,
+      url: MESSAGES_URL,
+      tag,
+      notificationId: notification.id,
+    };
+  }
+
+  return {
+    title: `${totalUnread} messages from ${groups.length} conversations`,
+    body: "Tap to view your messages.",
+    icon: DEFAULT_ICON,
+    badge: DEFAULT_BADGE,
+    url: MESSAGES_URL,
+    tag,
     notificationId: notification.id,
   };
 }
@@ -60,7 +136,7 @@ export async function processPushDeliveriesForNotification(
       include: { subscription: true },
     });
 
-    const payload = buildPayload(notification);
+    const payload = await buildPayload(notification);
 
     for (const delivery of deliveries) {
       const result = await processOne(delivery.id, delivery.subscription, payload, delivery.attemptCount);

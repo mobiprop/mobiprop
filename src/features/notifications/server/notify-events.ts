@@ -472,3 +472,36 @@ export function notifyContractExpiring(input: {
     "notifyContractExpiring",
   );
 }
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+/**
+ * entityId is the CONVERSATION id (not the message id) so markConversationRead
+ * can bulk-mark every MESSAGE_RECEIVED notification for that conversation in one
+ * updateMany. The stored title/body here are per-message (used by the in-app
+ * Notifications panel); the push payload actually sent is recomputed live from
+ * current unread state in process-notification-deliveries.ts, not from this
+ * content.
+ */
+export function notifyMessageReceived(input: {
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  recipientId: string;
+  bodySnippet: string;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "MESSAGE_RECEIVED",
+        actorId: input.senderId,
+        recipientContext: { recipientId: input.recipientId },
+        entityType: "CONVERSATION",
+        entityId: input.conversationId,
+        actionUrl: "/dashboard/messages",
+        content: { title: `Message from ${input.senderName}`, body: input.bodySnippet },
+        metadata: { conversationId: input.conversationId, senderId: input.senderId, senderName: input.senderName },
+      }),
+    "notifyMessageReceived",
+  );
+}

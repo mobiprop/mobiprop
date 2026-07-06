@@ -167,20 +167,24 @@ export async function GET(req: Request) {
       take: MAX,
     }),
 
-    // 4. Contracts matching by title / contact name / ID
+    // 4. Contracts matching by title / participant contact name / ID
     prisma.contract.findMany({
       where: {
         OR: [
           { title: { contains: q, mode: "insensitive" } },
           { contractId: { contains: q, mode: "insensitive" } },
-          { contact: { firstName: { contains: q, mode: "insensitive" } } },
-          { contact: { lastName: { contains: q, mode: "insensitive" } } },
+          { participants: { some: { contact: { firstName: { contains: q, mode: "insensitive" } } } } },
+          { participants: { some: { contact: { lastName: { contains: q, mode: "insensitive" } } } } },
         ],
       },
       select: {
         id: true, contractId: true, title: true,
         type: true, status: true, value: true,
-        contact: { select: { firstName: true, lastName: true } },
+        participants: {
+          where: { role: { in: ["BUYER", "SELLER"] } },
+          include: { contact: { select: { firstName: true, lastName: true } } },
+          take: 1,
+        },
       },
       take: MAX,
     }),
@@ -255,15 +259,18 @@ export async function GET(req: Request) {
 
   // ── Map contracts ─────────────────────────────────────────────────────────
 
-  const contractResults: SearchContractResult[] = matchedContracts.map((c) => ({
-    id: c.id,
-    contractId: c.contractId,
-    title: c.title,
-    contactName: c.contact ? `${c.contact.firstName} ${c.contact.lastName}`.trim() : null,
-    type: c.type,
-    status: c.status,
-    value: c.value !== null ? Number(c.value) : null,
-  }));
+  const contractResults: SearchContractResult[] = matchedContracts.map((c) => {
+    const contact = c.participants[0]?.contact ?? null;
+    return {
+      id: c.id,
+      contractId: c.contractId,
+      title: c.title,
+      contactName: contact ? `${contact.firstName} ${contact.lastName}`.trim() : null,
+      type: c.type,
+      status: c.status,
+      value: c.value !== null ? Number(c.value) : null,
+    };
+  });
 
   return NextResponse.json<{ success: true } & GlobalSearchResults>({
     success: true,

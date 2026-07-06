@@ -1,5 +1,15 @@
 import "server-only";
 
+import {
+  startOfMonth as dfStartOfMonth,
+  endOfMonth,
+  subMonths,
+  startOfQuarter,
+  endOfQuarter,
+  startOfYear,
+  endOfYear,
+} from "date-fns";
+
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
@@ -451,8 +461,35 @@ type GetAgentDetailResult =
   | { ok: true; agent: AgentDetailDto }
   | { ok: false; error: string; status: number };
 
+// Reporting-period filter for the Agent Detail page's deal/revenue stats
+// (Total Deals, Open Deals, Total Revenue, Total Earnings). Total Listings and
+// the Properties table are deliberately left as current-state snapshots, not
+// scoped to the period, since "assigned listings" isn't an event that happens
+// within a window the way a deal being created/won is.
+export type AgentDetailPeriod = "current_month" | "last_month" | "this_quarter" | "this_year";
+
+function resolvePeriodBounds(period: AgentDetailPeriod): { start: Date; end: Date } {
+  const now = new Date();
+  switch (period) {
+    case "last_month": {
+      const lastMonth = subMonths(now, 1);
+      return { start: dfStartOfMonth(lastMonth), end: endOfMonth(lastMonth) };
+    }
+    case "this_quarter":
+      return { start: startOfQuarter(now), end: endOfQuarter(now) };
+    case "this_year":
+      return { start: startOfYear(now), end: endOfYear(now) };
+    case "current_month":
+    default:
+      return { start: dfStartOfMonth(now), end: endOfMonth(now) };
+  }
+}
+
 /** Agent profile + their assigned listings and deal stats (ADMIN/MANAGER only). */
-export async function getAgentDetail(agentId: string): Promise<GetAgentDetailResult> {
+export async function getAgentDetail(
+  agentId: string,
+  period: AgentDetailPeriod = "current_month",
+): Promise<GetAgentDetailResult> {
   const auth = await requirePermission("agents:view");
   if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
 
@@ -484,6 +521,8 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
     return { ok: false, error: "Agent not found.", status: 404 };
   }
 
+  const { start, end } = resolvePeriodBounds(period);
+
   const [properties, totalDeals, openDeals, wonOpportunities] = await Promise.all([
     prisma.property.findMany({
       where: { assignedAgentId: agentId },
@@ -500,15 +539,33 @@ export async function getAgentDetail(agentId: string): Promise<GetAgentDetailRes
       },
       orderBy: { createdAt: "desc" },
     }),
-    // Total deals = all non-deleted opportunities for this agent (across all statuses).
-    prisma.opportunity.count({ where: { assignedAgentId: agentId, isDeleted: false } }),
-    prisma.opportunity.count({ where: { assignedAgentId: agentId, status: OpportunityStatus.OPEN, isDeleted: false } }),
+    // Total/open deals are scoped to the selected reporting period, by when
+    // the opportunity was created.
+    prisma.opportunity.count({
+      where: { assignedAgentId: agentId, isDeleted: false, createdAt: { gte: start, lte: end } },
+    }),
+    prisma.opportunity.count({
+      where: {
+        assignedAgentId: agentId,
+        status: OpportunityStatus.OPEN,
+        isDeleted: false,
+        createdAt: { gte: start, lte: end },
+      },
+    }),
     // Revenue is driven by closed-won Opportunities, not Contracts (client decision,
     // see ulrich-claude-code-project-context.md §17) — a deal counts the moment it's
     // won, regardless of whether its Contract is signed yet. "Total Revenue" is the
     // resolved company commission; "Total Earnings" is the resolved agent commission.
+    // No dedicated "closed at" column exists, so `updatedAt` is used as the proxy
+    // for close date — same convention as the main dashboard's revenue queries
+    // (dashboard-actions.ts).
     prisma.opportunity.findMany({
-      where: { assignedAgentId: agentId, status: OpportunityStatus.CLOSED_WON, isDeleted: false },
+      where: {
+        assignedAgentId: agentId,
+        status: OpportunityStatus.CLOSED_WON,
+        isDeleted: false,
+        updatedAt: { gte: start, lte: end },
+      },
       select: {
         dealSize: true, commission: true, commissionUnit: true,
         agentCommissionValue: true, agentCommissionUnit: true,

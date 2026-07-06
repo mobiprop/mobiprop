@@ -100,6 +100,24 @@ export type OpportunityMetrics = {
 
 // ── Contract ──────────────────────────────────────────────────────────────────
 
+export type ContractParticipantRole = "BUYER" | "SELLER" | "AGENCY";
+
+export type ContractParticipantDto = {
+  id: string;
+  role: ContractParticipantRole;
+  /** Set for BUYER/SELLER rows (a linked Contact); null for AGENCY rows. */
+  contactId: string | null;
+  contactName: string | null;
+  /** Set for AGENCY rows only — free text, no Contact record. */
+  companyName: string | null;
+};
+
+export type ContractListingDto = {
+  propertyId: string;
+  propertyTitle: string;
+  propertySlug: string;
+};
+
 export type ContractDocumentDto = {
   id: string;
   fileName: string;
@@ -113,11 +131,8 @@ export type ContractDto = {
   id: string;
   contractId: string;
   title: string;
-  contactId: string | null;
-  contactName: string | null;
-  propertyId: string | null;
-  propertyTitle: string | null;
-  propertySlug: string | null;
+  participants: ContractParticipantDto[];
+  listings: ContractListingDto[];
   opportunityId: string | null;
   opportunityNumber: string | null;
   type: ContractType;

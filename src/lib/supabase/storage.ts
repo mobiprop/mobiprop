@@ -10,6 +10,7 @@ const AVATAR_BUCKET = "avatars";
 const PROPERTY_IMAGES_BUCKET = "property-images";
 const CONTRACT_DOCUMENTS_BUCKET = "contract-documents";
 const BLOG_IMAGES_BUCKET = "blog-images";
+const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
 
 export const CONTRACT_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB, matches the upload UI's stated cap
 const CONTRACT_DOCUMENT_MIME_TYPES = [
@@ -482,4 +483,189 @@ export async function mintBlogCoverUploadTicket(file: {
 
   const { data: pub } = supabase.storage.from(BLOG_IMAGES_BUCKET).getPublicUrl(storagePath);
   return { storagePath, signedUrl: data.signedUrl, token: data.token, publicUrl: pub.publicUrl };
+}
+
+// ── Chat attachments ────────────────────────────────────────────────────────
+//
+// Same signed-upload-URL / private-bucket / server-authoritative-verification
+// pattern as contract documents, but batched (a message may carry several
+// files) and covering both images and common document types.
+
+export const CHAT_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB per file — adjustable
+export const CHAT_ATTACHMENT_MAX_COUNT = 6; // per message — adjustable
+const CHAT_ATTACHMENT_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
+
+function extensionForChatAttachment(mimeType: string, fileName: string): string {
+  const known: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "application/pdf": "pdf",
+    "application/msword": "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "application/vnd.ms-excel": "xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  };
+  return known[mimeType] ?? fileName.split(".").pop()?.toLowerCase() ?? "bin";
+}
+
+let chatAttachmentsBucketReady = false;
+
+async function ensureChatAttachmentsBucket(): Promise<void> {
+  if (chatAttachmentsBucketReady) return;
+
+  const supabase = createAdminClient();
+  // Private bucket — chat content is never publicly readable; reads go through
+  // a signed URL minted below, same as contract documents.
+  const desiredOptions = {
+    public: false,
+    fileSizeLimit: CHAT_ATTACHMENT_MAX_BYTES,
+    allowedMimeTypes: CHAT_ATTACHMENT_MIME_TYPES,
+  };
+
+  const { data: existing } = await supabase.storage.getBucket(CHAT_ATTACHMENTS_BUCKET);
+  if (existing) {
+    const { error: updateError } = await supabase.storage.updateBucket(CHAT_ATTACHMENTS_BUCKET, desiredOptions);
+    if (updateError) {
+      console.error("[storage] could not raise chat-attachments bucket limits", updateError.message);
+    }
+    chatAttachmentsBucketReady = true;
+    return;
+  }
+
+  let { error } = await supabase.storage.createBucket(CHAT_ATTACHMENTS_BUCKET, desiredOptions);
+  if (error && !/already exists/i.test(error.message)) {
+    ({ error } = await supabase.storage.createBucket(CHAT_ATTACHMENTS_BUCKET, {
+      public: false,
+      allowedMimeTypes: CHAT_ATTACHMENT_MIME_TYPES,
+    }));
+  }
+  if (error && !/already exists/i.test(error.message)) {
+    throw new Error(`Failed to create ${CHAT_ATTACHMENTS_BUCKET} bucket: ${error.message}`);
+  }
+  chatAttachmentsBucketReady = true;
+}
+
+export type ChatAttachmentUploadTicket = {
+  attachmentId: string;
+  storagePath: string;
+  signedUrl: string;
+  token: string;
+  originalFileName: string;
+  mimeType: string;
+};
+
+/**
+ * Mints one signed upload URL per file under `{conversationId}/{attachmentId}.{ext}`.
+ * The browser uploads directly to these paths (bytes never pass through the
+ * serverless function); paths/ids are server-generated, the client never
+ * chooses where its file lands.
+ */
+export async function mintChatAttachmentUploadTickets(
+  conversationId: string,
+  files: { name: string; type: string }[],
+): Promise<ChatAttachmentUploadTicket[]> {
+  const invalid = files.find((f) => !CHAT_ATTACHMENT_MIME_TYPES.includes(f.type));
+  if (invalid) throw new Error(`Unsupported attachment type: ${invalid.type}`);
+  if (files.length > CHAT_ATTACHMENT_MAX_COUNT) {
+    throw new Error(`A message can have at most ${CHAT_ATTACHMENT_MAX_COUNT} attachments.`);
+  }
+
+  await ensureChatAttachmentsBucket();
+  const supabase = createAdminClient();
+
+  const tickets: ChatAttachmentUploadTicket[] = [];
+  for (const file of files) {
+    const attachmentId = randomUUID();
+    const storagePath = `${conversationId}/${attachmentId}.${extensionForChatAttachment(file.type, file.name)}`;
+    const { data, error } = await supabase.storage.from(CHAT_ATTACHMENTS_BUCKET).createSignedUploadUrl(storagePath);
+    if (error || !data) {
+      throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
+    }
+    tickets.push({
+      attachmentId,
+      storagePath,
+      signedUrl: data.signedUrl,
+      token: data.token,
+      originalFileName: file.name,
+      mimeType: file.type,
+    });
+  }
+  return tickets;
+}
+
+export type VerifiedChatAttachment = {
+  storagePath: string;
+  url: string;
+  sizeBytes: number;
+  mimeType: string;
+};
+
+/**
+ * Confirms every expected object actually landed under `conversationId`,
+ * reading authoritative size/mime type from storage (never trusting the
+ * client), and mints a signed read URL for each (bucket is private).
+ */
+export async function verifyUploadedChatAttachments(
+  conversationId: string,
+  storagePaths: string[],
+): Promise<VerifiedChatAttachment[]> {
+  if (storagePaths.length === 0) return [];
+  const supabase = createAdminClient();
+
+  const { data: objects, error } = await supabase.storage
+    .from(CHAT_ATTACHMENTS_BUCKET)
+    .list(conversationId, { limit: 1000 });
+  if (error) throw new Error(`Failed to verify uploaded attachments: ${error.message}`);
+
+  const byName = new Map(objects?.map((object) => [object.name, object]) ?? []);
+
+  const results: VerifiedChatAttachment[] = [];
+  for (const storagePath of storagePaths) {
+    if (!storagePath.startsWith(`${conversationId}/`)) {
+      throw new Error("Attachment path does not belong to this conversation.");
+    }
+    const name = storagePath.slice(conversationId.length + 1);
+    const object = byName.get(name);
+    if (!object) throw new Error("An uploaded attachment is missing from storage.");
+
+    const sizeBytes = Number(object.metadata?.size ?? 0);
+    const mimeType = String(object.metadata?.mimetype ?? "");
+    if (!CHAT_ATTACHMENT_MIME_TYPES.includes(mimeType)) {
+      throw new Error("An uploaded attachment has an unsupported type.");
+    }
+    if (sizeBytes <= 0 || sizeBytes > CHAT_ATTACHMENT_MAX_BYTES) {
+      throw new Error("An uploaded attachment violates the size limit.");
+    }
+
+    const { data: signed, error: signError } = await supabase.storage
+      .from(CHAT_ATTACHMENTS_BUCKET)
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+    if (signError || !signed) {
+      throw new Error(`Failed to sign attachment URL: ${signError?.message ?? "unknown error"}`);
+    }
+
+    results.push({ storagePath, url: signed.signedUrl, sizeBytes, mimeType });
+  }
+  return results;
+}
+
+/** Removes the given chat attachment objects. Best-effort: errors are logged. */
+export async function removeChatAttachmentObjects(storagePaths: string[]): Promise<void> {
+  if (storagePaths.length === 0) return;
+  const supabase = createAdminClient();
+
+  const { error } = await supabase.storage.from(CHAT_ATTACHMENTS_BUCKET).remove(storagePaths);
+  if (error) console.error("[storage] failed to remove chat attachments", error.message);
 }

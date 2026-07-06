@@ -49,6 +49,7 @@ import {
 } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { QuickAddContactModal } from "./QuickAddContactModal";
+import { EditLocationModal } from "./EditLocationModal";
 import { SearchableSelect } from "./SearchableSelect";
 import {
   createListingSchema,
@@ -60,6 +61,7 @@ import {
   type AmenityKey,
 } from "@/schemas/listing.schema";
 import { useCreateListingMutation } from "@/hooks/mutations/useCreateListingMutation";
+import { useCreateLocationMutation } from "@/hooks/mutations/useLocationMutations";
 import {
   useUpdateListingMutation,
   useAddListingImagesMutation,
@@ -377,6 +379,7 @@ export function UploadListingModal({
   const [agents, setAgents] = useState<AssignableAgent[]>([]);
   const [sellerContacts, setSellerContacts] = useState<SellerContact[]>([]);
   const [showAddOwnerContact, setShowAddOwnerContact] = useState(false);
+  const [showAddLocation, setShowAddLocation] = useState(false);
   const [agentsLoading, setAgentsLoading] = useState(true);
   const [contactsLoading, setContactsLoading] = useState(true);
 
@@ -409,6 +412,7 @@ export function UploadListingModal({
 
   const createMutation = useCreateListingMutation();
   const updateMutation = useUpdateListingMutation();
+  const createLocationMutation = useCreateLocationMutation();
   const addImagesMutation = useAddListingImagesMutation();
   const removeImageMutation = useRemoveListingImageMutation();
   const setCoverMutation = useSetListingCoverMutation();
@@ -1087,24 +1091,43 @@ export function UploadListingModal({
                         Location <span className="text-[#e7000b]">*</span>
                       </label>
 
-                      <LocationPickerInput
-                        id="listing-location"
-                        value={locationId}
-                        onSelect={(id, name) => {
-                          setValue("locationId", id, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          setValue("location", name, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                        }}
-                        placeholder="Search locations..."
-                        className={`${inputClass} ${borderClass(
-                          Boolean(errors.locationId),
-                        )}`}
-                      />
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                          <LocationPickerInput
+                            id="listing-location"
+                            value={locationId}
+                            onSelect={(id, name, address) => {
+                              setValue("locationId", id, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              setValue("location", name, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              if (address) {
+                                setValue("fullAddress", address, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                });
+                              }
+                            }}
+                            placeholder="Search locations..."
+                            className={`${inputClass} ${borderClass(
+                              Boolean(errors.locationId),
+                            )}`}
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setShowAddLocation(true)}
+                          className="h-11 shrink-0 rounded-[10px] border border-[#1e4f86] px-3.5 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff]"
+                          style={mont}
+                        >
+                          + Add Location
+                        </button>
+                      </div>
 
                       <FieldError message={errors.locationId?.message} />
                     </div>
@@ -1338,7 +1361,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Year Built <span className="text-[#e7000b]">*</span>
+                        Year Built
                       </label>
 
                       <input
@@ -1867,6 +1890,28 @@ export function UploadListingModal({
             ]);
             setValue("ownerContactId", contact.id, { shouldDirty: true });
             setShowAddOwnerContact(false);
+          }}
+        />
+      )}
+
+      {showAddLocation && (
+        <EditLocationModal
+          isSubmitting={createLocationMutation.isPending}
+          onClose={() => setShowAddLocation(false)}
+          onSubmit={async (values) => {
+            try {
+              const { location } = await createLocationMutation.mutateAsync(values);
+              setValue("locationId", location.id, { shouldDirty: true, shouldValidate: true });
+              setValue("location", `${location.name}, ${location.region}`, {
+                shouldDirty: true,
+                shouldValidate: true,
+              });
+              setValue("fullAddress", location.address, { shouldDirty: true, shouldValidate: true });
+              toast.success("Location added");
+              setShowAddLocation(false);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Failed to add location");
+            }
           }}
         />
       )}

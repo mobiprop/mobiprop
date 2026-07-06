@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronDown } from "lucide-react";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 
 import { ContactType } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { useCreateContactMutation } from "@/hooks/mutations/useCrmMutations";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -92,14 +93,19 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
           {/* Type */}
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} style={mont}>Type</label>
-            <div className="relative">
-              <select value={type} onChange={(e) => setType(e.target.value as ContactType)} className="w-full h-10 pl-3 pr-9 bg-[#fafbfc] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#232323] appearance-none outline-none focus:border-[#1e4f86] transition-colors cursor-pointer" style={mont}>
-                <option value={ContactType.BUYER}>Buyer</option>
-                <option value={ContactType.SELLER}>Seller</option>
-                <option value={ContactType.BOTH}>Both</option>
-              </select>
-              <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-            </div>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={type}
+              onChange={(next) => setType(next as ContactType)}
+              options={[
+                { value: ContactType.BUYER, label: "Buyer" },
+                { value: ContactType.SELLER, label: "Seller" },
+                { value: ContactType.BOTH, label: "Both" },
+              ]}
+              placeholder="Select type"
+              ariaLabel="Contact type"
+            />
           </div>
 
           {/* Actions */}

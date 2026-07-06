@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Eye,
   Star,
-  ChevronDown,
   Filter,
   LayoutGrid,
   List,
@@ -35,6 +34,7 @@ import {
 import { ListingGridView } from "./components/ListingGridView";
 import { ListingFilterModal } from "./components/ListingFilterModal";
 import { UploadListingModal } from "./components/UploadListingModal";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -365,56 +365,34 @@ export function ListingsPage({ role }: ListingsPageProps) {
             </button>
 
             {/* Status filter */}
-            <div className="relative min-w-0">
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as PropertyStatus | "All")
-                }
-                aria-label="Filter by status"
-                className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#2b3038] outline-none transition-all focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 lg:min-w-[130px]"
-                style={mont}
-              >
-                <option value="All">All Status</option>
-
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-              />
-            </div>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={statusFilter}
+              onChange={(next) => setStatusFilter(next as PropertyStatus | "All")}
+              options={[
+                { value: "All", label: "All Status" },
+                ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label })),
+              ]}
+              placeholder="All Status"
+              ariaLabel="Filter by status"
+              className="min-w-0 lg:min-w-[130px]"
+            />
 
             {/* Type filter */}
-            <div className="relative min-w-0">
-              <select
-                value={typeFilter}
-                onChange={(event) =>
-                  setTypeFilter(event.target.value as PropertyType | "All")
-                }
-                aria-label="Filter by property type"
-                className="h-11 w-full cursor-pointer appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-9 text-[14px] font-medium text-[#2b3038] outline-none transition-all focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 lg:min-w-[135px]"
-                style={mont}
-              >
-                <option value="All">All Types</option>
-
-                {Object.entries(TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-              />
-            </div>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={typeFilter}
+              onChange={(next) => setTypeFilter(next as PropertyType | "All")}
+              options={[
+                { value: "All", label: "All Types" },
+                ...Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label })),
+              ]}
+              placeholder="All Types"
+              ariaLabel="Filter by property type"
+              className="min-w-0 lg:min-w-[135px]"
+            />
 
             {/* Clear filters */}
             {hasActiveFilters && (

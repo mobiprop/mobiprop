@@ -42,4 +42,5 @@ export type LocationSuggestionDto = {
   id: string;
   name: string;
   region: string;
+  address: string;
 };

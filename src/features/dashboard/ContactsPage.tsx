@@ -10,7 +10,6 @@ import {
   TrendingDown,
   Building2,
   DollarSign,
-  ChevronDown,
   Upload,
   Share2,
   MoreVertical,
@@ -34,6 +33,7 @@ import {
 } from "@/hooks/mutations/useCrmMutations";
 import { AddContactModal, type NewContact } from "./components/AddContactModal";
 import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
+import { SearchableSelect } from "./components/SearchableSelect";
 import { formatCurrency } from "@/lib/formatters";
 
 const CONTACT_TYPE_MAP: Record<NewContact["contactType"], ContactType> = {
@@ -587,44 +587,36 @@ export function ContactsPage({ role }: ContactsPageProps) {
         />
       </div>
 
-      <div className="relative min-w-0">
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="h-9 w-full cursor-pointer appearance-none truncate rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-8 text-[12px] font-medium text-[#99a1af] outline-none sm:text-[14px] lg:min-w-[112px] lg:pl-4 lg:pr-9"
-          style={mont}
-        >
-          <option value="default">Sort By</option>
-          <option value="name">Name (A–Z)</option>
-          <option value="listings">Assigned Listings</option>
-        </select>
+      <SearchableSelect
+        size="sm"
+        searchable={false}
+        value={sortBy}
+        onChange={(next) => setSortBy(next as typeof sortBy)}
+        options={[
+          { value: "default", label: "Sort By" },
+          { value: "name", label: "Name (A–Z)" },
+          { value: "listings", label: "Assigned Listings" },
+        ]}
+        placeholder="Sort By"
+        ariaLabel="Sort contacts"
+        className="min-w-0 lg:min-w-[112px]"
+      />
 
-        <ChevronDown
-          size={16}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
-        />
-      </div>
-
-      <div className="relative min-w-0">
-        <select
-          value={typeFilter}
-          onChange={(e) =>
-            setTypeFilter(e.target.value as ContactType | "All")
-          }
-          className="h-9 w-full cursor-pointer appearance-none truncate rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] pl-3 pr-8 text-[12px] font-medium text-[#99a1af] outline-none sm:text-[14px] lg:min-w-[138px] lg:pl-4 lg:pr-9"
-          style={mont}
-        >
-          <option value="All">Contact Type</option>
-          <option value={ContactType.BUYER}>Buyer</option>
-          <option value={ContactType.SELLER}>Seller</option>
-          <option value={ContactType.BOTH}>Both</option>
-        </select>
-
-        <ChevronDown
-          size={16}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#99a1af]"
-        />
-      </div>
+      <SearchableSelect
+        size="sm"
+        searchable={false}
+        value={typeFilter}
+        onChange={(next) => setTypeFilter(next as ContactType | "All")}
+        options={[
+          { value: "All", label: "Contact Type" },
+          { value: ContactType.BUYER, label: "Buyer" },
+          { value: ContactType.SELLER, label: "Seller" },
+          { value: ContactType.BOTH, label: "Both" },
+        ]}
+        placeholder="Contact Type"
+        ariaLabel="Filter by contact type"
+        className="min-w-0 lg:min-w-[138px]"
+      />
     </div>
   </div>
 

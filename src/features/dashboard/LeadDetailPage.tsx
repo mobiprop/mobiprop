@@ -49,6 +49,7 @@ import type {
 } from "@/features/crm/types/crm-dto";
 import { scoreColor } from "./LeadsPage";
 import { LeadTourSection } from "./components/LeadTourSection";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -989,23 +990,18 @@ export function LeadDetailPage({
                 >
                   Temperature
                 </label>
-                <select
+                <SearchableSelect
+                  searchable={false}
                   value={lead.temperature}
                   disabled={!canUpdate || update.isPending}
-                  onChange={(event) =>
-                    updateTemperature(
-                      event.target.value as LeadTemperature,
-                    )
-                  }
-                  className="h-10 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#99a1af]"
-                  style={mont}
-                >
-                  {Object.values(LeadTemperature).map((value) => (
-                    <option key={value} value={value}>
-                      {TEMP_BADGE[value].label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => updateTemperature(next as LeadTemperature)}
+                  options={Object.values(LeadTemperature).map((value) => ({
+                    value,
+                    label: TEMP_BADGE[value].label,
+                  }))}
+                  placeholder="Select temperature"
+                  ariaLabel="Lead temperature"
+                />
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -1015,23 +1011,18 @@ export function LeadDetailPage({
                 >
                   Lifecycle Status
                 </label>
-                <select
+                <SearchableSelect
+                  searchable={false}
                   value={lead.lifecycleStatus}
                   disabled={!canUpdate || update.isPending}
-                  onChange={(event) =>
-                    updateLifecycle(
-                      event.target.value as LeadLifecycleStatus,
-                    )
-                  }
-                  className="h-10 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:bg-[#f9fafb] disabled:text-[#99a1af]"
-                  style={mont}
-                >
-                  {Object.values(LeadLifecycleStatus).map((value) => (
-                    <option key={value} value={value}>
-                      {LIFECYCLE_BADGE[value].label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => updateLifecycle(next as LeadLifecycleStatus)}
+                  options={Object.values(LeadLifecycleStatus).map((value) => ({
+                    value,
+                    label: LIFECYCLE_BADGE[value].label,
+                  }))}
+                  placeholder="Select status"
+                  ariaLabel="Lead lifecycle status"
+                />
               </div>
 
               {update.isPending && (

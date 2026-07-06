@@ -5,7 +5,6 @@ import {
   X,
   CheckCircle2,
   RefreshCw,
-  ChevronDown,
 } from "lucide-react";
 
 import type {
@@ -13,6 +12,7 @@ import type {
   IntegrationPermission,
   IntegrationSettingField,
 } from "../integrations-data";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -228,36 +228,18 @@ export function IntegrationDetailModal({
                       </label>
 
                       {field.type === "select" ? (
-                        <div className="relative min-w-0">
-                          <select
-                            id={field.id}
-                            value={field.value}
-                            onChange={(event) =>
-                              updateSetting(
-                                field.id,
-                                event.target.value,
-                              )
-                            }
-                            className="h-10 w-full min-w-0 appearance-none rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-3.5 pr-10 text-[12px] text-[#0a0a0a] outline-none transition-colors focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10"
-                            style={mont}
-                          >
-                            {field.options.map(
-                              (option) => (
-                                <option
-                                  key={option}
-                                  value={option}
-                                >
-                                  {option}
-                                </option>
-                              ),
-                            )}
-                          </select>
-
-                          <ChevronDown
-                            size={18}
-                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6a7282]"
-                          />
-                        </div>
+                        <SearchableSelect
+                          id={field.id}
+                          size="sm"
+                          searchable={false}
+                          value={field.value}
+                          onChange={(next) => updateSetting(field.id, next)}
+                          options={field.options.map((option) => ({
+                            value: option,
+                            label: option,
+                          }))}
+                          placeholder="Select an option"
+                        />
                       ) : (
                         <input
                           id={field.id}

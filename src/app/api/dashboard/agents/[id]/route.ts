@@ -1,15 +1,28 @@
 import { NextResponse } from "next/server";
 
-import { deleteAgent, getAgentDetail, updateAgent, updateAgentStatus } from "@/features/agents/agent-actions";
+import {
+  deleteAgent,
+  getAgentDetail,
+  updateAgent,
+  updateAgentStatus,
+  type AgentDetailPeriod,
+} from "@/features/agents/agent-actions";
 
 export const runtime = "nodejs";
 
+const VALID_PERIODS: AgentDetailPeriod[] = ["current_month", "last_month", "this_quarter", "this_year"];
+
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const result = await getAgentDetail(id);
+  const periodParam = new URL(request.url).searchParams.get("period");
+  const period = VALID_PERIODS.includes(periodParam as AgentDetailPeriod)
+    ? (periodParam as AgentDetailPeriod)
+    : undefined;
+
+  const result = await getAgentDetail(id, period);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }
