@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -14,12 +15,13 @@ import {
   Trash2,
   Loader2,
   Newspaper,
+  MoreVertical,
+  FolderCog,
 } from "lucide-react";
 
 import { hasPermission, type Role } from "@/lib/permissions";
-import { BLOG_CATEGORIES } from "@/schemas/blog.schema";
 import { BlogStatus } from "@/generated/prisma/enums";
-import { useBlogPostsQuery, useBlogMetricsQuery } from "@/hooks/queries/useBlogPostsQuery";
+import { useBlogPostsQuery, useBlogMetricsQuery, useBlogCategoriesQuery } from "@/hooks/queries/useBlogPostsQuery";
 import {
   useCreateBlogMutation,
   useUpdateBlogMutation,
@@ -27,6 +29,7 @@ import {
 } from "@/hooks/mutations/useBlogMutations";
 import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 import { BlogEditorModal, type BlogFormValues } from "./components/BlogEditorModal";
+import { ManageCategoriesModal } from "./components/ManageCategoriesModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -36,40 +39,174 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 function StatCard({
   label,
   value,
+  trend,
   iconBg,
   icon,
 }: {
   label: string;
   value: string | number;
+  trend: string;
   iconBg: string;
   icon: React.ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-[14px] border border-[#e5e7eb] bg-white p-4 flex flex-col gap-[18px] h-[112px]">
-      <div className="flex items-center justify-between">
+    <div className="min-w-0 rounded-[14px] border border-[#e5e7eb] bg-white p-4 flex flex-col gap-6">
+      <div className="flex items-start justify-between gap-3">
         <p className="text-[14px] text-[#6a7282]" style={mont}>{label}</p>
         <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px]" style={{ backgroundColor: iconBg }}>
           {icon}
         </span>
       </div>
-      <p className="text-[24px] font-semibold leading-[28px] text-[#1e4f86]" style={poppins}>{value}</p>
+      <div className="flex flex-col gap-1">
+        <p className="text-[24px] font-semibold leading-[28px] text-[#0d2138]" style={poppins}>{value}</p>
+        <p className="text-[13px] font-medium text-[#00a63e]" style={mont}>{trend}</p>
+      </div>
     </div>
   );
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
+const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  PUBLISHED: { bg: "#dcfce7", text: "#166534", label: "Published" },
+  SCHEDULED: { bg: "#dbeafe", text: "#1d4ed8", label: "Scheduled" },
+  DRAFT: { bg: "#f3f4f6", text: "#4b5563", label: "Draft" },
+};
+
 function StatusBadge({ status }: { status: BlogStatus }) {
-  const published = status === BlogStatus.PUBLISHED;
+  const s = STATUS_STYLE[status] ?? STATUS_STYLE.DRAFT;
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-        published ? "bg-[#dcfce7] text-[#166534]" : "bg-[#f3f4f6] text-[#4b5563]"
-      }`}
-      style={mont}
+      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+      style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
-      {published ? "Published" : "Draft"}
+      {s.label}
     </span>
+  );
+}
+
+// ── Row actions menu ──────────────────────────────────────────────────────────
+// Portal + fixed-position pattern (flips above the trigger near the bottom of
+// the viewport) — same approach as RowMenu in ContractsPage.tsx, so the table's
+// scroll/overflow wrappers can't clip the menu.
+
+function RowMenu({
+  label,
+  canEdit,
+  canDelete,
+  onEdit,
+  onDelete,
+}: {
+  label: string;
+  canEdit: boolean;
+  canDelete: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const updatePosition = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const menuWidth = 160;
+    const menuHeight = canEdit && canDelete ? 92 : 48;
+    const gap = 6;
+    const padding = 8;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+    if (left < padding) left = padding;
+    if (left + menuWidth > window.innerWidth - padding) left = window.innerWidth - menuWidth - padding;
+    if (top + menuHeight > window.innerHeight - padding) top = rect.top - menuHeight - gap;
+    setPosition({ top, left });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, canEdit, canDelete]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  if (!canEdit && !canDelete) return null;
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        title="Actions"
+        aria-label={`Open actions for ${label}`}
+        aria-expanded={open}
+        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
+        className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
+          open ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+        }`}
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            className="fixed z-[9999] w-[160px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+            style={{ top: position.top, left: position.left }}
+          >
+            {canEdit && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { setOpen(false); onEdit(); }}
+                className="flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
+                style={mont}
+              >
+                <Pencil size={14} className="text-[#1e4f86]" /> Edit
+              </button>
+            )}
+            {canDelete && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { setOpen(false); onDelete(); }}
+                className="flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium text-[#fb2c36] transition-colors hover:bg-[#fff1f2]"
+                style={mont}
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            )}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -88,6 +225,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<BlogPostDto | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
 
   const filters = useMemo(
     () => ({ status: statusFilter, category: categoryFilter, search }),
@@ -96,17 +234,23 @@ export function BlogAdminPage({ role }: { role: Role }) {
 
   const { data, isLoading, isError } = useBlogPostsQuery(filters);
   const { data: metricsData } = useBlogMetricsQuery();
+  const { data: categoriesData } = useBlogCategoriesQuery();
   const createMutation = useCreateBlogMutation();
   const updateMutation = useUpdateBlogMutation();
   const deleteMutation = useDeleteBlogMutation();
 
   const posts = data?.posts ?? [];
   const metrics = metricsData?.metrics;
+  const categories = categoriesData?.categories ?? [];
   const submitting = createMutation.isPending || updateMutation.isPending;
   // The dummy fallback (before the blog_posts migration is applied) tags rows
   // with `dummy-` ids. Surface a banner so it's clear these are placeholders and
   // that create/edit/delete won't persist until the DB table exists.
   const isPreviewData = posts.some((p) => p.id.startsWith("dummy-"));
+
+  // Posts not counted under any current category (null category, or stale text
+  // left over from a deleted/renamed one).
+  const uncategorizedPosts = Math.max(0, (metrics?.total ?? 0) - categories.reduce((sum, c) => sum + c.postCount, 0));
 
   function openCreate() {
     setEditing(null);
@@ -122,11 +266,14 @@ export function BlogAdminPage({ role }: { role: Role }) {
     const body = {
       title: values.title,
       category: values.category,
+      slug: values.slug,
       excerpt: values.excerpt,
       author: values.author,
       content: values.content,
+      tags: values.tags,
       coverImageUrl: values.coverImageUrl,
       status: values.status,
+      scheduledAt: values.scheduledAt,
     };
 
     if (editing) {
@@ -144,7 +291,13 @@ export function BlogAdminPage({ role }: { role: Role }) {
     } else {
       createMutation.mutate(body, {
         onSuccess: () => {
-          toast.success(values.status === BlogStatus.PUBLISHED ? "Post published" : "Draft saved");
+          toast.success(
+            values.status === BlogStatus.PUBLISHED
+              ? "Post published"
+              : values.status === BlogStatus.SCHEDULED
+                ? "Post scheduled"
+                : "Draft saved",
+          );
           setEditorOpen(false);
         },
         onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create post"),
@@ -171,17 +324,28 @@ export function BlogAdminPage({ role }: { role: Role }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-semibold text-[#1f2937]" style={poppins}>Blog</h1>
-          <p className="mt-1 text-[13px] text-[#6a7282]">Create and manage articles for the website blog.</p>
+          <p className="mt-1 text-[13px] text-[#6a7282]">Manage content, articles, and publications.</p>
         </div>
-        {canCreate && (
-          <button
-            type="button"
-            onClick={openCreate}
-            className="flex h-10 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[13px] font-medium text-white hover:bg-[#1a4574]"
-          >
-            <Plus className="size-4" /> New Post
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {canUpdate && (
+            <button
+              type="button"
+              onClick={() => setManageCategoriesOpen(true)}
+              className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-4 text-[13px] font-medium text-[#374151] hover:bg-[#f8fafc]"
+            >
+              <FolderCog className="size-4" /> Manage Categories
+            </button>
+          )}
+          {canCreate && (
+            <button
+              type="button"
+              onClick={openCreate}
+              className="flex h-10 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[13px] font-medium text-white hover:bg-[#1a4574]"
+            >
+              <Plus className="size-4" /> New Post
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Preview-data notice (dummy fallback before the DB migration is applied) */}
@@ -198,10 +362,10 @@ export function BlogAdminPage({ role }: { role: Role }) {
 
       {/* Metrics */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Total posts" value={metrics?.total ?? "—"} iconBg="#dbeafe" icon={<FileText className="size-4 text-[#1e4f86]" />} />
-        <StatCard label="Published" value={metrics?.published ?? "—"} iconBg="#dcfce7" icon={<CheckCircle2 className="size-4 text-[#16a34a]" />} />
-        <StatCard label="Drafts" value={metrics?.drafts ?? "—"} iconBg="#fef3c7" icon={<FileEdit className="size-4 text-[#d97706]" />} />
-        <StatCard label="Categories" value={metrics?.categories ?? "—"} iconBg="#ede9fe" icon={<Tags className="size-4 text-[#7c3aed]" />} />
+        <StatCard label="Total posts" value={metrics?.total ?? "—"} trend="All time" iconBg="#dbeafe" icon={<FileText className="size-4 text-[#1e4f86]" />} />
+        <StatCard label="Published" value={metrics?.published ?? "—"} trend="Live on the site" iconBg="#dcfce7" icon={<CheckCircle2 className="size-4 text-[#16a34a]" />} />
+        <StatCard label="Drafts" value={metrics?.drafts ?? "—"} trend="Awaiting publish" iconBg="#fef3c7" icon={<FileEdit className="size-4 text-[#d97706]" />} />
+        <StatCard label="Categories" value={metrics?.categories ?? "—"} trend="Managed taxonomy" iconBg="#ede9fe" icon={<Tags className="size-4 text-[#7c3aed]" />} />
       </div>
 
       {/* Filters */}
@@ -218,12 +382,13 @@ export function BlogAdminPage({ role }: { role: Role }) {
         <select className={selectClass} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">All statuses</option>
           <option value="PUBLISHED">Published</option>
+          <option value="SCHEDULED">Scheduled</option>
           <option value="DRAFT">Draft</option>
         </select>
         <select className={selectClass} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
           <option value="">All categories</option>
-          {BLOG_CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.name}>{c.name}</option>
           ))}
         </select>
       </div>
@@ -259,7 +424,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] border-collapse">
+            <table className="w-full min-w-[760px] border-collapse">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#fafbfc] text-left text-[11px] uppercase tracking-wide text-[#6a7282]">
                   <th className="px-4 py-3 font-medium">Post</th>
@@ -267,7 +432,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
                   <th className="px-4 py-3 font-medium">Author</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Updated</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  <th className="w-[52px]" />
                 </tr>
               </thead>
               <tbody>
@@ -292,9 +457,13 @@ export function BlogAdminPage({ role }: { role: Role }) {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full bg-[#eff6ff] px-2.5 py-0.5 text-[11px] font-medium text-[#1e4f86]">
-                        {post.category}
-                      </span>
+                      {post.category ? (
+                        <span className="inline-flex items-center rounded-full bg-[#eff6ff] px-2.5 py-0.5 text-[11px] font-medium text-[#1e4f86]">
+                          {post.category}
+                        </span>
+                      ) : (
+                        <span className="text-[12px] text-[#9ca3af]">Uncategorized</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-[12px] text-[#374151]">{post.author}</td>
                     <td className="px-4 py-3"><StatusBadge status={post.status} /></td>
@@ -302,30 +471,15 @@ export function BlogAdminPage({ role }: { role: Role }) {
                       {formatDistanceToNow(new Date(post.updatedAt), { addSuffix: true })}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        {canUpdate && (
-                          <button
-                            type="button"
-                            onClick={() => openEdit(post)}
-                            title="Edit"
-                            aria-label="Edit"
-                            className="flex size-8 items-center justify-center rounded-[8px] text-[#374151] hover:bg-[#eff6ff] hover:text-[#1e4f86]"
-                          >
-                            <Pencil className="size-4" />
-                          </button>
-                        )}
-                        {canDelete && (
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(post)}
-                            disabled={deletingId === post.id}
-                            title="Delete"
-                            aria-label="Delete"
-                            className="flex size-8 items-center justify-center rounded-[8px] text-[#374151] hover:bg-[#fef2f2] hover:text-[#dc2626] disabled:opacity-50"
-                          >
-                            {deletingId === post.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-                          </button>
-                        )}
+                      <div className="flex items-center justify-end">
+                        <RowMenu
+                          label={post.title}
+                          canEdit={canUpdate}
+                          canDelete={canDelete}
+                          onEdit={() => openEdit(post)}
+                          onDelete={() => handleDelete(post)}
+                        />
+                        {deletingId === post.id && <Loader2 className="ml-1 size-4 shrink-0 animate-spin text-[#6a7282]" />}
                       </div>
                     </td>
                   </tr>
@@ -341,11 +495,24 @@ export function BlogAdminPage({ role }: { role: Role }) {
           post={editing}
           canPublish={canPublish}
           submitting={submitting}
+          categories={categories}
           onClose={() => {
             setEditorOpen(false);
             setEditing(null);
           }}
           onSubmit={handleSubmit}
+        />
+      )}
+
+      {manageCategoriesOpen && (
+        <ManageCategoriesModal
+          categories={categories}
+          totalPosts={metrics?.total ?? 0}
+          uncategorizedPosts={uncategorizedPosts}
+          canCreate={canCreate}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          onClose={() => setManageCategoriesOpen(false)}
         />
       )}
     </div>

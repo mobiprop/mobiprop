@@ -15,7 +15,8 @@ export type ActivityEntityType =
   | "LOCATION"
   | "OPPORTUNITY"
   | "CONTRACT"
-  | "BLOG_POST";
+  | "BLOG_POST"
+  | "BLOG_CATEGORY";
 
 export type ActivityAction =
   | "INVITATION_CREATED"
@@ -95,7 +96,10 @@ export type ActivityAction =
   | "BLOG_POST_CREATED"
   | "BLOG_POST_UPDATED"
   | "BLOG_POST_DELETED"
-  | "BLOG_POST_STATUS_CHANGED";
+  | "BLOG_POST_STATUS_CHANGED"
+  | "BLOG_CATEGORY_CREATED"
+  | "BLOG_CATEGORY_UPDATED"
+  | "BLOG_CATEGORY_DELETED";
 
 type LogActivityInput = {
   /** Profile id of the user who performed the action; null for system/self-serve flows. */

@@ -57,6 +57,7 @@ export const queryKeys = {
   // Blog / CMS
   blogPosts: prefixed("blog-posts"),
   blogMetrics: () => ["blog-metrics"] as const,
+  blogCategories: () => ["blog-categories"] as const,
 
   // User account
   savedListings: (userId: string) => ["saved-listings", userId] as const,

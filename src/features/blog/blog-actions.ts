@@ -57,12 +57,14 @@ type BlogPostRow = {
   id: string;
   slug: string;
   title: string;
-  category: string;
+  category: string | null;
   excerpt: string | null;
   content: string;
   coverImageUrl: string | null;
   author: string;
+  tags: string[];
   status: BlogStatus;
+  scheduledAt: Date | null;
   publishedAt: Date | null;
   createdById: string | null;
   createdAt: Date;
@@ -79,12 +81,29 @@ function toBlogDto(p: BlogPostRow): BlogPostDto {
     content: p.content,
     coverImageUrl: p.coverImageUrl,
     author: p.author,
+    tags: p.tags,
     status: p.status,
+    scheduledAt: p.scheduledAt?.toISOString() ?? null,
     publishedAt: p.publishedAt?.toISOString() ?? null,
     createdById: p.createdById,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
+}
+
+// Promotes any SCHEDULED post whose scheduledAt has passed to PUBLISHED. Called
+// at the top of every read path (list/metrics here, plus the public blog.service.ts
+// reads) so scheduling works without a dedicated cron worker.
+async function promoteDuePosts(): Promise<void> {
+  if (blogModelUnavailable()) return;
+  try {
+    await prisma.blogPost.updateMany({
+      where: { status: BlogStatus.SCHEDULED, scheduledAt: { lte: new Date() } },
+      data: { status: BlogStatus.PUBLISHED, publishedAt: new Date() },
+    });
+  } catch (error) {
+    if (!isMissingTableError(error)) throw error;
+  }
 }
 
 // ── Slug generation (server-side only, never trusted from the client) ─────────
@@ -112,7 +131,7 @@ export async function listBlogPosts(
 
   const where: Prisma.BlogPostWhereInput = {};
 
-  if (filters.status === "DRAFT" || filters.status === "PUBLISHED") {
+  if (filters.status === "DRAFT" || filters.status === "SCHEDULED" || filters.status === "PUBLISHED") {
     where.status = filters.status as BlogStatus;
   }
   if (filters.category) where.category = filters.category;
@@ -129,6 +148,7 @@ export async function listBlogPosts(
   if (blogModelUnavailable()) return { ok: true, posts: filterDummyBlogPosts(filters) };
 
   try {
+    await promoteDuePosts();
     const posts = await prisma.blogPost.findMany({ where, orderBy: { updatedAt: "desc" } });
     return { ok: true, posts: posts.map(toBlogDto) };
   } catch (error) {
@@ -148,10 +168,12 @@ export async function getBlogMetrics(): Promise<BlogActionResult<{ metrics: Blog
   if (blogModelUnavailable()) return { ok: true, metrics: dummyBlogMetrics() };
 
   try {
-    const [total, published, categories] = await Promise.all([
+    await promoteDuePosts();
+    const [total, published, drafts, categories] = await Promise.all([
       prisma.blogPost.count(),
       prisma.blogPost.count({ where: { status: BlogStatus.PUBLISHED } }),
-      prisma.blogPost.findMany({ distinct: ["category"], select: { category: true } }),
+      prisma.blogPost.count({ where: { status: BlogStatus.DRAFT } }),
+      prisma.blogCategory.count(),
     ]);
 
     return {
@@ -159,8 +181,8 @@ export async function getBlogMetrics(): Promise<BlogActionResult<{ metrics: Blog
       metrics: {
         total,
         published,
-        drafts: total - published,
-        categories: categories.length,
+        drafts,
+        categories,
       },
     };
   } catch (error) {
@@ -180,6 +202,20 @@ export async function getBlogPost(id: string): Promise<BlogActionResult<{ post: 
   const post = await prisma.blogPost.findUnique({ where: { id } });
   if (!post) return { ok: false, error: "Blog post not found", status: 404 };
   return { ok: true, post: toBlogDto(post) };
+}
+
+// ── Category validation (skips silently if the categories table isn't migrated yet) ──
+
+function categoryModelUnavailable(): boolean {
+  return !(prisma as { blogCategory?: unknown }).blogCategory;
+}
+
+async function validateCategoryName(name?: string): Promise<string | null> {
+  if (!name) return null;
+  if (categoryModelUnavailable()) return null;
+  const found = await prisma.blogCategory.findFirst({ where: { name }, select: { id: true } });
+  if (!found) return "Select a valid category";
+  return null;
 }
 
 // ── Create ────────────────────────────────────────────────────────────────────
@@ -202,18 +238,23 @@ export async function createBlogPost(
     if (!pub.ok) return { ok: false, error: "You don't have permission to publish posts.", status: 403 };
   }
 
-  const slug = await uniqueSlug(data.title);
+  const categoryError = await validateCategoryName(data.category || undefined);
+  if (categoryError) return { ok: false, error: categoryError, status: 400 };
+
+  const slug = await uniqueSlug(data.slug || data.title);
 
   const post = await prisma.blogPost.create({
     data: {
       slug,
       title: data.title,
-      category: data.category,
+      category: data.category || null,
       excerpt: data.excerpt || null,
       content: data.content,
       coverImageUrl: data.coverImageUrl || null,
       author: data.author,
+      tags: data.tags,
       status: data.status,
+      scheduledAt: data.status === BlogStatus.SCHEDULED && data.scheduledAt ? new Date(data.scheduledAt) : null,
       publishedAt: data.status === BlogStatus.PUBLISHED ? new Date() : null,
       createdById: gate.profile.id,
     },
@@ -257,19 +298,44 @@ export async function updateBlogPost(
     if (!pub.ok) return { ok: false, error: "You don't have permission to publish or unpublish posts.", status: 403 };
   }
 
+  if (data.category !== undefined) {
+    const categoryError = await validateCategoryName(data.category || undefined);
+    if (categoryError) return { ok: false, error: categoryError, status: 400 };
+  }
+
   const nextStatus = data.status ?? existing.status;
   const becomingPublished = nextStatus === BlogStatus.PUBLISHED && existing.status !== BlogStatus.PUBLISHED;
+
+  // Slug: an explicit slug edit takes priority; otherwise a title change re-derives it
+  // (existing behavior). Untouched slug/title leaves the slug alone.
+  let slugUpdate: string | undefined;
+  if (data.slug) {
+    slugUpdate = await uniqueSlug(data.slug, id);
+  } else if (data.title !== undefined) {
+    slugUpdate = await uniqueSlug(data.title, id);
+  }
+
+  // scheduledAt: explicit value wins; otherwise clear it once the post leaves SCHEDULED.
+  let scheduledAtUpdate: Date | null | undefined;
+  if (data.scheduledAt !== undefined) {
+    scheduledAtUpdate = data.scheduledAt ? new Date(data.scheduledAt) : null;
+  } else if (statusChanging && nextStatus !== BlogStatus.SCHEDULED) {
+    scheduledAtUpdate = null;
+  }
 
   const post = await prisma.blogPost.update({
     where: { id },
     data: {
-      ...(data.title !== undefined && { title: data.title, slug: await uniqueSlug(data.title, id) }),
-      ...(data.category !== undefined && { category: data.category }),
+      ...(data.title !== undefined && { title: data.title }),
+      ...(slugUpdate !== undefined && { slug: slugUpdate }),
+      ...(data.category !== undefined && { category: data.category || null }),
       ...(data.excerpt !== undefined && { excerpt: data.excerpt || null }),
       ...(data.content !== undefined && { content: data.content }),
       ...(data.author !== undefined && { author: data.author }),
+      ...(data.tags !== undefined && { tags: data.tags }),
       ...(data.coverImageUrl !== undefined && { coverImageUrl: data.coverImageUrl || null }),
       ...(data.status !== undefined && { status: data.status }),
+      ...(scheduledAtUpdate !== undefined && { scheduledAt: scheduledAtUpdate }),
       // First time it goes live, stamp publishedAt; keep original stamp otherwise.
       ...(becomingPublished && { publishedAt: new Date() }),
     },

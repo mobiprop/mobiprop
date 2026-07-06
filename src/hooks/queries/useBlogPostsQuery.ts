@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import type { BlogPostDto, BlogMetrics } from "@/features/blog/types/blog-dto";
+import type { BlogPostDto, BlogMetrics, BlogCategoryDto } from "@/features/blog/types/blog-dto";
 
 export type BlogPostFilters = {
   status?: string;
@@ -41,6 +41,21 @@ export function useBlogMetricsQuery() {
   return useQuery({
     queryKey: queryKeys.blogMetrics(),
     queryFn: fetchBlogMetrics,
+    staleTime: 30_000,
+  });
+}
+
+async function fetchBlogCategories(): Promise<{ categories: BlogCategoryDto[] }> {
+  const res = await fetch("/api/dashboard/blog/categories");
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to fetch categories");
+  return data;
+}
+
+export function useBlogCategoriesQuery() {
+  return useQuery({
+    queryKey: queryKeys.blogCategories(),
+    queryFn: fetchBlogCategories,
     staleTime: 30_000,
   });
 }

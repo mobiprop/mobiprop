@@ -17,12 +17,14 @@ type BlogRow = {
   id: string;
   slug: string;
   title: string;
-  category: string;
+  category: string | null;
   excerpt: string | null;
   content: string;
   coverImageUrl: string | null;
   author: string;
+  tags: string[];
   status: BlogStatus;
+  scheduledAt: Date | null;
   publishedAt: Date | null;
   createdById: string | null;
   createdAt: Date;
@@ -39,7 +41,9 @@ function toDto(p: BlogRow): BlogPostDto {
     content: p.content,
     coverImageUrl: p.coverImageUrl,
     author: p.author,
+    tags: p.tags,
     status: p.status,
+    scheduledAt: p.scheduledAt?.toISOString() ?? null,
     publishedAt: p.publishedAt?.toISOString() ?? null,
     createdById: p.createdById,
     createdAt: p.createdAt.toISOString(),
@@ -50,6 +54,22 @@ function toDto(p: BlogRow): BlogPostDto {
 function blogUnavailable(error: unknown): boolean {
   if (!(prisma as { blogPost?: unknown }).blogPost) return true;
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021";
+}
+
+// Promotes any SCHEDULED post whose scheduledAt has passed to PUBLISHED, so the
+// public site and the dashboard both see it without a dedicated cron worker.
+// Mirrors the same helper in blog-actions.ts (kept local — this module already
+// duplicates its own availability check rather than importing dashboard code).
+async function promoteDuePosts(): Promise<void> {
+  if (!(prisma as { blogPost?: unknown }).blogPost) return;
+  try {
+    await prisma.blogPost.updateMany({
+      where: { status: BlogStatus.SCHEDULED, scheduledAt: { lte: new Date() } },
+      data: { status: BlogStatus.PUBLISHED, publishedAt: new Date() },
+    });
+  } catch (error) {
+    if (!blogUnavailable(error)) throw error;
+  }
 }
 
 // Newest first: published date, then creation date as a tiebreaker.
@@ -73,6 +93,7 @@ export async function getPublishedBlogPosts({
   if (!(prisma as { blogPost?: unknown }).blogPost) return empty;
 
   try {
+    await promoteDuePosts();
     const where = { status: BlogStatus.PUBLISHED };
     const [rows, total] = await Promise.all([
       prisma.blogPost.findMany({
@@ -99,6 +120,7 @@ export async function getPublishedBlogPosts({
 export async function getPublishedBlogPostBySlug(slug: string): Promise<BlogPostDto | null> {
   if (!(prisma as { blogPost?: unknown }).blogPost) return null;
   try {
+    await promoteDuePosts();
     const post = await prisma.blogPost.findFirst({
       where: { slug, status: BlogStatus.PUBLISHED },
     });
@@ -112,6 +134,7 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<BlogPost
 export async function getRecentBlogPosts(limit = 3): Promise<BlogPostDto[]> {
   if (!(prisma as { blogPost?: unknown }).blogPost) return [];
   try {
+    await promoteDuePosts();
     const rows = await prisma.blogPost.findMany({
       where: { status: BlogStatus.PUBLISHED },
       orderBy: PUBLISHED_ORDER,
@@ -128,16 +151,19 @@ export async function getRecentBlogPosts(limit = 3): Promise<BlogPostDto[]> {
  * recent posts if there aren't enough in the category. */
 export async function getRelatedBlogPosts(
   slug: string,
-  category: string,
+  category: string | null,
   limit = 3,
 ): Promise<BlogPostDto[]> {
   if (!(prisma as { blogPost?: unknown }).blogPost) return [];
   try {
-    const sameCategory = await prisma.blogPost.findMany({
-      where: { status: BlogStatus.PUBLISHED, category, slug: { not: slug } },
-      orderBy: PUBLISHED_ORDER,
-      take: limit,
-    });
+    await promoteDuePosts();
+    const sameCategory = category
+      ? await prisma.blogPost.findMany({
+          where: { status: BlogStatus.PUBLISHED, category, slug: { not: slug } },
+          orderBy: PUBLISHED_ORDER,
+          take: limit,
+        })
+      : [];
 
     if (sameCategory.length >= limit) return sameCategory.map(toDto);
 

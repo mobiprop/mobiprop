@@ -56,7 +56,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
           className="absolute top-4 left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[14px] text-[#0d2138] tracking-[-0.14px]"
           style={{ fontFamily: montserrat }}
         >
-          {post.category}
+          {post.category ?? "Uncategorized"}
         </span>
       </div>
       <div className="flex flex-col gap-2">
@@ -158,7 +158,7 @@ function ArticleContent({ post }: { post: BlogPostDto }) {
             <span className="w-[5px] h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
             <span>{post.author}</span>
             <span className="w-[5px] h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
-            <span>{post.category}</span>
+            <span>{post.category ?? "Uncategorized"}</span>
           </div>
 
           <h2

@@ -61,7 +61,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
       <img
         src={coverFor(post, 0)}
         alt={post.title}
-        className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.03]"
       />
 
       {/* dark gradient overlay */}
@@ -78,7 +78,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
           className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
           style={{ fontFamily: montserrat }}
         >
-          {post.category}
+          {post.category ?? "Uncategorized"}
         </span>
 
         {/* bottom row */}
@@ -133,7 +133,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
           className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
           style={{ fontFamily: montserrat }}
         >
-          {post.category}
+          {post.category ?? "Uncategorized"}
         </span>
       </div>
 
