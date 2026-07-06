@@ -30,8 +30,13 @@ import {
   useToggleStarMutation,
 } from "@/hooks/mutations/useMessageMutations";
 import { useIsStaffOnline } from "@/features/messages/online-staff-store";
+import { AttachmentPreviewModal } from "@/features/messages/components/AttachmentPreviewModal";
 import { uploadChatAttachments } from "@/lib/client-upload";
-import type { ConversationSummaryDto, MessageDto } from "@/features/messages/types/message-dto";
+import type { ConversationSummaryDto, MessageAttachmentDto, MessageDto } from "@/features/messages/types/message-dto";
+
+function isPreviewable(attachment: MessageAttachmentDto): boolean {
+  return attachment.mimeType.startsWith("image/") || attachment.mimeType === "application/pdf";
+}
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -129,10 +134,12 @@ function MessageBubble({
   message,
   isOwn,
   onDelete,
+  onPreviewAttachment,
 }: {
   message: MessageDto;
   isOwn: boolean;
   onDelete: (messageId: string) => void;
+  onPreviewAttachment: (attachmentId: string) => void;
 }) {
   return (
     <div
@@ -153,51 +160,89 @@ function MessageBubble({
       )}
 
       <div className={`flex min-w-0 flex-col gap-1 ${isOwn ? "items-end" : "items-start"}`}>
-        {message.attachments.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            {message.attachments.map((attachment) =>
-              attachment.mimeType.startsWith("image/") ? (
-                <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={attachment.url}
-                    alt={attachment.fileName}
-                    className="max-h-[240px] max-w-[260px] rounded-[10px] object-cover"
-                  />
-                </a>
-              ) : (
-                <a
-                  key={attachment.id}
-                  href={attachment.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2 hover:bg-[#f8fafc]"
-                >
-                  <FileText size={18} className="shrink-0 text-[#6a7282]" />
-                  <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-[11px] font-medium text-[#0d2138]" style={mont}>
-                      {attachment.fileName}
-                    </span>
-                    <span className="text-[10px] text-[#99a1af]" style={mont}>
-                      {formatFileSize(attachment.sizeBytes)}
-                    </span>
-                  </div>
-                </a>
-              ),
-            )}
-          </div>
-        )}
+        {/* One bubble per message — attachments and text share the same
+            background/rounding, WhatsApp/Slack-style, instead of stacking as
+            separate cards. */}
+        <div
+          className="flex min-w-0 flex-col gap-2 rounded-[12px] px-3 py-2.5 sm:py-3"
+          style={{ backgroundColor: isOwn ? "#1e4f86" : "#f3f4f6" }}
+        >
+          {message.attachments.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              {message.attachments.map((attachment) =>
+                attachment.mimeType.startsWith("image/") ? (
+                  <button
+                    key={attachment.id}
+                    type="button"
+                    onClick={() => onPreviewAttachment(attachment.id)}
+                    className="block"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={attachment.url}
+                      alt={attachment.fileName}
+                      className="max-h-[240px] max-w-[260px] rounded-[8px] object-cover"
+                    />
+                  </button>
+                ) : attachment.mimeType === "application/pdf" ? (
+                  <button
+                    key={attachment.id}
+                    type="button"
+                    onClick={() => onPreviewAttachment(attachment.id)}
+                    className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-left transition-colors ${
+                      isOwn ? "bg-white/15 hover:bg-white/20" : "border border-[#e5e7eb] bg-white hover:bg-[#f8fafc]"
+                    }`}
+                  >
+                    <FileText size={18} className={`shrink-0 ${isOwn ? "text-white/80" : "text-[#6a7282]"}`} />
+                    <div className="flex min-w-0 flex-col">
+                      <span
+                        className="truncate text-[11px] font-medium"
+                        style={{ color: isOwn ? "#ffffff" : "#0d2138", ...mont }}
+                      >
+                        {attachment.fileName}
+                      </span>
+                      <span className="text-[10px]" style={{ color: isOwn ? "rgba(255,255,255,0.7)" : "#99a1af", ...mont }}>
+                        {formatFileSize(attachment.sizeBytes)}
+                      </span>
+                    </div>
+                  </button>
+                ) : (
+                  <a
+                    key={attachment.id}
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`flex items-center gap-2 rounded-[10px] px-3 py-2 transition-colors ${
+                      isOwn ? "bg-white/15 hover:bg-white/20" : "border border-[#e5e7eb] bg-white hover:bg-[#f8fafc]"
+                    }`}
+                  >
+                    <FileText size={18} className={`shrink-0 ${isOwn ? "text-white/80" : "text-[#6a7282]"}`} />
+                    <div className="flex min-w-0 flex-col">
+                      <span
+                        className="truncate text-[11px] font-medium"
+                        style={{ color: isOwn ? "#ffffff" : "#0d2138", ...mont }}
+                      >
+                        {attachment.fileName}
+                      </span>
+                      <span className="text-[10px]" style={{ color: isOwn ? "rgba(255,255,255,0.7)" : "#99a1af", ...mont }}>
+                        {formatFileSize(attachment.sizeBytes)}
+                      </span>
+                    </div>
+                  </a>
+                ),
+              )}
+            </div>
+          )}
 
-        {message.body.length > 0 && (
-          <div className="rounded-[12px] px-3 py-2.5 sm:py-3" style={{ backgroundColor: isOwn ? "#1e4f86" : "#f3f4f6" }}>
+          {message.body.length > 0 && (
             <p
               className="whitespace-pre-wrap break-words text-[12px] font-medium leading-4 tracking-[-0.12px]"
               style={{ color: isOwn ? "#ffffff" : "#6a7282", ...mont }}
             >
               {message.body}
             </p>
-          </div>
-        )}
+          )}
+        </div>
 
         <span className="text-[10px] font-normal tracking-[-0.1px] text-[#99a1af] sm:text-[12px] sm:tracking-[-0.12px]" style={mont}>
           {formatBubbleTimestamp(message.createdAt)}
@@ -344,6 +389,7 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const markedReadRef = useRef<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -363,6 +409,19 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
   const deleteConversation = useDeleteConversationMutation();
 
   const messages = threadData?.messages ?? [];
+
+  // Flat, chronological list of every previewable attachment in the open
+  // thread (not just the clicked message) so the modal's ← → can step across
+  // the whole conversation, mirroring listings' gallery lightbox.
+  const previewableAttachments = useMemo(
+    () => messages.flatMap((message) => message.attachments.filter(isPreviewable)),
+    [messages],
+  );
+
+  const handlePreviewAttachment = (attachmentId: string) => {
+    const index = previewableAttachments.findIndex((attachment) => attachment.id === attachmentId);
+    if (index !== -1) setPreviewIndex(index);
+  };
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? null,
@@ -397,7 +456,12 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
 
   const handleAddFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    setPendingFiles((prev) => [...prev, ...Array.from(files)].slice(0, 6));
+    // Snapshot to a plain array now — `files` is the input's live FileList,
+    // and the caller resets `event.target.value` right after this returns,
+    // which mutates that same FileList to empty before React's setState
+    // updater below actually runs.
+    const snapshot = Array.from(files);
+    setPendingFiles((prev) => [...prev, ...snapshot].slice(0, 6));
   };
 
   const handleSendMessage = async () => {
@@ -710,6 +774,7 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
                     message={message}
                     isOwn={message.senderId === currentUserId}
                     onDelete={(messageId) => deleteMessage.mutate(messageId)}
+                    onPreviewAttachment={handlePreviewAttachment}
                   />
                 ))}
               </div>
@@ -830,6 +895,12 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
           onConfirm={handleConfirmDelete}
         />
       )}
+
+      <AttachmentPreviewModal
+        attachments={previewableAttachments}
+        startIndex={previewIndex}
+        onClose={() => setPreviewIndex(null)}
+      />
     </div>
   );
 }
