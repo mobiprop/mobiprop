@@ -323,7 +323,7 @@ model Property {
   amenities           PropertyAmenity[]
   contacts            ContactProperty[]
   opportunities       Opportunity[]
-  contracts           Contract[]
+  contractListings    ContractListing[]
   leads               Lead[]            @relation("LeadPrimaryListing")
   tours               Tour[]
   operationalLocation Location?         @relation(fields: [locationId], references: [id], onDelete: SetNull)
@@ -479,7 +479,7 @@ model Contact {
 
   properties              ContactProperty[]
   opportunityParticipants OpportunityParticipant[]
-  contracts               Contract[]
+  contractParticipants    ContractParticipant[]
   leads                   Lead[]
   tours                   Tour[]
 
@@ -571,13 +571,11 @@ model OpportunityParticipant {
   @@map("opportunity_participants")
 }
 
-// CRM contract — executed deal between the agency and a contact.
+// CRM contract — executed deal between the agency and its counterparties.
 model Contract {
   id               String         @id @default(cuid())
   contractId       String         @unique @map("contract_id")
   title            String
-  contactId        String?        @map("contact_id")
-  propertyId       String?        @map("property_id")
   opportunityId    String?        @map("opportunity_id")
   type             ContractType   @default(SALE)
   status           ContractStatus @default(ACTIVE)
@@ -595,17 +593,55 @@ model Contract {
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  contact     Contact?           @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  property    Property?          @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  opportunity Opportunity?       @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
-  documents   ContractDocument[]
+  opportunity  Opportunity?          @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  documents    ContractDocument[]
+  participants ContractParticipant[]
+  listings     ContractListing[]
 
-  @@index([contactId], map: "contracts_contact_idx")
-  @@index([propertyId], map: "contracts_property_idx")
   @@index([opportunityId], map: "contracts_opportunity_idx")
   @@index([status], map: "contracts_status_idx")
   @@index([isDeleted], map: "contracts_is_deleted_idx")
   @@map("contracts")
+}
+
+enum ContractParticipantRole {
+  BUYER
+  SELLER
+  // No Contact record needed — just a free-text company name.
+  AGENCY
+}
+
+// Multiple parties on one contract (buyer, seller, co-buyers, a co-broking
+// agency, etc.) — replaces the old single Contract.contactId. BUYER/SELLER
+// rows must reference a real Contact; AGENCY rows are just a company name.
+model ContractParticipant {
+  id          String                  @id @default(cuid())
+  contractId  String                  @map("contract_id")
+  role        ContractParticipantRole
+  contactId   String?                 @map("contact_id")
+  companyName String?                 @map("company_name")
+  createdAt   DateTime                @default(now()) @map("created_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contact  Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contractId], map: "contract_participants_contract_idx")
+  @@index([contactId], map: "contract_participants_contact_idx")
+  @@map("contract_participants")
+}
+
+// Many-to-many: which properties are linked to a contract — replaces the old
+// single Contract.propertyId.
+model ContractListing {
+  contractId String @map("contract_id")
+  propertyId String @map("property_id")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([contractId, propertyId])
+  @@index([propertyId], map: "contract_listings_property_idx")
+  @@map("contract_listings")
 }
 
 // A document (PDF/DOC/DOCX) attached to a Contract, stored in Supabase Storage.

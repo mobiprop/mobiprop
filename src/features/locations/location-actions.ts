@@ -43,7 +43,7 @@ type StatsProperty = {
   createdAt: Date;
 };
 
-type StatsContract = { value: { toString(): string } | null; propertyId: string | null };
+type StatsContract = { value: { toString(): string } | null; listings: { propertyId: string }[] };
 
 type StatsActivityLog = {
   id: string;
@@ -129,7 +129,7 @@ function buildLocationDtos(
 
     const revenue =
       contracts
-        .filter((c) => c.propertyId && matchedIds.has(c.propertyId))
+        .filter((c) => c.listings.some((l) => matchedIds.has(l.propertyId)))
         .reduce((sum, c) => sum + (c.value ? Number(c.value) : 0), 0) / 1_000_000;
 
     const thisMonthCount = matched.filter((p) => p.createdAt >= thisMonthStart).length;
@@ -216,8 +216,8 @@ export async function listLocationsWithStats(): Promise<
       ? prisma.contract.findMany({
           // Revenue counts only completed deals — matches the documented rule
           // (closed-won opportunities / completed contracts), not draft/pending value.
-          where: { propertyId: { in: propertyIds }, status: ContractStatus.COMPLETED },
-          select: { value: true, propertyId: true },
+          where: { listings: { some: { propertyId: { in: propertyIds } } }, status: ContractStatus.COMPLETED },
+          select: { value: true, listings: { select: { propertyId: true } } },
         })
       : Promise.resolve([]),
     propertyIds.length

@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { X, Upload, Trash2, FileText, Loader2 } from "lucide-react";
+import { X, Upload, Trash2, FileText, Loader2, Plus, UserPlus, Home, Users } from "lucide-react";
 import { toast } from "sonner";
 
-import { ContractType, ContractStatus } from "@/generated/prisma/enums";
-import type { ContractDto } from "@/features/crm/types/crm-dto";
-import type { ContractDraft } from "@/features/crm/opportunity-actions";
+import { ContractType, ContractStatus, ContactType } from "@/generated/prisma/enums";
+import type { ContractDto, ContractParticipantRole } from "@/features/crm/types/crm-dto";
+import type { ContractDraft, ContractDraftParticipant } from "@/features/crm/opportunity-actions";
 import {
   useUploadContractDocumentMutation,
   useRemoveContractDocumentMutation,
+  useCreateContactMutation,
 } from "@/hooks/mutations/useCrmMutations";
 import { ContactPicker } from "./ContactPicker";
 import { ListingPicker } from "./ListingPicker";
@@ -19,12 +20,29 @@ import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
+export type ParticipantFormRow = {
+  /** Local-only React key — never sent to the server. */
+  key: string;
+  role: ContractParticipantRole;
+  contactId: string;
+  contactLabel: string;
+  /** AGENCY rows only — free text, no Contact record. */
+  companyName: string;
+};
+
+type ListingFormRow = {
+  /** Local-only React key — never sent to the server. */
+  key: string;
+  propertyId: string;
+  propertyLabel: string;
+};
+
 export type ContractFormValues = {
   title: string;
   type: ContractType;
   status: ContractStatus;
-  contactId: string;
-  propertyId: string;
+  participants: ParticipantFormRow[];
+  propertyIds: string[];
   assignedAgentId: string;
   opportunityId: string;
   value: string;
@@ -56,6 +74,45 @@ const inputClass =
   "h-10 px-3.5 bg-[#fafbfc] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] text-[#1f2937]";
 
+const ROLE_LABELS: Record<ContractParticipantRole, string> = {
+  BUYER: "Buyer",
+  SELLER: "Seller",
+  AGENCY: "Real Estate Company",
+};
+const ROLE_OPTIONS = (["BUYER", "SELLER", "AGENCY"] as const).map((role) => ({ value: role, label: ROLE_LABELS[role] }));
+const CONTACT_ROLE_OPTIONS = ROLE_OPTIONS.filter((o) => o.value !== "AGENCY");
+
+let rowKeySeq = 0;
+function newRowKey(prefix: string) {
+  rowKeySeq += 1;
+  return `${prefix}-${rowKeySeq}`;
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return (parts[0]![0] + parts[parts.length - 1]![0]).toUpperCase();
+}
+
+type ParticipantSource = { role: ContractParticipantRole; contactId: string | null; contactName: string | null; companyName: string | null };
+
+function participantRowsFrom(list: ParticipantSource[] | undefined): ParticipantFormRow[] {
+  if (!list || list.length === 0) return [];
+  return list.map((p) => ({
+    key: newRowKey("participant"),
+    role: p.role,
+    contactId: p.contactId ?? "",
+    contactLabel: p.contactName ?? "",
+    companyName: p.companyName ?? "",
+  }));
+}
+
+function listingRowsFrom(ids: string[] | undefined, titles: string[] | undefined): ListingFormRow[] {
+  if (!ids || ids.length === 0) return [];
+  return ids.map((id, i) => ({ key: newRowKey("listing"), propertyId: id, propertyLabel: titles?.[i] ?? "" }));
+}
+
 function fmtBytes(n: number) {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
@@ -66,10 +123,38 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
   const [title, setTitle] = useState(initial?.title ?? draft?.title ?? "");
   const [type, setType] = useState<ContractType>(initial?.type ?? draft?.type ?? ContractType.SALE);
   const [status, setStatus] = useState<ContractStatus>(initial?.status ?? ContractStatus.ACTIVE);
-  const [contactId, setContactId] = useState(initial?.contactId ?? draft?.contactId ?? "");
-  const [contactLabel, setContactLabel] = useState(initial?.contactName ?? draft?.contactName ?? "");
-  const [propertyId, setPropertyId] = useState(initial?.propertyId ?? draft?.propertyId ?? "");
-  const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? draft?.propertyTitle ?? "");
+
+  const [participants, setParticipants] = useState<ParticipantFormRow[]>(() =>
+    initial ? participantRowsFrom(initial.participants) : participantRowsFrom(draft?.participants as ContractDraftParticipant[] | undefined),
+  );
+  const [participantsError, setParticipantsError] = useState<string | null>(null);
+  const [participantPanel, setParticipantPanel] = useState<"none" | "existing" | "new">("none");
+
+  // "Add Existing Contact as Participant" panel
+  const [existingRole, setExistingRole] = useState<ContractParticipantRole>("BUYER");
+  const [existingContactId, setExistingContactId] = useState("");
+  const [existingContactLabel, setExistingContactLabel] = useState("");
+  const [existingCompanyName, setExistingCompanyName] = useState("");
+
+  // "Add Contact" panel
+  const [ncFirstName, setNcFirstName] = useState("");
+  const [ncLastName, setNcLastName] = useState("");
+  const [ncEmail, setNcEmail] = useState("");
+  const [ncPhone, setNcPhone] = useState("");
+  const [ncType, setNcType] = useState<ContactType>(ContactType.BUYER);
+  const [ncAddAsParticipant, setNcAddAsParticipant] = useState(true);
+  const [ncRole, setNcRole] = useState<ContractParticipantRole>("BUYER");
+
+  const createContactMutation = useCreateContactMutation();
+
+  const [listingRows, setListingRows] = useState<ListingFormRow[]>(() => {
+    const rows = initial
+      ? listingRowsFrom(initial.listings.map((l) => l.propertyId), initial.listings.map((l) => l.propertyTitle))
+      : listingRowsFrom(draft?.propertyIds, draft?.propertyTitles);
+    return rows.length ? rows : [{ key: newRowKey("listing"), propertyId: "", propertyLabel: "" }];
+  });
+  const [listingsError, setListingsError] = useState<string | null>(null);
+
   const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? draft?.assignedAgentId ?? lockedAgent?.id ?? "");
   const [opportunityId] = useState(initial?.opportunityId ?? draft?.opportunityId ?? "");
   const [opportunityLabel] = useState(initial?.opportunityNumber ?? draft?.opportunityNumber ?? "");
@@ -92,6 +177,98 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
   const removeMutation = useRemoveContractDocumentMutation();
 
   const visibleDocuments = documents.filter((d) => !removedDocIds.includes(d.id));
+
+  // ── Participants ──────────────────────────────────────────────────────────
+
+  function removeParticipant(key: string) {
+    setParticipants((rows) => rows.filter((r) => r.key !== key));
+  }
+
+  function resetExistingPanel() {
+    setExistingRole("BUYER");
+    setExistingContactId("");
+    setExistingContactLabel("");
+    setExistingCompanyName("");
+  }
+  function resetNewContactPanel() {
+    setNcFirstName("");
+    setNcLastName("");
+    setNcEmail("");
+    setNcPhone("");
+    setNcType(ContactType.BUYER);
+    setNcAddAsParticipant(true);
+    setNcRole("BUYER");
+  }
+  function closeParticipantPanel() {
+    setParticipantPanel("none");
+  }
+  function openExistingPanel() {
+    resetExistingPanel();
+    setParticipantPanel("existing");
+  }
+  function openNewContactPanel() {
+    resetNewContactPanel();
+    setParticipantPanel("new");
+  }
+
+  function addExistingParticipant() {
+    if (existingRole === "AGENCY") {
+      if (!existingCompanyName.trim()) {
+        toast.error("Enter a company name.");
+        return;
+      }
+      setParticipants((rows) => [...rows, { key: newRowKey("participant"), role: "AGENCY", contactId: "", contactLabel: "", companyName: existingCompanyName.trim() }]);
+    } else {
+      if (!existingContactId) {
+        toast.error("Select a contact.");
+        return;
+      }
+      setParticipants((rows) => [...rows, { key: newRowKey("participant"), role: existingRole, contactId: existingContactId, contactLabel: existingContactLabel, companyName: "" }]);
+    }
+    setParticipantsError(null);
+    closeParticipantPanel();
+  }
+
+  async function createAndAddContact() {
+    if (!ncFirstName.trim() || !ncLastName.trim()) {
+      toast.error("First and last name are required.");
+      return;
+    }
+    if (!ncEmail.trim() && !ncPhone.trim()) {
+      toast.error("Provide at least an email or a phone number.");
+      return;
+    }
+    try {
+      const { contact } = await createContactMutation.mutateAsync({
+        firstName: ncFirstName.trim(),
+        lastName: ncLastName.trim(),
+        email: ncEmail.trim(),
+        phone: ncPhone.trim(),
+        type: ncType,
+      });
+      toast.success("Contact created");
+      if (ncAddAsParticipant) {
+        setParticipants((rows) => [...rows, { key: newRowKey("participant"), role: ncRole, contactId: contact.id, contactLabel: contact.fullName, companyName: "" }]);
+        setParticipantsError(null);
+      }
+      closeParticipantPanel();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create contact");
+    }
+  }
+
+  // ── Property listings ─────────────────────────────────────────────────────
+
+  function updateListingRow(key: string, propertyId: string, propertyLabel: string) {
+    setListingRows((rows) => rows.map((r) => (r.key === key ? { ...r, propertyId, propertyLabel } : r)));
+    setListingsError(null);
+  }
+  function addListingRow() {
+    setListingRows((rows) => [...rows, { key: newRowKey("listing"), propertyId: "", propertyLabel: "" }]);
+  }
+  function removeListingRow(key: string) {
+    setListingRows((rows) => rows.filter((r) => r.key !== key));
+  }
 
   // Validate and stage selected files locally (no upload yet).
   function stageFiles(files: FileList | File[]) {
@@ -122,14 +299,27 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting || isSaving) return;
+
+    if (participants.length === 0) {
+      setParticipantsError("At least one participant is required.");
+      return;
+    }
+    const propertyIds = listingRows.map((r) => r.propertyId).filter(Boolean);
+    if (propertyIds.length === 0) {
+      setListingsError("At least one listing is required.");
+      return;
+    }
+    setParticipantsError(null);
+    setListingsError(null);
+
     setSubmitting(true);
     try {
       const saved = await onSubmit({
         title: title.trim(),
         type,
         status,
-        contactId,
-        propertyId,
+        participants,
+        propertyIds,
         assignedAgentId,
         opportunityId,
         value,
@@ -228,29 +418,263 @@ export function AddContractModal({ mode = "create", initial, draft, onClose, onS
             </div>
           </div>
 
-          {/* Contact / Property / Agent */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-            <div className="flex min-w-0 flex-col gap-2">
-              <label className={labelClass} style={mont}>Contact *</label>
-              <ContactPicker
-                value={contactId}
-                label={contactLabel}
-                onSelect={(id, lbl) => { setContactId(id); setContactLabel(lbl); }}
-                placeholder="Search and select contact…"
-              />
+          {/* Participants */}
+          <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+            <div className="flex items-center gap-2">
+              <Users size={15} className="shrink-0 text-[#1a5ea8]" />
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Participants *</p>
             </div>
-            <div className="flex min-w-0 flex-col gap-2">
-              <label className={labelClass} style={mont}>Property Listing</label>
-              <ListingPicker
-                tone="neutral"
-                value={propertyId}
-                label={propertyLabel}
-                onSelect={(id, lbl) => { setPropertyId(id); setPropertyLabel(lbl); }}
-                placeholder="Select listing…"
-              />
+            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Assign people associated with this contract.</p>
+
+            {participants.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {participants.map((row) => (
+                  <div key={row.key} className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2.5">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[12px] font-semibold text-white" style={mont}>
+                        {row.role === "AGENCY" ? "RE" : initials(row.contactLabel)}
+                      </span>
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>
+                          {row.role === "AGENCY" ? row.companyName || "Untitled company" : row.contactLabel || "Untitled contact"}
+                        </span>
+                        <span className="truncate text-[11px] text-[#6a7282]" style={mont}>{ROLE_LABELS[row.role]}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeParticipant(row.key)}
+                      title="Remove participant"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => (participantPanel === "new" ? closeParticipantPanel() : openNewContactPanel())}
+                className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors"
+                style={mont}
+              >
+                <Plus size={14} /> Add Contact
+              </button>
+              <button
+                type="button"
+                onClick={() => (participantPanel === "existing" ? closeParticipantPanel() : openExistingPanel())}
+                className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
+                style={mont}
+              >
+                <UserPlus size={14} /> Add Participant
+              </button>
             </div>
+
+            {participantsError && <p className="text-[11px] text-[#dc2626]" style={mont}>{participantsError}</p>}
+
+            {/* Add Existing Contact as Participant */}
+            {participantPanel === "existing" && (
+              <div className="flex flex-col gap-3 rounded-[10px] border border-[#e5e7eb] bg-white p-3.5">
+                <p className="text-[12px] font-semibold text-[#0d2138]" style={mont}>Add Existing Contact as Participant</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>{existingRole === "AGENCY" ? "Company Name *" : "Select Contact *"}</label>
+                    {existingRole === "AGENCY" ? (
+                      <input
+                        value={existingCompanyName}
+                        onChange={(e) => setExistingCompanyName(e.target.value)}
+                        placeholder="Real estate company name"
+                        className={inputClass}
+                        style={mont}
+                      />
+                    ) : (
+                      <ContactPicker
+                        value={existingContactId}
+                        label={existingContactLabel}
+                        onSelect={(id, lbl) => { setExistingContactId(id); setExistingContactLabel(lbl); }}
+                        placeholder="Search and select contact…"
+                      />
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>Role in Contract *</label>
+                    <SearchableSelect
+                      size="sm"
+                      searchable={false}
+                      value={existingRole}
+                      onChange={(next) => setExistingRole(next as ContractParticipantRole)}
+                      options={ROLE_OPTIONS}
+                      placeholder="Select role"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={addExistingParticipant}
+                    className="h-9 px-4 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
+                    style={mont}
+                  >
+                    <UserPlus size={14} /> Add to Contract
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeParticipantPanel}
+                    className="h-9 px-4 rounded-[8px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
+                    style={mont}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Add Contact */}
+            {participantPanel === "new" && (
+              <div className="flex flex-col gap-3 rounded-[10px] border border-[#e5e7eb] bg-white p-3.5">
+                <p className="text-[12px] font-semibold text-[#0d2138]" style={mont}>New Contact</p>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>First Name *</label>
+                    <input value={ncFirstName} onChange={(e) => setNcFirstName(e.target.value)} placeholder="e.g. Jane" className={inputClass} style={mont} />
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>Last Name *</label>
+                    <input value={ncLastName} onChange={(e) => setNcLastName(e.target.value)} placeholder="e.g. Smith" className={inputClass} style={mont} />
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>Email Address</label>
+                    <input type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} placeholder="jane@example.com" className={inputClass} style={mont} />
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>Phone Number</label>
+                    <input type="tel" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} placeholder="+1 (555) 000-0000" className={inputClass} style={mont} />
+                  </div>
+                </div>
+                {!ncEmail.trim() && !ncPhone.trim() && (
+                  <p className="text-[11px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className={labelClass} style={mont}>Contact Type *</label>
+                  <SearchableSelect
+                    size="sm"
+                    searchable={false}
+                    value={ncType}
+                    onChange={(next) => setNcType(next as ContactType)}
+                    options={[
+                      { value: ContactType.BUYER, label: "Buyer" },
+                      { value: ContactType.SELLER, label: "Seller" },
+                      { value: ContactType.BOTH, label: "Both" },
+                    ]}
+                    placeholder="Select contact type"
+                    ariaLabel="Contact type"
+                  />
+                </div>
+
+                <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-3">
+                  <span className="flex flex-col">
+                    <span className="text-[12px] font-medium text-[#1f2937]" style={mont}>Add as contract participant</span>
+                    <span className="text-[11px] text-[#6a7282]" style={mont}>Link this new contact directly to this contract</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={ncAddAsParticipant}
+                    onChange={(e) => setNcAddAsParticipant(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <span className="relative h-6 w-11 shrink-0 rounded-full bg-[#e5e7eb] transition-colors after:absolute after:left-0.5 after:top-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-[#1e4f86] peer-checked:after:translate-x-5" />
+                </label>
+
+                {ncAddAsParticipant && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>Role in Contract *</label>
+                    <SearchableSelect
+                      size="sm"
+                      searchable={false}
+                      value={ncRole}
+                      onChange={(next) => setNcRole(next as ContractParticipantRole)}
+                      options={CONTACT_ROLE_OPTIONS}
+                      placeholder="Select role in this contract"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={createAndAddContact}
+                    disabled={createContactMutation.isPending}
+                    className="h-9 px-4 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    style={mont}
+                  >
+                    <UserPlus size={14} /> {createContactMutation.isPending ? "Creating…" : "Create & Add to Contract"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeParticipantPanel}
+                    className="h-9 px-4 rounded-[8px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
+                    style={mont}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Property Listings */}
+          <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+            <div className="flex items-center gap-2">
+              <Home size={15} className="shrink-0 text-[#1a5ea8]" />
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings *</p>
+            </div>
+            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Add the properties linked to this contract.</p>
+
+            <div className="flex flex-col gap-2.5">
+              {listingRows.map((row, index) => (
+                <div key={row.key} className="flex items-center gap-2.5">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
+                    {index + 1}
+                  </span>
+                  <ListingPicker
+                    className="min-w-0 flex-1"
+                    value={row.propertyId}
+                    label={row.propertyLabel}
+                    onSelect={(id, label) => updateListingRow(row.key, id, label)}
+                    excludeIds={listingRows.filter((_, i) => i !== index).map((r) => r.propertyId).filter(Boolean)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeListingRow(row.key)}
+                    disabled={listingRows.length === 1}
+                    title="Remove listing"
+                    aria-label="Remove listing"
+                    className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={addListingRow}
+              className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] sm:w-auto sm:self-start"
+              style={mont}
+            >
+              Add Listing
+            </button>
+
+            {listingsError && <p className="text-[11px] text-[#dc2626]" style={mont}>{listingsError}</p>}
+          </div>
+
+          {/* Agent / value */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-2">
               <label className={labelClass} style={mont}>Assigned Agent</label>

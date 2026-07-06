@@ -204,7 +204,7 @@ describe("createContractFromOpportunity — Option A pre-fill draft", () => {
     opportunityId: "OPP-0001",
     title: "Sale of 123 Main St",
     participants: [
-      { role: "BUYER", contactId: "contact-1", contact: { firstName: "John", lastName: "Buyer" } },
+      { role: "BUYER", contactId: "contact-1", companyName: null, contact: { firstName: "John", lastName: "Buyer" } },
     ],
     propertyId: "property-1",
     property: { title: "123 Main St" },
@@ -248,10 +248,11 @@ describe("createContractFromOpportunity — Option A pre-fill draft", () => {
     if (!res.ok) return;
     expect(res.draft).toEqual({
       title: "Sale of 123 Main St",
-      contactId: "contact-1",
-      contactName: "John Buyer",
-      propertyId: "property-1",
-      propertyTitle: "123 Main St",
+      participants: [
+        { role: "BUYER", contactId: "contact-1", contactName: "John Buyer", companyName: null },
+      ],
+      propertyIds: ["property-1"],
+      propertyTitles: ["123 Main St"],
       assignedAgentId: AGENT_A_ID,
       opportunityId: "opp-1",
       opportunityNumber: "OPP-0001",

@@ -23,6 +23,8 @@ const LISTING_TYPES: { label: string; icon: React.ComponentType<{ size?: number;
 
 type ContractFilterPopoverProps = {
   resultCount: number;
+  /** Fixed-position placement computed by the caller (viewport-aware, flips above the trigger when needed). */
+  position: { top?: number; bottom?: number; left: number; width: number; maxHeight: number };
   onApply: (filters: ContractFilters) => void;
   onClose: () => void;
 };
@@ -55,7 +57,7 @@ function Pill({
   );
 }
 
-export function ContractFilterPopover({ resultCount, onApply, onClose }: ContractFilterPopoverProps) {
+export function ContractFilterPopover({ resultCount, position, onApply, onClose }: ContractFilterPopoverProps) {
   const [location, setLocation] = useState("");
   const [transactionTypes, setTransactionTypes] = useState<string[]>([]);
   const [listingTypes, setListingTypes] = useState<string[]>([]);
@@ -76,11 +78,18 @@ export function ContractFilterPopover({ resultCount, onApply, onClose }: Contrac
       <div className="fixed inset-0 z-40" onClick={onClose} />
 
       <div
-        className="absolute right-0 top-[calc(100%+8px)] z-50 w-[520px] bg-white border-[0.5px] border-[#e0e0e0] rounded-[14px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden"
+        className="fixed z-50 flex flex-col bg-white border-[0.5px] border-[#e0e0e0] rounded-[14px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] overflow-hidden"
+        style={{
+          left: position.left,
+          width: position.width,
+          top: position.top,
+          bottom: position.bottom,
+          maxHeight: position.maxHeight,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-[22px] border-b border-[#f0f0f0]">
+        <div className="flex shrink-0 items-center justify-between px-5 py-[22px] border-b border-[#f0f0f0]">
           <p className="text-[14px] font-medium text-[#1a1a1a]" style={mont}>Filter contracts</p>
           <button
             type="button"
@@ -93,7 +102,7 @@ export function ContractFilterPopover({ resultCount, onApply, onClose }: Contrac
         </div>
 
         {/* Body */}
-        <div className="flex flex-col gap-4 px-6 pt-5 pb-2">
+        <div className="flex flex-col gap-4 px-6 pt-5 pb-2 overflow-y-auto">
           {/* Location */}
           <div className="flex flex-col gap-3">
             <label className="text-[12px] text-[#7a7a7a]" style={mont}>Filter by Location</label>
@@ -139,7 +148,7 @@ export function ContractFilterPopover({ resultCount, onApply, onClose }: Contrac
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#f0f0f0]">
+        <div className="flex shrink-0 items-center justify-between px-6 py-4 border-t border-[#f0f0f0]">
           <span className="text-[12px] text-[#6b6b6b]" style={mont}>{resultCount} results</span>
           <div className="flex items-center gap-2.5">
             <button
