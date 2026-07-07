@@ -324,6 +324,172 @@ function SaleActions({ row }: { row: SaleRow }) {
   );
 }
 
+// ── Custom Tooltip ────────────────────────────────────────────────────────────
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    dataKey: string | number;
+    value: number | string;
+    payload: any;
+    [key: string]: any;
+  }>;
+  label?: string;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+
+  const revenueItem = payload.find((x) => x.dataKey === "revenue");
+  const oppsItem = payload.find((x) => x.dataKey === "openOpportunities");
+
+  const revenue = revenueItem ? Number(revenueItem.value) : 0;
+  const openOpportunities = oppsItem ? Number(oppsItem.value) : 0;
+
+  const gap = openOpportunities - revenue;
+  const gapSign = gap >= 0 ? "+" : "-";
+  const gapFormatted = `${gapSign}US$${Math.abs(gap).toLocaleString("en-US")}`;
+
+  let percentChange = 0;
+  if (revenue > 0) {
+    percentChange = ((openOpportunities - revenue) / revenue) * 100;
+  } else if (openOpportunities > 0) {
+    percentChange = 100;
+  }
+
+  const isPercentUp = percentChange >= 0;
+  const percentFormatted = `${isPercentUp ? "+" : ""}${percentChange.toFixed(1)}%`;
+
+  return (
+    <div
+      className="w-[237px] rounded-[24px] border border-[#f3f4f6] bg-white p-[18px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
+      style={mont}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] font-bold text-[#6a7282] tracking-wider" style={mont}>
+          {String(label).toUpperCase()}
+        </span>
+        <span
+          className={`flex h-6 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            isPercentUp ? "bg-[#e8f7f0] text-[#10b981]" : "bg-[#fef2f2] text-[#ef4444]"
+          }`}
+          style={mont}
+        >
+          {isPercentUp ? (
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-1 shrink-0"
+            >
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          ) : (
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mr-1 shrink-0"
+            >
+              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+              <polyline points="17 18 23 18 23 12" />
+            </svg>
+          )}
+          {percentFormatted}
+        </span>
+      </div>
+
+      <div className="my-3 border-b border-[#f3f4f6]" />
+
+      {/* Rows */}
+      <div className="flex flex-col gap-3">
+        {/* Revenue */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#fff1f2]">
+              <span className="text-[15px] font-bold text-[#ff3545]" style={poppins}>
+                $
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
+                Revenue
+              </span>
+              <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
+                US${revenue.toLocaleString("en-US")}
+              </span>
+            </div>
+          </div>
+          <span className="h-2 w-2 rounded-full bg-[#ff3545] shrink-0" />
+        </div>
+
+        {/* Open Opportunities */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#fff7ed]">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ff6b00"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="6" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
+                Open Opportunities
+              </span>
+              <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
+                US${openOpportunities.toLocaleString("en-US")}
+              </span>
+            </div>
+          </div>
+          <span className="h-2 w-2 rounded-full bg-[#ff6b00] shrink-0" />
+        </div>
+      </div>
+
+      <div className="my-3 border-b border-[#f3f4f6]" />
+
+      {/* Footer */}
+      <div className="flex items-center justify-between">
+        <span className="text-[14px] font-medium text-[#6a7282]" style={mont}>
+          Gap
+        </span>
+        <span
+          className={`text-[15px] font-bold ${
+            gap >= 0 ? "text-[#059669]" : "text-[#ef4444]"
+          }`}
+          style={poppins}
+        >
+          {gapFormatted}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 type DashboardOverviewProps = {
@@ -600,7 +766,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     tick={{ fontSize: 9, fill: "#99a1af" }}
                   />
 
-                  <Tooltip />
+                  <Tooltip cursor={{ stroke: "#e2e8f0", strokeWidth: 1.5 }} content={<CustomTooltip />} />
 
                   <Area
                     type="monotone"
