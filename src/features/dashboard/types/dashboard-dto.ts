@@ -5,7 +5,8 @@ export type MetricCard = {
   label: string;
   value: string;
   sub?: string;
-  trendLabel: string;
+  trendValue: string;
+  trendText: string;
   trendDirection: TrendDirection;
   iconBg: string;
   iconColor: string;

@@ -86,6 +86,13 @@ export type Permission =
   | "integrations:manage"
   | "locations:view"
   | "locations:manage"
+  // Blog / CMS module. AGENT holders can author and edit drafts; publishing and
+  // deleting stay with ADMIN/MANAGER so agents can't push content live alone.
+  | "blog:view"
+  | "blog:create"
+  | "blog:update"
+  | "blog:publish"
+  | "blog:delete"
   | "activityLogs:view"
   | "settings:view"
   | "settings:manage"
@@ -148,6 +155,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "contracts:update",
     "contracts:delete",
     "contracts:uploadDocuments",
+    "blog:view",
+    "blog:create",
+    "blog:update",
+    "blog:publish",
+    "blog:delete",
     "integrations:view",
     "integrations:manage",
     "locations:view",
@@ -204,6 +216,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "contracts:update",
     "contracts:delete",
     "contracts:uploadDocuments",
+    "blog:view",
+    "blog:create",
+    "blog:update",
+    "blog:publish",
+    "blog:delete",
     "integrations:view",
     "locations:view",
     "messages:view",
@@ -247,6 +264,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "contracts:create",
     "contracts:update",
     "contracts:uploadDocuments",
+    "blog:view",
+    "blog:create",
+    "blog:update",
     "messages:view",
     "notifications:view",
     "settings:view",
