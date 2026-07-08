@@ -71,19 +71,24 @@ export type Permission =
   | "tours:assign"
   | "opportunities:view"
   // Unscoped visibility. ADMIN/MANAGER hold this; AGENT holders only see
-  // opportunities/contracts they created or are assigned to (record-level
-  // check in the opportunity/contract actions) — this is the one place
-  // AGENT visibility stays scoped, per the client's Milestone 3 decision.
+  // opportunities they created or are assigned to (record-level check in the
+  // opportunity actions) — this is the one place AGENT visibility stays
+  // scoped, per the client's Milestone 3 decision.
   | "opportunities:view_all"
   | "opportunities:create"
   | "opportunities:update"
   | "opportunities:delete"
-  | "contracts:view"
-  | "contracts:view_all"
-  | "contracts:create"
-  | "contracts:update"
-  | "contracts:delete"
-  | "contracts:uploadDocuments"
+  | "opportunities:uploadDocuments"
+  | "docusign:view"
+  // Unscoped visibility. ADMIN/MANAGER hold this; AGENT holders only see
+  // envelopes whose linked Opportunity they created or are assigned to (or
+  // that they personally sent) — record-level check in docusign-actions.
+  | "docusign:view_all"
+  | "docusign:send"
+  | "docusign:void"
+  | "docusign:resend"
+  | "docusign:manageTemplates"
+  | "docusign:manageSettings"
   // All staff hold "view" (the page also hosts each agent's own Google
   // Calendar connection — a personal setting, not an org-wide one). "manage"
   // stays ADMIN-only — it gates the org-wide mock integrations (Mailchimp,
@@ -158,12 +163,14 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:create",
     "opportunities:update",
     "opportunities:delete",
-    "contracts:view",
-    "contracts:view_all",
-    "contracts:create",
-    "contracts:update",
-    "contracts:delete",
-    "contracts:uploadDocuments",
+    "opportunities:uploadDocuments",
+    "docusign:view",
+    "docusign:view_all",
+    "docusign:send",
+    "docusign:void",
+    "docusign:resend",
+    "docusign:manageTemplates",
+    "docusign:manageSettings",
     "blog:view",
     "blog:create",
     "blog:update",
@@ -221,12 +228,13 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:create",
     "opportunities:update",
     "opportunities:delete",
-    "contracts:view",
-    "contracts:view_all",
-    "contracts:create",
-    "contracts:update",
-    "contracts:delete",
-    "contracts:uploadDocuments",
+    "opportunities:uploadDocuments",
+    "docusign:view",
+    "docusign:view_all",
+    "docusign:send",
+    "docusign:void",
+    "docusign:resend",
+    "docusign:manageTemplates",
     "blog:view",
     "blog:create",
     "blog:update",
@@ -263,18 +271,19 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "tours:view",
     "tours:create",
     "tours:update",
-    // Opportunities/contracts deliberately stay scoped — no *:view_all here.
-    // Record-level own/assigned checks live in the opportunity/contract actions.
+    // Opportunities deliberately stay scoped — no *:view_all here.
+    // Record-level own/assigned checks live in the opportunity actions.
     // Delete is deliberately withheld from AGENT (ADMIN/MANAGER only) — the
     // client's decision grants agents full create/edit on their own/assigned
-    // opportunities/contracts but doesn't extend to deleting revenue records.
+    // opportunities but doesn't extend to deleting revenue records.
     "opportunities:view",
     "opportunities:create",
     "opportunities:update",
-    "contracts:view",
-    "contracts:create",
-    "contracts:update",
-    "contracts:uploadDocuments",
+    "opportunities:uploadDocuments",
+    // No docusign:view_all — an agent only sees envelopes tied to their own
+    // opportunities (record-level check in docusign-actions).
+    "docusign:view",
+    "docusign:send",
     "blog:view",
     "blog:create",
     "blog:update",

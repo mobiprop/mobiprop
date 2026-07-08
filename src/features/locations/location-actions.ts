@@ -5,7 +5,8 @@ import { requirePermission } from "@/lib/require-permission";
 import { requireUser } from "@/lib/require-user";
 import { logActivity } from "@/lib/activity-log";
 import { geocodeAddress } from "@/lib/maps";
-import { PropertyType, PropertyStatus, ContractStatus } from "@/generated/prisma/enums";
+import { resolveCompanyRevenue } from "@/lib/commission";
+import { PropertyType, PropertyStatus, OpportunityStatus } from "@/generated/prisma/enums";
 import { createLocationSchema, updateLocationSchema } from "@/schemas/location.schema";
 import type { CreateLocationInput, UpdateLocationInput } from "@/schemas/location.schema";
 import type {
@@ -43,7 +44,15 @@ type StatsProperty = {
   createdAt: Date;
 };
 
-type StatsContract = { value: { toString(): string } | null; listings: { propertyId: string }[] };
+// Revenue is the resolved commission amount from CLOSED_WON opportunities —
+// matches the "revenue" definition everywhere else in the dashboard (never
+// raw deal size). See resolveCompanyRevenue in @/lib/commission.
+type StatsOpportunity = {
+  dealSize: unknown;
+  commission: unknown;
+  commissionUnit: string | null;
+  listings: { propertyId: string }[];
+};
 
 type StatsActivityLog = {
   id: string;
@@ -87,7 +96,7 @@ function buildLocationDtos(
     updatedAt: Date;
   }[],
   properties: StatsProperty[],
-  contracts: StatsContract[],
+  opportunities: StatsOpportunity[],
   activityLogs: StatsActivityLog[],
   activeProfileIds: Set<string>,
 ): LocationDto[] {
@@ -128,9 +137,9 @@ function buildLocationDtos(
       : 0;
 
     const revenue =
-      contracts
-        .filter((c) => c.listings.some((l) => matchedIds.has(l.propertyId)))
-        .reduce((sum, c) => sum + (c.value ? Number(c.value) : 0), 0) / 1_000_000;
+      opportunities
+        .filter((o) => o.listings.some((l) => matchedIds.has(l.propertyId)))
+        .reduce((sum, o) => sum + resolveCompanyRevenue(o), 0) / 1_000_000;
 
     const thisMonthCount = matched.filter((p) => p.createdAt >= thisMonthStart).length;
     const lastMonthCount = matched.filter(
@@ -211,13 +220,13 @@ export async function listLocationsWithStats(): Promise<
   const propertyIds = properties.map((p) => p.id);
   const agentIds = [...new Set(properties.map((p) => p.assignedAgentId).filter((id): id is string => Boolean(id)))];
 
-  const [contracts, activityLogs, activeProfiles] = await Promise.all([
+  const [opportunities, activityLogs, activeProfiles] = await Promise.all([
     propertyIds.length
-      ? prisma.contract.findMany({
-          // Revenue counts only completed deals — matches the documented rule
-          // (closed-won opportunities / completed contracts), not draft/pending value.
-          where: { listings: { some: { propertyId: { in: propertyIds } } }, status: ContractStatus.COMPLETED },
-          select: { value: true, listings: { select: { propertyId: true } } },
+      ? prisma.opportunity.findMany({
+          // Revenue counts only closed-won deals — matches the documented rule
+          // (resolved commission on a Closed Won opportunity), not open/lost value.
+          where: { listings: { some: { propertyId: { in: propertyIds } } }, status: OpportunityStatus.CLOSED_WON },
+          select: { dealSize: true, commission: true, commissionUnit: true, listings: { select: { propertyId: true } } },
         })
       : Promise.resolve([]),
     propertyIds.length
@@ -236,7 +245,7 @@ export async function listLocationsWithStats(): Promise<
 
   return {
     ok: true,
-    locations: buildLocationDtos(locations, properties, contracts, activityLogs, activeProfileIds),
+    locations: buildLocationDtos(locations, properties, opportunities, activityLogs, activeProfileIds),
   };
 }
 

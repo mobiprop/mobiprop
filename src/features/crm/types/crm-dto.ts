@@ -1,4 +1,4 @@
-import type { ContactType, OpportunityStage, OpportunityStatus, ContractType, ContractStatus, LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus } from "@/generated/prisma/enums";
+import type { ContactType, OpportunityStage, OpportunityStatus, LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus } from "@/generated/prisma/enums";
 export type { LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus };
 
 // ── Contact ───────────────────────────────────────────────────────────────────
@@ -55,14 +55,28 @@ export type OpportunityParticipantDto = {
   companyName: string | null;
 };
 
+export type OpportunityListingDto = {
+  propertyId: string;
+  propertyTitle: string;
+  propertySlug: string;
+};
+
+export type OpportunityDocumentDto = {
+  id: string;
+  fileName: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+};
+
 export type OpportunityDto = {
   id: string;
   opportunityId: string;
   title: string;
   participants: OpportunityParticipantDto[];
-  propertyId: string | null;
-  propertyTitle: string | null;
-  propertySlug: string | null;
+  listings: OpportunityListingDto[];
+  documents: OpportunityDocumentDto[];
   dealType: string | null;
   dealSize: number | null;
   stage: OpportunityStage;
@@ -96,66 +110,6 @@ export type OpportunityMetrics = {
   /** Sum of resolved commission amounts for CLOSED_WON opportunities — the
    * brokerage's actual revenue, not the raw deal size. */
   totalRevenue: number;
-};
-
-// ── Contract ──────────────────────────────────────────────────────────────────
-
-export type ContractParticipantRole = "BUYER" | "SELLER" | "AGENCY";
-
-export type ContractParticipantDto = {
-  id: string;
-  role: ContractParticipantRole;
-  /** Set for BUYER/SELLER rows (a linked Contact); null for AGENCY rows. */
-  contactId: string | null;
-  contactName: string | null;
-  /** Set for AGENCY rows only — free text, no Contact record. */
-  companyName: string | null;
-};
-
-export type ContractListingDto = {
-  propertyId: string;
-  propertyTitle: string;
-  propertySlug: string;
-};
-
-export type ContractDocumentDto = {
-  id: string;
-  fileName: string;
-  url: string;
-  mimeType: string;
-  sizeBytes: number;
-  createdAt: string;
-};
-
-export type ContractDto = {
-  id: string;
-  contractId: string;
-  title: string;
-  participants: ContractParticipantDto[];
-  listings: ContractListingDto[];
-  opportunityId: string | null;
-  opportunityNumber: string | null;
-  type: ContractType;
-  status: ContractStatus;
-  value: number | null;
-  startDate: string | null;
-  endDate: string | null;
-  signedAt: string | null;
-  terms: string | null;
-  notes: string | null;
-  assignedAgentId: string | null;
-  assignedAgentName: string | null;
-  createdById: string | null;
-  documents: ContractDocumentDto[];
-  createdAt: string;
-};
-
-export type ContractMetrics = {
-  total: number;
-  active: number;
-  pending: number;
-  completed: number;
-  totalValue: number;
 };
 
 // ── Lead ──────────────────────────────────────────────────────────────────────

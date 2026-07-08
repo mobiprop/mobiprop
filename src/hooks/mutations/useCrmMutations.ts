@@ -3,9 +3,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import type { ContactDto, OpportunityDto, ContractDto, ContractDocumentDto } from "@/features/crm/types/crm-dto";
-import type { ContractDraft } from "@/features/crm/opportunity-actions";
-import { uploadContractDocument } from "@/lib/client-upload";
+import type { ContactDto, OpportunityDto, OpportunityDocumentDto } from "@/features/crm/types/crm-dto";
+import { uploadOpportunityDocument } from "@/lib/client-upload";
 
 // ── Contacts ──────────────────────────────────────────────────────────────────
 
@@ -155,6 +154,33 @@ export function useUpdateOpportunityMutation() {
   });
 }
 
+async function uploadOppDocument({ opportunityId, file }: { opportunityId: string; file: File }): Promise<OpportunityDocumentDto> {
+  return uploadOpportunityDocument(opportunityId, file);
+}
+
+export function useUploadOpportunityDocumentMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: uploadOppDocument,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardOpportunities() }),
+  });
+}
+
+async function removeOppDocument({ opportunityId, documentId }: { opportunityId: string; documentId: string }): Promise<{ id: string }> {
+  const res = await fetch(`/api/dashboard/opportunities/${opportunityId}/documents/${documentId}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to remove document");
+  return data;
+}
+
+export function useRemoveOpportunityDocumentMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: removeOppDocument,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardOpportunities() }),
+  });
+}
+
 async function deleteOpportunityReq(id: string): Promise<{ id: string }> {
   const res = await fetch(`/api/dashboard/opportunities/${id}`, { method: "DELETE" });
   const data = await res.json();
@@ -170,95 +196,3 @@ export function useDeleteOpportunityMutation() {
   });
 }
 
-async function postCreateContractFromOpportunity(opportunityId: string): Promise<{ draft: ContractDraft }> {
-  const res = await fetch(`/api/dashboard/opportunities/${opportunityId}/create-contract`, { method: "POST" });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to prepare contract draft");
-  return data;
-}
-
-export function useCreateContractFromOpportunityMutation() {
-  return useMutation({ mutationFn: postCreateContractFromOpportunity });
-}
-
-// ── Contracts ─────────────────────────────────────────────────────────────────
-
-async function postContract(body: unknown): Promise<{ contract: ContractDto }> {
-  const res = await fetch("/api/dashboard/contracts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to create contract");
-  return data;
-}
-
-export function useCreateContractMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: postContract,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContracts() }),
-  });
-}
-
-async function patchContract({ id, body }: { id: string; body: unknown }): Promise<{ contract: ContractDto }> {
-  const res = await fetch(`/api/dashboard/contracts/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to update contract");
-  return data;
-}
-
-export function useUpdateContractMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: patchContract,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContracts() }),
-  });
-}
-
-async function deleteContractReq(id: string): Promise<{ id: string }> {
-  const res = await fetch(`/api/dashboard/contracts/${id}`, { method: "DELETE" });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to delete contract");
-  return data;
-}
-
-export function useDeleteContractMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: deleteContractReq,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContracts() }),
-  });
-}
-
-async function uploadDocument({ contractId, file }: { contractId: string; file: File }): Promise<ContractDocumentDto> {
-  return uploadContractDocument(contractId, file);
-}
-
-export function useUploadContractDocumentMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: uploadDocument,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContracts() }),
-  });
-}
-
-async function removeDocument({ contractId, documentId }: { contractId: string; documentId: string }): Promise<{ id: string }> {
-  const res = await fetch(`/api/dashboard/contracts/${contractId}/documents/${documentId}`, { method: "DELETE" });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to remove document");
-  return data;
-}
-
-export function useRemoveContractDocumentMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: removeDocument,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContracts() }),
-  });
-}

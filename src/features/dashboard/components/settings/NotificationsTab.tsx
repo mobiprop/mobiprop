@@ -26,7 +26,7 @@ const NOTIFICATION_ITEMS: {
   { id: "tourUpdates", title: "Tour Updates", description: "Tour requests, confirmations, and changes" },
   { id: "listingUpdates", title: "Listing Updates", description: "When a listing is assigned or changes status" },
   { id: "opportunityUpdates", title: "Opportunity Updates", description: "Pipeline stage and outcome changes" },
-  { id: "contractUpdates", title: "Contract Updates", description: "Notifications about contract changes" },
+  { id: "signatureUpdates", title: "Signature Updates", description: "DocuSign envelope sent, signed, declined, or expiring" },
   { id: "weeklyReports", title: "Weekly Reports", description: "Receive weekly performance reports" },
   { id: "marketingUpdates", title: "Marketing Updates", description: "Updates about new features and products" },
 ];

@@ -49,8 +49,10 @@ export const queryKeys = {
   tourMetrics: () => ["tours", "metrics"] as const,
   dashboardOpportunities: prefixed("dashboard-opportunities"),
   opportunities: prefixed("opportunities"),
-  dashboardContracts: prefixed("dashboard-contracts"),
-  contracts: prefixed("contracts"),
+  docusignEnvelopes: prefixed("docusign-envelopes"),
+  docusignTemplates: prefixed("docusign-templates"),
+  docusignSettings: prefixed("docusign-settings"),
+  docusignStatus: prefixed("docusign-status"),
   locations: prefixed("locations"),
   activityLogs: prefixed("activity-logs"),
 
@@ -63,10 +65,6 @@ export const queryKeys = {
   savedListings: (userId: string) => ["saved-listings", userId] as const,
   recentlyViewedListings: (userId: string) => ["recently-viewed-listings", userId] as const,
   scheduledTours: (userId: string) => ["scheduled-tours", userId] as const,
-  accountContracts: (userId?: string) =>
-    (userId === undefined ? ["account-contracts"] : ["account-contracts", userId]) as
-      | readonly ["account-contracts"]
-      | readonly ["account-contracts", string],
   accountNotifications: (userId: string) => ["account-notifications", userId] as const,
 
   // Messages / inbox

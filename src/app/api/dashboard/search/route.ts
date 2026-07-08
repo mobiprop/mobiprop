@@ -41,21 +41,10 @@ export type SearchOpportunityResult = {
   dealSize: number | null;
 };
 
-export type SearchContractResult = {
-  id: string;
-  contractId: string;
-  title: string;
-  contactName: string | null;
-  type: string;
-  status: string;
-  value: number | null;
-};
-
 export type GlobalSearchResults = {
   listings: SearchListingResult[];
   contacts: SearchContactResult[];
   opportunities: SearchOpportunityResult[];
-  contracts: SearchContractResult[];
 };
 
 const MAX = 5;
@@ -75,7 +64,6 @@ export async function GET(req: Request) {
       listings: [],
       contacts: [],
       opportunities: [],
-      contracts: [],
     });
   }
 
@@ -96,7 +84,6 @@ export async function GET(req: Request) {
     directListings,
     matchedContacts,
     matchedOpportunities,
-    matchedContracts,
   ] = await Promise.all([
     // 1. Listings matching by title / ID / address fields — AGENT sees only own listings
     prisma.property.findMany({
@@ -158,28 +145,6 @@ export async function GET(req: Request) {
       select: {
         id: true, opportunityId: true, title: true,
         stage: true, status: true, dealSize: true,
-        participants: {
-          where: { role: { in: ["BUYER", "SELLER"] } },
-          include: { contact: { select: { firstName: true, lastName: true } } },
-          take: 1,
-        },
-      },
-      take: MAX,
-    }),
-
-    // 4. Contracts matching by title / participant contact name / ID
-    prisma.contract.findMany({
-      where: {
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { contractId: { contains: q, mode: "insensitive" } },
-          { participants: { some: { contact: { firstName: { contains: q, mode: "insensitive" } } } } },
-          { participants: { some: { contact: { lastName: { contains: q, mode: "insensitive" } } } } },
-        ],
-      },
-      select: {
-        id: true, contractId: true, title: true,
-        type: true, status: true, value: true,
         participants: {
           where: { role: { in: ["BUYER", "SELLER"] } },
           include: { contact: { select: { firstName: true, lastName: true } } },
@@ -257,26 +222,10 @@ export async function GET(req: Request) {
     };
   });
 
-  // ── Map contracts ─────────────────────────────────────────────────────────
-
-  const contractResults: SearchContractResult[] = matchedContracts.map((c) => {
-    const contact = c.participants[0]?.contact ?? null;
-    return {
-      id: c.id,
-      contractId: c.contractId,
-      title: c.title,
-      contactName: contact ? `${contact.firstName} ${contact.lastName}`.trim() : null,
-      type: c.type,
-      status: c.status,
-      value: c.value !== null ? Number(c.value) : null,
-    };
-  });
-
   return NextResponse.json<{ success: true } & GlobalSearchResults>({
     success: true,
     listings: allListings,
     contacts: contactResults,
     opportunities: opportunityResults,
-    contracts: contractResults,
   });
 }

@@ -8,18 +8,18 @@ import { BLOG_COVER_MAX_BYTES } from "@/schemas/blog.schema";
 
 const AVATAR_BUCKET = "avatars";
 const PROPERTY_IMAGES_BUCKET = "property-images";
-const CONTRACT_DOCUMENTS_BUCKET = "contract-documents";
+const OPPORTUNITY_DOCUMENTS_BUCKET = "opportunity-documents";
 const BLOG_IMAGES_BUCKET = "blog-images";
 const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
 
-export const CONTRACT_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB, matches the upload UI's stated cap
-const CONTRACT_DOCUMENT_MIME_TYPES = [
+export const OPPORTUNITY_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB, matches the upload UI's stated cap
+const OPPORTUNITY_DOCUMENT_MIME_TYPES = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
-function extensionForContractDocument(mimeType: string, fileName: string): string {
+function extensionForDocumentFile(mimeType: string, fileName: string): string {
   if (mimeType === "application/pdf") return "pdf";
   if (mimeType === "application/msword") return "doc";
   if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "docx";
@@ -289,73 +289,69 @@ export async function removePropertyImages(storagePaths: string[]): Promise<void
   if (error) console.error("[storage] failed to remove listing images", error.message);
 }
 
-// ── Contract documents ──────────────────────────────────────────────────────
+// ── Opportunity documents ───────────────────────────────────────────────────
 //
-// Same signed-upload-URL pattern as property images: a 10MB PDF would risk
-// hitting the serverless function's request-body limit if it passed through
-// a Next.js API route, so the browser uploads directly to storage and the
-// server only mints the ticket beforehand and verifies the result after.
+// Signed-upload-URL, private bucket, server-authoritative verification — a
+// file an agent attaches by hand to an Opportunity. Distinct from a DocuSign
+// envelope's tracked signing flow.
 
-let contractDocumentsBucketReady = false;
+let opportunityDocumentsBucketReady = false;
 
-async function ensureContractDocumentsBucket(): Promise<void> {
-  if (contractDocumentsBucketReady) return;
+async function ensureOpportunityDocumentsBucket(): Promise<void> {
+  if (opportunityDocumentsBucketReady) return;
 
   const supabase = createAdminClient();
-  // Private bucket — unlike listing images, contract documents are not public.
-  // Reads go through getPublicUrl() below only because this bucket also sets
-  // `public: false`; callers fetch through a signed read instead.
   const desiredOptions = {
     public: false,
-    fileSizeLimit: CONTRACT_DOCUMENT_MAX_BYTES,
-    allowedMimeTypes: CONTRACT_DOCUMENT_MIME_TYPES,
+    fileSizeLimit: OPPORTUNITY_DOCUMENT_MAX_BYTES,
+    allowedMimeTypes: OPPORTUNITY_DOCUMENT_MIME_TYPES,
   };
 
-  const { data: existing } = await supabase.storage.getBucket(CONTRACT_DOCUMENTS_BUCKET);
+  const { data: existing } = await supabase.storage.getBucket(OPPORTUNITY_DOCUMENTS_BUCKET);
   if (existing) {
-    const { error: updateError } = await supabase.storage.updateBucket(CONTRACT_DOCUMENTS_BUCKET, desiredOptions);
+    const { error: updateError } = await supabase.storage.updateBucket(OPPORTUNITY_DOCUMENTS_BUCKET, desiredOptions);
     if (updateError) {
-      console.error("[storage] could not raise contract-documents bucket limits", updateError.message);
+      console.error("[storage] could not raise opportunity-documents bucket limits", updateError.message);
     }
-    contractDocumentsBucketReady = true;
+    opportunityDocumentsBucketReady = true;
     return;
   }
 
-  let { error } = await supabase.storage.createBucket(CONTRACT_DOCUMENTS_BUCKET, desiredOptions);
+  let { error } = await supabase.storage.createBucket(OPPORTUNITY_DOCUMENTS_BUCKET, desiredOptions);
   if (error && !/already exists/i.test(error.message)) {
-    ({ error } = await supabase.storage.createBucket(CONTRACT_DOCUMENTS_BUCKET, {
+    ({ error } = await supabase.storage.createBucket(OPPORTUNITY_DOCUMENTS_BUCKET, {
       public: false,
-      allowedMimeTypes: CONTRACT_DOCUMENT_MIME_TYPES,
+      allowedMimeTypes: OPPORTUNITY_DOCUMENT_MIME_TYPES,
     }));
   }
   if (error && !/already exists/i.test(error.message)) {
-    throw new Error(`Failed to create ${CONTRACT_DOCUMENTS_BUCKET} bucket: ${error.message}`);
+    throw new Error(`Failed to create ${OPPORTUNITY_DOCUMENTS_BUCKET} bucket: ${error.message}`);
   }
-  contractDocumentsBucketReady = true;
+  opportunityDocumentsBucketReady = true;
 }
 
-export type ContractDocumentUploadTicket = {
+export type OpportunityDocumentUploadTicket = {
   documentId: string;
   storagePath: string;
   signedUrl: string;
   token: string;
 };
 
-/** Mints a signed upload URL under `{contractId}/{documentId}.{ext}`. */
-export async function mintContractDocumentUploadTicket(
-  contractId: string,
+/** Mints a signed upload URL under `{opportunityId}/{documentId}.{ext}`. */
+export async function mintOpportunityDocumentUploadTicket(
+  opportunityId: string,
   file: { name: string; type: string },
-): Promise<ContractDocumentUploadTicket> {
-  if (!CONTRACT_DOCUMENT_MIME_TYPES.includes(file.type)) {
+): Promise<OpportunityDocumentUploadTicket> {
+  if (!OPPORTUNITY_DOCUMENT_MIME_TYPES.includes(file.type)) {
     throw new Error("Only PDF, DOC, and DOCX files are supported.");
   }
 
-  await ensureContractDocumentsBucket();
+  await ensureOpportunityDocumentsBucket();
   const supabase = createAdminClient();
 
   const documentId = randomUUID();
-  const storagePath = `${contractId}/${documentId}.${extensionForContractDocument(file.type, file.name)}`;
-  const { data, error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).createSignedUploadUrl(storagePath);
+  const storagePath = `${opportunityId}/${documentId}.${extensionForDocumentFile(file.type, file.name)}`;
+  const { data, error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).createSignedUploadUrl(storagePath);
   if (error || !data) {
     throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
   }
@@ -363,7 +359,7 @@ export async function mintContractDocumentUploadTicket(
   return { documentId, storagePath, signedUrl: data.signedUrl, token: data.token };
 }
 
-export type VerifiedContractDocument = {
+export type VerifiedOpportunityDocument = {
   storagePath: string;
   url: string;
   sizeBytes: number;
@@ -371,17 +367,17 @@ export type VerifiedContractDocument = {
 };
 
 /** Confirms the upload landed in storage and reads its authoritative size/type — never trusts the client. */
-export async function verifyUploadedContractDocument(
-  contractId: string,
+export async function verifyUploadedOpportunityDocument(
+  opportunityId: string,
   storagePath: string,
-): Promise<VerifiedContractDocument> {
-  if (!storagePath.startsWith(`${contractId}/`)) {
-    throw new Error("Document path does not belong to this contract.");
+): Promise<VerifiedOpportunityDocument> {
+  if (!storagePath.startsWith(`${opportunityId}/`)) {
+    throw new Error("Document path does not belong to this opportunity.");
   }
   const supabase = createAdminClient();
 
-  const name = storagePath.slice(contractId.length + 1);
-  const { data: objects, error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).list(contractId, { limit: 1000 });
+  const name = storagePath.slice(opportunityId.length + 1);
+  const { data: objects, error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).list(opportunityId, { limit: 1000 });
   if (error) throw new Error(`Failed to verify uploaded document: ${error.message}`);
 
   const object = objects?.find((o) => o.name === name);
@@ -389,27 +385,27 @@ export async function verifyUploadedContractDocument(
 
   const sizeBytes = Number(object.metadata?.size ?? 0);
   const mimeType = String(object.metadata?.mimetype ?? "");
-  if (!CONTRACT_DOCUMENT_MIME_TYPES.includes(mimeType)) {
+  if (!OPPORTUNITY_DOCUMENT_MIME_TYPES.includes(mimeType)) {
     throw new Error("Uploaded document has an unsupported type.");
   }
-  if (sizeBytes <= 0 || sizeBytes > CONTRACT_DOCUMENT_MAX_BYTES) {
+  if (sizeBytes <= 0 || sizeBytes > OPPORTUNITY_DOCUMENT_MAX_BYTES) {
     throw new Error("Uploaded document violates the size limit.");
   }
 
   // Bucket is private — mint a long-lived signed URL rather than a public one.
   const { data: signed, error: signError } = await supabase.storage
-    .from(CONTRACT_DOCUMENTS_BUCKET)
+    .from(OPPORTUNITY_DOCUMENTS_BUCKET)
     .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
   if (signError || !signed) throw new Error(`Failed to sign document URL: ${signError?.message ?? "unknown error"}`);
 
   return { storagePath, url: signed.signedUrl, sizeBytes, mimeType };
 }
 
-/** Removes a single contract document object. Best-effort: errors are logged. */
-export async function removeContractDocumentObject(storagePath: string): Promise<void> {
+/** Removes a single opportunity document object. Best-effort: errors are logged. */
+export async function removeOpportunityDocumentObject(storagePath: string): Promise<void> {
   const supabase = createAdminClient();
-  const { error } = await supabase.storage.from(CONTRACT_DOCUMENTS_BUCKET).remove([storagePath]);
-  if (error) console.error("[storage] failed to remove contract document", error.message);
+  const { error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).remove([storagePath]);
+  if (error) console.error("[storage] failed to remove opportunity document", error.message);
 }
 
 // ── Blog cover images ────────────────────────────────────────────────────────

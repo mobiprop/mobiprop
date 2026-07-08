@@ -631,7 +631,6 @@ export async function convertLead(id: string, body: unknown): Promise<CrmActionR
       data: {
         opportunityId: opportunityNumber,
         title: data.title ?? `Opportunity from ${existing.submittedName}`,
-        propertyId: existing.primaryListingId ?? null,
         dealType: data.dealType ?? null,
         dealSize: data.dealSize ?? null,
         notes: data.notes ?? existing.notes ?? null,
@@ -639,6 +638,9 @@ export async function convertLead(id: string, body: unknown): Promise<CrmActionR
         createdById: gate.profile.id,
         // A converted Lead's contact is the prospective buyer by definition.
         participants: { create: [{ role: "BUYER", contactId: existing.contactId }] },
+        ...(existing.primaryListingId
+          ? { listings: { create: [{ propertyId: existing.primaryListingId }] } }
+          : {}),
       },
     });
     const l = await tx.lead.update({
