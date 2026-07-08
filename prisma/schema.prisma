@@ -315,6 +315,9 @@ model Property {
   ownerContactId    String?               @map("owner_contact_id")
   createdById       String?               @map("created_by_id") @db.Uuid
   updatedById       String?               @map("updated_by_id") @db.Uuid
+  // Original WordPress post id for listings migrated from ulrichpropiedades.com
+  // (2026-07 migration). NULL = created in-app; never exposed to the frontend.
+  wpPostId          String?               @unique @map("wp_post_id")
   publishedAt       DateTime?             @map("published_at")
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
