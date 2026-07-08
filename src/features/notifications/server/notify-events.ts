@@ -458,56 +458,135 @@ export function notifyOpportunityClosed(input: {
   );
 }
 
-// ── Contracts ─────────────────────────────────────────────────────────────────
+// ── DocuSign envelopes ───────────────────────────────────────────────────────
 
-export function notifyContractCreated(input: {
-  contractId: string;
-  title: string;
+type EnvelopeNotifyInput = {
+  envelopeId: string;
+  templateName: string;
+  recipientName: string;
   assignedAgentId: string | null;
   actorId: string | null;
-}): Promise<void> {
+};
+
+export function notifyEnvelopeSent(input: EnvelopeNotifyInput): Promise<void> {
   return safe(
     () =>
       dispatchNotification({
-        type: "CONTRACT_CREATED",
+        type: "DOCUSIGN_ENVELOPE_SENT",
         actorId: input.actorId,
         recipientContext: { assignedAgentId: input.assignedAgentId },
-        entityType: "CONTRACT",
-        entityId: input.contractId,
-        actionUrl: "/dashboard/contracts",
-        content: { title: "New contract created", body: `Contract "${input.title}" was created.` },
+        entityType: "DOCUSIGN_ENVELOPE",
+        entityId: input.envelopeId,
+        actionUrl: "/dashboard/docusign",
+        content: {
+          title: "Envelope sent for signature",
+          body: `"${input.templateName}" was sent to ${input.recipientName}.`,
+        },
       }),
-    "notifyContractCreated",
+    "notifyEnvelopeSent",
   );
 }
 
-/** Fired by the daily contract-expiry cron — 60 days before a rental contract's end date. */
-export function notifyContractExpiring(input: {
-  contractId: string;
-  title: string;
-  endDate: Date;
+export function notifyEnvelopeDelivered(input: EnvelopeNotifyInput): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "DOCUSIGN_ENVELOPE_DELIVERED",
+        actorId: null,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        entityType: "DOCUSIGN_ENVELOPE",
+        entityId: input.envelopeId,
+        actionUrl: "/dashboard/docusign",
+        content: {
+          title: "Envelope viewed",
+          body: `${input.recipientName} opened "${input.templateName}".`,
+        },
+      }),
+    "notifyEnvelopeDelivered",
+  );
+}
+
+export function notifyEnvelopeCompleted(input: EnvelopeNotifyInput): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "DOCUSIGN_ENVELOPE_COMPLETED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        entityType: "DOCUSIGN_ENVELOPE",
+        entityId: input.envelopeId,
+        actionUrl: "/dashboard/docusign",
+        content: {
+          title: "Envelope signed",
+          body: `"${input.templateName}" was signed by ${input.recipientName}.`,
+        },
+      }),
+    "notifyEnvelopeCompleted",
+  );
+}
+
+export function notifyEnvelopeDeclined(input: EnvelopeNotifyInput): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "DOCUSIGN_ENVELOPE_DECLINED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        entityType: "DOCUSIGN_ENVELOPE",
+        entityId: input.envelopeId,
+        actionUrl: "/dashboard/docusign",
+        content: {
+          title: "Envelope declined",
+          body: `"${input.templateName}" was declined by ${input.recipientName}.`,
+        },
+      }),
+    "notifyEnvelopeDeclined",
+  );
+}
+
+export function notifyEnvelopeVoided(input: EnvelopeNotifyInput): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "DOCUSIGN_ENVELOPE_VOIDED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        entityType: "DOCUSIGN_ENVELOPE",
+        entityId: input.envelopeId,
+        actionUrl: "/dashboard/docusign",
+        content: { title: "Envelope voided", body: `"${input.templateName}" was voided.` },
+      }),
+    "notifyEnvelopeVoided",
+  );
+}
+
+/** Fired by the daily DocuSign-reminder cron for envelopes nearing expiresAt. */
+export function notifyEnvelopeExpiringSoon(input: {
+  envelopeId: string;
+  templateName: string;
+  expiresAt: Date;
   assignedAgentId: string | null;
 }): Promise<void> {
-  const daysLeft = Math.max(0, Math.round((input.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+  const daysLeft = Math.max(0, Math.round((input.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
 
   return safe(
     () =>
       dispatchNotification({
-        type: "CONTRACT_EXPIRING",
+        type: "DOCUSIGN_ENVELOPE_EXPIRING_SOON",
         actorId: null,
         recipientContext: { assignedAgentId: input.assignedAgentId },
-        // One notification per contract — the cron's own idempotency check
-        // (expiryNotifiedAt) is the primary guard; this dedupes any same-day retry.
+        // One notification per envelope per day — the cron's own idempotency
+        // guard is the reminder-window check; this dedupes any same-day retry.
         dedupeDiscriminator: "expiry",
-        entityType: "CONTRACT",
-        entityId: input.contractId,
-        actionUrl: "/dashboard/contracts",
+        entityType: "DOCUSIGN_ENVELOPE",
+        entityId: input.envelopeId,
+        actionUrl: "/dashboard/docusign",
         content: {
-          title: "Rental contract expiring soon",
-          body: `"${input.title}" ends in ${daysLeft} days (${input.endDate.toLocaleDateString("en-US")}).`,
+          title: "Envelope expiring soon",
+          body: `"${input.templateName}" expires in ${daysLeft} days (${input.expiresAt.toLocaleDateString("en-US")}).`,
         },
       }),
-    "notifyContractExpiring",
+    "notifyEnvelopeExpiringSoon",
   );
 }
 

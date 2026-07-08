@@ -27,7 +27,6 @@ const mockPrisma = {
   property: { findMany: vi.fn() },
   contact:  { findMany: vi.fn() },
   opportunity: { findMany: vi.fn() },
-  contract: { findMany: vi.fn() },
 };
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
@@ -40,7 +39,6 @@ beforeEach(() => {
   mockPrisma.property.findMany.mockResolvedValue([]);
   mockPrisma.contact.findMany.mockResolvedValue([]);
   mockPrisma.opportunity.findMany.mockResolvedValue([]);
-  mockPrisma.contract.findMany.mockResolvedValue([]);
 });
 
 function makeRequest(q: string) {

@@ -1,18 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle } from "lucide-react";
+import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, Upload, FileText, Loader2, FileSignature, Send, Link2Off } from "lucide-react";
 import { toast } from "sonner";
 
-import { ContactType, OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
+import { ContactType, OpportunityStage, OpportunityStatus, EnvelopeStatus } from "@/generated/prisma/enums";
 import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
 import { computeCommissionAmount } from "@/lib/commission";
-import { useCreateContactMutation } from "@/hooks/mutations/useCrmMutations";
+import {
+  useCreateContactMutation,
+  useUploadOpportunityDocumentMutation,
+  useRemoveOpportunityDocumentMutation,
+} from "@/hooks/mutations/useCrmMutations";
+import { useDocusignEnvelopesQuery, useDocusignTemplatesQuery } from "@/hooks/queries/useDocusignQuery";
+import { useAttachEnvelopeMutation, useDetachEnvelopeMutation } from "@/hooks/mutations/useDocusignMutations";
 import { SearchableSelect } from "./SearchableSelect";
 import { ContactPicker } from "./ContactPicker";
 import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
+import { SendForSignatureModal } from "./SendForSignatureModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -24,6 +31,13 @@ export type ParticipantFormRow = {
   contactLabel: string;
   /** AGENCY rows only — free text, no Contact record. */
   companyName: string;
+};
+
+type ListingFormRow = {
+  /** Local-only React key — never sent to the server. */
+  key: string;
+  propertyId: string;
+  propertyLabel: string;
 };
 
 export type OpportunityFormValues = {
@@ -39,7 +53,7 @@ export type OpportunityFormValues = {
   probability: number;
   stage: OpportunityStage;
   expectedCloseAt: string;
-  propertyId: string;
+  propertyIds: string[];
   status: OpportunityStatus;
   assignedAgentId: string;
   agentCommissionValue: string;
@@ -51,7 +65,13 @@ type AddOpportunityModalProps = {
   mode?: "create" | "edit";
   initial?: OpportunityDto;
   onClose: () => void;
-  onSubmit: (values: OpportunityFormValues) => void;
+  /**
+   * Saves the opportunity and resolves to the persisted record (or null on
+   * failure). The modal needs the saved id to apply staged document
+   * uploads/removals AFTER the opportunity exists — so a cancelled form
+   * never leaves orphaned files in storage.
+   */
+  onSubmit: (values: OpportunityFormValues) => Promise<OpportunityDto | null>;
   isSaving?: boolean;
   /** When set (AGENT logged in), the Assigned Agent field is locked to self. */
   lockedAgent?: { id: string; name: string } | null;
@@ -111,6 +131,23 @@ function participantsFromInitial(initial?: OpportunityDto): ParticipantFormRow[]
   }));
 }
 
+let listingRowKeySeq = 0;
+function newListingRowKey() {
+  listingRowKeySeq += 1;
+  return `listing-${listingRowKeySeq}`;
+}
+
+function listingRowsFromInitial(initial?: OpportunityDto): ListingFormRow[] {
+  if (!initial || initial.listings.length === 0) return [{ key: newListingRowKey(), propertyId: "", propertyLabel: "" }];
+  return initial.listings.map((l) => ({ key: newListingRowKey(), propertyId: l.propertyId, propertyLabel: l.propertyTitle }));
+}
+
+function fmtBytes(n: number) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function fmtPreview(amount: number | null) {
   if (amount === null) return null;
   return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
@@ -148,8 +185,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   const [probability, setProbability] = useState(initial?.probability ?? 50);
   const [stage, setStage] = useState<OpportunityStage>(initial?.stage ?? OpportunityStage.QUALIFICATION);
   const [expectedCloseAt, setExpectedCloseAt] = useState(initial?.expectedCloseAt?.slice(0, 10) ?? "");
-  const [propertyId, setPropertyId] = useState(initial?.propertyId ?? "");
-  const [propertyLabel, setPropertyLabel] = useState(initial?.propertyTitle ?? "");
+  const [listingRows, setListingRows] = useState<ListingFormRow[]>(() => listingRowsFromInitial(initial));
   const [status, setStatus] = useState<OpportunityStatus>(initial?.status ?? OpportunityStatus.OPEN);
   const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? lockedAgent?.id ?? "");
   const [agentCommissionValue, setAgentCommissionValue] = useState(
@@ -159,6 +195,54 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     (initial?.agentCommissionUnit as "%" | "$") ?? "%",
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
+
+  // Existing (already-uploaded) documents — edit mode only.
+  const [documents] = useState(initial?.documents ?? []);
+  // Newly chosen files, staged in memory until the form is submitted. Nothing
+  // hits storage until Save, so cancelling the form never orphans a file.
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  // Existing documents the user removed — applied (DELETE) only on Save.
+  const [removedDocIds, setRemovedDocIds] = useState<string[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const uploadMutation = useUploadOpportunityDocumentMutation();
+  const removeMutation = useRemoveOpportunityDocumentMutation();
+
+  const visibleDocuments = documents.filter((d) => !removedDocIds.includes(d.id));
+
+  // ── DocuSign envelope attachment — edit mode only (a not-yet-saved
+  // opportunity has no id to attach an envelope to). ──
+  const [showSendModal, setShowSendModal] = useState(false);
+  const { data: envelopesData } = useDocusignEnvelopesQuery();
+  const { data: templatesData } = useDocusignTemplatesQuery();
+  const attachMutation = useAttachEnvelopeMutation();
+  const detachMutation = useDetachEnvelopeMutation();
+  const allEnvelopes = envelopesData?.envelopes ?? [];
+  const linkedEnvelopes = initial ? allEnvelopes.filter((e) => e.opportunityId === initial.id) : [];
+  const availableEnvelopes = initial ? allEnvelopes.filter((e) => !e.opportunityId) : [];
+  const [selectedEnvelopeId, setSelectedEnvelopeId] = useState("");
+
+  async function attachSelectedEnvelope() {
+    if (!initial || !selectedEnvelopeId) return;
+    try {
+      await attachMutation.mutateAsync({ opportunityId: initial.id, envelopeId: selectedEnvelopeId });
+      setSelectedEnvelopeId("");
+      toast.success("Envelope attached");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to attach envelope");
+    }
+  }
+
+  async function detachEnvelope(envelopeId: string) {
+    if (!initial) return;
+    try {
+      await detachMutation.mutateAsync({ opportunityId: initial.id, envelopeId });
+      toast.success("Envelope detached");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to detach envelope");
+    }
+  }
 
   // Discard-confirmation: any change to a real form field after mount marks
   // the form dirty, so closing (X / backdrop / Cancel / Escape) asks first
@@ -175,7 +259,8 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   }, [
     title, participants, dealType, dealSize, contractStart, contractEnd,
     commission, commissionUnit, paymentTerms, probability, stage, expectedCloseAt,
-    propertyId, status, assignedAgentId, agentCommissionValue, agentCommissionUnit, notes,
+    listingRows, status, assignedAgentId, agentCommissionValue, agentCommissionUnit, notes,
+    pendingFiles, removedDocIds,
   ]);
 
   function requestClose() {
@@ -290,8 +375,49 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  // ── Property listings ─────────────────────────────────────────────────────
+
+  function updateListingRow(key: string, propertyId: string, propertyLabel: string) {
+    setListingRows((rows) => rows.map((r) => (r.key === key ? { ...r, propertyId, propertyLabel } : r)));
+  }
+  function addListingRow() {
+    setListingRows((rows) => [...rows, { key: newListingRowKey(), propertyId: "", propertyLabel: "" }]);
+  }
+  function removeListingRow(key: string) {
+    setListingRows((rows) => rows.filter((r) => r.key !== key));
+  }
+
+  // ── Signature documents ───────────────────────────────────────────────────
+
+  // Validate and stage selected files locally (no upload yet).
+  function stageFiles(files: FileList | File[]) {
+    const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    const next: File[] = [];
+    for (const file of Array.from(files)) {
+      if (!allowed.includes(file.type)) {
+        toast.error(`${file.name}: only PDF, DOC, and DOCX files are supported.`);
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name}: exceeds the 10MB limit.`);
+        continue;
+      }
+      next.push(file);
+    }
+    if (next.length) setPendingFiles((prev) => [...prev, ...next]);
+  }
+
+  function removePendingFile(index: number) {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function markExistingRemoved(documentId: string) {
+    setRemovedDocIds((prev) => (prev.includes(documentId) ? prev : [...prev, documentId]));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting || isSaving) return;
 
     const hasBuyerOrSeller = participants.some(
       (r) => (r.role === "BUYER" || r.role === "SELLER") && r.contactId,
@@ -301,26 +427,49 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       return;
     }
 
-    onSubmit({
-      title: title.trim(),
-      participants,
-      dealType,
-      dealSize,
-      contractStart,
-      contractEnd,
-      commission,
-      commissionUnit,
-      paymentTerms,
-      probability,
-      stage,
-      expectedCloseAt,
-      propertyId,
-      status,
-      assignedAgentId,
-      agentCommissionValue,
-      agentCommissionUnit,
-      notes: notes.trim(),
-    });
+    setSubmitting(true);
+    try {
+      const saved = await onSubmit({
+        title: title.trim(),
+        participants,
+        dealType,
+        dealSize,
+        contractStart,
+        contractEnd,
+        commission,
+        commissionUnit,
+        paymentTerms,
+        probability,
+        stage,
+        expectedCloseAt,
+        propertyIds: listingRows.map((r) => r.propertyId).filter(Boolean),
+        status,
+        assignedAgentId,
+        agentCommissionValue,
+        agentCommissionUnit,
+        notes: notes.trim(),
+      });
+
+      // onSubmit returns null on failure (it already surfaced the error toast) —
+      // keep the modal open so the user doesn't lose their input or staged files.
+      if (!saved) return;
+
+      // Now that the opportunity exists, apply the staged document changes.
+      for (const file of pendingFiles) {
+        await uploadMutation.mutateAsync({ opportunityId: saved.id, file });
+      }
+      for (const documentId of removedDocIds) {
+        await removeMutation.mutateAsync({ opportunityId: saved.id, documentId });
+      }
+
+      onClose();
+    } catch (err) {
+      // Opportunity saved but a document op failed — leave the modal open so
+      // the user can retry; the already-removed staged files stay staged.
+      toast.error(err instanceof Error ? err.message : "Failed to attach documents");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -597,6 +746,53 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             )}
           </div>
 
+          {/* Property Listings */}
+          <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+            <div className="flex items-center gap-2">
+              <Home size={15} className="shrink-0 text-[#1a5ea8]" />
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings</p>
+            </div>
+            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Assign the properties linked to this opportunity.</p>
+
+            <div className="flex flex-col gap-2.5">
+              {listingRows.map((row, index) => (
+                <div key={row.key} className="flex items-center gap-2.5">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[11px] font-semibold text-white" style={mont}>
+                    {index + 1}
+                  </span>
+                  <ListingPicker
+                    className="min-w-0 flex-1"
+                    tone="neutral"
+                    value={row.propertyId}
+                    label={row.propertyLabel}
+                    onSelect={(id, label) => updateListingRow(row.key, id, label)}
+                    excludeIds={listingRows.filter((_, i) => i !== index).map((r) => r.propertyId).filter(Boolean)}
+                    placeholder="Select a listing…"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeListingRow(row.key)}
+                    disabled={listingRows.length === 1}
+                    title="Remove listing"
+                    aria-label="Remove listing"
+                    className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={addListingRow}
+              className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] sm:w-auto sm:self-start"
+              style={mont}
+            >
+              Add Listing
+            </button>
+          </div>
+
           {/* Deal type / size */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
@@ -702,29 +898,17 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             </div>
           </div>
 
-          {/* Associated property / status */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Associated Property</label>
-              <ListingPicker
-                tone="neutral"
-                value={propertyId}
-                label={propertyLabel}
-                onSelect={(id, lbl) => { setPropertyId(id); setPropertyLabel(lbl); }}
-                placeholder="Select Property"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Status *</label>
-              <SearchableSelect
-                size="sm"
-                searchable={false}
-                value={status}
-                onChange={(next) => setStatus(next as OpportunityStatus)}
-                options={STATUS_OPTIONS}
-                placeholder="Select status"
-              />
-            </div>
+          {/* Status */}
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} style={mont}>Status *</label>
+            <SearchableSelect
+              size="sm"
+              searchable={false}
+              value={status}
+              onChange={(next) => setStatus(next as OpportunityStatus)}
+              options={STATUS_OPTIONS}
+              placeholder="Select status"
+            />
           </div>
 
           {/* Agent / agent commission */}
@@ -759,17 +943,184 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Describe this opportunity..." rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
           </div>
 
+          {/* Signature Documents */}
+          <div className="flex flex-col gap-2">
+            <label className={labelClass} style={mont}>Signature Documents</label>
+
+            {/* Already-saved documents (edit mode) */}
+            {visibleDocuments.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {visibleDocuments.map((doc) => (
+                  <div key={doc.id} className="flex items-center justify-between gap-3 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2.5">
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138] hover:text-[#1e4f86]">
+                      <FileText size={16} className="shrink-0 text-[#6a7282]" />
+                      <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{doc.fileName}</span>
+                      <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(doc.sizeBytes)}</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => markExistingRemoved(doc.id)}
+                      disabled={submitting || isSaving}
+                      title="Remove"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Staged files — not uploaded until Save */}
+            {pendingFiles.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {pendingFiles.map((file, index) => (
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-[8px] border border-dashed border-[#c2dcff] bg-[#f5f9ff] px-3 py-2.5">
+                    <div className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138]">
+                      <FileText size={16} className="shrink-0 text-[#1e4f86]" />
+                      <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{file.name}</span>
+                      <span className="shrink-0 rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-medium text-[#1e4f86]" style={mont}>Pending</span>
+                      <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(file.size)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removePendingFile(index)}
+                      disabled={submitting || isSaving}
+                      title="Remove"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+                if (e.dataTransfer.files.length) stageFiles(e.dataTransfer.files);
+              }}
+              className={`flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed px-4 py-6 text-center transition-colors ${
+                isDragOver ? "border-[#1e4f86] bg-[#eff6ff]" : "border-[#e5e7eb] bg-[#fafbfc]"
+              }`}
+            >
+              {submitting ? (
+                <Loader2 size={24} className="animate-spin text-[#1e4f86]" />
+              ) : (
+                <Upload size={24} className="text-[#9ca3af]" />
+              )}
+              <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
+                Click to upload or drag and drop
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files?.length) stageFiles(e.target.files); e.target.value = ""; }}
+                />
+              </label>
+              <p className="text-[11px] text-[#9ca3af]" style={mont}>
+                PDF, DOC, DOCX up to 10MB — attached when you save
+              </p>
+            </div>
+          </div>
+
+          {/* Attached Envelopes — edit mode only, needs a saved opportunity id */}
+          {initial && (
+            <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+              <div className="flex items-center gap-2">
+                <FileSignature size={15} className="shrink-0 text-[#1a5ea8]" />
+                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Attached Envelopes</p>
+              </div>
+              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Link an existing DocuSign envelope, or send a new one for signature.</p>
+
+              {linkedEnvelopes.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {linkedEnvelopes.map((e) => (
+                    <div key={e.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2.5">
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>{e.templateName}</span>
+                        <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
+                          {e.recipientName} · {e.status === EnvelopeStatus.COMPLETED ? "Signed" : e.status === EnvelopeStatus.DECLINED ? "Declined" : e.status === EnvelopeStatus.VOIDED ? "Voided" : "Awaiting signature"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => detachEnvelope(e.id)}
+                        disabled={detachMutation.isPending}
+                        title="Detach"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                      >
+                        <Link2Off size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2">
+                {availableEnvelopes.length > 0 && (
+                  <>
+                    <SearchableSelect
+                      className="min-w-[220px] flex-1"
+                      size="sm"
+                      value={selectedEnvelopeId}
+                      onChange={(next) => setSelectedEnvelopeId(next)}
+                      options={availableEnvelopes.map((e) => ({ value: e.id, label: `${e.templateName} — ${e.recipientName}` }))}
+                      placeholder="Attach an existing envelope…"
+                    />
+                    <button
+                      type="button"
+                      onClick={attachSelectedEnvelope}
+                      disabled={!selectedEnvelopeId || attachMutation.isPending}
+                      className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      style={mont}
+                    >
+                      Attach
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowSendModal(true)}
+                  className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
+                  style={mont}
+                >
+                  <Send size={14} /> Send for Signature
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex gap-3 border-t border-[#e5e7eb] pt-4">
-            <button type="button" onClick={requestClose} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>
+            <button type="button" onClick={requestClose} disabled={submitting || isSaving} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors disabled:cursor-not-allowed disabled:opacity-60" style={mont}>
               Cancel
             </button>
-            <button type="submit" disabled={isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>
-              {isSaving ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Opportunity"}
+            <button type="submit" disabled={submitting || isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>
+              {submitting || isSaving ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Opportunity"}
             </button>
           </div>
         </form>
       </div>
+
+      {showSendModal && initial && (
+        <SendForSignatureModal
+          templates={templatesData?.templates ?? []}
+          initial={{
+            opportunityId: initial.id,
+            recipientName: initial.participants[0]?.contactName ?? "",
+            recipientEmail: "",
+            propertyReference: initial.listings[0]?.propertyTitle ?? "",
+          }}
+          onClose={() => setShowSendModal(false)}
+          onSent={() => setShowSendModal(false)}
+        />
+      )}
     </div>
   );
 }

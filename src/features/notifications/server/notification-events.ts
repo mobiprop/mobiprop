@@ -157,19 +157,31 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
     audience: STAFF, pushCategory: "opportunityUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
   },
 
-  // ── Contracts (policies defined; module does not emit these yet). The two
-  //    expiry events are CRITICAL so push bypasses the category toggle. ──
-  CONTRACT_CREATED: {
-    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
-    audience: STAFF, pushCategory: "contractUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
+  // ── DocuSign envelopes — sent/delivered are informational (in-app only);
+  //    completed/declined are push-worthy; expiring soon is CRITICAL. ──
+  DOCUSIGN_ENVELOPE_SENT: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "DOCUSIGN_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "signatureUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
   },
-  CONTRACT_EXPIRING: {
-    channels: ["IN_APP", "PUSH"], priority: "CRITICAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
-    audience: STAFF, pushCategory: "contractUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  DOCUSIGN_ENVELOPE_DELIVERED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "DOCUSIGN_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "signatureUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
   },
-  CONTRACT_EXPIRED: {
-    channels: ["IN_APP", "PUSH"], priority: "CRITICAL", recipientStrategy: "CONTRACT_STAKEHOLDERS",
-    audience: STAFF, pushCategory: "contractUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  DOCUSIGN_ENVELOPE_COMPLETED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "DOCUSIGN_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "signatureUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  },
+  DOCUSIGN_ENVELOPE_DECLINED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "DOCUSIGN_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "signatureUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  },
+  DOCUSIGN_ENVELOPE_VOIDED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "DOCUSIGN_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "signatureUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
+  },
+  DOCUSIGN_ENVELOPE_EXPIRING_SOON: {
+    channels: ["IN_APP", "PUSH"], priority: "CRITICAL", recipientStrategy: "DOCUSIGN_STAKEHOLDERS",
+    audience: STAFF, pushCategory: "signatureUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
   },
 
   // ── Internal staff chat. excludeActor stays false since DIRECT_RECIPIENT

@@ -84,8 +84,8 @@ describe("decideChannels — channel gating", () => {
     expect(d.pushSkipReason).toBe("category_off");
   });
 
-  it("critical contract expiry bypasses the category toggle", () => {
-    const d = decideChannels("CONTRACT_EXPIRED", profileWith({ pushEnabled: true, contractUpdates: false }));
+  it("critical envelope-expiring-soon bypasses the category toggle", () => {
+    const d = decideChannels("DOCUSIGN_ENVELOPE_EXPIRING_SOON", profileWith({ pushEnabled: true, signatureUpdates: false }));
     expect(d.push).toBe(true);
   });
 });

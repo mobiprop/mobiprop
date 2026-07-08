@@ -325,8 +325,7 @@ model Property {
   images              PropertyImage[]
   amenities           PropertyAmenity[]
   contacts            ContactProperty[]
-  opportunities       Opportunity[]
-  contractListings    ContractListing[]
+  opportunityListings OpportunityListing[]
   leads               Lead[]            @relation("LeadPrimaryListing")
   tours               Tour[]
   operationalLocation Location?         @relation(fields: [locationId], references: [id], onDelete: SetNull)
@@ -446,22 +445,8 @@ enum OpportunityStatus {
   CLOSED_LOST
 }
 
-enum ContractType {
-  SALE
-  RENT
-  SALE_AND_RENT
-}
-
-enum ContractStatus {
-  DRAFT
-  ACTIVE
-  PENDING
-  COMPLETED
-  CANCELLED
-}
-
 // CRM contact — a buyer, seller, or both. Linked to properties via the
-// ContactProperty join table and to pipeline records via opportunities/contracts.
+// ContactProperty join table and to pipeline records via opportunities.
 model Contact {
   id              String      @id @default(cuid())
   contactId       String      @unique @map("contact_id")
@@ -482,7 +467,6 @@ model Contact {
 
   properties              ContactProperty[]
   opportunityParticipants OpportunityParticipant[]
-  contractParticipants    ContractParticipant[]
   leads                   Lead[]
   tours                   Tour[]
 
@@ -512,7 +496,6 @@ model Opportunity {
   id                   String            @id @default(cuid())
   opportunityId        String            @unique @map("opportunity_id")
   title                String
-  propertyId           String?           @map("property_id")
   dealType             String?           @map("deal_type")
   dealSize             Decimal?          @map("deal_size") @db.Decimal(14, 2)
   stage                OpportunityStage  @default(QUALIFICATION)
@@ -534,15 +517,14 @@ model Opportunity {
   createdAt            DateTime          @default(now()) @map("created_at")
   updatedAt            DateTime          @updatedAt @map("updated_at")
 
-  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-
   // Inverse side of Lead.convertedOpportunity — traces this Opportunity back
   // to the Lead it was converted from, when applicable.
   sourceLead   Lead?                    @relation("LeadConversion")
-  contracts    Contract[]
   participants OpportunityParticipant[]
+  listings     OpportunityListing[]
+  documents    OpportunityDocument[]
+  envelopes    DocusignEnvelope[]
 
-  @@index([propertyId], map: "opportunities_property_idx")
   @@index([status], map: "opportunities_status_idx")
   @@index([isDeleted], map: "opportunities_is_deleted_idx")
   @@map("opportunities")
@@ -572,97 +554,6 @@ model OpportunityParticipant {
   @@index([opportunityId], map: "opportunity_participants_opportunity_idx")
   @@index([contactId], map: "opportunity_participants_contact_idx")
   @@map("opportunity_participants")
-}
-
-// CRM contract — executed deal between the agency and its counterparties.
-model Contract {
-  id               String         @id @default(cuid())
-  contractId       String         @unique @map("contract_id")
-  title            String
-  opportunityId    String?        @map("opportunity_id")
-  type             ContractType   @default(SALE)
-  status           ContractStatus @default(ACTIVE)
-  value            Decimal?       @db.Decimal(14, 2)
-  startDate        DateTime?      @map("start_date")
-  endDate          DateTime?      @map("end_date")
-  signedAt         DateTime?      @map("signed_at")
-  terms            String?
-  notes            String?
-  isDeleted        Boolean        @default(false) @map("is_deleted")
-  deletedAt        DateTime?      @map("deleted_at")
-  expiryNotifiedAt DateTime?      @map("expiry_notified_at")
-  assignedAgentId  String?        @map("assigned_agent_id") @db.Uuid
-  createdById      String?        @map("created_by_id") @db.Uuid
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
-
-  opportunity  Opportunity?          @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
-  documents    ContractDocument[]
-  participants ContractParticipant[]
-  listings     ContractListing[]
-
-  @@index([opportunityId], map: "contracts_opportunity_idx")
-  @@index([status], map: "contracts_status_idx")
-  @@index([isDeleted], map: "contracts_is_deleted_idx")
-  @@map("contracts")
-}
-
-enum ContractParticipantRole {
-  BUYER
-  SELLER
-  // No Contact record needed — just a free-text company name.
-  AGENCY
-}
-
-// Multiple parties on one contract (buyer, seller, co-buyers, a co-broking
-// agency, etc.) — replaces the old single Contract.contactId. BUYER/SELLER
-// rows must reference a real Contact; AGENCY rows are just a company name.
-model ContractParticipant {
-  id          String                  @id @default(cuid())
-  contractId  String                  @map("contract_id")
-  role        ContractParticipantRole
-  contactId   String?                 @map("contact_id")
-  companyName String?                 @map("company_name")
-  createdAt   DateTime                @default(now()) @map("created_at")
-
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  contact  Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  @@index([contractId], map: "contract_participants_contract_idx")
-  @@index([contactId], map: "contract_participants_contact_idx")
-  @@map("contract_participants")
-}
-
-// Many-to-many: which properties are linked to a contract — replaces the old
-// single Contract.propertyId.
-model ContractListing {
-  contractId String @map("contract_id")
-  propertyId String @map("property_id")
-
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
-  @@id([contractId, propertyId])
-  @@index([propertyId], map: "contract_listings_property_idx")
-  @@map("contract_listings")
-}
-
-// A document (PDF/DOC/DOCX) attached to a Contract, stored in Supabase Storage.
-model ContractDocument {
-  id           String   @id @default(cuid())
-  contractId   String   @map("contract_id")
-  fileName     String   @map("file_name")
-  storagePath  String   @map("storage_path")
-  url          String
-  mimeType     String   @map("mime_type")
-  sizeBytes    Int      @map("size_bytes")
-  uploadedById String?  @map("uploaded_by_id") @db.Uuid
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-
-  @@index([contractId], map: "contract_documents_contract_idx")
-  @@map("contract_documents")
 }
 
 // ── Tours ─────────────────────────────────────────────────────────────────────
@@ -995,7 +886,7 @@ model Message {
 }
 
 // A file/image attached to a Message, stored in Supabase Storage (private
-// bucket). Mirrors ContractDocument field-for-field, plus width/height for
+// bucket). Mirrors OpportunityDocument field-for-field, plus width/height for
 // image attachments (mirrors PropertyImage).
 model MessageAttachment {
   id          String   @id @default(cuid())
@@ -1013,4 +904,99 @@ model MessageAttachment {
 
   @@index([messageId], map: "message_attachments_message_idx")
   @@map("message_attachments")
+}
+
+// ── Opportunity listings/documents + DocuSign ───────────────────────────────
+// Contracts (a signing/tracking module) was retired in favor of DocuSign.
+
+// Many-to-many: which properties are linked to an opportunity.
+model OpportunityListing {
+  opportunityId String @map("opportunity_id")
+  propertyId    String @map("property_id")
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([opportunityId, propertyId])
+  @@index([propertyId], map: "opportunity_listings_property_idx")
+  @@map("opportunity_listings")
+}
+
+// A document (PDF/DOC/DOCX) attached to an Opportunity by hand, stored in
+// Supabase Storage. Distinct from DocusignEnvelope: this is any file an
+// agent uploads directly, not a tracked e-signature package.
+model OpportunityDocument {
+  id            String   @id @default(cuid())
+  opportunityId String   @map("opportunity_id")
+  fileName      String   @map("file_name")
+  storagePath   String   @map("storage_path")
+  url           String
+  mimeType      String   @map("mime_type")
+  sizeBytes     Int      @map("size_bytes")
+  uploadedById  String?  @map("uploaded_by_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId], map: "opportunity_documents_opportunity_idx")
+  @@map("opportunity_documents")
+}
+
+enum EnvelopeStatus {
+  SENT
+  DELIVERED
+  COMPLETED
+  DECLINED
+  VOIDED
+}
+
+// A DocuSign e-signature envelope sent from this app. Status is kept in
+// sync by the DocuSign Connect webhook (not polled) — see
+// src/app/api/webhooks/docusign/route.ts. Optionally linked to an
+// Opportunity ("attach an existing envelope" in the Opportunity modal).
+model DocusignEnvelope {
+  id                 String         @id @default(cuid())
+  docusignEnvelopeId String         @unique @map("docusign_envelope_id")
+  templateId         String         @map("template_id")
+  templateName       String         @map("template_name")
+  status             EnvelopeStatus @default(SENT)
+  recipientName      String         @map("recipient_name")
+  recipientEmail     String         @map("recipient_email")
+  propertyReference  String?        @map("property_reference")
+  opportunityId      String?        @map("opportunity_id")
+  sentById           String?        @map("sent_by_id") @db.Uuid
+  sentAt             DateTime       @default(now()) @map("sent_at")
+  expiresAt          DateTime?      @map("expires_at")
+  completedAt        DateTime?      @map("completed_at")
+  voidedReason       String?        @map("voided_reason")
+  // Last DocuSign Connect webhook event id applied to this row — dedupes
+  // redelivered webhook events so a status is never re-applied twice and a
+  // notification never fires twice for the same event.
+  lastWebhookEventId String?        @map("last_webhook_event_id")
+  // Set by the daily reminder cron once an expiring-soon reminder has been
+  // sent — makes the cron idempotent (never reminds twice for one envelope).
+  reminderSentAt     DateTime?      @map("reminder_sent_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  @@index([opportunityId], map: "docusign_envelopes_opportunity_idx")
+  @@index([status], map: "docusign_envelopes_status_idx")
+  @@map("docusign_envelopes")
+}
+
+// Singleton row (fixed id "default") holding the DocuSign "Signature
+// Defaults" settings panel. A real table (not env/display-only) because the
+// envelope-reminder cron reads autoSendReminders/autoReminderDays.
+model DocusignSettings {
+  id                  String   @id @default("default")
+  defaultExpiryDays   Int      @default(7) @map("default_expiry_days")
+  autoReminderDays    Int      @default(3) @map("auto_reminder_days")
+  autoSendReminders   Boolean  @default(true) @map("auto_send_reminders")
+  emailNotifications  Boolean  @default(true) @map("email_notifications")
+  smsNotifications    Boolean  @default(false) @map("sms_notifications")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("docusign_settings")
 }

@@ -3,7 +3,7 @@ import {
   Mail,
   UsersRound,
   ContactRound,
-  FileText,
+  FileSignature,
   Building2,
   TrendingUp,
   Target,
@@ -66,12 +66,6 @@ export const DASHBOARD_NAV: DashboardNavSection[] = [
         permission: "contacts:view",
       },
       {
-        label: "Contracts",
-        href: "/dashboard/contracts",
-        icon: FileText,
-        permission: "contracts:view",
-      },
-      {
         label: "Listings",
         href: "/dashboard/listings",
         icon: Building2,
@@ -88,6 +82,12 @@ export const DASHBOARD_NAV: DashboardNavSection[] = [
         href: "/dashboard/opportunities",
         icon: Target,
         permission: "opportunities:view",
+      },
+      {
+        label: "DocuSign",
+        href: "/dashboard/docusign",
+        icon: FileSignature,
+        permission: "docusign:view",
       },
       {
         label: "Blog",

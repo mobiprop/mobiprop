@@ -33,7 +33,7 @@ export const createOpportunitySchema = z.object({
     .refine((rows) => rows.some((r) => r.role === "BUYER" || r.role === "SELLER"), {
       message: "At least one Buyer or Seller is required",
     }),
-  propertyId: z.string().optional(),
+  propertyIds: z.array(z.string().trim().min(1)).optional(),
   dealType: z.enum(["Rent", "Sale"]).optional(),
   dealSize: z.coerce.number().positive().optional(),
   stage: z.nativeEnum(OpportunityStage).default(OpportunityStage.QUALIFICATION),
