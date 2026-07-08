@@ -47,8 +47,8 @@ function statusFor(reason: string): number {
 
 async function opportunityScope(profile: Profile): Promise<Prisma.OpportunityWhereInput> {
   const scopeIds = await resolveOwnerScopeIds(profile);
-  if (scopeIds === null) return {};
-  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
+  if (scopeIds === null) return { isDeleted: false };
+  return { isDeleted: false, OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
 // ── Date range resolution ─────────────────────────────────────────────────────

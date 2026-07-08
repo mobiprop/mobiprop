@@ -10,6 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Search,
   Plus,
@@ -19,6 +20,7 @@ import {
   CircleDot,
   Filter,
   Download,
+  Loader2,
   MoreVertical,
   ChevronLeft,
   ChevronRight,
@@ -41,6 +43,7 @@ import { AddLeadModal } from "./components/AddLeadModal";
 import { LeadFilterModal } from "./components/LeadFilterModal";
 import { SearchableSelect } from "./components/SearchableSelect";
 import type { LeadListFilters } from "@/schemas/lead.schema";
+import { toCsv, downloadCsv } from "@/lib/csv";
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
@@ -425,6 +428,60 @@ export function LeadsPage({ role }: LeadsPageProps) {
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Leads are server-paginated (PAGE_LIMIT per page) — export walks every
+  // page matching the current search/sort so the CSV isn't just the 25 rows
+  // currently on screen. Capped at 40 requests (4000 rows) as a sane ceiling.
+  async function handleExport() {
+    setIsExporting(true);
+    try {
+      const exportLimit = 100;
+      const all: LeadDto[] = [];
+      let exportPage = 1;
+      let exportTotal = Infinity;
+      while (all.length < exportTotal && exportPage <= 40) {
+        const params = new URLSearchParams();
+        if (debouncedSearch) params.set("search", debouncedSearch);
+        params.set("sortBy", sortBy);
+        params.set("page", String(exportPage));
+        params.set("limit", String(exportLimit));
+        const res = await fetch(`/api/dashboard/leads?${params.toString()}`);
+        if (!res.ok) throw new Error("Failed to fetch leads for export");
+        const json = await res.json();
+        all.push(...(json.leads as LeadDto[]));
+        exportTotal = json.total ?? all.length;
+        if (!json.leads?.length) break;
+        exportPage++;
+      }
+
+      const header = [
+        "Lead #", "Name", "Email", "Phone", "Source", "Location", "Budget Min", "Budget Max",
+        "Score", "Temperature", "Status", "Agent", "Created At",
+      ];
+      const rows = all.map((lead) => [
+        lead.leadNumber,
+        lead.submittedName,
+        lead.submittedEmail ?? "",
+        lead.submittedPhone ?? "",
+        SOURCE_LABELS[lead.source] ?? lead.source ?? "",
+        lead.submittedLocation ?? "",
+        lead.budgetMin ?? "",
+        lead.budgetMax ?? "",
+        lead.score,
+        lead.temperature,
+        lead.lifecycleStatus,
+        lead.assignedAgent?.fullName ?? "",
+        new Date(lead.createdAt).toLocaleDateString("en-US"),
+      ]);
+      downloadCsv(`leads-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to export leads");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   const lostLeads = useMemo(
     () =>
       leads.filter(
@@ -589,10 +646,12 @@ export function LeadsPage({ role }: LeadsPageProps) {
             {hasPermission(role, "leads:export") && (
               <button
                 type="button"
-                className="col-span-2 flex h-9 items-center justify-center gap-2 rounded-[9px] border border-[#dfe4ea] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#778397] transition-colors hover:bg-[#f1f4f7] sm:col-span-1 sm:justify-start"
+                onClick={handleExport}
+                disabled={isExporting || total === 0}
+                className="col-span-2 flex h-9 items-center justify-center gap-2 rounded-[9px] border border-[#dfe4ea] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f1f4f7] disabled:opacity-60 sm:col-span-1 sm:justify-start"
               >
                 Export CSV
-                <Download size={14} strokeWidth={1.8} />
+                {isExporting ? <Loader2 size={14} strokeWidth={1.8} className="animate-spin" /> : <Download size={14} strokeWidth={1.8} />}
               </button>
             )}
           </div>

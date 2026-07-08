@@ -86,6 +86,31 @@ export function useDeleteContactMutation() {
   });
 }
 
+export type ImportContactsResult = {
+  created: number;
+  skipped: number;
+  errors: { row: number; message: string }[];
+};
+
+async function postImportContacts(rows: Record<string, unknown>[]): Promise<ImportContactsResult> {
+  const res = await fetch("/api/dashboard/contacts/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rows }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to import contacts");
+  return data;
+}
+
+export function useImportContactsMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: postImportContacts,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() }),
+  });
+}
+
 // ── Opportunities ─────────────────────────────────────────────────────────────
 
 async function postOpportunity(body: unknown): Promise<{ opportunity: OpportunityDto }> {

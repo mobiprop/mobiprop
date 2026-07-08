@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { X, Plus, UserPlus, Users, Calendar, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 import { ContactType, OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
@@ -160,6 +160,47 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
 
+  // Discard-confirmation: any change to a real form field after mount marks
+  // the form dirty, so closing (X / backdrop / Cancel / Escape) asks first
+  // instead of silently dropping what the user typed.
+  const [isDirty, setIsDirty] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    setIsDirty(true);
+  }, [
+    title, participants, dealType, dealSize, contractStart, contractEnd,
+    commission, commissionUnit, paymentTerms, probability, stage, expectedCloseAt,
+    propertyId, status, assignedAgentId, agentCommissionValue, agentCommissionUnit, notes,
+  ]);
+
+  function requestClose() {
+    if (isDirty) {
+      setShowDiscardConfirm(true);
+      return;
+    }
+    onClose();
+  }
+
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      if (showDiscardConfirm) return;
+      if (participantPanel !== "none") {
+        closeParticipantPanel();
+        return;
+      }
+      requestClose();
+    }
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDiscardConfirm, participantPanel, isDirty]);
+
   const isRental = dealType === "Rent";
 
   const commissionAmount = useMemo(
@@ -283,7 +324,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={requestClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         className="relative flex max-h-[92vh] w-full max-w-[700px] flex-col overflow-hidden rounded-[16px] bg-white shadow-xl"
@@ -294,10 +335,51 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>
             {mode === "edit" ? "Edit Opportunity" : "New Opportunity"}
           </p>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
+          <button type="button" onClick={requestClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
             <X size={18} />
           </button>
         </div>
+
+        {showDiscardConfirm && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDiscardConfirm(false)}>
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              className="flex w-full max-w-[380px] flex-col gap-4 rounded-[16px] bg-white p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#fef3c7]">
+                  <AlertTriangle size={18} className="text-[#b45309]" />
+                </span>
+                <div className="flex flex-col gap-1">
+                  <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Discard changes?</p>
+                  <p className="text-[13px] leading-5 text-[#6a7282]" style={mont}>
+                    You have unsaved changes to this opportunity. Closing now will lose them.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDiscardConfirm(false)}
+                  className="flex-1 h-10 rounded-[10px] border border-[#e5e7eb] bg-white text-[13px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
+                  style={mont}
+                >
+                  Keep Editing
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 h-10 rounded-[10px] bg-[#fb2c36] text-[13px] font-medium text-white transition-colors hover:bg-[#e0262f]"
+                  style={mont}
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-6">
           {/* Opportunity name */}
@@ -679,7 +761,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
 
           {/* Actions */}
           <div className="flex gap-3 border-t border-[#e5e7eb] pt-4">
-            <button type="button" onClick={onClose} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>
+            <button type="button" onClick={requestClose} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>
               Cancel
             </button>
             <button type="submit" disabled={isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>

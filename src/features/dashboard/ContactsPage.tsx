@@ -9,7 +9,7 @@ import {
   TrendingUp,
   TrendingDown,
   Building2,
-  DollarSign,
+  Users,
   Upload,
   Share2,
   MoreVertical,
@@ -25,16 +25,18 @@ import { ContactType } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { useDashboardContactsQuery } from "@/hooks/queries/useDashboardContactsQuery";
 import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
+import { useLeadMetricsQuery } from "@/hooks/queries/useDashboardLeadsQuery";
 import {
   useCreateContactMutation,
   useUpdateContactMutation,
   useDeleteContactMutation,
+  useImportContactsMutation,
   ContactConflictError,
 } from "@/hooks/mutations/useCrmMutations";
 import { AddContactModal, type NewContact } from "./components/AddContactModal";
 import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
 import { SearchableSelect } from "./components/SearchableSelect";
-import { formatCurrency } from "@/lib/formatters";
+import { toCsv, downloadCsv, parseCsv, csvRowsToObjects } from "@/lib/csv";
 
 const CONTACT_TYPE_MAP: Record<NewContact["contactType"], ContactType> = {
   Buyer: ContactType.BUYER,
@@ -371,24 +373,25 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const [sortBy, setSortBy] = useState<"default" | "name" | "listings">("default");
   const [conflict, setConflict] = useState<ConflictState | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const { data, isLoading, isError } = useDashboardContactsQuery();
   const opportunitiesQuery = useDashboardOpportunitiesQuery();
+  const leadMetricsQuery = useLeadMetricsQuery();
   const createMutation = useCreateContactMutation();
   const updateMutation = useUpdateContactMutation();
   const deleteMutation = useDeleteContactMutation();
+  const importMutation = useImportContactsMutation();
 
   const canCreate = hasPermission(role, "contacts:create");
   const canEdit   = hasPermission(role, "contacts:update");
   const canDelete = hasPermission(role, "contacts:archive");
-  const canViewRevenue = hasPermission(role, "dashboard:viewCompanyRevenue");
+  const canExport = hasPermission(role, "contacts:export");
+  const canImport = hasPermission(role, "contacts:import");
 
   const contacts = useMemo(() => data?.contacts ?? [], [data]);
 
   const activeDealsCount = opportunitiesQuery.data?.metrics.open;
-  const totalRevenue = useMemo(() => {
-    if (!canViewRevenue) return null;
-    return opportunitiesQuery.data?.metrics.totalRevenue ?? null;
-  }, [opportunitiesQuery.data, canViewRevenue]);
   const contactsInOpportunitiesPct = data
     ? data.metrics.total > 0
       ? `${Math.round((data.metrics.withOpportunities / data.metrics.total) * 100)}%`
@@ -461,6 +464,88 @@ export function ContactsPage({ role }: ContactsPageProps) {
     }
   }
 
+  function handleExport() {
+    const header = [
+      "Contact ID", "First Name", "Last Name", "Email", "Phone",
+      "Type", "Location", "Address", "Notes", "Listings", "Created At",
+    ];
+    const rows = filtered.map((c) => [
+      c.contactId,
+      c.firstName,
+      c.lastName,
+      c.email ?? "",
+      c.phone ?? "",
+      TYPE_LABEL[c.type] ?? c.type,
+      c.location ?? "",
+      c.address ?? "",
+      c.notes ?? "",
+      c.properties.length,
+      new Date(c.createdAt).toLocaleDateString("en-US"),
+    ]);
+    downloadCsv(`contacts-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
+  }
+
+  function handleImportClick() {
+    fileInputRef.current?.click();
+  }
+
+  const IMPORT_HEADER_ALIASES: Record<string, string> = {
+    firstname: "firstName",
+    first: "firstName",
+    lastname: "lastName",
+    last: "lastName",
+    email: "email",
+    emailaddress: "email",
+    phone: "phone",
+    phonenumber: "phone",
+    type: "type",
+    contacttype: "type",
+    location: "location",
+    address: "address",
+    notes: "notes",
+  };
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const records = csvRowsToObjects(parseCsv(text));
+      if (records.length === 0) {
+        toast.error("That file has no data rows to import");
+        return;
+      }
+
+      const rows = records.map((record) => {
+        const mapped: Record<string, string> = {};
+        for (const [key, value] of Object.entries(record)) {
+          const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
+          const field = IMPORT_HEADER_ALIASES[normalized];
+          if (field) mapped[field] = value;
+        }
+        return mapped;
+      });
+
+      const result = await importMutation.mutateAsync(rows);
+      if (result.created > 0) {
+        toast.success(`Imported ${result.created} contact${result.created === 1 ? "" : "s"}`);
+      }
+      if (result.skipped > 0) {
+        const preview = result.errors.slice(0, 3).map((e) => `Row ${e.row}: ${e.message}`).join(" · ");
+        toast.warning(`Skipped ${result.skipped} row${result.skipped === 1 ? "" : "s"}`, {
+          description: preview + (result.errors.length > 3 ? " …" : ""),
+        });
+      }
+      if (result.created === 0 && result.skipped === 0) {
+        toast.error("Nothing to import — check the file has First Name/Last Name columns");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to import contacts");
+    }
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6">
       {/* Header */}
@@ -470,22 +555,41 @@ export function ContactsPage({ role }: ContactsPageProps) {
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage your clients and prospects database</p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
-          <button
-            type="button"
-            className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f9fafb] sm:px-4"
-            style={mont}
-          >
-            <Upload size={16} className="shrink-0" />
-            <span className="truncate">Import</span>
-          </button>
-          <button
-            type="button"
-            className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f9fafb] sm:px-4"
-            style={mont}
-          >
-            <Share2 size={16} className="shrink-0" />
-            <span className="truncate">Export</span>
-          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+          {canImport && (
+            <button
+              type="button"
+              onClick={handleImportClick}
+              disabled={importMutation.isPending}
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] disabled:opacity-60 sm:px-4"
+              style={mont}
+            >
+              {importMutation.isPending ? (
+                <Loader2 size={16} className="shrink-0 animate-spin" />
+              ) : (
+                <Upload size={16} className="shrink-0" />
+              )}
+              <span className="truncate">Import</span>
+            </button>
+          )}
+          {canExport && (
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={filtered.length === 0}
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] disabled:opacity-60 sm:px-4"
+              style={mont}
+            >
+              <Share2 size={16} className="shrink-0" />
+              <span className="truncate">Export</span>
+            </button>
+          )}
           {canCreate && (
             <button
               type="button"
@@ -535,12 +639,16 @@ export function ContactsPage({ role }: ContactsPageProps) {
         />
 
         <StatCard
-          label="Total Revenue"
-          value={!canViewRevenue ? "—" : opportunitiesQuery.isLoading ? "—" : formatCurrency(totalRevenue ?? 0)}
-          note={!canViewRevenue ? "Admin only" : "From closed won opportunities"}
+          label="Contacts vs Leads"
+          value={
+            isLoading || leadMetricsQuery.isLoading
+              ? "—"
+              : `${data?.metrics.total ?? 0} / ${leadMetricsQuery.data?.total ?? 0}`
+          }
+          note="Contacts on file vs. active leads"
           iconBg="#fff1c8"
           icon={
-            <DollarSign
+            <Users
               size={19}
               strokeWidth={1.8}
               className="text-[#f59e0b]"

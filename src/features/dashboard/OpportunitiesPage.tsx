@@ -27,6 +27,7 @@ import {
   matchesOpportunityFilters,
   type OpportunityFilterValues,
 } from "./components/OpportunityFilterModal";
+import { toCsv, downloadCsv } from "@/lib/csv";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -267,6 +268,29 @@ export function OpportunitiesPage({
   );
   const filtersActive = hasActiveOpportunityFilters(filters);
 
+  function handleExport() {
+    const header = [
+      "Opportunity ID", "Title", "Participants", "Property", "Deal Type", "Deal Size",
+      "Stage", "Status", "Probability", "Commission Amount", "Agent", "Expected Close", "Created At",
+    ];
+    const rows = filtered.map((o) => [
+      o.opportunityId,
+      o.title,
+      participantsLabel(o),
+      o.propertyTitle ?? "",
+      o.dealType ?? "",
+      o.dealSize ?? "",
+      STAGE_LABEL[o.stage] ?? o.stage,
+      o.status,
+      `${o.probability}%`,
+      o.commissionAmount ?? "",
+      o.assignedAgentName ?? "",
+      o.expectedCloseAt ? new Date(o.expectedCloseAt).toLocaleDateString("en-US") : "",
+      new Date(o.createdAt).toLocaleDateString("en-US"),
+    ]);
+    downloadCsv(`opportunities-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
+  }
+
   async function handleSubmit(values: OpportunityFormValues) {
     const payload = {
       title: values.title || "Untitled Opportunity",
@@ -381,7 +405,13 @@ export function OpportunitiesPage({
                 style={mont}
               />
             </div>
-            <button type="button" className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#99a1af] hover:bg-[#f3f4f6] transition-colors" style={mont}>
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={filtered.length === 0}
+              className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#4a5565] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
+              style={mont}
+            >
               Export CSV <Download size={16} />
             </button>
             <button

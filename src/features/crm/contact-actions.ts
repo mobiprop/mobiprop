@@ -6,7 +6,7 @@ import { logActivity } from "@/lib/activity-log";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
 import { ContactType } from "@/generated/prisma/enums";
-import { createContactSchema, updateContactSchema } from "@/schemas/contact.schema";
+import { createContactSchema, updateContactSchema, importContactRowSchema } from "@/schemas/contact.schema";
 import type { CreateContactInput, UpdateContactInput } from "@/schemas/contact.schema";
 import type { ContactDto, ContactMetrics } from "./types/crm-dto";
 
@@ -384,4 +384,71 @@ export async function deleteContact(
   });
 
   return { ok: true, id };
+}
+
+// ── CSV import ────────────────────────────────────────────────────────────────
+
+export type ImportContactsError = { row: number; message: string };
+
+export async function importContacts(
+  rawRows: unknown[],
+): Promise<CrmActionResult<{ created: number; skipped: number; errors: ImportContactsError[] }>> {
+  const gate = await requirePermission("contacts:import");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const errors: ImportContactsError[] = [];
+  let created = 0;
+
+  // Sequential on purpose: nextContactId()/findDuplicateContact() both read
+  // current table state, so rows must be processed one at a time to avoid two
+  // rows in the same file racing each other onto the same generated ID or
+  // both slipping past the duplicate check.
+  for (let i = 0; i < rawRows.length; i++) {
+    const rowNumber = i + 2; // +1 for 1-index, +1 for the header row
+    const parsed = importContactRowSchema.safeParse(rawRows[i]);
+    if (!parsed.success) {
+      errors.push({ row: rowNumber, message: parsed.error.issues[0]?.message ?? "Invalid row" });
+      continue;
+    }
+
+    const email = parsed.data.email || null;
+    const phone = parsed.data.phone || null;
+
+    const duplicate = await findDuplicateContact(email, phone);
+    if (duplicate) {
+      errors.push({
+        row: rowNumber,
+        message: `Matches existing contact ${duplicate.existing.contactId} (${duplicate.matchedOn})`,
+      });
+      continue;
+    }
+
+    const contactId = await nextContactId();
+    const contact = await prisma.contact.create({
+      data: {
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        email,
+        phone,
+        type: parsed.data.type,
+        location: parsed.data.location || null,
+        address: parsed.data.address || null,
+        notes: parsed.data.notes || null,
+        contactId,
+        createdById: gate.profile.id,
+      },
+    });
+
+    await logActivity({
+      actorId: gate.profile.id,
+      action: "CONTACT_CREATED",
+      entityType: "CONTACT",
+      entityId: contact.id,
+      newValues: { contactId: contact.contactId, firstName: contact.firstName, lastName: contact.lastName, type: contact.type, source: "CSV_IMPORT" },
+    });
+
+    created++;
+  }
+
+  return { ok: true, created, skipped: errors.length, errors };
 }

@@ -3,7 +3,11 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { notifyTourRequested, notifyTourStatusChanged } from "@/features/notifications/server/notify-events";
+import {
+  notifyTourRequested,
+  notifyTourAssigned,
+  notifyTourStatusChanged,
+} from "@/features/notifications/server/notify-events";
 import { TourStatus, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
@@ -141,7 +145,10 @@ async function nextContactId(): Promise<string> {
   const [row] = await prisma.$queryRaw<{ max: number | null }[]>`
     SELECT MAX(CAST(SUBSTRING(contact_id FROM 5) AS INTEGER)) AS max FROM contacts
   `;
-  return `CTT-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
+  // Must match contact-actions.ts's nextContactId() prefix ("CNT-") — this is
+  // a second, independent ID generator (find-or-create for the tour-booking
+  // flow) for the same Contact.contactId field.
+  return `CNT-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
 }
 
 // ── Include / DTO helpers ─────────────────────────────────────────────────────
@@ -553,6 +560,14 @@ export async function createTour(
     newValues: { tourNumber, source: d.source, contactCreated, leadCreated },
   });
 
+  await notifyTourRequested({
+    tourId: row.id,
+    leadId: row.leadId,
+    assignedAgentId: row.assignedAgentId,
+    actorId: gate.profile.id,
+    source: "DASHBOARD_CREATED",
+  });
+
   await createTourCalendarEvent({
     tourId: row.id,
     agentId: row.assignedAgentId,
@@ -670,13 +685,15 @@ const STATUS_ACTION_MAP: Record<TourStatus, string> = {
   [TourStatus.NO_SHOW]: "TOUR_NO_SHOW",
 };
 
-// Which status transitions emit a push/in-app notification (initial set).
+// Which status transitions emit a push/in-app notification.
 const TOUR_STATUS_NOTIFICATION: Partial<
-  Record<TourStatus, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED">
+  Record<TourStatus, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED" | "TOUR_COMPLETED" | "TOUR_NO_SHOW">
 > = {
   [TourStatus.CONFIRMED]: "TOUR_CONFIRMED",
   [TourStatus.RESCHEDULED]: "TOUR_RESCHEDULED",
   [TourStatus.CANCELLED]: "TOUR_CANCELLED",
+  [TourStatus.COMPLETED]: "TOUR_COMPLETED",
+  [TourStatus.NO_SHOW]: "TOUR_NO_SHOW",
 };
 
 export async function updateTourStatus(
@@ -831,6 +848,15 @@ export async function assignTourAgent(
     oldValues: { agentId: existing.assignedAgentId },
     newValues: { agentId: parsed.data.agentId },
   });
+
+  if (parsed.data.agentId) {
+    await notifyTourAssigned({
+      tourId: id,
+      leadId: row.leadId,
+      assignedAgentId: parsed.data.agentId,
+      actorId: gate.profile.id,
+    });
+  }
 
   const agentMap = await buildAgentMap([row.assignedAgentId]);
   return { ok: true, tour: await toTourDto(row, agentMap) };

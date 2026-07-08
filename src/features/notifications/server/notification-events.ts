@@ -71,7 +71,7 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
 
   // ── Listings ──
   LISTING_CREATED: {
-    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "MANAGERS_AND_ADMINS",
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ALL_STAFF",
     audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
   },
   LISTING_ASSIGNED: {
@@ -118,6 +118,10 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
     channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK",
     audience: STAFF, pushCategory: "tourUpdates", excludeActor: false, deduplicate: true, customerSafe: true,
   },
+  TOUR_ASSIGNED: {
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
   TOUR_CONFIRMED: {
     channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
     audience: ANY, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: true,
@@ -129,6 +133,14 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
   TOUR_CANCELLED: {
     channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
     audience: ANY, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: true,
+  },
+  TOUR_COMPLETED: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
+  },
+  TOUR_NO_SHOW: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    audience: STAFF, pushCategory: "tourUpdates", excludeActor: true, deduplicate: true, customerSafe: false,
   },
 
   // ── Opportunities (policies defined; module does not emit these yet). ──

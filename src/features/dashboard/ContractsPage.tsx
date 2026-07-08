@@ -24,6 +24,7 @@ import {
 import { AddContractModal, type ContractFormValues } from "./components/AddContractModal";
 import { ContractFilterPopover } from "./components/ContractFilterPopover";
 import { SearchableSelect } from "./components/SearchableSelect";
+import { toCsv, downloadCsv } from "@/lib/csv";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -325,6 +326,28 @@ export function ContractsPage({
     });
   }, [contracts, search, statusFilter]);
 
+  function handleExport() {
+    const header = [
+      "Contract ID", "Title", "Participants", "Listings", "Type", "Status",
+      "Value", "Start Date", "End Date", "Signed At", "Agent", "Created At",
+    ];
+    const rows = filtered.map((c) => [
+      c.contractId,
+      c.title,
+      participantsLabel(c),
+      listingsLabel(c),
+      c.type,
+      c.status,
+      c.value ?? "",
+      c.startDate ? new Date(c.startDate).toLocaleDateString("en-US") : "",
+      c.endDate ? new Date(c.endDate).toLocaleDateString("en-US") : "",
+      c.signedAt ? new Date(c.signedAt).toLocaleDateString("en-US") : "",
+      c.assignedAgentName ?? "",
+      new Date(c.createdAt).toLocaleDateString("en-US"),
+    ]);
+    downloadCsv(`contracts-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
+  }
+
   // Saves the contract and returns the persisted record so the modal can apply
   // its staged document uploads against the new id. The modal closes itself
   // after documents are handled (so files attach to a real contract, never an
@@ -385,7 +408,13 @@ export function ContractsPage({
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage and track all property contracts</p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
-          <button type="button" className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f9fafb] sm:px-4" style={mont}>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={filtered.length === 0}
+            className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] disabled:opacity-60 sm:px-4"
+            style={mont}
+          >
             <Share2 size={16} className="shrink-0" /><span className="truncate">Export</span>
           </button>
           {canCreate && (

@@ -317,7 +317,15 @@ export function notifyTourRequested(input: {
   leadId: string | null;
   assignedAgentId: string | null;
   actorId: string | null;
+  /** Public listing-page request vs. a staff member scheduling directly from
+   * the dashboard — same REQUESTED-status event, different wording. */
+  source?: "PUBLIC_REQUEST" | "DASHBOARD_CREATED";
 }): Promise<void> {
+  const content =
+    input.source === "DASHBOARD_CREATED"
+      ? { title: "Tour scheduled", body: "A property tour was scheduled on your calendar." }
+      : { title: "New tour request", body: "A customer requested a property visit." };
+
   return safe(
     () =>
       dispatchNotification({
@@ -328,9 +336,34 @@ export function notifyTourRequested(input: {
         entityId: input.tourId,
         actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
         // customer-safe: no submitter name / contact details in the body.
-        content: { title: "New tour request", body: "A customer requested a property visit." },
+        content,
       }),
     "notifyTourRequested",
+  );
+}
+
+export function notifyTourAssigned(input: {
+  tourId: string;
+  leadId: string | null;
+  assignedAgentId: string | null;
+  actorId: string | null;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "TOUR_ASSIGNED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        dedupeDiscriminator: input.assignedAgentId ?? "unassigned",
+        entityType: "TOUR",
+        entityId: input.tourId,
+        actionUrl: input.leadId ? `/dashboard/leads/${input.leadId}` : `/dashboard/leads`,
+        content: ({ isAssignedAgent }) =>
+          isAssignedAgent
+            ? { title: "Tour assigned to you", body: "A property tour has been assigned to you." }
+            : { title: "Tour reassigned", body: "A property tour was assigned to another agent." },
+      }),
+    "notifyTourAssigned",
   );
 }
 
@@ -338,13 +371,18 @@ const TOUR_STATUS_CONTENT: Partial<Record<NotificationType, NotificationContent>
   TOUR_CONFIRMED: { title: "Tour confirmed", body: "A property tour has been confirmed." },
   TOUR_RESCHEDULED: { title: "Tour rescheduled", body: "A property tour has been rescheduled." },
   TOUR_CANCELLED: { title: "Tour cancelled", body: "A property tour has been cancelled." },
+  TOUR_COMPLETED: { title: "Tour completed", body: "A property tour was marked completed." },
+  TOUR_NO_SHOW: { title: "Tour no-show", body: "A property tour was marked as a no-show." },
 };
 
 export function notifyTourStatusChanged(input: {
   tourId: string;
   leadId: string | null;
   assignedAgentId: string | null;
-  type: Extract<NotificationType, "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED">;
+  type: Extract<
+    NotificationType,
+    "TOUR_CONFIRMED" | "TOUR_RESCHEDULED" | "TOUR_CANCELLED" | "TOUR_COMPLETED" | "TOUR_NO_SHOW"
+  >;
   actorId: string | null;
   /** The tour's updatedAt — makes each genuine status change a distinct event
    * for dedupe (a retry shares it; a second reschedule does not). */

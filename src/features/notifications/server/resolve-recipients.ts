@@ -35,7 +35,7 @@ async function keepActive(ids: (string | null | undefined)[]): Promise<string[]>
 }
 
 /** Active profile ids for one or more roles. */
-async function activeIdsForRoles(roles: ("ADMIN" | "MANAGER")[]): Promise<string[]> {
+async function activeIdsForRoles(roles: ("ADMIN" | "MANAGER" | "AGENT")[]): Promise<string[]> {
   const rows = await prisma.profile.findMany({
     where: { role: { in: roles }, status: "ACTIVE" },
     select: { id: true },
@@ -64,6 +64,9 @@ export async function resolveByStrategy(
 
     case "MANAGERS_AND_ADMINS":
       return activeIdsForRoles(["ADMIN", "MANAGER"]);
+
+    case "ALL_STAFF":
+      return activeIdsForRoles(["ADMIN", "MANAGER", "AGENT"]);
 
     case "ASSIGNED_AGENT_PLUS_ADMINS":
       return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN"]))]);
