@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import type { TourDto, MyTourDto } from "@/features/crm/types/crm-dto";
 import type { TourListFilters } from "@/schemas/tour.schema";
+import type { MyContractDto } from "@/features/integrations/docusign-actions";
 
 // ── Tours list ────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,24 @@ export function useMyToursQuery(userId?: string) {
   return useQuery({
     queryKey: queryKeys.scheduledTours(userId ?? ""),
     queryFn: fetchMyTours,
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+}
+
+// ── My contracts (public user account) ───────────────────────────────────────
+
+async function fetchMyContracts(): Promise<MyContractDto[]> {
+  const res = await fetch("/api/contracts/mine");
+  if (!res.ok) throw new Error("Failed to fetch your contracts");
+  const json = await res.json();
+  return json.contracts;
+}
+
+export function useMyContractsQuery(userId?: string) {
+  return useQuery({
+    queryKey: queryKeys.myContracts(userId ?? ""),
+    queryFn: fetchMyContracts,
     enabled: !!userId,
     staleTime: 60_000,
   });

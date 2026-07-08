@@ -86,7 +86,7 @@ export async function resolveByStrategy(
       return activeIdsForRoles(["ADMIN", "MANAGER"]);
     }
 
-    case "CONTRACT_STAKEHOLDERS":
+    case "DOCUSIGN_STAKEHOLDERS":
       return keepActive([ctx.assignedAgentId, ...(await activeIdsForRoles(["ADMIN", "MANAGER"]))]);
 
     case "DIRECT_RECIPIENT":

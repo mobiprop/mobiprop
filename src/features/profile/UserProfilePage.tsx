@@ -14,10 +14,11 @@ import {
   MessageSquare,
   Heart, FileText, Calendar,
 } from "lucide-react";
-import { useMyToursQuery } from "@/hooks/queries/useDashboardToursQuery";
+import { useMyToursQuery, useMyContractsQuery } from "@/hooks/queries/useDashboardToursQuery";
 import { useCancelMyTourMutation } from "@/hooks/mutations/useTourMutations";
 import type { MyTourDto } from "@/features/crm/types/crm-dto";
-import { TOUR_STATUS_BADGE } from "@/features/crm/tour-status-badge";
+import type { MyContractDto } from "@/features/integrations/docusign-actions";
+import { TOUR_STATUS_BADGE, CONTRACT_STATUS_BADGE } from "@/features/crm/tour-status-badge";
 import { format } from "date-fns";
 import {
   listingDisplayPrice,
@@ -527,6 +528,40 @@ function TourCard({ tour, onCancel }: { tour: MyTourDto; onCancel: (id: string) 
   );
 }
 
+const CONTRACT_ROLE_LABEL: Record<NonNullable<MyContractDto["role"]>, string> = {
+  BUYER: "Buyer",
+  SELLER: "Seller",
+  AGENCY: "Agency",
+};
+
+function ContractCard({ contract }: { contract: MyContractDto }) {
+  const badge = CONTRACT_STATUS_BADGE[contract.status];
+  return (
+    <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <FileText size={16} color="#4f46e5" />
+          <span className="text-[14px] font-semibold text-[#0d2138]" style={{ fontFamily: montserrat }}>
+            {contract.templateName}
+          </span>
+        </div>
+        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.text, fontFamily: montserrat }}>
+          {badge.label}
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>
+        <span>Sent {format(new Date(contract.sentAt), "MMM d, yyyy")}</span>
+        {contract.completedAt && <span>Signed {format(new Date(contract.completedAt), "MMM d, yyyy")}</span>}
+        {contract.role && <span>Role: <span className="font-medium text-[#0d2138]">{CONTRACT_ROLE_LABEL[contract.role]}</span></span>}
+        {contract.opportunityNumber && <span>Opportunity: <span className="font-medium text-[#0d2138]">{contract.opportunityNumber}</span></span>}
+      </div>
+      {contract.propertyReference && (
+        <p className="text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>{contract.propertyReference}</p>
+      )}
+    </div>
+  );
+}
+
 function SavedPropertiesSection({
   listings,
   isLoading,
@@ -542,6 +577,8 @@ function SavedPropertiesSection({
   const { data: toursData, isLoading: toursLoading } = useMyToursQuery(profileId);
   const cancelTour = useCancelMyTourMutation(profileId);
   const tours = toursData ?? [];
+  const { data: contractsData, isLoading: contractsLoading } = useMyContractsQuery(profileId);
+  const contracts = contractsData ?? [];
 
   return (
     <section className="mx-auto max-w-[1440px] px-4 py-[32px] sm:px-6 sm:py-[40px] lg:px-[76px] lg:py-[48px]">
@@ -616,11 +653,32 @@ function SavedPropertiesSection({
           </>
         )}
         {activeTab === "My Contracts" && (
-          <div className="flex items-center justify-center h-[300px]">
-            <p className="text-[#6a7282] text-[16px]" style={{ fontFamily: montserrat }}>
-              No contracts found.
-            </p>
-          </div>
+          <>
+            {contractsLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <div className="animate-pulse flex flex-col gap-4 w-full max-w-lg">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="h-28 rounded-[16px] bg-[#eef1f5]" />
+                  ))}
+                </div>
+              </div>
+            ) : contracts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f3f4f6]">
+                  <FileText size={28} className="text-[#d1d5dc]" />
+                </div>
+                <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
+                  No contracts found.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 max-w-2xl">
+                {contracts.map((contract) => (
+                  <ContractCard key={contract.id} contract={contract} />
+                ))}
+              </div>
+            )}
+          </>
         )}
         {activeTab === "Scheduled tours" && (
           <>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -15,6 +16,7 @@ import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
 import { queryKeys } from "@/lib/query-keys";
 import { useGoogleCalendarStatusQuery } from "@/hooks/queries/useGoogleCalendarStatusQuery";
+import { useDocusignStatusQuery } from "@/hooks/queries/useDocusignQuery";
 import {
   MOCK_INTEGRATIONS,
   type Integration,
@@ -29,6 +31,7 @@ import { IntegrationDetailModal } from "./components/IntegrationDetailModal";
 import { GoogleCalendarManageModal } from "./components/GoogleCalendarManageModal";
 
 const GOOGLE_CALENDAR_ID = "google-calendar";
+const DOCUSIGN_ID = "docusign";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -222,7 +225,9 @@ export function IntegrationsPage({
   role,
 }: IntegrationsPageProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const calendarStatus = useGoogleCalendarStatusQuery();
+  const docusignStatus = useDocusignStatusQuery();
 
   const [integrations, setIntegrations] =
     useState<Integration[]>(MOCK_INTEGRATIONS);
@@ -241,13 +246,17 @@ export function IntegrationsPage({
     "integrations:manage",
   );
 
-  // Google Calendar's status comes from the real connection, not local mock
-  // state — every other card here is still purely decorative.
-  const displayIntegrations = integrations.map((integration) =>
-    integration.id === GOOGLE_CALENDAR_ID
-      ? { ...integration, status: calendarStatus.data?.status.connected ? "Connected" as const : "Available" as const }
-      : integration,
-  );
+  // Google Calendar and DocuSign's status come from real connections, not
+  // local mock state — every other card here is still purely decorative.
+  const displayIntegrations = integrations.map((integration) => {
+    if (integration.id === GOOGLE_CALENDAR_ID) {
+      return { ...integration, status: calendarStatus.data?.status.connected ? "Connected" as const : "Available" as const };
+    }
+    if (integration.id === DOCUSIGN_ID) {
+      return { ...integration, status: docusignStatus.data?.connected ? "Connected" as const : "Available" as const };
+    }
+    return integration;
+  });
 
   const connected = displayIntegrations.filter(
     (integration) =>
@@ -267,6 +276,10 @@ export function IntegrationsPage({
   function handleConnect(id: string) {
     if (id === GOOGLE_CALENDAR_ID) {
       window.location.href = "/api/integrations/google-calendar/connect";
+      return;
+    }
+    if (id === DOCUSIGN_ID) {
+      router.push("/dashboard/docusign");
       return;
     }
 
@@ -294,6 +307,10 @@ export function IntegrationsPage({
   function handleManage(id: string) {
     if (id === GOOGLE_CALENDAR_ID) {
       setShowGoogleCalendarManage(true);
+      return;
+    }
+    if (id === DOCUSIGN_ID) {
+      router.push("/dashboard/docusign");
       return;
     }
     setManageId(id);

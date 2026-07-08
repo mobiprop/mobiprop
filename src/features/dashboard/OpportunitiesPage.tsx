@@ -2,16 +2,14 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Search, Plus, DollarSign, FolderOpen, Trophy, BarChart3,
-  Filter, Download, MoreVertical, Pencil, Trash2, FileSignature, Loader2,
+  Filter, Download, MoreVertical, Pencil, Trash2, Loader2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { OpportunityStatus } from "@/generated/prisma/enums";
 import type { OpportunityDto } from "@/features/crm/types/crm-dto";
 import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
 import {
@@ -35,6 +33,12 @@ const mont = { fontFamily: "'Montserrat', sans-serif" };
 function participantsLabel(o: OpportunityDto): string {
   const names = o.participants.map((p) => p.contactName ?? p.companyName).filter((n): n is string => Boolean(n));
   return names.length ? names.join(", ") : "—";
+}
+
+/** Display label for the listings column/search/export — joins every linked property. */
+function listingsLabel(o: OpportunityDto): string {
+  const titles = o.listings.map((l) => l.propertyTitle);
+  return titles.length ? titles.join(", ") : "—";
 }
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
@@ -223,7 +227,6 @@ export function OpportunitiesPage({
   currentUserId: string;
   currentUserName: string;
 }) {
-  const router = useRouter();
   const [editing, setEditing] = useState<OpportunityDto | "new" | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState<OpportunityFilterValues>(EMPTY_OPPORTUNITY_FILTERS);
@@ -256,7 +259,7 @@ export function OpportunitiesPage({
         !q ||
         o.title.toLowerCase().includes(q) ||
         participantsLabel(o).toLowerCase().includes(q) ||
-        (o.propertyTitle ?? "").toLowerCase().includes(q) ||
+        listingsLabel(o).toLowerCase().includes(q) ||
         o.opportunityId.toLowerCase().includes(q);
       return matchesTab && matchesSearch;
     });
@@ -270,14 +273,14 @@ export function OpportunitiesPage({
 
   function handleExport() {
     const header = [
-      "Opportunity ID", "Title", "Participants", "Property", "Deal Type", "Deal Size",
+      "Opportunity ID", "Title", "Participants", "Listings", "Deal Type", "Deal Size",
       "Stage", "Status", "Probability", "Commission Amount", "Agent", "Expected Close", "Created At",
     ];
     const rows = filtered.map((o) => [
       o.opportunityId,
       o.title,
       participantsLabel(o),
-      o.propertyTitle ?? "",
+      listingsLabel(o),
       o.dealType ?? "",
       o.dealSize ?? "",
       STAGE_LABEL[o.stage] ?? o.stage,
@@ -291,7 +294,7 @@ export function OpportunitiesPage({
     downloadCsv(`opportunities-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
   }
 
-  async function handleSubmit(values: OpportunityFormValues) {
+  async function handleSubmit(values: OpportunityFormValues): Promise<OpportunityDto | null> {
     const payload = {
       title: values.title || "Untitled Opportunity",
       participants: values.participants.map((row) =>
@@ -299,7 +302,7 @@ export function OpportunitiesPage({
           ? { role: row.role, companyName: row.companyName.trim() }
           : { role: row.role, contactId: row.contactId },
       ),
-      propertyId: values.propertyId || undefined,
+      propertyIds: values.propertyIds,
       dealType: values.dealType,
       dealSize: values.dealSize ? Number(values.dealSize) : undefined,
       stage: values.stage,
@@ -319,15 +322,16 @@ export function OpportunitiesPage({
 
     try {
       if (editing && editing !== "new") {
-        await updateMutation.mutateAsync({ id: editing.id, body: payload });
+        const { opportunity } = await updateMutation.mutateAsync({ id: editing.id, body: payload });
         toast.success("Opportunity updated");
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success("Opportunity created");
+        return opportunity;
       }
-      setEditing(null);
+      const { opportunity } = await createMutation.mutateAsync(payload);
+      toast.success("Opportunity created");
+      return opportunity;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save opportunity");
+      return null;
     }
   }
 
@@ -484,9 +488,6 @@ export function OpportunitiesPage({
                         label={opp.title ?? opp.id}
                         items={[
                           { label: "Edit", icon: <Pencil size={14} className="text-[#1e4f86]" />, onClick: () => setEditing(opp) },
-                          ...(opp.status === OpportunityStatus.CLOSED_WON
-                            ? [{ label: "Create Contract", icon: <FileSignature size={14} className="text-[#1e4f86]" />, onClick: () => router.push(`/dashboard/contracts?fromOpportunity=${opp.id}`) }]
-                            : []),
                           ...(canDelete
                             ? [{ label: "Delete", icon: <Trash2 size={14} />, onClick: () => handleDelete(opp), danger: true }]
                             : []),

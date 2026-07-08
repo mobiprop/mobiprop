@@ -10,9 +10,14 @@ import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
 import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
+import {
+  mintOpportunityDocumentUploadTicket,
+  verifyUploadedOpportunityDocument,
+  removeOpportunityDocumentObject,
+} from "@/lib/supabase/storage";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
 import type { CreateOpportunityInput, UpdateOpportunityInput, ParticipantInput } from "@/schemas/opportunity.schema";
-import type { OpportunityDto, OpportunityMetrics, OpportunityParticipantDto } from "./types/crm-dto";
+import type { OpportunityDto, OpportunityMetrics, OpportunityParticipantDto, OpportunityListingDto, OpportunityDocumentDto } from "./types/crm-dto";
 
 export type { CrmActionError, CrmActionResult } from "./contact-actions";
 import type { CrmActionError } from "./contact-actions";
@@ -50,9 +55,13 @@ type ParticipantWithRelations = {
   contact: { firstName: string; lastName: string } | null;
 };
 
+type OpportunityListingWithRelations = {
+  propertyId: string;
+  property: { title: string; slug: string };
+};
+
 type OppWithRelations = {
   id: string; opportunityId: string; title: string;
-  propertyId: string | null;
   dealType: string | null; dealSize: unknown;
   stage: OpportunityStage; status: OpportunityStatus;
   probability: number; commission: unknown; commissionUnit: string | null;
@@ -63,7 +72,8 @@ type OppWithRelations = {
   assignedAgentId: string | null; createdById: string | null;
   createdAt: Date;
   participants: ParticipantWithRelations[];
-  property: { title: string; slug: string } | null;
+  listings: OpportunityListingWithRelations[];
+  documents: { id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: Date }[];
 };
 
 function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDto {
@@ -73,6 +83,14 @@ function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDt
     contactId: p.contactId,
     contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
     companyName: p.companyName,
+  };
+}
+
+function toOpportunityListingDto(l: OpportunityListingWithRelations): OpportunityListingDto {
+  return {
+    propertyId: l.propertyId,
+    propertyTitle: l.property.title,
+    propertySlug: l.property.slug,
   };
 }
 
@@ -89,9 +107,15 @@ function toOpportunityDto(
     opportunityId: o.opportunityId,
     title: o.title,
     participants: o.participants.map(toParticipantDto),
-    propertyId: o.propertyId,
-    propertyTitle: o.property?.title ?? null,
-    propertySlug: o.property?.slug ?? null,
+    listings: o.listings.map(toOpportunityListingDto),
+    documents: o.documents.map((d): OpportunityDocumentDto => ({
+      id: d.id,
+      fileName: d.fileName,
+      url: d.url,
+      mimeType: d.mimeType,
+      sizeBytes: d.sizeBytes,
+      createdAt: d.createdAt.toISOString(),
+    })),
     dealType: o.dealType,
     dealSize,
     stage: o.stage,
@@ -120,7 +144,10 @@ const opportunityInclude = {
     include: { contact: { select: { firstName: true, lastName: true } } },
     orderBy: { createdAt: "asc" },
   },
-  property: { select: { title: true, slug: true } },
+  listings: {
+    include: { property: { select: { title: true, slug: true } } },
+  },
+  documents: { orderBy: { createdAt: "desc" as const } },
 } as const;
 
 // ── List ──────────────────────────────────────────────────────────────────────
@@ -199,6 +226,25 @@ function participantsCreateData(participants: ParticipantInput[]) {
   }));
 }
 
+/** Confirms every linked propertyId is a real Property. */
+async function validateListingProperties(propertyIds: string[]): Promise<string | null> {
+  const ids = [...new Set(propertyIds)];
+  if (ids.length === 0) return null;
+
+  const found = await prisma.property.findMany({
+    where: { id: { in: ids } },
+    select: { id: true },
+  });
+  if (found.length !== ids.length) {
+    return "One of the selected listings was not found.";
+  }
+  return null;
+}
+
+function listingsCreateData(propertyIds: string[]) {
+  return propertyIds.map((propertyId) => ({ propertyId }));
+}
+
 // ── Create ────────────────────────────────────────────────────────────────────
 
 export async function createOpportunity(
@@ -212,10 +258,12 @@ export async function createOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { participants, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, propertyIds, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
 
   const contactError = await validateParticipantContacts(participants);
   if (contactError) return { ok: false, error: contactError, status: 422 };
+  const listingError = await validateListingProperties(propertyIds ?? []);
+  if (listingError) return { ok: false, error: listingError, status: 422 };
 
   const opportunityId = await nextOpportunityId();
 
@@ -223,7 +271,6 @@ export async function createOpportunity(
     data: {
       ...fields,
       opportunityId,
-      propertyId: fields.propertyId || null,
       // Agents can't see/choose other agents — force self-assignment so the deal
       // is always attributed to its creator. ADMIN/MANAGER (agents:view) keep
       // the agent they picked.
@@ -235,6 +282,7 @@ export async function createOpportunity(
       expectedCloseAt: expectedCloseAt ? new Date(expectedCloseAt) : null,
       createdById: gate.profile.id,
       participants: { create: participantsCreateData(participants) },
+      listings: { create: listingsCreateData(propertyIds ?? []) },
     },
     include: opportunityInclude,
   });
@@ -286,18 +334,21 @@ export async function updateOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { participants, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, propertyIds, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
 
   if (participants !== undefined) {
     const contactError = await validateParticipantContacts(participants);
     if (contactError) return { ok: false, error: contactError, status: 422 };
+  }
+  if (propertyIds !== undefined) {
+    const listingError = await validateListingProperties(propertyIds);
+    if (listingError) return { ok: false, error: listingError, status: 422 };
   }
 
   const opp = await prisma.opportunity.update({
     where: { id },
     data: {
       ...fields,
-      propertyId: fields.propertyId !== undefined ? (fields.propertyId || null) : undefined,
       contractStart: contractStart !== undefined ? (contractStart ? new Date(contractStart) : null) : undefined,
       contractEnd: contractEnd !== undefined ? (contractEnd ? new Date(contractEnd) : null) : undefined,
       expectedCloseAt: expectedCloseAt !== undefined ? (expectedCloseAt ? new Date(expectedCloseAt) : null) : undefined,
@@ -305,6 +356,9 @@ export async function updateOpportunity(
       // correct behavior for a small per-deal participant list.
       ...(participants !== undefined
         ? { participants: { deleteMany: {}, create: participantsCreateData(participants) } }
+        : {}),
+      ...(propertyIds !== undefined
+        ? { listings: { deleteMany: {}, create: listingsCreateData(propertyIds) } }
         : {}),
     },
     include: opportunityInclude,
@@ -367,73 +421,97 @@ export async function deleteOpportunity(id: string): Promise<CrmActionResult<{ i
   return { ok: true, id };
 }
 
-// ── Create Contract from a Won Opportunity (Option A pre-fill) ─────────────────
+// ── Documents ─────────────────────────────────────────────────────────────────
 
-export type ContractDraftParticipant = {
-  role: OpportunityParticipantRole;
-  contactId: string | null;
-  contactName: string | null;
-  companyName: string | null;
-};
-
-export type ContractDraft = {
-  title: string;
-  participants: ContractDraftParticipant[];
-  propertyIds: string[];
-  propertyTitles: string[];
-  assignedAgentId: string | null;
-  opportunityId: string;
-  opportunityNumber: string;
-  value: number | null;
-  startDate: string | null;
-  endDate: string | null;
-  type: "SALE" | "RENT" | "SALE_AND_RENT";
-};
-
-/**
- * Returns a pre-filled Contract draft from a CLOSED_WON Opportunity — the
- * human still confirms/saves it through the normal create-contract flow
- * (Option A, per the 2026-06-26 client decision: Opportunities and Contracts
- * stay separate, linked records with a one-click pre-fill, not a merge).
- */
-export async function createContractFromOpportunity(id: string): Promise<CrmActionResult<{ draft: ContractDraft }>> {
-  const gate = await requirePermission("contracts:create");
-  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
-
+async function assertOpportunityAccess(id: string, gate: { profile: Profile }): Promise<CrmActionError | null> {
   const scope = await opportunityRecordScope(gate.profile);
   const opp = await prisma.opportunity.findFirst({
     where: { id, isDeleted: false, ...scope },
-    include: {
-      participants: { include: { contact: { select: { firstName: true, lastName: true } } } },
-      property: { select: { title: true } },
-    },
+    select: { id: true },
   });
   if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
-  if (opp.status !== OpportunityStatus.CLOSED_WON) {
-    return { ok: false, error: "Only a Closed Won opportunity can be turned into a contract.", status: 400 };
-  }
+  return null;
+}
 
-  // A Contract can now hold the same multi-party list as the Opportunity —
-  // carry every participant over verbatim instead of picking one "primary"
-  // buyer/seller.
-  const draft: ContractDraft = {
-    title: opp.title,
-    participants: opp.participants.map((p) => ({
-      role: p.role,
-      contactId: p.contactId,
-      contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
-      companyName: p.companyName,
-    })),
-    propertyIds: opp.propertyId ? [opp.propertyId] : [],
-    propertyTitles: opp.property?.title ? [opp.property.title] : [],
-    assignedAgentId: opp.assignedAgentId,
-    opportunityId: opp.id,
-    opportunityNumber: opp.opportunityId,
-    value: opp.dealSize !== null ? Number(opp.dealSize) : null,
-    startDate: opp.contractStart?.toISOString() ?? null,
-    endDate: opp.contractEnd?.toISOString() ?? null,
-    type: opp.dealType === "Rent" ? "RENT" : "SALE",
+export async function mintOpportunityDocumentTicket(
+  opportunityId: string,
+  file: { name: string; type: string },
+): Promise<CrmActionResult<{ ticket: { documentId: string; storagePath: string; signedUrl: string; token: string } }>> {
+  const gate = await requirePermission("opportunities:uploadDocuments");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const accessError = await assertOpportunityAccess(opportunityId, gate);
+  if (accessError) return accessError;
+
+  const ticket = await mintOpportunityDocumentUploadTicket(opportunityId, file);
+  return { ok: true, ticket };
+}
+
+export async function addOpportunityDocument(
+  opportunityId: string,
+  storagePath: string,
+  fileName: string,
+): Promise<CrmActionResult<{ document: OpportunityDocumentDto }>> {
+  const gate = await requirePermission("opportunities:uploadDocuments");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const accessError = await assertOpportunityAccess(opportunityId, gate);
+  if (accessError) return accessError;
+
+  const verified = await verifyUploadedOpportunityDocument(opportunityId, storagePath);
+
+  const doc = await prisma.opportunityDocument.create({
+    data: {
+      opportunityId,
+      fileName,
+      storagePath: verified.storagePath,
+      url: verified.url,
+      mimeType: verified.mimeType,
+      sizeBytes: verified.sizeBytes,
+      uploadedById: gate.profile.id,
+    },
+  });
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "OPPORTUNITY_DOCUMENT_UPLOADED",
+    entityType: "OPPORTUNITY",
+    entityId: opportunityId,
+    newValues: { fileName: doc.fileName, mimeType: doc.mimeType, sizeBytes: doc.sizeBytes },
+  });
+
+  return {
+    ok: true,
+    document: {
+      id: doc.id, fileName: doc.fileName, url: doc.url, mimeType: doc.mimeType,
+      sizeBytes: doc.sizeBytes, createdAt: doc.createdAt.toISOString(),
+    },
   };
+}
 
-  return { ok: true, draft };
+export async function removeOpportunityDocument(
+  opportunityId: string,
+  documentId: string,
+): Promise<CrmActionResult<{ id: string }>> {
+  const gate = await requirePermission("opportunities:uploadDocuments");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const accessError = await assertOpportunityAccess(opportunityId, gate);
+  if (accessError) return accessError;
+
+  const doc = await prisma.opportunityDocument.findFirst({ where: { id: documentId, opportunityId } });
+  if (!doc) return { ok: false, error: "Document not found.", status: 404 };
+
+  await prisma.opportunityDocument.delete({ where: { id: documentId } });
+  await removeOpportunityDocumentObject(doc.storagePath);
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "OPPORTUNITY_DOCUMENT_REMOVED",
+    entityType: "OPPORTUNITY",
+    entityId: opportunityId,
+    oldValues: { fileName: doc.fileName },
+  });
+
+  return { ok: true, id: documentId };
 }

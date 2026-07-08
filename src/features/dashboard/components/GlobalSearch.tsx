@@ -10,7 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, Building2, Users, Briefcase, FileText, Loader2,
+  Search, Building2, Users, Briefcase, Loader2,
 } from "lucide-react";
 
 import { queryKeys } from "@/lib/query-keys";
@@ -19,7 +19,6 @@ import type {
   SearchListingResult,
   SearchContactResult,
   SearchOpportunityResult,
-  SearchContractResult,
 } from "@/app/api/dashboard/search/route";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -144,32 +143,12 @@ function OpportunityRow({ o, focused, onClick }: { o: SearchOpportunityResult; f
   );
 }
 
-function ContractRow({ c, focused, onClick }: { c: SearchContractResult; focused: boolean; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${focused ? "bg-[#f0f5ff]" : "hover:bg-[#f8fafc]"}`}>
-      <div className="size-9 rounded-[8px] bg-[#dcfce7] shrink-0 flex items-center justify-center">
-        <FileText size={14} className="text-[#10b981]" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-[#0d2138] truncate" style={mont}>{c.title}</p>
-        <p className="text-[11px] text-[#6a7282] truncate" style={mont}>
-          {c.contractId}
-          {c.contactName && ` · ${c.contactName}`}
-          {c.value !== null && ` · ${fmtMoney(c.value)}`}
-        </p>
-      </div>
-      <StatusChip status={c.status} />
-    </button>
-  );
-}
-
 // ── Flat result list for keyboard nav ─────────────────────────────────────────
 
 type NavItem =
   | { kind: "listing"; item: SearchListingResult }
   | { kind: "contact"; item: SearchContactResult }
-  | { kind: "opportunity"; item: SearchOpportunityResult }
-  | { kind: "contract"; item: SearchContractResult };
+  | { kind: "opportunity"; item: SearchOpportunityResult };
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -219,13 +198,11 @@ export function GlobalSearch() {
   const listings = data?.listings ?? [];
   const contacts = data?.contacts ?? [];
   const opportunities = data?.opportunities ?? [];
-  const contracts = data?.contracts ?? [];
 
   const navItems: NavItem[] = [
     ...listings.map((item) => ({ kind: "listing" as const, item })),
     ...contacts.map((item) => ({ kind: "contact" as const, item })),
     ...opportunities.map((item) => ({ kind: "opportunity" as const, item })),
-    ...contracts.map((item) => ({ kind: "contract" as const, item })),
   ];
 
   const hasResults = navItems.length > 0;
@@ -237,7 +214,6 @@ export function GlobalSearch() {
       case "listing":    return router.push(`/dashboard/listings?highlight=${nav.item.slug}`);
       case "contact":    return router.push(`/dashboard/contacts`);
       case "opportunity": return router.push(`/dashboard/opportunities`);
-      case "contract":   return router.push(`/dashboard/contracts`);
     }
   }, [router]);
 
@@ -329,17 +305,6 @@ export function GlobalSearch() {
                   {opportunities.map((o) => {
                     const idx = cursor++;
                     return <OpportunityRow key={o.id} o={o} focused={focusedIdx === idx} onClick={() => navigate({ kind: "opportunity", item: o })} />;
-                  })}
-                </div>
-              )}
-
-              {/* Contracts */}
-              {contracts.length > 0 && (
-                <div className={(listings.length + contacts.length + opportunities.length) > 0 ? "border-t border-[#f3f4f6] mt-1 pt-0" : ""}>
-                  <SectionHeader icon={<FileText size={12} />} label="Contracts" />
-                  {contracts.map((c) => {
-                    const idx = cursor++;
-                    return <ContractRow key={c.id} c={c} focused={focusedIdx === idx} onClick={() => navigate({ kind: "contract", item: c })} />;
                   })}
                 </div>
               )}

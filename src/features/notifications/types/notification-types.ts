@@ -28,9 +28,12 @@ export type NotificationType =
   | "OPPORTUNITY_STAGE_CHANGED"
   | "OPPORTUNITY_WON"
   | "OPPORTUNITY_LOST"
-  | "CONTRACT_CREATED"
-  | "CONTRACT_EXPIRING"
-  | "CONTRACT_EXPIRED"
+  | "DOCUSIGN_ENVELOPE_SENT"
+  | "DOCUSIGN_ENVELOPE_DELIVERED"
+  | "DOCUSIGN_ENVELOPE_COMPLETED"
+  | "DOCUSIGN_ENVELOPE_DECLINED"
+  | "DOCUSIGN_ENVELOPE_VOIDED"
+  | "DOCUSIGN_ENVELOPE_EXPIRING_SOON"
   | "MESSAGE_RECEIVED";
 
 /** Audience separation — staff-only operational events vs client-facing ones. */
@@ -62,7 +65,7 @@ export type RecipientStrategy =
   | "NEW_AND_PREV_AGENT_PLUS_ADMINS"
   | "LISTING_AGENT_WITH_MANAGEMENT_FALLBACK"
   | "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK"
-  | "CONTRACT_STAKEHOLDERS"
+  | "DOCUSIGN_STAKEHOLDERS"
   | "DIRECT_RECIPIENT";
 
 /** Safe status shape returned by GET /api/push/status (never exposes keys). */

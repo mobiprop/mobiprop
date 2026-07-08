@@ -61,7 +61,7 @@ function header(): string {
 }
 
 function hero(opts: { icon: string; eyebrow?: string; title: string; subtitle: string }): string {
-  return `<tr><td align="center" bgcolor="${BRAND.button}" style="background:linear-gradient(135deg,${BRAND.heroFrom} 0%,${BRAND.heroTo} 100%);padding:44px 32px 48px;">
+  return `<tr><td align="center" bgcolor="${BRAND.button}" style="background-color:${BRAND.button};background-image:linear-gradient(135deg,${BRAND.heroFrom} 0%,${BRAND.heroTo} 100%);padding:44px 32px 48px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
       <td align="center" valign="middle" style="width:64px;height:64px;border-radius:32px;background-color:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);">
         <img src="${APP_URL}/assets/email/${opts.icon}" width="30" height="30" alt="" style="display:block;margin:0 auto;border:0;" />

@@ -25,7 +25,8 @@ export type DashboardNotificationPreferences = {
   tourUpdates: boolean;
   listingUpdates: boolean;
   opportunityUpdates: boolean;
-  contractUpdates: boolean;
+  /** DocuSign envelope status updates (sent/completed/declined/voided/expiring). */
+  signatureUpdates: boolean;
   weeklyReports: boolean;
   marketingUpdates: boolean;
 };
@@ -69,7 +70,7 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
     tourUpdates: true,
     listingUpdates: true,
     opportunityUpdates: true,
-    contractUpdates: true,
+    signatureUpdates: true,
     weeklyReports: false,
     marketingUpdates: false,
   },

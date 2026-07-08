@@ -4,8 +4,10 @@ import type { ZodError } from "zod";
 
 import { redirect } from "next/navigation";
 
+import { Prisma } from "@/generated/prisma/client";
 import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -32,12 +34,59 @@ async function upsertProfileForUser(user: {
     typeof user.user_metadata?.full_name === "string"
       ? (user.user_metadata.full_name as string)
       : null;
+  const email = user.email ?? "";
 
-  await prisma.profile.upsert({
-    where: { id: user.id },
-    create: { id: user.id, email: user.email ?? "", fullName },
-    update: { email: user.email ?? "", ...(fullName ? { fullName } : {}) },
-  });
+  const upsert = () =>
+    prisma.profile.upsert({
+      where: { id: user.id },
+      create: { id: user.id, email, fullName },
+      update: { email, ...(fullName ? { fullName } : {}) },
+    });
+
+  try {
+    await upsert();
+  } catch (error) {
+    const isUniqueConflict =
+      error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+    if (!isUniqueConflict) throw error;
+
+    // Another profile row holds this email under a different id. Either its
+    // auth user was deleted (orphan row from a re-registered email) or that
+    // user's auth email has since changed and the profile copy is outdated.
+    const conflicting = await prisma.profile.findUnique({ where: { email } });
+    if (!conflicting || conflicting.id === user.id) throw error;
+
+    const admin = createAdminClient();
+    const { data, error: adminError } = await admin.auth.admin.getUserById(conflicting.id);
+
+    if (data?.user) {
+      // The other account still exists. If it genuinely owns this email,
+      // retrying can never succeed — surface the conflict to the caller.
+      if ((data.user.email ?? "") === email) throw error;
+      // Otherwise its auth email changed and the profile copy is stale —
+      // sync it to free the address.
+      await prisma.profile.update({
+        where: { id: conflicting.id },
+        data: { email: data.user.email ?? `stale-${conflicting.id}@invalid.local` },
+      });
+    } else if (adminError && adminError.status !== 404) {
+      // Couldn't confirm the other user is gone — don't touch their row.
+      throw error;
+    } else {
+      // Orphaned profile of a deleted auth user: remove it, or tombstone the
+      // email if related records block deletion.
+      try {
+        await prisma.profile.delete({ where: { id: conflicting.id } });
+      } catch {
+        await prisma.profile.update({
+          where: { id: conflicting.id },
+          data: { email: `deleted-${conflicting.id}@invalid.local` },
+        });
+      }
+    }
+
+    await upsert();
+  }
 }
 
 export async function signUpWithPassword(input: unknown): Promise<AuthActionResult> {
@@ -55,6 +104,12 @@ export async function signUpWithPassword(input: unknown): Promise<AuthActionResu
 
   if (error) return { error: error.message };
   if (!data.user) return { error: "Could not create your account. Please try again." };
+
+  // Supabase doesn't error when the email is already registered (to prevent
+  // account enumeration) — it returns an obfuscated user with no identities.
+  if (data.user.identities?.length === 0) {
+    return { error: "This email is already registered. Please sign in instead." };
+  }
 
   await upsertProfileForUser(data.user);
 

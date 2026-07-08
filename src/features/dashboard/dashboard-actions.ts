@@ -411,7 +411,7 @@ export async function getSalesByAgent(
       commissionUnit: true,
       updatedAt: true,
       assignedAgentId: true,
-      property: { select: { listingId: true, operationType: true } },
+      listings: { take: 1, select: { property: { select: { listingId: true, operationType: true } } } },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -424,12 +424,13 @@ export async function getSalesByAgent(
 
   const sales: SaleRow[] = rows.map((r) => {
     const agent = r.assignedAgentId ? agentById.get(r.assignedAgentId) : undefined;
+    const property = r.listings[0]?.property;
     return {
       opportunityId: r.opportunityId,
       agentId: r.assignedAgentId,
       agentName: agent ? agent.fullName ?? agent.email.split("@")[0] : "Unassigned",
-      listingId: r.property?.listingId ?? null,
-      operation: OPERATION_LABEL[r.property?.operationType ?? PropertyOperationType.SALE],
+      listingId: property?.listingId ?? null,
+      operation: OPERATION_LABEL[property?.operationType ?? PropertyOperationType.SALE],
       date: r.updatedAt.toISOString(),
       revenue: resolveCompanyRevenue(r),
     };

@@ -153,8 +153,8 @@ describe("decideChannels (preferences)", () => {
 
   it("critical events ignore the category toggle but honour the master switch", () => {
     const d = decideChannels(
-      "CONTRACT_EXPIRING",
-      profileWith({ pushEnabled: true, contractUpdates: false }),
+      "DOCUSIGN_ENVELOPE_EXPIRING_SOON",
+      profileWith({ pushEnabled: true, signatureUpdates: false }),
     );
     expect(d.push).toBe(true);
   });
