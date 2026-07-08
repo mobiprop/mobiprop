@@ -5,8 +5,9 @@ import { createAgentInvitation, listInvitations } from "@/features/auth/staff-ac
 export const runtime = "nodejs";
 
 /**
- * Admin-only: create a staff (AGENT/MANAGER) invitation. Authorization is
- * enforced inside createAgentInvitation via requirePermission("agents:invite").
+ * Admin-only: create a staff (AGENT/MANAGER/ADMIN) invitation. Authorization is
+ * enforced inside createAgentInvitation via requirePermission("agents:invite"),
+ * plus invitations:inviteAdmin when the invited role is ADMIN.
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);

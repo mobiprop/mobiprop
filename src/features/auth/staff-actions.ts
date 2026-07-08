@@ -13,7 +13,7 @@ import {
 } from "@/features/notifications/server/notify-events";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { canAccessDashboard, isAdmin } from "@/lib/permissions";
+import { canAccessDashboard, hasPermission, isAdmin } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
 import { generateInviteToken, hashInviteToken } from "@/lib/security/token";
 import {
@@ -83,8 +83,9 @@ export type CreateInvitationResult =
 /**
  * Admin-only: create a staff invitation, persist a hashed token, and email the
  * one-time accept link. The raw token is returned (inside the invite URL) only
- * to the caller — never stored. Role is constrained to AGENT/MANAGER; a USER
- * (or another ADMIN) can never be invited this way.
+ * to the caller — never stored. Role is constrained to AGENT/MANAGER/ADMIN; a
+ * USER can never be invited this way, and inviting an ADMIN requires the
+ * separate invitations:inviteAdmin permission.
  */
 export async function createAgentInvitation(
   input: unknown,
@@ -102,9 +103,16 @@ export async function createAgentInvitation(
   const { email, role, firstName, lastName, phone, location, notes, teamLeaderId } = parsed.data;
 
   // Defense-in-depth for the optional future where MANAGER gets agents:invite:
-  // a non-ADMIN inviter may only ever invite AGENTs, never MANAGERs (or above).
+  // a non-ADMIN inviter may only ever invite AGENTs, never MANAGERs or ADMINs.
   if (!isAdmin(inviter.role) && role !== "AGENT") {
     return { ok: false, error: "You can only invite agents." };
+  }
+
+  // Inviting an ADMIN is a privilege-escalation path — gate it on top of
+  // agents:invite with its own permission, checked against the inviter we
+  // already loaded above (no extra DB round-trip).
+  if (role === "ADMIN" && !hasPermission(inviter.role, "invitations:inviteAdmin")) {
+    return { ok: false, error: "You don't have permission to invite an Admin." };
   }
 
   if (teamLeaderId) {

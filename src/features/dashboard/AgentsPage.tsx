@@ -898,7 +898,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
   </div>
 </div>
 
-      {showModal && <AddAgentModal onClose={() => setShowModal(false)} />}
+      {showModal && <AddAgentModal viewerRole={role} onClose={() => setShowModal(false)} />}
       {editingAgent && (
         <EditAgentModal
           agent={editingAgent}

@@ -255,8 +255,11 @@ async function validateTeamLeader(agentId: string, teamLeaderId: string): Promis
 }
 
 /** Admin-only edit of an agent's profile fields — name/phone/city/role/notes/
- * team leader. Role is deliberately restricted to AGENT|MANAGER, mirroring the
- * invite flow: Admin is never assignable through this UI. */
+ * team leader. Role is deliberately restricted to AGENT|MANAGER: promoting to
+ * or demoting from ADMIN isn't supported through this endpoint (ADMIN accounts
+ * are only created via the invite flow's invitations:inviteAdmin gate). This
+ * also blocks a caller from using this endpoint to change an existing ADMIN's
+ * role at all — including their own — even by calling the API directly. */
 export async function updateAgent(
   agentId: string,
   input: UpdateAgentInput,
@@ -271,6 +274,10 @@ export async function updateAgent(
 
   if (input.role && input.role !== UserRole.AGENT && input.role !== UserRole.MANAGER) {
     return { ok: false, error: "Role must be AGENT or MANAGER.", status: 400 };
+  }
+
+  if (existing.role === UserRole.ADMIN && input.role) {
+    return { ok: false, error: "An Admin's role can't be changed here.", status: 403 };
   }
 
   if (input.teamLeaderId) {

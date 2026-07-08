@@ -44,7 +44,7 @@ function StatusBadge({ status }: { status: InviteStatus }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const ROLE_LABELS: Record<string, string> = { AGENT: "Agent", MANAGER: "Manager" };
+const ROLE_LABELS: Record<string, string> = { AGENT: "Agent", MANAGER: "Manager", ADMIN: "Administrator" };
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -315,6 +315,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
 
       {showModal && (
         <AddAgentModal
+          viewerRole={role}
           onClose={() => {
             setShowModal(false);
             refresh();

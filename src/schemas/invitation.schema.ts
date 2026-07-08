@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-// Admin-only: create an AGENT or MANAGER invitation. USER/ADMIN can never be
-// invited through this schema — role is intentionally restricted here.
+// Admin-only: create an AGENT, MANAGER, or ADMIN invitation. USER can never be
+// invited through this schema. Inviting an ADMIN additionally requires the
+// invitations:inviteAdmin permission — enforced in createAgentInvitation, not here.
 export const createInvitationSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),
-  role: z.enum(["AGENT", "MANAGER"]),
+  role: z.enum(["AGENT", "MANAGER", "ADMIN"]),
   firstName: z.string().trim().min(1).optional(),
   lastName: z.string().trim().min(1).optional(),
   phone: z.string().trim().min(1).optional(),

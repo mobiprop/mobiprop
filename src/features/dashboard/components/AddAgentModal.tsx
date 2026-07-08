@@ -5,20 +5,26 @@ import { X, Upload, Check, Copy } from "lucide-react";
 
 import { createAgentInvitation } from "@/features/auth/staff-actions";
 import type { AgentDto } from "@/features/agents/agent-actions";
+import type { Role } from "@/lib/permissions";
 import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
 type AddAgentModalProps = {
+  viewerRole: Role;
   onClose: () => void;
 };
 
 const ROLES = ["Agent", "Manager"] as const;
+const ADMIN_ROLE_LABEL = "Administrator";
 
 type InviteSuccess = { inviteUrl: string; emailSent: boolean; email: string };
 type TeamLeaderOption = { id: string; name: string };
 
-export function AddAgentModal({ onClose }: AddAgentModalProps) {
+export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
+  const canInviteAdmin = viewerRole === "ADMIN";
+  const roleOptions = canInviteAdmin ? [...ROLES, ADMIN_ROLE_LABEL] : ROLES;
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,12 +37,20 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
   const [notes, setNotes] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [adminConfirmed, setAdminConfirmed] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<InviteSuccess | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const isAdminRole = role === ADMIN_ROLE_LABEL;
+
+  function handleRoleChange(next: string) {
+    setRole(next);
+    if (next !== ADMIN_ROLE_LABEL) setAdminConfirmed(false);
+  }
 
   useEffect(() => {
     fetch("/api/dashboard/agents")
@@ -63,12 +77,16 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
+    if (isAdminRole && !adminConfirmed) {
+      setError("Confirm that this invite should grant full Administrator access.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
     const result = await createAgentInvitation({
       email: email.trim(),
-      role: role.toUpperCase(),
+      role: isAdminRole ? "ADMIN" : role.toUpperCase(),
       firstName: firstName.trim() || undefined,
       lastName: lastName.trim() || undefined,
       phone: phone.trim() || undefined,
@@ -339,8 +357,8 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
 
             <SearchableSelect
               value={role}
-              onChange={setRole}
-              options={ROLES.map((r) => ({ value: r, label: r }))}
+              onChange={handleRoleChange}
+              options={roleOptions.map((r) => ({ value: r, label: r }))}
               placeholder="Select role"
               searchable={false}
               size="sm"
@@ -393,6 +411,28 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
           </div>
         )}
 
+        {/* Admin step-up confirmation */}
+        {isAdminRole && (
+          <div className="rounded-[10px] border border-[#fde68a] bg-[#fffbeb] px-3 py-3">
+            <p className="text-[12px] font-medium text-[#92400e]" style={mont}>
+              You&rsquo;re inviting a new Administrator
+            </p>
+            <p className="mt-1 text-[11px] leading-4 text-[#92400e]" style={mont}>
+              Administrators have full access to all data, settings, and can invite or manage
+              other admins. This action is logged.
+            </p>
+            <label className="mt-2 flex items-start gap-2 text-[11px] text-[#92400e]" style={mont}>
+              <input
+                type="checkbox"
+                checked={adminConfirmed}
+                onChange={(e) => setAdminConfirmed(e.target.checked)}
+                className="mt-0.5"
+              />
+              I understand and want to grant full Administrator access to this person.
+            </label>
+          </div>
+        )}
+
         {/* Notes */}
         <div className="flex flex-col gap-1.5">
           <label
@@ -435,7 +475,7 @@ export function AddAgentModal({ onClose }: AddAgentModalProps) {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (isAdminRole && !adminConfirmed)}
             className="h-10 rounded-[10px] bg-[#1e4f86] text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:opacity-60 sm:text-[12px]"
             style={mont}
           >

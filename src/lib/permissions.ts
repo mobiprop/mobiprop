@@ -24,6 +24,10 @@ export type Permission =
   | "invitations:view"
   | "invitations:resend"
   | "invitations:revoke"
+  // Separate, narrower gate on top of "agents:invite": lets an inviter create
+  // an ADMIN-role invitation. Kept distinct so it can stay ADMIN-only even if
+  // "agents:invite" is ever extended to MANAGER.
+  | "invitations:inviteAdmin"
   | "contacts:view"
   // Unscoped visibility. ADMIN/MANAGER hold this; AGENT holders only see
   // contacts they created/are assigned to, or that are linked to a lead,
@@ -114,6 +118,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "invitations:view",
     "invitations:resend",
     "invitations:revoke",
+    "invitations:inviteAdmin",
     "contacts:view",
     "contacts:view_all",
     "contacts:create",

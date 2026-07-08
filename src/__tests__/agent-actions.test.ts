@@ -173,6 +173,24 @@ describe("updateAgent", () => {
     expect((res as { status: number }).status).toBe(404);
     expect(mockPrismaProfile.update).not.toHaveBeenCalled();
   });
+
+  it("refuses to change an existing Admin's role, even a non-role field update is fine", async () => {
+    mockPrismaProfile.findUnique.mockResolvedValue({
+      id: ADMIN_ID, role: "ADMIN", status: "ACTIVE", fullName: "Old Admin", phone: null, city: null, email: "admin2@test.com",
+    });
+
+    const blocked = await updateAgent(ADMIN_ID, { role: "MANAGER" });
+    expect(blocked.ok).toBe(false);
+    expect((blocked as { status: number }).status).toBe(403);
+    expect(mockPrismaProfile.update).not.toHaveBeenCalled();
+
+    mockPrismaProfile.update.mockResolvedValue({
+      id: ADMIN_ID, role: "ADMIN", status: "ACTIVE", fullName: "New Admin Name", phone: null, city: null, email: "admin2@test.com",
+      createdAt: new Date("2026-01-01"),
+    });
+    const allowed = await updateAgent(ADMIN_ID, { fullName: "New Admin Name" });
+    expect(allowed.ok).toBe(true);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
