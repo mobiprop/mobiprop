@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getPostLoginRedirect, resendSignUpOtp, sendMagicLink, verifyOtp } from "./actions";
 import { AuthBanner } from "./components/AuthBanner";
@@ -63,7 +63,6 @@ function IconHelp() {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OtpPageContent({ email: emailProp, backHref = "/register" }: OtpPageProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const email = emailProp ?? searchParams.get("email") ?? "";
@@ -91,14 +90,39 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     return () => clearTimeout(id);
   }, [seconds]);
 
+  const fillFrom = (index: number, text: string) => {
+    const digits = text.replace(/\D/g, "");
+    if (!digits) return;
+    const next = [...otp];
+    let i = index;
+    for (const d of digits) {
+      if (i >= OTP_LENGTH) break;
+      next[i] = d;
+      i += 1;
+    }
+    setOtp(next);
+    inputRefs.current[Math.min(i, OTP_LENGTH - 1)]?.focus();
+  };
+
   const handleInput = (index: number, value: string) => {
-    const char = value.replace(/\D/g, "").slice(-1);
+    const digits = value.replace(/\D/g, "");
+    // Multiple digits arrive when the code is pasted or autofilled into one box
+    if (digits.length > 1) {
+      fillFrom(index, digits);
+      return;
+    }
+    const char = digits.slice(-1);
     const next = [...otp];
     next[index] = char;
     setOtp(next);
     if (char && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
+  };
+
+  const handlePaste = (index: number, e: React.ClipboardEvent) => {
+    e.preventDefault();
+    fillFrom(index, e.clipboardData.getData("text"));
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -122,18 +146,20 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
 
     setIsVerifying(true);
     const result = await verifyOtp({ email, token, type: otpType });
-    setIsVerifying(false);
 
     if (result.error) {
+      setIsVerifying(false);
       flashBanner({ type: "error", title: "Verification failed", message: result.error });
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
       inputRefs.current[0]?.focus();
       return;
     }
 
+    // Hard navigation on purpose: the auth cookies just changed, and a soft
+    // router.push racing with router.refresh can cancel the transition and
+    // leave this screen stuck. Keep isVerifying=true until the page unloads.
     const redirectTo = await getPostLoginRedirect();
-    router.push(redirectTo);
-    router.refresh();
+    window.location.assign(redirectTo);
   };
 
   const handleResend = async () => {
@@ -245,10 +271,12 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
           }}
           type="text"
           inputMode="numeric"
-          maxLength={1}
+          autoComplete={i === 0 ? "one-time-code" : "off"}
+          maxLength={i === 0 ? OTP_LENGTH : 1}
           value={digit}
           onChange={(e) => handleInput(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={(e) => handlePaste(i, e)}
           className={`
             flex-1 min-w-0 w-0 h-[52px]
             text-center text-[24px] leading-[28px]

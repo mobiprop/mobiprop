@@ -65,6 +65,7 @@ export const queryKeys = {
   savedListings: (userId: string) => ["saved-listings", userId] as const,
   recentlyViewedListings: (userId: string) => ["recently-viewed-listings", userId] as const,
   scheduledTours: (userId: string) => ["scheduled-tours", userId] as const,
+  myContracts: (userId: string) => ["my-contracts", userId] as const,
   accountNotifications: (userId: string) => ["account-notifications", userId] as const,
 
   // Messages / inbox

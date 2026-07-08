@@ -288,8 +288,10 @@ export function LoginPageContent() {
       return;
     }
 
+    // Hard navigation on purpose: the auth cookies just changed, and a soft
+    // router.push can render stale logged-out UI from the router cache.
     const redirectTo = await getPostLoginRedirect();
-    router.push(redirectTo);
+    window.location.assign(redirectTo);
   };
 
   const mont = { fontFamily: "'Montserrat', sans-serif" };

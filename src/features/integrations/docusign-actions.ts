@@ -472,3 +472,66 @@ export async function applyEnvelopeWebhookEvent(input: {
   else if (input.status === EnvelopeStatus.DECLINED) void notifyEnvelopeDeclined(notifyInput);
   else if (input.status === EnvelopeStatus.VOIDED) void notifyEnvelopeVoided(notifyInput);
 }
+
+// ── "My Contracts" for authenticated public users ───────────────────────────
+
+export type MyContractDto = {
+  id: string;
+  templateName: string;
+  status: EnvelopeStatus;
+  role: "BUYER" | "SELLER" | "AGENCY" | null;
+  opportunityNumber: string | null;
+  propertyReference: string | null;
+  sentAt: string;
+  expiresAt: string | null;
+  completedAt: string | null;
+};
+
+export async function getMyContracts(profileId: string): Promise<MyContractDto[]> {
+  // Public users only see envelopes tied to an Opportunity they're a
+  // participant on (matched by contact email), or sent directly to their
+  // profile email — mirrors the getMyTours pattern.
+  const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true } });
+  if (!profile) return [];
+
+  const contact = await prisma.contact.findFirst({
+    where: { email: profile.email, isDeleted: false },
+    select: { opportunityParticipants: { select: { opportunityId: true, role: true } } },
+  });
+
+  const roleByOpportunity = new Map<string, "BUYER" | "SELLER" | "AGENCY">();
+  for (const p of contact?.opportunityParticipants ?? []) {
+    if (!roleByOpportunity.has(p.opportunityId)) roleByOpportunity.set(p.opportunityId, p.role);
+  }
+  const opportunityIds = [...roleByOpportunity.keys()];
+
+  const rows = await prisma.docusignEnvelope.findMany({
+    where: {
+      OR: [
+        ...(opportunityIds.length ? [{ opportunityId: { in: opportunityIds } }] : []),
+        { recipientEmail: profile.email },
+      ],
+    },
+    orderBy: { sentAt: "desc" },
+    include: { opportunity: { select: { opportunityId: true } } },
+  });
+
+  const seen = new Set<string>();
+  const contracts: MyContractDto[] = [];
+  for (const r of rows) {
+    if (seen.has(r.id)) continue;
+    seen.add(r.id);
+    contracts.push({
+      id: r.id,
+      templateName: r.templateName,
+      status: r.status,
+      role: r.opportunityId ? roleByOpportunity.get(r.opportunityId) ?? null : null,
+      opportunityNumber: r.opportunity?.opportunityId ?? null,
+      propertyReference: r.propertyReference,
+      sentAt: r.sentAt.toISOString(),
+      expiresAt: r.expiresAt?.toISOString() ?? null,
+      completedAt: r.completedAt?.toISOString() ?? null,
+    });
+  }
+  return contracts;
+}
