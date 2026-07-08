@@ -121,10 +121,9 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
           bg-black/35 backdrop-blur-[1px]
           transition-opacity duration-300
           lg:hidden
-          ${
-            sidebarOpen
-              ? "pointer-events-auto opacity-100"
-              : "pointer-events-none opacity-0"
+          ${sidebarOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
           }
         `}
       />
@@ -150,8 +149,8 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
         {/* Logo header */}
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] px-4 sm:px-5">
           <Link
-            href="/dashboard"
-            aria-label="Go to dashboard"
+            href="/"
+            aria-label="Go to home"
             className="flex min-w-0 items-center"
           >
             <img
@@ -219,10 +218,9 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                         px-3 text-[14px] font-medium
                         transition-colors
 
-                        ${
-                          active
-                            ? "border-[#b9c8d9] bg-[#eff6ff] text-[#1e4f86]"
-                            : "border-transparent text-[#343a40] hover:bg-[#f9fafb]"
+                        ${active
+                          ? "border-[#b9c8d9] bg-[#eff6ff] text-[#1e4f86]"
+                          : "border-transparent text-[#343a40] hover:bg-[#f9fafb]"
                         }
                       `}
                       style={mont}
@@ -230,9 +228,8 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                       <Icon
                         size={22}
                         strokeWidth={1.8}
-                        className={`shrink-0 ${
-                          active ? "text-[#1e4f86]" : "text-[#343a40]"
-                        }`}
+                        className={`shrink-0 ${active ? "text-[#1e4f86]" : "text-[#343a40]"
+                          }`}
                       />
 
                       <span className="min-w-0 flex-1 truncate">{item.label}</span>

@@ -24,6 +24,8 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
+  Upload,
+  Share2,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -523,16 +525,56 @@ export function LeadsPage({ role }: LeadsPageProps) {
           </p>
         </div>
 
-        {canCreate && (
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:w-auto"
-          >
-            <Plus size={16} strokeWidth={1.8} />
-            Add Leads
-          </button>
-        )}
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                toast.info("Lead import is coming soon!");
+                e.target.value = "";
+              }
+            }}
+            id="import-leads-input"
+          />
+          {canCreate && (
+            <label
+              htmlFor="import-leads-input"
+              className="flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] sm:px-4"
+              style={uiFont}
+            >
+              <Upload size={16} className="shrink-0" />
+              <span className="truncate">Import</span>
+            </label>
+          )}
+          {hasPermission(role, "leads:export") && (
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={isExporting || total === 0}
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] disabled:opacity-60 sm:px-4"
+              style={uiFont}
+            >
+              {isExporting ? (
+                <Loader2 size={16} className="shrink-0 animate-spin" />
+              ) : (
+                <Share2 size={16} className="shrink-0" />
+              )}
+              <span className="truncate">Export</span>
+            </button>
+          )}
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="col-span-2 flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:col-span-1 sm:px-4"
+            >
+              <Plus size={16} strokeWidth={1.8} />
+              <span className="truncate">Add Leads</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -642,18 +684,6 @@ export function LeadsPage({ role }: LeadsPageProps) {
                 className="h-full w-full"
               />
             </div>
-
-            {hasPermission(role, "leads:export") && (
-              <button
-                type="button"
-                onClick={handleExport}
-                disabled={isExporting || total === 0}
-                className="col-span-2 flex h-9 items-center justify-center gap-2 rounded-[9px] border border-[#dfe4ea] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f1f4f7] disabled:opacity-60 sm:col-span-1 sm:justify-start"
-              >
-                Export CSV
-                {isExporting ? <Loader2 size={14} strokeWidth={1.8} className="animate-spin" /> : <Download size={14} strokeWidth={1.8} />}
-              </button>
-            )}
           </div>
         </div>
 

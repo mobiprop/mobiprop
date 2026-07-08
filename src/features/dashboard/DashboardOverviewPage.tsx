@@ -373,9 +373,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
           {String(label).toUpperCase()}
         </span>
         <span
-          className={`flex h-6 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-            isPercentUp ? "bg-[#e8f7f0] text-[#10b981]" : "bg-[#fef2f2] text-[#ef4444]"
-          }`}
+          className={`flex h-6 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${isPercentUp ? "bg-[#e8f7f0] text-[#10b981]" : "bg-[#fef2f2] text-[#ef4444]"
+            }`}
           style={mont}
         >
           {isPercentUp ? (
@@ -478,9 +477,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
           Gap
         </span>
         <span
-          className={`text-[15px] font-bold ${
-            gap >= 0 ? "text-[#059669]" : "text-[#ef4444]"
-          }`}
+          className={`text-[15px] font-bold ${gap >= 0 ? "text-[#059669]" : "text-[#ef4444]"
+            }`}
           style={poppins}
         >
           {gapFormatted}
@@ -497,12 +495,12 @@ type DashboardOverviewProps = {
   firstName: string;
 };
 
-const CHART_TABS = ["Mensual", "Semanal", "Diario"] as const;
+const CHART_TABS = ["Monthly", "Weekly", "Daily"] as const;
 
 const GRANULARITY_FOR_TAB: Record<(typeof CHART_TABS)[number], ChartGranularity> = {
-  Mensual: "monthly",
-  Semanal: "weekly",
-  Diario: "daily",
+  Monthly: "monthly",
+  Weekly: "weekly",
+  Daily: "daily",
 };
 
 function csvCell(value: string | number): string {
@@ -525,7 +523,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
   const [customFrom, setCustomFrom] = useState(customDateRange.from ?? "");
   const [customTo, setCustomTo] = useState(customDateRange.to ?? "");
 
-  const [chartTab, setChartTab] = useState<(typeof CHART_TABS)[number]>("Mensual");
+  const [chartTab, setChartTab] = useState<(typeof CHART_TABS)[number]>("Monthly");
   const [mounted, setMounted] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -646,7 +644,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 className="h-10 shrink-0 rounded-[10px] bg-[#1e4f86] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-50 sm:text-[14px]"
                 style={mont}
               >
-                Aplicar
+                Apply
               </button>
             </div>
           )}
@@ -733,7 +731,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
           <div className="h-[210px] w-full min-w-0 sm:h-[230px] lg:h-[185px]">
             {mounted && !chartQuery.isLoading && chartData.length > 0 && (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -28, bottom: 0 }}>
                   <defs>
                     <linearGradient id="grad-revenue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#ff3545" stopOpacity={0.18} />
