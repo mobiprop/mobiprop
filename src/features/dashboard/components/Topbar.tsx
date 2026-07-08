@@ -46,11 +46,10 @@ export function Topbar() {
             onClick={() => toggle("notifications")}
             aria-label="Open notifications"
             aria-expanded={open === "notifications"}
-            className={`relative flex size-9 items-center justify-center overflow-visible rounded-[9px] transition-colors ${
-              open === "notifications"
+            className={`relative flex size-9 items-center justify-center overflow-visible rounded-[9px] transition-colors ${open === "notifications"
                 ? "bg-[#eff6ff] text-[#1e4f86]"
                 : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
-            }`}
+              }`}
           >
             <Bell size={20} className="sm:size-[22px]" />
 
@@ -72,7 +71,7 @@ export function Topbar() {
         </div>
 
         {/* Calendar */}
-        <div ref={calRef} className="relative">
+        {/* <div ref={calRef} className="relative">
           <button
             type="button"
             onClick={() => toggle("calendar")}
@@ -92,7 +91,7 @@ export function Topbar() {
               <CalendarPanel onClose={() => setOpen(null)} />
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </header>
   );
