@@ -15,6 +15,10 @@ export type ListingImageDto = {
   sortOrder: number;
   isCover: boolean;
   altText: string | null;
+  /** Native pixel size, when known. Migrated listings can be undersized —
+   *  the gallery uses this to avoid upscaling a small source past quality. */
+  width: number | null;
+  height: number | null;
 };
 
 /** Full shape for the dashboard table/grid and the edit modal. Staff only. */

@@ -34,10 +34,12 @@ export async function GET(request: Request) {
     maxArea: numberParam(params, "maxArea"),
     amenities: params.getAll("amenities"),
     featured: params.get("featured") === "true",
+    page: numberParam(params, "page"),
+    pageSize: numberParam(params, "pageSize"),
   };
 
   const result = await listPublicListings(filters);
-  return NextResponse.json({ success: true, listings: result.listings });
+  return NextResponse.json({ success: true, listings: result.listings, total: result.total });
 }
 
 /**

@@ -2,8 +2,6 @@
 
 import type { ZodError } from "zod";
 
-import { redirect } from "next/navigation";
-
 import { Prisma } from "@/generated/prisma/client";
 import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
@@ -226,10 +224,4 @@ export async function getPostLoginRedirect(): Promise<string> {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-}
-
-export async function logoutAction() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
 }

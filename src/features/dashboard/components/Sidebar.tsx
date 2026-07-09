@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 
-import { logoutAction } from "@/features/auth/actions";
+import { signOut } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/client";
 import { DASHBOARD_NAV } from "@/config/dashboard-nav";
 import { hasPermission } from "@/lib/permissions";
@@ -46,11 +46,17 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
 
   // Sign out the browser-side Supabase client first: it's a singleton (shared
   // with NotificationRealtime) that keeps its own session + auto-refresh timer
-  // independent of the server cookies `logoutAction` clears. Skipping this step
+  // independent of the server cookies `signOut` clears. Skipping this step
   // is what let a stale session survive a same-tab account switch.
+  //
+  // Using a hard navigation (not router.push/refresh or a redirecting server
+  // action) is deliberate: the client Router Cache can otherwise serve a
+  // stale, still-authenticated RSC payload for the destination route, so the
+  // dashboard chrome doesn't disappear until a manual reload.
   async function handleLogout() {
     await createClient().auth.signOut();
-    await logoutAction();
+    await signOut();
+    window.location.href = "/login";
   }
 
   // Route change par sidebar close

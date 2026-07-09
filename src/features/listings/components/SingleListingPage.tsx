@@ -7,7 +7,7 @@ import { ScheduleTourModal } from "./ScheduleTourModal";
 import { ImageLightbox } from "./ImageLightbox";
 import svgPaths from "./singleListingSvgPaths";
 import type { PublicListingAgent } from "../listing-actions";
-import type { PublicListingDto } from "../types/listing-dto";
+import type { ListingImageDto, PublicListingDto } from "../types/listing-dto";
 import type { AmenityKey } from "@/schemas/listing.schema";
 import { AMENITY_OPTIONS } from "@/schemas/listing.schema";
 import {
@@ -16,6 +16,17 @@ import {
   formatSalePrice,
 } from "../utils/format";
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
+
+// Below this native pixel size on its shorter side, stretching a photo across
+// the full-bleed hero box (object-cover) would upscale it noticeably — many
+// WordPress-migrated photos are this small. Below the threshold we letterbox
+// (object-contain on a blurred backdrop) instead of forcing the crop.
+const HERO_MIN_SAFE_DIMENSION = 800;
+
+function isHeroUnsafe(image: Pick<ListingImageDto, "width" | "height"> | null): boolean {
+  if (!image || image.width === null || image.height === null) return false;
+  return Math.min(image.width, image.height) < HERO_MIN_SAFE_DIMENSION;
+}
 
 const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.webp";
@@ -932,7 +943,14 @@ export function SingleListingPageContent({
 
   // Cover first, then the rest in their stored order — this is the order the
   // lightbox pages through, so the thumbnails' indexes map straight into it.
-  const mainImage = listing.images.find((img) => img.isCover) ?? listing.images[0] ?? null;
+  // If the flagged cover is undersized, prefer a safer photo for the hero
+  // slot rather than upscaling it (see isHeroUnsafe) — the flagged cover
+  // still stays first among the side thumbnails/lightbox order otherwise.
+  const flaggedCover = listing.images.find((img) => img.isCover) ?? listing.images[0] ?? null;
+  const mainImage =
+    flaggedCover && isHeroUnsafe(flaggedCover)
+      ? (listing.images.find((img) => !isHeroUnsafe(img)) ?? flaggedCover)
+      : flaggedCover;
   const images = mainImage
     ? [mainImage, ...listing.images.filter((img) => img !== mainImage)]
     : listing.images;
@@ -983,11 +1001,27 @@ export function SingleListingPageContent({
               aria-label="Open image gallery"
               className="group absolute inset-0 h-full w-full cursor-zoom-in disabled:cursor-default"
             >
-              <img
-                src={mainImage?.url ?? fallbackImg}
-                alt={mainImage?.altText ?? listing.title}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              />
+              {mainImage && isHeroUnsafe(mainImage) ? (
+                <>
+                  <img
+                    src={mainImage.url}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-50"
+                  />
+                  <img
+                    src={mainImage.url}
+                    alt={mainImage.altText ?? listing.title}
+                    className="relative h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                </>
+              ) : (
+                <img
+                  src={mainImage?.url ?? fallbackImg}
+                  alt={mainImage?.altText ?? listing.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              )}
 
               {/* Expand hint */}
               {mainImage ? (

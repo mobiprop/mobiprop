@@ -20,6 +20,13 @@ type MessageRow = { conversation_id: string };
  *
  * Mounted in the dashboard layout with the server-resolved userId. Render-null.
  * Requires the 20260703010100_enable_messages_realtime migration.
+ *
+ * Auth ordering matters here: postgres_changes subscriptions are RLS-checked
+ * server-side using the JWT attached to the *first* phx_join for the channel.
+ * A fresh client's session hasn't necessarily reached the realtime socket yet
+ * when this effect runs, so subscribing immediately can join as `anon` (which
+ * has no column privileges on `messages`) and get silently rejected forever —
+ * setAuth() must be awaited before .subscribe() so the join carries the token.
  */
 export function MessagesRealtime({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
@@ -27,6 +34,8 @@ export function MessagesRealtime({ userId }: { userId: string }) {
   useEffect(() => {
     if (!userId) return;
     const supabase = createClient();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const invalidate = (payload: RealtimePostgresChangesPayload<MessageRow>) => {
       const row = (payload.new as MessageRow | undefined) ?? (payload.old as MessageRow | undefined);
@@ -37,22 +46,32 @@ export function MessagesRealtime({ userId }: { userId: string }) {
       }
     };
 
-    const channel = supabase
-      .channel(`messages:${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages", filter: `recipient_id=eq.${userId}` },
-        invalidate,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages", filter: `sender_id=eq.${userId}` },
-        invalidate,
-      )
-      .subscribe();
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled || !session) return;
+      await supabase.realtime.setAuth(session.access_token);
+      if (cancelled) return;
+
+      channel = supabase
+        .channel(`messages:${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages", filter: `recipient_id=eq.${userId}` },
+          invalidate,
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "messages", filter: `sender_id=eq.${userId}` },
+          invalidate,
+        )
+        .subscribe();
+    })();
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
   }, [userId, queryClient]);
 

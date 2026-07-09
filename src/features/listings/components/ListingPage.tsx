@@ -7,7 +7,11 @@ import { queryKeys } from "@/lib/query-keys";
 import { useShallow } from "zustand/react/shallow";
 import svgPaths from "./svgPaths";
 import { FiltersModal, type FiltersState } from "./FiltersModal";
-import { useListingsQuery } from "@/hooks/queries/useListingsQuery";
+import {
+  LISTINGS_PAGE_SIZE as PAGE_SIZE,
+  useListingsQuery,
+  useMapListingsQuery,
+} from "@/hooks/queries/useListingsQuery";
 import {
   useListingFilterStore,
   type PropertyType as PropertyTypeFilter,
@@ -436,7 +440,6 @@ const MODAL_AMENITY_KEYS: Record<string, string> = {
   Water: "WATER",
   "Tennis Court": "TENNIS_COURT",
 };
-const PAGE_SIZE = 9;
 
 /* ─── search-bar dropdown (styled like the Figma pill fields) ─── */
 function SearchBarDropdown<T extends string>({
@@ -586,8 +589,12 @@ const { data: locData } = useQuery({
 });
 const locationSuggestions: string[] = (locData as { locations?: string[] } | undefined)?.locations ?? [];
 
-const { data, isLoading, isError } = useListingsQuery();
+const { data, isLoading, isError } = useListingsQuery(page);
 const listings: PublicListingDto[] = useMemo(() => data?.listings ?? [], [data]);
+const total = data?.total ?? 0;
+
+const { data: mapData } = useMapListingsQuery(isMapOpen);
+const mapListings: PublicListingDto[] = useMemo(() => mapData?.listings ?? [], [mapData]);
 
 const { data: featuredData } = useQuery({
   queryKey: ["listings", "public-featured"],
@@ -599,9 +606,8 @@ const { data: featuredData } = useQuery({
 });
 const suggestions: PublicListingDto[] = (featuredData?.listings ?? []).slice(0, 3);
 
-const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE));
+const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 const safePage = Math.min(page, totalPages);
-const pageListings = listings.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 // Snap back to page 1 whenever the result set changes.
 const filterKey = JSON.stringify(filters);
 useEffect(() => setPage(1), [filterKey]);
@@ -610,8 +616,8 @@ const resultsHeading = isLoading
   ? "Searching properties…"
   : isError
     ? "We couldn't load listings right now"
-    : `${filters.location ? `${filters.location}: ` : ""}${listings.length} ${
-        listings.length === 1 ? "property" : "properties"
+    : `${filters.location ? `${filters.location}: ` : ""}${total} ${
+        total === 1 ? "property" : "properties"
       } found`;
 
 function commitLocation(value: string) {
@@ -929,9 +935,9 @@ return (
          </div>
          ))}
       </div>
-      ) : pageListings.length > 0 ? (
+      ) : listings.length > 0 ? (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
-         {pageListings.map((item) => (
+         {listings.map((item) => (
          <PropertyCard key={item.slug} item={item} />
          ))}
       </div>
@@ -966,7 +972,7 @@ return (
       </div>
       )}
       {/* Pagination */}
-      {!isLoading && listings.length > PAGE_SIZE ? (
+      {!isLoading && total > PAGE_SIZE ? (
       <div className="mt-8 sm:mt-10 flex justify-center">
          <Pagination current={safePage} total={totalPages} onChange={setPage} />
       </div>
@@ -1004,7 +1010,7 @@ return (
 </section>
 ) : null}
 {isMapOpen ? (
-  <PropertyMapModal listings={listings} onClose={() => setIsMapOpen(false)} />
+  <PropertyMapModal listings={mapListings} onClose={() => setIsMapOpen(false)} />
 ) : null}
 {isFiltersOpen ? (
 <FiltersModal
