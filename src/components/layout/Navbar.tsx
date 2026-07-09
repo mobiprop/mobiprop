@@ -42,7 +42,6 @@ function Avatar({ user, size }: { user: NavUser; size: "sm" | "md" }) {
 }
 
 function ProfileMenu({ user }: { user: NavUser }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -62,8 +61,12 @@ function ProfileMenu({ user }: { user: NavUser }) {
     await createClient().auth.signOut();
     await signOut();
     setOpen(false);
-    router.push("/");
-    router.refresh();
+    // Hard navigation instead of router.push+refresh: refresh() targets
+    // whatever route is "current" at dispatch time, which can still be the
+    // pre-navigation page since push() hasn't committed yet — so the "/"
+    // landing can render from the stale (still-authenticated) Router Cache
+    // entry until a manual reload. A full navigation sidesteps that cache.
+    window.location.href = "/";
   }
 
   return (
@@ -140,7 +143,6 @@ const navLinks = [
 export function Navbar({ initialUser = null }: { initialUser?: NavUser | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -271,10 +273,12 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <button
             type="button"
             onClick={async () => {
+              await createClient().auth.signOut();
               await signOut();
               setMenuOpen(false);
-              router.push("/");
-              router.refresh();
+              // See ProfileMenu.handleLogout: hard navigation avoids landing
+              // on a stale, still-authenticated Router Cache entry for "/".
+              window.location.href = "/";
             }}
             className="text-left rounded-xl px-4 py-3 text-[15px] font-medium text-[#e7000b] hover:bg-[#fef2f2] transition-colors"
             style={poppins}

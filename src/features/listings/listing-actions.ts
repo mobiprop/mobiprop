@@ -144,6 +144,8 @@ function toImageDto(image: PropertyWithRelations["images"][number]): ListingImag
     sortOrder: image.sortOrder,
     isCover: image.isCover,
     altText: image.altText,
+    width: image.width,
+    height: image.height,
   };
 }
 
@@ -1127,11 +1129,16 @@ export type PublicListingFilters = {
   maxArea?: number;
   amenities?: string[];
   featured?: boolean;
+  /** 1-based. Omit for callers that just want "all matching" (e.g. the map). */
+  page?: number;
+  /** Defaults to 500 — comfortably above current inventory — for callers
+   *  that don't paginate. The listings grid passes its real page size. */
+  pageSize?: number;
 };
 
 export async function listPublicListings(
   filters: PublicListingFilters,
-): Promise<{ listings: PublicListingDto[] }> {
+): Promise<{ listings: PublicListingDto[]; total: number }> {
   const where: Prisma.PropertyWhereInput = { status: PropertyStatus.ACTIVE };
 
   if (filters.location) {
@@ -1169,14 +1176,22 @@ export async function listPublicListings(
   }
   if (filters.featured) where.isFeatured = true;
 
-  const properties = await prisma.property.findMany({
-    where,
-    include: listingInclude,
-    orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
-    take: 100,
-  });
+  const page = filters.page && filters.page > 0 ? Math.floor(filters.page) : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? Math.floor(filters.pageSize) : 500;
 
-  return { listings: properties.map(toPublicDto) };
+  const [properties, total] = await Promise.all([
+    prisma.property.findMany({
+      where,
+      include: listingInclude,
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.property.count({ where }),
+  ]);
+
+  return { listings: properties.map(toPublicDto), total };
 }
 
 /** Public-safe assigned agent info shown on the listing detail page. */
@@ -1264,4 +1279,63 @@ export async function listPublicLocationSuggestions(query: string): Promise<stri
   });
 
   return rows.map((row) => row.name);
+}
+
+export type PublicFeaturedLocationDto = {
+  id: string;
+  name: string;
+  activeListings: number;
+  coverImageUrl: string | null;
+};
+
+/**
+ * Public: the locations with the most ACTIVE inventory right now, each with
+ * a representative photo (its newest active listing's cover image) — powers
+ * the homepage "Featured Spots" section. Locations without any active
+ * listing never appear, since there'd be nothing to click through to.
+ */
+export async function listPublicFeaturedLocations(
+  limit = 5,
+): Promise<PublicFeaturedLocationDto[]> {
+  const grouped = await prisma.property.groupBy({
+    by: ["locationId"],
+    where: { status: PropertyStatus.ACTIVE, locationId: { not: null } },
+    _count: { _all: true },
+    orderBy: { _count: { locationId: "desc" } },
+    take: limit,
+  });
+  if (grouped.length === 0) return [];
+
+  const locationIds = grouped.map((g) => g.locationId).filter((id): id is string => id !== null);
+
+  const [locations, coverProperties] = await Promise.all([
+    prisma.location.findMany({
+      where: { id: { in: locationIds } },
+      select: { id: true, name: true },
+    }),
+    // One representative (newest) ACTIVE listing per location, for its cover photo.
+    prisma.property.findMany({
+      where: { locationId: { in: locationIds }, status: PropertyStatus.ACTIVE },
+      distinct: ["locationId"],
+      orderBy: [{ locationId: "asc" }, { createdAt: "desc" }],
+      select: {
+        locationId: true,
+        images: { where: { isCover: true }, take: 1, select: { url: true } },
+      },
+    }),
+  ]);
+
+  const nameById = new Map(locations.map((l) => [l.id, l.name]));
+  const coverById = new Map(
+    coverProperties.map((p) => [p.locationId as string, p.images[0]?.url ?? null]),
+  );
+
+  return grouped
+    .filter((g): g is typeof g & { locationId: string } => g.locationId !== null && nameById.has(g.locationId))
+    .map((g) => ({
+      id: g.locationId,
+      name: nameById.get(g.locationId)!,
+      activeListings: g._count._all,
+      coverImageUrl: coverById.get(g.locationId) ?? null,
+    }));
 }

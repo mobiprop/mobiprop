@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import svgPaths from "@/assets/svg-6s7nojygyu";
+import type { PublicFeaturedLocationDto } from "../listings/listing-actions";
 
-const img1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/matrilande.webp";
-const img2 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/mayling.webp";
-const img3 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/aryes.webp";
-const img4 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/pilar.webp";
-const img5 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/vihana.webp";
+const fallbackImg =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/pilar.webp";
 
 function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
   return (
@@ -18,18 +17,64 @@ function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
   );
 }
 
-const tabs = ["All", "Gated Communities", "Condominiums", "Office Buildings", "Mixed Use"];
+function SpotCard({
+  spot,
+  imgHeight,
+  emphasize,
+}: {
+  spot: PublicFeaturedLocationDto;
+  imgHeight: string;
+  emphasize: boolean;
+}) {
+  return (
+    <Link href={`/listings?location=${encodeURIComponent(spot.name)}`} className="flex flex-col gap-5 group">
+      <div className={`${imgHeight} rounded-[24px] overflow-hidden bg-[#f3f4f6]`}>
+        <img
+          src={spot.coverImageUrl ?? fallbackImg}
+          alt={spot.name}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        />
+      </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#0d2138] leading-[24px] sm:leading-[26px] lg:leading-[28px]"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {spot.name}
+          </p>
+          <p
+            className="mt-1 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038]"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            {spot.activeListings} {spot.activeListings === 1 ? "listing" : "listings"}
+          </p>
+        </div>
 
-const spots = [
-  { id: 1, img: img1, name: "Martindale", type: "Country Club", featured: true },
-  { id: 2, img: img2, name: "Mayling", type: "Country Club", featured: false },
-  { id: 3, img: img3, name: "Ayres de Pilar", type: "Barrio Privado", featured: false },
-  { id: 4, img: img4, name: "Bouquet Pilar", type: "Condominio", featured: false },
-  { id: 5, img: img5, name: "Vilahaus", type: "Condominio", featured: false },
-];
+        <div
+          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 border border-[#d1d5dc] ${
+            emphasize ? "bg-[#1e4f86]" : "bg-[#f8fafc]"
+          }`}
+        >
+          <ArrowUpRight color={emphasize ? "white" : "#0D2138"} />
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export function FeaturedSpots() {
-  const [activeTab, setActiveTab] = useState("Condominiums");
+  const { data, isLoading } = useQuery({
+    queryKey: ["listings", "featured-locations"],
+    queryFn: async () => {
+      const res = await fetch("/api/listings/featured-locations");
+      if (!res.ok) throw new Error("Failed to fetch featured locations");
+      return res.json();
+    },
+  });
+  const spots: PublicFeaturedLocationDto[] = data?.locations ?? [];
+
+  if (!isLoading && spots.length === 0) return null;
 
   return (
     <section className="bg-white py-16 lg:py-20">
@@ -56,94 +101,42 @@ export function FeaturedSpots() {
               className="mt-3 text-[14px] sm:text-[16px] text-[#2b3038] max-w-[460px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              Explore the cities our clients love for their comfort and market strength
+              Explore the areas with the most listings right now
             </p>
           </div>
+        </div>
 
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-[6px] rounded-[60px] text-[14px] transition-all ${
-                  activeTab === tab
-                    ? "bg-[#1e4f86] text-white font-medium"
-                    : "bg-white border border-[#f3f4f6] text-[#2b3038]"
-                }`}
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                {tab}
-              </button>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-5 animate-pulse">
+                <div className="h-[300px] lg:h-[400px] rounded-[24px] bg-[#f3f4f6]" />
+                <div className="flex flex-col gap-2">
+                  <div className="h-5 w-1/2 rounded bg-[#f3f4f6]" />
+                  <div className="h-4 w-1/3 rounded bg-[#f3f4f6]" />
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-
-        {/* Top row: 2 large cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {spots.slice(0, 2).map((spot, i) => (
-            <div key={spot.id} className="flex flex-col gap-5">
-              <div className="h-[300px] lg:h-[400px] rounded-[24px] overflow-hidden bg-[#f3f4f6]">
-                <img src={spot.img} alt={spot.name} className="w-full h-full object-cover" />
-              </div>
-             <div className="flex items-start justify-between gap-3">
-  <div className="min-w-0">
-    <p
-      className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#0d2138] leading-[24px] sm:leading-[26px] lg:leading-[28px]"
-      style={{ fontFamily: "Poppins, sans-serif" }}
-    >
-      {spot.name}
-    </p>
-
-    <p
-      className="mt-1 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038]"
-      style={{ fontFamily: "Montserrat, sans-serif" }}
-    >
-      {spot.type}
-    </p>
-  </div>
-
-  <button
-    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 border border-[#d1d5dc] ${
-      i === 0 ? "bg-[#1e4f86]" : "bg-[#f8fafc]"
-    }`}
-  >
-    <ArrowUpRight color={i === 0 ? "white" : "#0D2138"} />
-  </button>
-</div>
+        ) : (
+          <>
+            {/* Top row: 2 large cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {spots.slice(0, 2).map((spot, i) => (
+                <SpotCard key={spot.id} spot={spot} imgHeight="h-[300px] lg:h-[400px]" emphasize={i === 0} />
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Bottom row: 3 smaller cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {spots.slice(2).map((spot) => (
-            <div key={spot.id} className="flex flex-col gap-5">
-              <div className="h-[240px] rounded-[20px] overflow-hidden bg-[#f3f4f6]">
-                <img src={spot.img} alt={spot.name} className="w-full h-full object-cover" />
+            {/* Bottom row: up to 3 smaller cards */}
+            {spots.length > 2 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {spots.slice(2).map((spot) => (
+                  <SpotCard key={spot.id} spot={spot} imgHeight="h-[240px]" emphasize={false} />
+                ))}
               </div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p
-                    className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium  text-[#0d2138] leading-[28px]"
-                    style={{ fontFamily: "Poppins, sans-serif" }}
-                  >
-                    {spot.name}
-                  </p>
-                  <p
-                    className="text-[16px] text-[#2b3038]"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
-                  >
-                    {spot.type}
-                  </p>
-                </div>
-                <button className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-[#f8fafc] border border-[#d1d5dc]">
-                  <ArrowUpRight />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ) : null}
+          </>
+        )}
       </div>
     </section>
   );

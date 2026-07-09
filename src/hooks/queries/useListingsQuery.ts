@@ -4,6 +4,10 @@ import { useShallow } from "zustand/react/shallow";
 import { queryKeys } from "@/lib/query-keys";
 import { useListingFilterStore } from "@/stores/useListingFilterStore";
 
+/** Cards per page on the public listings grid. Server-paginated — keep in
+ *  sync with the `pageSize` the grid asks for. */
+export const LISTINGS_PAGE_SIZE = 15;
+
 async function fetchListings(filters: Record<string, unknown>) {
   const params = new URLSearchParams();
 
@@ -27,7 +31,9 @@ async function fetchListings(filters: Record<string, unknown>) {
   return response.json();
 }
 
-export function useListingsQuery() {
+/** Paginated grid results — one server-fetched page of `LISTINGS_PAGE_SIZE`
+ *  listings plus the total match count, not the whole result set. */
+export function useListingsQuery(page: number) {
   // useShallow keeps this selector from returning a new object every render
   // (required with Zustand v5 to avoid infinite re-render loops).
   const filters = useListingFilterStore(
@@ -45,8 +51,35 @@ export function useListingsQuery() {
     }))
   );
 
+  const queryFilters = { ...filters, page, pageSize: LISTINGS_PAGE_SIZE };
+
   return useQuery({
-    queryKey: queryKeys.listings(filters),
+    queryKey: queryKeys.listings(queryFilters),
+    queryFn: () => fetchListings(queryFilters),
+  });
+}
+
+/** Unpaginated (up to the server's default cap) — for the map view, which
+ *  shows every matching pin rather than one grid page at a time. */
+export function useMapListingsQuery(enabled: boolean) {
+  const filters = useListingFilterStore(
+    useShallow((state) => ({
+      location: state.location,
+      propertyType: state.propertyType,
+      transactionType: state.transactionType,
+      minPrice: state.minPrice,
+      maxPrice: state.maxPrice,
+      bedrooms: state.bedrooms,
+      bathrooms: state.bathrooms,
+      minArea: state.minArea,
+      maxArea: state.maxArea,
+      amenities: state.amenities,
+    }))
+  );
+
+  return useQuery({
+    queryKey: queryKeys.mapListings(filters),
     queryFn: () => fetchListings(filters),
+    enabled,
   });
 }
