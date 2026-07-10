@@ -104,9 +104,16 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
   );
 
   // Mark the open conversation read once per unread arrival — ref-guarded so
-  // this doesn't refire every render while the mutation is in flight.
+  // this doesn't refire every render while the mutation is in flight. The ref
+  // is cleared once unreadCount actually reaches 0 so a *later* message
+  // arriving in the same already-open conversation is marked read again too,
+  // instead of being permanently blocked by the first mark-read.
   useEffect(() => {
-    if (!activeConversation || activeConversation.unreadCount === 0) return;
+    if (!activeConversation) return;
+    if (activeConversation.unreadCount === 0) {
+      if (markedReadRef.current === activeConversation.id) markedReadRef.current = null;
+      return;
+    }
     if (markedReadRef.current === activeConversation.id) return;
     markedReadRef.current = activeConversation.id;
     markRead.mutate();

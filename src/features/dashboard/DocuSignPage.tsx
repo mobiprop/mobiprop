@@ -30,22 +30,30 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 type DocuSignTab = "overview" | "envelopes" | "templates" | "settings";
 
-const STATUS_BADGE: Record<EnvelopeStatus, { bg: string; text: string; label: string }> = {
-  SENT: { bg: "#fef3c7", text: "#b45309", label: "Awaiting" },
-  DELIVERED: { bg: "#fef3c7", text: "#b45309", label: "Awaiting" },
-  COMPLETED: { bg: "#dcfce7", text: "#16a34a", label: "Completed" },
-  DECLINED: { bg: "#fee2e2", text: "#dc2626", label: "Declined" },
-  VOIDED: { bg: "#f3f4f6", text: "#6a7282", label: "Voided" },
+// Page accent — the app's standard theme blue (client asked the earlier
+// DocuSign-purple accent to be replaced with the house colour).
+const DS_ACCENT = "#1e4f86";
+const DS_ACCENT_SOFT = "#eff6ff";
+
+const STATUS_BADGE: Record<EnvelopeStatus, { bg: string; text: string; dot: string; label: string }> = {
+  SENT: { bg: "#fef3e2", text: "#b45309", dot: "#f59e0b", label: "Awaiting" },
+  DELIVERED: { bg: "#e6fbf8", text: "#0f766e", dot: "#14b8a6", label: "Viewed" },
+  COMPLETED: { bg: "#dcfce7", text: "#16a34a", dot: "#22c55e", label: "Completed" },
+  DECLINED: { bg: "#fee2e2", text: "#dc2626", dot: "#ef4444", label: "Declined" },
+  VOIDED: { bg: "#f3f4f6", text: "#6a7282", dot: "#9ca3af", label: "Voided" },
 };
 
-function StatCard({ label, value, sub, iconBg, icon }: {
-  label: string; value: number; sub: string; iconBg: string; icon: React.ReactNode;
+function StatCard({ label, value, sub, iconBg, iconColor, accent, icon }: {
+  label: string; value: number; sub: string; iconBg: string; iconColor: string; accent: string; icon: React.ReactNode;
 }) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
+    <div
+      className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6"
+      style={{ borderTop: `3px solid ${accent}` }}
+    >
       <div className="flex items-start justify-between gap-7">
         <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
-        <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
+        <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg, color: iconColor }}>
           {icon}
         </span>
       </div>
@@ -57,10 +65,24 @@ function StatCard({ label, value, sub, iconBg, icon }: {
   );
 }
 
+/** A small 4-block "flag" mark echoing DocuSign's own multi-colour brand mark. */
+function DocuSignMark({ size = 20 }: { size?: number }) {
+  const s = size / 2 - 1;
+  return (
+    <span className="grid grid-cols-2 gap-[2px]" style={{ width: size, height: size }}>
+      <span className="rounded-[2px]" style={{ width: s, height: s, backgroundColor: "#F5A623" }} />
+      <span className="rounded-[2px]" style={{ width: s, height: s, backgroundColor: "#14B8A6" }} />
+      <span className="rounded-[2px]" style={{ width: s, height: s, backgroundColor: "#EF4444" }} />
+      <span className="rounded-[2px]" style={{ width: s, height: s, backgroundColor: DS_ACCENT }} />
+    </span>
+  );
+}
+
 function StatusBadge({ status }: { status: EnvelopeStatus }) {
   const s = STATUS_BADGE[status];
   return (
-    <span className="inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap" style={{ backgroundColor: s.bg, color: s.text, ...mont }}>
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap" style={{ backgroundColor: s.bg, color: s.text, ...mont }}>
+      <span className="size-1.5 rounded-full shrink-0" style={{ backgroundColor: s.dot }} />
       {s.label}
     </span>
   );
@@ -117,11 +139,17 @@ export function DocuSignPage({ role }: { role: Role }) {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[#eff6ff] text-[#1e4f86]">
+          <span
+            className="flex size-10 shrink-0 items-center justify-center rounded-[10px]"
+            style={{ background: `linear-gradient(135deg, ${DS_ACCENT} 0%, #1a5ea8 100%)`, color: "white" }}
+          >
             <FileSignature size={20} />
           </span>
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>DocuSign</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>DocuSign</h1>
+              <DocuSignMark size={16} />
+            </div>
             <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Electronic signature &amp; contract management</p>
           </div>
         </div>
@@ -139,7 +167,7 @@ export function DocuSignPage({ role }: { role: Role }) {
             <button
               type="button"
               onClick={() => openSendModal()}
-              className="flex items-center gap-2 h-10 px-4 bg-[#1e4f86] text-white rounded-[10px] text-[14px] font-medium hover:bg-[#1b487a] transition-colors"
+              className="flex items-center gap-2 h-10 px-4 text-white rounded-[10px] text-[14px] font-medium transition-colors bg-[#1e4f86] hover:bg-[#1b487a]"
               style={mont}
             >
               <Plus size={16} /> Send for Signature
@@ -150,10 +178,10 @@ export function DocuSignPage({ role }: { role: Role }) {
 
       {/* Stat cards */}
       <div className="flex flex-wrap gap-3.5">
-        <StatCard label="Total Sent" value={isLoading ? 0 : stats?.totalSent ?? 0} sub="All time" iconBg="#dbeafe" icon={<FileText size={18} className="text-[#1e4f86]" />} />
-        <StatCard label="Awaiting Signature" value={isLoading ? 0 : stats?.awaitingSignature ?? 0} sub="Pending action" iconBg="#fef3c7" icon={<Clock size={18} className="text-[#b45309]" />} />
-        <StatCard label="Completed" value={isLoading ? 0 : stats?.completed ?? 0} sub="Signed & filed" iconBg="#dcfce7" icon={<CheckCircle2 size={18} className="text-[#16a34a]" />} />
-        <StatCard label="Declined / Voided" value={isLoading ? 0 : stats?.declinedOrVoided ?? 0} sub="Require action" iconBg="#fee2e2" icon={<XCircle size={18} className="text-[#dc2626]" />} />
+        <StatCard label="Total Sent" value={isLoading ? 0 : stats?.totalSent ?? 0} sub="All time" accent={DS_ACCENT} iconBg={DS_ACCENT_SOFT} iconColor={DS_ACCENT} icon={<FileText size={18} />} />
+        <StatCard label="Awaiting Signature" value={isLoading ? 0 : stats?.awaitingSignature ?? 0} sub="Pending action" accent="#f59e0b" iconBg="#fef3e2" iconColor="#b45309" icon={<Clock size={18} />} />
+        <StatCard label="Completed" value={isLoading ? 0 : stats?.completed ?? 0} sub="Signed & filed" accent="#22c55e" iconBg="#dcfce7" iconColor="#16a34a" icon={<CheckCircle2 size={18} />} />
+        <StatCard label="Declined / Voided" value={isLoading ? 0 : stats?.declinedOrVoided ?? 0} sub="Require action" accent="#ef4444" iconBg="#fee2e2" iconColor="#dc2626" icon={<XCircle size={18} />} />
       </div>
 
       {/* Tabs */}
@@ -165,15 +193,16 @@ export function DocuSignPage({ role }: { role: Role }) {
           ...(canManageSettings ? [{ id: "settings" as const, label: "Settings", icon: SettingsIcon }] : []),
         ] as { id: DocuSignTab; label: string; icon: typeof LayoutGrid }[]).map((tab) => {
           const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 h-8 px-3 rounded-[8px] text-[13px] font-medium transition-colors ${
-                activeTab === tab.id ? "bg-white text-[#1e4f86] shadow-[0_1px_2px_rgba(15,23,42,0.06)]" : "text-[#6a7282] hover:text-[#0d2138]"
+                isActive ? "" : "text-[#6a7282] hover:text-[#0d2138]"
               }`}
-              style={mont}
+              style={isActive ? { backgroundColor: "white", color: DS_ACCENT, boxShadow: "0 1px 2px rgba(15,23,42,0.06)", ...mont } : mont}
             >
               <Icon size={14} /> {tab.label}
             </button>
@@ -306,9 +335,9 @@ export function DocuSignPage({ role }: { role: Role }) {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {templates.map((t) => (
-                <div key={t.templateId} className="flex flex-col gap-3 rounded-[14px] border border-[#e5e7eb] bg-white p-4">
+                <div key={t.templateId} className="flex flex-col gap-3 rounded-[14px] border border-[#e5e7eb] bg-white p-4 hover:border-[#c9bdf5] transition-colors">
                   <div className="flex items-start gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-[8px] bg-[#f3f4f6] text-[#6a7282]">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-[8px]" style={{ backgroundColor: DS_ACCENT_SOFT, color: DS_ACCENT }}>
                       <FileText size={16} />
                     </span>
                     <div className="flex min-w-0 flex-col">
