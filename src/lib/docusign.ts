@@ -220,8 +220,18 @@ export async function voidEnvelope(envelopeId: string, reason: string): Promise<
 
 /** Triggers DocuSign to resend the signing-request email to every pending recipient. */
 export async function resendEnvelope(envelopeId: string): Promise<void> {
+  // resend_envelope=true requires the recipients to resend to in the body —
+  // an empty body is rejected with "No recipients specified".
+  const recipients = await docusignFetch<{ signers?: { recipientId?: string }[] }>(
+    `/envelopes/${envelopeId}/recipients`,
+  );
+  const signers = (recipients.signers ?? [])
+    .filter((s) => s.recipientId)
+    .map((s) => ({ recipientId: s.recipientId }));
+  if (signers.length === 0) throw new Error("This envelope has no signers to resend to.");
+
   await docusignFetch(`/envelopes/${envelopeId}/recipients?resend_envelope=true`, {
     method: "PUT",
-    body: JSON.stringify({}),
+    body: JSON.stringify({ signers }),
   });
 }

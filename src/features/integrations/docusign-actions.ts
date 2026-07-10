@@ -196,14 +196,19 @@ export async function sendEnvelopeForSignature(
     return { ok: false, error: "DocuSign is not configured yet.", status: 503 };
   }
 
-  const created = await createEnvelopeFromTemplate({
-    templateId: input.templateId,
-    recipientName: input.recipientName,
-    recipientEmail: input.recipientEmail,
-    propertyReference: input.propertyReference,
-    expiresInDays: input.expiresInDays,
-    message: input.message,
-  });
+  let created;
+  try {
+    created = await createEnvelopeFromTemplate({
+      templateId: input.templateId,
+      recipientName: input.recipientName,
+      recipientEmail: input.recipientEmail,
+      propertyReference: input.propertyReference,
+      expiresInDays: input.expiresInDays,
+      message: input.message,
+    });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to send the envelope via DocuSign.", status: 502 };
+  }
 
   const defaultExpiryDays = input.expiresInDays ?? (await getSettingsRow()).defaultExpiryDays;
   const expiresAt = new Date(Date.now() + defaultExpiryDays * 24 * 60 * 60 * 1000);
@@ -260,7 +265,18 @@ export async function voidEnvelopeAction(id: string, reason: string): Promise<Ac
   const access = await assertEnvelopeAccess(id, gate);
   if ("ok" in access) return access;
 
-  await docusignVoidEnvelope(access.envelope.docusignEnvelopeId, reason);
+  if (access.envelope.status === EnvelopeStatus.VOIDED) {
+    return { ok: false, error: "This envelope is already voided.", status: 409 };
+  }
+  if (access.envelope.status === EnvelopeStatus.COMPLETED || access.envelope.status === EnvelopeStatus.DECLINED) {
+    return { ok: false, error: "Completed or declined envelopes can no longer be voided.", status: 409 };
+  }
+
+  try {
+    await docusignVoidEnvelope(access.envelope.docusignEnvelopeId, reason);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to void the envelope via DocuSign.", status: 502 };
+  }
   await prisma.docusignEnvelope.update({
     where: { id },
     data: { status: EnvelopeStatus.VOIDED, voidedReason: reason },
@@ -292,7 +308,15 @@ export async function resendEnvelopeAction(id: string): Promise<ActionResult<{ i
   const access = await assertEnvelopeAccess(id, gate);
   if ("ok" in access) return access;
 
-  await docusignResendEnvelope(access.envelope.docusignEnvelopeId);
+  if (access.envelope.status !== EnvelopeStatus.SENT && access.envelope.status !== EnvelopeStatus.DELIVERED) {
+    return { ok: false, error: "Only envelopes awaiting signature can be resent.", status: 409 };
+  }
+
+  try {
+    await docusignResendEnvelope(access.envelope.docusignEnvelopeId);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to resend the envelope via DocuSign.", status: 502 };
+  }
 
   await logActivity({
     actorId: gate.profile.id,
