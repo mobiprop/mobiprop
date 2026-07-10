@@ -12,6 +12,7 @@ import {
   voidEnvelope as docusignVoidEnvelope,
   resendEnvelope as docusignResendEnvelope,
   listTemplates as docusignListTemplates,
+  getTemplatePageImage,
   isDocusignConfigured,
   type DocusignTemplateSummary,
 } from "@/lib/docusign";
@@ -170,6 +171,24 @@ export async function listAvailableTemplates(): Promise<ActionResult<{ templates
     return { ok: true, templates, usedCounts };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Failed to load DocuSign templates.", status: 502 };
+  }
+}
+
+export async function getTemplatePreviewImage(
+  templateId: string,
+): Promise<ActionResult<{ contentType: string; buffer: Buffer }>> {
+  const gate = await requirePermission("docusign:view");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  if (!isDocusignConfigured()) {
+    return { ok: false, error: "DocuSign is not configured yet.", status: 503 };
+  }
+
+  try {
+    const image = await getTemplatePageImage(templateId);
+    return { ok: true, ...image };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to load template preview.", status: 502 };
   }
 }
 

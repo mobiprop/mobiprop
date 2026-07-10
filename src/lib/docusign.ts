@@ -162,6 +162,33 @@ export async function listTemplates(): Promise<DocusignTemplateSummary[]> {
   }));
 }
 
+export type TemplatePageImage = { contentType: string; buffer: Buffer };
+
+/**
+ * Real page-1 thumbnail of the template's primary document, straight from
+ * DocuSign's page_image endpoint — used by the Templates gallery so cards
+ * show actual document content instead of the generated mock layout.
+ * Document "1" is assumed (templates almost always number their first/only
+ * document that way), which keeps this to one call per template rather than
+ * an extra documents-list lookup first.
+ */
+export async function getTemplatePageImage(templateId: string, maxWidth = 400): Promise<TemplatePageImage> {
+  if (!ACCOUNT_ID) throw new Error("DocuSign is not configured — missing Account ID.");
+  const token = await getAccessToken();
+
+  const response = await fetch(
+    `${BASE_PATH}/v2.1/accounts/${ACCOUNT_ID}/templates/${templateId}/documents/1/pages/1/page_image?max_width=${maxWidth}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`DocuSign API error (${response.status}): ${text || response.statusText}`);
+  }
+  const contentType = response.headers.get("content-type") || "image/gif";
+  const buffer = Buffer.from(await response.arrayBuffer());
+  return { contentType, buffer };
+}
+
 /** The template's first signer role name — required to fill `templateRoles` when creating an envelope. */
 async function getFirstTemplateRoleName(templateId: string): Promise<string> {
   const data = await docusignFetch<{ signers?: { roleName?: string }[] }>(

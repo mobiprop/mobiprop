@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   FileSignature, FileText, Clock, CheckCircle2, XCircle, Send, RefreshCw,
-  Search, Plus, Settings as SettingsIcon, LayoutGrid, Loader2, MoreVertical, Copy,
+  Search, Plus, Settings as SettingsIcon, LayoutGrid, Loader2, MoreVertical, Copy, PenLine,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
 import { EnvelopeStatus } from "@/generated/prisma/enums";
 import type { DocusignEnvelopeDto } from "@/features/integrations/docusign-actions";
+import type { DocusignTemplateSummary } from "@/lib/docusign";
 import {
   useDocusignEnvelopesQuery,
   useDocusignTemplatesQuery,
@@ -75,6 +76,245 @@ function DocuSignMark({ size = 20 }: { size?: number }) {
       <span className="rounded-[2px]" style={{ width: s, height: s, backgroundColor: "#EF4444" }} />
       <span className="rounded-[2px]" style={{ width: s, height: s, backgroundColor: DS_ACCENT }} />
     </span>
+  );
+}
+function MultiColorPlus({ size = 34 }: { size?: number }) {
+  const bar = Math.max(3, size * 0.12);
+
+  return (
+    <span
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    >
+      {/* vertical line */}
+      <span
+        className="absolute rounded-full"
+        style={{
+          width: bar,
+          height: size,
+          background:
+            "linear-gradient(180deg, #F5A623 0%, #14B8A6 50%, #1e4f86 100%)",
+        }}
+      />
+
+      {/* horizontal line */}
+      <span
+        className="absolute rounded-full"
+        style={{
+          width: size,
+          height: bar,
+          background:
+            "linear-gradient(90deg, #EF4444 0%, #F5A623 33%, #14B8A6 66%, #1e4f86 100%)",
+        }}
+      />
+    </span>
+  );
+}
+// Each template gets a stable accent + layout variant derived from its id, so
+// the gallery reads varied and colourful (Google-Docs-style) without any extra
+// DocuSign API calls. Palette echoes the DocuSign brand mark + theme blue.
+const PREVIEW_ACCENTS = ["#1e4f86", "#0f9e8e", "#e0940f", "#e05252", "#16a34a"];
+
+function templateHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function MockLines({ widths, tone = "#e9edf2" }: { widths: number[]; tone?: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      {widths.map((w, i) => (
+        <span key={i} className="h-0.75 rounded-full" style={{ width: `${w}%`, backgroundColor: tone }} />
+      ))}
+    </div>
+  );
+}
+
+function SignatureField({ accent, label = "Sign here" }: { accent: string; label?: string }) {
+  return (
+    <div
+      className="flex min-w-0 items-center gap-1 rounded-sm border border-dashed px-1.5 py-1"
+      style={{ borderColor: `${accent}80`, backgroundColor: `${accent}0f` }}
+    >
+      <PenLine size={8} className="shrink-0" style={{ color: accent }} />
+      <span className="truncate text-[7px] font-medium text-[#6a7282]" style={mont}>{label}</span>
+    </div>
+  );
+}
+
+/** Stylised page-preview thumbnail — one of four mock-document layouts, Google-Docs-gallery style. */
+function TemplatePreview({ name, templateId }: { name: string; templateId: string }) {
+  const hash = templateHash(templateId);
+  const accent = PREVIEW_ACCENTS[hash % PREVIEW_ACCENTS.length];
+  const variant = hash % 4;
+
+  if (variant === 0) {
+    // Cover page — bold colour block with geometric shapes
+    return (
+      <div className="flex h-full w-full flex-col bg-white">
+        <div
+          className="relative flex h-[42%] shrink-0 flex-col justify-end overflow-hidden px-4 pb-3"
+          style={{ background: `linear-gradient(135deg, ${accent} 0%, ${accent}c9 100%)` }}
+        >
+          <span className="absolute -right-4 -top-6 size-16 rounded-full bg-white/15" />
+          <span className="absolute right-7 top-9 size-5 rotate-45 bg-white/20" />
+          <p className="line-clamp-2 text-[10px] font-semibold leading-3.25 text-white" style={poppins}>{name}</p>
+          <span className="mt-1.5 h-0.75 w-8 rounded-full bg-white/70" />
+        </div>
+        <div className="flex flex-1 flex-col px-4 pb-3 pt-2">
+          <div className="flex flex-1 flex-col justify-evenly">
+            <MockLines widths={[96, 88, 92, 70]} />
+            <MockLines widths={[58, 84, 76, 90]} />
+            <MockLines widths={[100, 72, 86]} />
+          </div>
+          <SignatureField accent={accent} />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 1) {
+    // Letter — logo block + dense paragraphs
+    return (
+      <div className="flex h-full w-full flex-col bg-white px-4 pb-3 pt-3.5">
+        <div className="flex items-start justify-between">
+          <span className="flex size-5 items-center justify-center rounded-[5px]" style={{ backgroundColor: accent }}>
+            <FileSignature size={11} className="text-white" />
+          </span>
+          <div className="w-1/4"><MockLines widths={[100, 78]} /></div>
+        </div>
+        <p className="mt-2 truncate text-[9px] font-semibold leading-3 text-[#0d2138]" style={poppins}>{name}</p>
+        <span className="mb-1.5 mt-1 h-0.75 w-7 rounded-full" style={{ backgroundColor: accent }} />
+        <div className="flex flex-1 flex-col justify-evenly">
+          <MockLines widths={[100, 92, 96, 84, 90, 62]} />
+          <MockLines widths={[88, 96, 100, 54]} />
+          <MockLines widths={[94, 68, 82]} />
+        </div>
+        <div className="flex items-end justify-between gap-2">
+          <div className="w-2/5"><MockLines widths={[100, 66]} /></div>
+          <SignatureField accent={accent} />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 2) {
+    // Report — hero placeholder + two-column body
+    return (
+      <div className="flex h-full w-full flex-col bg-white px-4 pb-3 pt-3.5">
+        <p className="truncate text-center text-[8px] font-semibold uppercase tracking-[0.12em] text-[#0d2138]" style={poppins}>{name}</p>
+        <span className="mx-auto mb-2 mt-1 h-0.75 w-10 rounded-full" style={{ backgroundColor: accent }} />
+        <div className="flex h-[26%] shrink-0 items-center justify-center rounded-md" style={{ backgroundColor: `${accent}1a` }}>
+          <FileText size={16} style={{ color: accent }} />
+        </div>
+        <div className="flex flex-1 flex-col justify-evenly">
+          <div className="grid grid-cols-2 gap-2">
+            <MockLines widths={[100, 88, 94, 70, 96, 82]} />
+            <MockLines widths={[92, 100, 80, 60, 88, 74]} />
+          </div>
+          <MockLines widths={[100, 86, 64]} />
+        </div>
+        <SignatureField accent={accent} />
+      </div>
+    );
+  }
+
+  // Agreement — clause table + dual signature boxes
+  return (
+    <div className="flex h-full w-full flex-col bg-white px-4 pb-3 pt-3.5">
+      <p className="truncate text-[9px] font-semibold leading-3 text-[#0d2138]" style={poppins}>{name}</p>
+      <span className="mb-1.5 mt-1 h-0.75 w-7 rounded-full" style={{ backgroundColor: accent }} />
+      <div className="overflow-hidden rounded-sm border border-[#e9edf2]">
+        {[82, 64, 74, 58].map((w, i) => (
+          <div key={i} className={`flex items-center gap-2 px-1.5 py-1 ${i > 0 ? "border-t border-[#e9edf2]" : ""}`}>
+            <span className="h-0.75 w-1/4 shrink-0 rounded-full" style={{ backgroundColor: `${accent}59` }} />
+            <span className="h-0.75 rounded-full bg-[#e9edf2]" style={{ width: `${w}%` }} />
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-1 flex-col justify-evenly">
+        <MockLines widths={[96, 84, 90, 72]} />
+        <MockLines widths={[88, 100, 58]} />
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        <SignatureField accent={accent} label="Party A" />
+        <SignatureField accent={accent} label="Party B" />
+      </div>
+    </div>
+  );
+}
+
+/** Real page-1 thumbnail from DocuSign, falling back to the generated mock layout if the template has no renderable page (e.g. no document uploaded yet). */
+function TemplateThumbnail({ template }: { template: DocusignTemplateSummary }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return <TemplatePreview name={template.name} templateId={template.templateId} />;
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- proxied binary image from DocuSign, not a static asset
+    <img
+      src={`/api/dashboard/docusign/templates/${template.templateId}/preview`}
+      alt={template.name}
+      className="h-full w-full object-cover object-top"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
+function TemplateCard({ template, usedCount, canSend, onUse }: {
+  template: DocusignTemplateSummary; usedCount: number; canSend: boolean; onUse: () => void;
+}) {
+  return (
+    <div className="group flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={canSend ? onUse : undefined}
+        disabled={!canSend}
+        className="relative aspect-3/4 overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white text-left shadow-[0_1px_3px_rgba(13,33,56,0.06)] transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_20px_rgba(13,33,56,0.12)] enabled:cursor-pointer enabled:hover:border-[#1e4f86] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
+      >
+        <TemplateThumbnail template={template} />
+        {canSend && (
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-3 opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="flex items-center gap-1.5 rounded-full bg-[#1e4f86] px-3.5 py-1.5 text-[11px] font-medium text-white shadow-md" style={mont}>
+              <Send size={11} /> Use template
+            </span>
+          </span>
+        )}
+      </button>
+      <div className="flex min-w-0 flex-col gap-0.5 px-0.5">
+        <span className="truncate text-[13px] font-semibold text-[#0d2138]" style={mont}>{template.name}</span>
+        <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
+          {template.description || "DocuSign template"} · Used {usedCount}x
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Leading "create" tile — templates themselves are authored in the DocuSign console, so this links out. */
+function NewTemplateCard({ authServer }: { authServer?: string }) {
+  const consoleUrl = authServer?.startsWith("account-d")
+    ? "https://apps-d.docusign.com/templates"
+    : "https://apps.docusign.com/templates";
+  return (
+    <div className="flex flex-col gap-2">
+      <a
+        href={consoleUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="flex aspect-3/4 items-center justify-center rounded-[10px] border border-dashed border-[#c9d6e5] bg-white transition-all hover:border-[#1e4f86] hover:shadow-[0_6px_16px_rgba(13,33,56,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
+      >
+        <MultiColorPlus size={34} />
+      </a>
+      <div className="flex flex-col gap-0.5 px-0.5">
+        <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>New template</span>
+        <span className="text-[11px] text-[#6a7282]" style={mont}>Create in DocuSign console</span>
+      </div>
+    </div>
   );
 }
 
@@ -333,31 +573,19 @@ export function DocuSignPage({ role }: { role: Role }) {
               No templates found in your DocuSign account.
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {templates.map((t) => (
-                <div key={t.templateId} className="flex flex-col gap-3 rounded-[14px] border border-[#e5e7eb] bg-white p-4 hover:border-[#c9bdf5] transition-colors">
-                  <div className="flex items-start gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-[8px]" style={{ backgroundColor: DS_ACCENT_SOFT, color: DS_ACCENT }}>
-                      <FileText size={16} />
-                    </span>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-[13px] font-semibold text-[#0d2138]" style={mont}>{t.name}</span>
-                      {t.description && <span className="truncate text-[11px] text-[#6a7282]" style={mont}>{t.description}</span>}
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-[#9ca3af]" style={mont}>Used {usedCounts[t.templateId] ?? 0}x</p>
-                  {canSend && (
-                    <button
-                      type="button"
-                      onClick={() => openSendModal(t.templateId)}
-                      className="flex h-9 w-full items-center justify-center gap-2 rounded-[8px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
-                      style={mont}
-                    >
-                      <Send size={13} /> Use Template
-                    </button>
-                  )}
-                </div>
-              ))}
+            <div className="rounded-[14px] border border-[#e5e7eb] bg-[#f3f6fa] p-5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <NewTemplateCard authServer={statusData?.config?.authServer} />
+                {templates.map((t) => (
+                  <TemplateCard
+                    key={t.templateId}
+                    template={t}
+                    usedCount={usedCounts[t.templateId] ?? 0}
+                    canSend={canSend}
+                    onUse={() => openSendModal(t.templateId)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
