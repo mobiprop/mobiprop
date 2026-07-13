@@ -52,25 +52,16 @@ export const MOCK_INTEGRATIONS: Integration[] = [
     iconColor: "#1e4f86",
   },
   {
-    id: "mailchimp",
-    name: "Mailchimp",
-    description: "Email marketing automation",
-    status: "Connected",
+    // Real connection — IntegrationsPage overrides this entry's status from
+    // useSendgridStatusQuery() and routes Connect/Manage to the SendGrid
+    // campaign management page (/dashboard/sendgrid).
+    id: "sendgrid",
+    name: "SendGrid",
+    description: "Email delivery & marketing campaigns",
+    status: "Available",
     icon: Mail,
-    iconBg: "#ffedd4",
-    iconColor: "#f97316",
-    lastSynced: "1 hour ago",
-    settings: [
-      { type: "password", id: "apiKey", label: "API Key", value: "md-xxxxxxxxxxxxxxxxxxxx" },
-      { type: "text", id: "webhookUrl", label: "Webhook URL", value: "https://api.ulrichpropiedades.com/webhooks/mailchimp" },
-      { type: "select", id: "syncFrequency", label: "Sync Frequency", value: "Every hour", options: ["Every 15 minutes", "Every 30 minutes", "Every hour", "Every 6 hours", "Daily"] },
-    ],
-    permissions: [
-      { id: "read-contacts", label: "Read contacts", enabled: true },
-      { id: "sync-lists", label: "Sync subscriber lists", enabled: true },
-      { id: "send-campaigns", label: "Send campaigns", enabled: false },
-      { id: "delete-contacts", label: "Delete contacts", enabled: false },
-    ],
+    iconBg: "#e8f0fe",
+    iconColor: "#1e4f86",
   },
   {
     id: "slack",

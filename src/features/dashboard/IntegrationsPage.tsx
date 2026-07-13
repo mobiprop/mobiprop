@@ -17,6 +17,7 @@ import type { Role } from "@/lib/permissions";
 import { queryKeys } from "@/lib/query-keys";
 import { useGoogleCalendarStatusQuery } from "@/hooks/queries/useGoogleCalendarStatusQuery";
 import { useDocusignStatusQuery } from "@/hooks/queries/useDocusignQuery";
+import { useSendgridStatusQuery } from "@/hooks/queries/useSendgridQuery";
 import {
   MOCK_INTEGRATIONS,
   type Integration,
@@ -32,6 +33,7 @@ import { GoogleCalendarManageModal } from "./components/GoogleCalendarManageModa
 
 const GOOGLE_CALENDAR_ID = "google-calendar";
 const DOCUSIGN_ID = "docusign";
+const SENDGRID_ID = "sendgrid";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -195,7 +197,8 @@ function IntegrationCard({
         <button
           type="button"
           onClick={() => onManage(integration.id)}
-          className="w-full min-h-[38px] bg-[#f9fafb] border border-[#e5e7eb] rounded-[10px] px-4 text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
+          disabled={!canManage}
+          className="w-full min-h-[38px] bg-[#f9fafb] border border-[#e5e7eb] rounded-[10px] px-4 text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           style={mont}
         >
           Manage
@@ -228,6 +231,10 @@ export function IntegrationsPage({
   const router = useRouter();
   const calendarStatus = useGoogleCalendarStatusQuery();
   const docusignStatus = useDocusignStatusQuery();
+  // Only fetch SendGrid status for roles that can open the SendGrid page —
+  // the status endpoint is gated by the same permission.
+  const canViewSendgrid = hasPermission(role, "sendgrid:view");
+  const sendgridStatus = useSendgridStatusQuery(canViewSendgrid);
 
   const [integrations, setIntegrations] =
     useState<Integration[]>(MOCK_INTEGRATIONS);
@@ -246,14 +253,18 @@ export function IntegrationsPage({
     "integrations:manage",
   );
 
-  // Google Calendar and DocuSign's status come from real connections, not
-  // local mock state — every other card here is still purely decorative.
+  // Google Calendar, DocuSign and SendGrid statuses come from real
+  // connections, not local mock state — every other card here is still
+  // purely decorative.
   const displayIntegrations = integrations.map((integration) => {
     if (integration.id === GOOGLE_CALENDAR_ID) {
       return { ...integration, status: calendarStatus.data?.status.connected ? "Connected" as const : "Available" as const };
     }
     if (integration.id === DOCUSIGN_ID) {
       return { ...integration, status: docusignStatus.data?.connected ? "Connected" as const : "Available" as const };
+    }
+    if (integration.id === SENDGRID_ID) {
+      return { ...integration, status: sendgridStatus.data?.connected ? "Connected" as const : "Available" as const };
     }
     return integration;
   });
@@ -280,6 +291,10 @@ export function IntegrationsPage({
     }
     if (id === DOCUSIGN_ID) {
       router.push("/dashboard/docusign");
+      return;
+    }
+    if (id === SENDGRID_ID) {
+      router.push("/dashboard/sendgrid");
       return;
     }
 
@@ -311,6 +326,10 @@ export function IntegrationsPage({
     }
     if (id === DOCUSIGN_ID) {
       router.push("/dashboard/docusign");
+      return;
+    }
+    if (id === SENDGRID_ID) {
+      router.push("/dashboard/sendgrid");
       return;
     }
     setManageId(id);
@@ -453,8 +472,17 @@ export function IntegrationsPage({
             integration={integration}
             // Google Calendar is a personal connection — every staff member who
             // can see this page can connect/disconnect their own, regardless of
-            // the org-wide "integrations:manage" permission below.
-            canManage={integration.id === GOOGLE_CALENDAR_ID ? true : canManage}
+            // the org-wide "integrations:manage" permission below. DocuSign's
+            // page is open to all staff (docusign:view) and gates actions
+            // internally. SendGrid is gated by its own module permission
+            // (ADMIN/MANAGER; agents have no campaign access).
+            canManage={
+              integration.id === GOOGLE_CALENDAR_ID || integration.id === DOCUSIGN_ID
+                ? true
+                : integration.id === SENDGRID_ID
+                  ? canViewSendgrid
+                  : canManage
+            }
             onConnect={handleConnect}
             onManage={handleManage}
           />

@@ -34,6 +34,7 @@ export type NotificationType =
   | "DOCUSIGN_ENVELOPE_DECLINED"
   | "DOCUSIGN_ENVELOPE_VOIDED"
   | "DOCUSIGN_ENVELOPE_EXPIRING_SOON"
+  | "EMAIL_CAMPAIGN_SENT"
   | "MESSAGE_RECEIVED";
 
 /** Audience separation — staff-only operational events vs client-facing ones. */

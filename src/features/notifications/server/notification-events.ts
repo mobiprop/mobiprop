@@ -184,6 +184,12 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
     audience: STAFF, pushCategory: "signatureUpdates", excludeActor: false, deduplicate: true, customerSafe: false,
   },
 
+  // ── SendGrid marketing campaigns — send audit to management. ──
+  EMAIL_CAMPAIGN_SENT: {
+    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "MANAGERS_AND_ADMINS",
+    audience: STAFF, pushCategory: null, excludeActor: false, deduplicate: true, customerSafe: true,
+  },
+
   // ── Internal staff chat. excludeActor stays false since DIRECT_RECIPIENT
   //    never resolves to the actor by construction (it's always "the other
   //    participant"), not because actor-exclusion is meaningfully skipped.

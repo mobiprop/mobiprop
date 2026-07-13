@@ -1049,3 +1049,197 @@ model DocusignSettings {
 
   @@map("docusign_settings")
 }
+
+// ── SendGrid email marketing (newsletter/campaign) module ────────────────────
+// Audiences, recipients, campaigns and engagement events for the dashboard's
+// SendGrid integration. Marketing sends use mailing@ulrichpropiedades.com and
+// are fully separate from the transactional/auth emails in src/lib/email.ts —
+// a marketing unsubscribe never blocks OTP/reset/invitation mail.
+
+// Deliverability status of a marketing recipient. Lives on the recipient (not
+// the list membership) because an unsubscribe/bounce applies to the email
+// address globally, across every list. "Removed from a list" is modelled by
+// deleting the EmailListMember row, not by a status.
+enum EmailRecipientStatus {
+  SUBSCRIBED
+  UNSUBSCRIBED
+  BOUNCED
+  REMOVED
+}
+
+enum EmailCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+// Per-recipient send outcome within one campaign. Engagement (opened/clicked/
+// bounced…) is tracked by the event timestamps on EmailCampaignRecipient, fed
+// by the SendGrid Event Webhook.
+enum EmailSendStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// An audience segment ("Contact List" in the UI). The seeded "All Contacts"
+// list is isSystem — it cannot be renamed or deleted and every imported
+// recipient is auto-added to it.
+model EmailList {
+  id          String   @id @default(cuid())
+  listId      String   @unique @map("list_id")
+  name        String
+  description String?
+  doubleOptIn Boolean  @default(false) @map("double_opt_in")
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members   EmailListMember[]
+  campaigns EmailCampaign[]
+
+  @@map("email_lists")
+}
+
+// A marketing email recipient, unique by (lowercased) email across the whole
+// workspace — the same person in three lists is still one row here.
+model EmailRecipient {
+  id               String               @id @default(cuid())
+  email            String               @unique
+  firstName        String?              @map("first_name")
+  lastName         String?              @map("last_name")
+  phone            String?
+  source           String?
+  status           EmailRecipientStatus @default(SUBSCRIBED)
+  unsubscribedAt   DateTime?            @map("unsubscribed_at")
+  bouncedAt        DateTime?            @map("bounced_at")
+  // Unguessable token embedded in every campaign email's unsubscribe link.
+  unsubscribeToken String               @unique @default(cuid()) @map("unsubscribe_token")
+  // Set when the recipient was added from the CRM Contacts module.
+  crmContactId     String?              @map("crm_contact_id")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  memberships        EmailListMember[]
+  campaignRecipients EmailCampaignRecipient[]
+
+  @@index([status], map: "email_recipients_status_idx")
+  @@map("email_recipients")
+}
+
+model EmailListMember {
+  listId      String   @map("list_id")
+  recipientId String   @map("recipient_id")
+  addedById   String?  @map("added_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  list      EmailList      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  recipient EmailRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@id([listId, recipientId])
+  @@index([recipientId], map: "email_list_members_recipient_idx")
+  @@map("email_list_members")
+}
+
+// A newsletter/marketing campaign. Duplicate-send protection: sendCampaign
+// claims the row with an atomic DRAFT→SENDING transition, so a second send of
+// the same campaign (double click, two admins) is rejected — resending
+// requires an explicit "Duplicate" into a new DRAFT.
+model EmailCampaign {
+  id            String              @id @default(cuid())
+  campaignId    String              @unique @map("campaign_id")
+  name          String
+  subject       String
+  previewText   String?             @map("preview_text")
+  fromName      String              @map("from_name")
+  fromEmail     String              @map("from_email")
+  htmlBody      String              @map("html_body")
+  // Which built-in marketing template the body started from (display only).
+  templateKey   String?             @map("template_key")
+  status        EmailCampaignStatus @default(DRAFT)
+  listId        String?             @map("list_id")
+  scheduledAt   DateTime?           @map("scheduled_at")
+  sendStartedAt DateTime?           @map("send_started_at")
+  sentAt        DateTime?           @map("sent_at")
+  sentById      String?             @map("sent_by_id") @db.Uuid
+  failedReason  String?             @map("failed_reason")
+  // SendGrid batch id attached to every personalization of this send.
+  sgBatchId     String?             @map("sg_batch_id")
+  // Snapshot of how many subscribed recipients the send targeted.
+  totalRecipients Int               @default(0) @map("total_recipients")
+  lastEventAt   DateTime?           @map("last_event_at")
+  createdById   String?             @map("created_by_id") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  list       EmailList?               @relation(fields: [listId], references: [id], onDelete: SetNull)
+  recipients EmailCampaignRecipient[]
+  events     EmailCampaignEvent[]
+
+  @@index([status], map: "email_campaigns_status_idx")
+  @@map("email_campaigns")
+}
+
+// One row per (campaign, email address) the campaign was actually sent to.
+// Campaign metrics are COMPUTED from the event timestamps here at read time
+// (count of openedAt set, etc.) — no stored counters that can drift.
+model EmailCampaignRecipient {
+  id             String          @id @default(cuid())
+  campaignId     String          @map("campaign_id")
+  recipientId    String?         @map("recipient_id")
+  email          String
+  status         EmailSendStatus @default(PENDING)
+  deliveredAt    DateTime?       @map("delivered_at")
+  openedAt       DateTime?       @map("opened_at")
+  clickedAt      DateTime?       @map("clicked_at")
+  bouncedAt      DateTime?       @map("bounced_at")
+  droppedAt      DateTime?       @map("dropped_at")
+  unsubscribedAt DateTime?       @map("unsubscribed_at")
+  spamReportedAt DateTime?       @map("spam_reported_at")
+  lastEventAt    DateTime?       @map("last_event_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  campaign  EmailCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  recipient EmailRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, email], map: "email_campaign_recipients_campaign_email_key")
+  @@index([email], map: "email_campaign_recipients_email_idx")
+  @@map("email_campaign_recipients")
+}
+
+// Raw SendGrid Event Webhook deliveries, deduped by sg_event_id so a
+// redelivered webhook batch can never double-apply an event.
+model EmailCampaignEvent {
+  id         String   @id @default(cuid())
+  sgEventId  String   @unique @map("sg_event_id")
+  campaignId String?  @map("campaign_id")
+  email      String
+  event      String
+  timestamp  DateTime
+  payload    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  campaign EmailCampaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId], map: "email_campaign_events_campaign_idx")
+  @@map("email_campaign_events")
+}
+
+// Singleton row (fixed id "default") for the SendGrid Settings tab. The API
+// key itself stays in env vars and is never stored or exposed here.
+model SendgridSettings {
+  id                   String    @id @default("default")
+  defaultFromName      String    @default("Ulrich Propiedades") @map("default_from_name")
+  defaultFromEmail     String    @default("mailing@ulrichpropiedades.com") @map("default_from_email")
+  clickTracking        Boolean   @default(true) @map("click_tracking")
+  openTracking         Boolean   @default(true) @map("open_tracking")
+  sandboxMode          Boolean   @default(false) @map("sandbox_mode")
+  lastConnectionTestAt DateTime? @map("last_connection_test_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  @@map("sendgrid_settings")
+}
