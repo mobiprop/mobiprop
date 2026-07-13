@@ -479,7 +479,7 @@ export function ContactsTab({ canManage, canExport }: { canManage: boolean; canE
       </div>
 
       {/* Lists table */}
-      <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
+      <div className="relative overflow-visible rounded-[14px] border border-[#e5e7eb] bg-white">
         <div className="flex items-center justify-between gap-3 border-b border-[#f3f4f6] px-5 py-3.5">
           <div className="relative w-full max-w-[300px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
@@ -507,7 +507,7 @@ export function ContactsTab({ canManage, canExport }: { canManage: boolean; canE
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-visible pb-32">
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#fafbfc]">
@@ -550,7 +550,7 @@ export function ContactsTab({ canManage, canExport }: { canManage: boolean; canE
                               <MoreVertical size={15} />
                             </button>
                             {menuFor === list.id && (
-                              <div className="absolute right-5 top-14 z-10 w-[180px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
+                              <div className="absolute right-5 top-14 z-10 w-[180px] overflow-visible rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
                                 <button
                                   type="button"
                                   onClick={() => { setMenuFor(null); setImportListId(list.id); setShowImport(true); }}

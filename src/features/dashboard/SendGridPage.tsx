@@ -416,7 +416,7 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
           <MoreVertical size={16} />
         </button>
         {menuOpen && (
-          <div className="absolute right-5 top-12 z-10 w-[190px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
+          <div className="absolute right-5 top-12 z-50 w-[190px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
             <button type="button" onClick={() => { setMenuOpen(false); onMetrics(); }} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
               <BarChart3 size={13} /> View metrics
             </button>
@@ -470,7 +470,7 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
+      <div className="relative overflow-visible rounded-[14px] border border-[#e5e7eb] bg-white">
         <div className="flex flex-wrap items-center gap-3 border-b border-[#f3f4f6] px-5 py-3.5">
           <div className="relative w-full max-w-[280px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
@@ -512,7 +512,7 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-visible pb-32">
             <table className="w-full min-w-[960px]">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#fafbfc]">
