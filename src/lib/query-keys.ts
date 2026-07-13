@@ -53,6 +53,13 @@ export const queryKeys = {
   docusignTemplates: prefixed("docusign-templates"),
   docusignSettings: prefixed("docusign-settings"),
   docusignStatus: prefixed("docusign-status"),
+  sendgridStatus: prefixed("sendgrid-status"),
+  sendgridOverview: prefixed("sendgrid-overview"),
+  sendgridLists: prefixed("sendgrid-lists"),
+  sendgridListMembers: (listId: string, search?: string) =>
+    ["sendgrid-lists", "members", listId, search ?? ""] as const,
+  sendgridCampaigns: prefixed("sendgrid-campaigns"),
+  sendgridSettings: prefixed("sendgrid-settings"),
   locations: prefixed("locations"),
   activityLogs: prefixed("activity-logs"),
 

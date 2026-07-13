@@ -95,6 +95,16 @@ export type Permission =
   // Stripe, etc.), not an agent's personal calendar connect/disconnect.
   | "integrations:view"
   | "integrations:manage"
+  // SendGrid marketing module (Integrations → SendGrid → Manage). ADMIN and
+  // MANAGER run campaigns; AGENT has no access at all (marketing blasts are a
+  // management function — client's safe-sending decision). "manageSettings"
+  // (Settings tab: tracking toggles, sandbox, connection test) is ADMIN-only.
+  | "sendgrid:view"
+  | "sendgrid:manageLists"
+  | "sendgrid:manageCampaigns"
+  | "sendgrid:send"
+  | "sendgrid:export"
+  | "sendgrid:manageSettings"
   | "locations:view"
   | "locations:manage"
   // Blog / CMS module. AGENT holders can author and edit drafts; publishing and
@@ -178,6 +188,12 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "blog:delete",
     "integrations:view",
     "integrations:manage",
+    "sendgrid:view",
+    "sendgrid:manageLists",
+    "sendgrid:manageCampaigns",
+    "sendgrid:send",
+    "sendgrid:export",
+    "sendgrid:manageSettings",
     "locations:view",
     "locations:manage",
     "activityLogs:view",
@@ -241,6 +257,11 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "blog:publish",
     "blog:delete",
     "integrations:view",
+    "sendgrid:view",
+    "sendgrid:manageLists",
+    "sendgrid:manageCampaigns",
+    "sendgrid:send",
+    "sendgrid:export",
     "locations:view",
     "messages:view",
     "notifications:view",
