@@ -2,13 +2,14 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
-import { EnvelopeStatus } from "@/generated/prisma/enums";
+import { EnvelopeStatus, EnvelopeSource, EnvelopeRecipientRole } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
 import {
   createEnvelopeFromTemplate,
+  createEnvelopeFromDocument,
   voidEnvelope as docusignVoidEnvelope,
   resendEnvelope as docusignResendEnvelope,
   listTemplates as docusignListTemplates,
@@ -16,6 +17,12 @@ import {
   isDocusignConfigured,
   type DocusignTemplateSummary,
 } from "@/lib/docusign";
+import {
+  mintDocusignDocumentUploadTicket as mintDocusignDocumentUploadTicketInStorage,
+  readUploadedDocusignDocument,
+  removeDocusignDocumentObject,
+  extensionForDocumentFile,
+} from "@/lib/supabase/storage";
 import {
   notifyEnvelopeSent,
   notifyEnvelopeDelivered,
@@ -29,14 +36,26 @@ type ActionResult<T> = ({ ok: true } & T) | CrmActionError;
 
 // ── DTO ──────────────────────────────────────────────────────────────────────
 
+export type DocusignRecipientDto = {
+  id: string;
+  name: string;
+  email: string;
+  role: EnvelopeRecipientRole;
+  roleLabel: string | null;
+};
+
 export type DocusignEnvelopeDto = {
   id: string;
   docusignEnvelopeId: string;
-  templateId: string;
+  source: EnvelopeSource;
+  templateId: string | null;
   templateName: string;
+  documentFileName: string | null;
+  documentUrl: string | null;
   status: EnvelopeStatus;
   recipientName: string;
   recipientEmail: string;
+  recipients: DocusignRecipientDto[];
   propertyReference: string | null;
   opportunityId: string | null;
   opportunityNumber: string | null;
@@ -59,8 +78,11 @@ export type EnvelopeStats = {
 type EnvelopeWithRelations = {
   id: string;
   docusignEnvelopeId: string;
-  templateId: string;
+  source: EnvelopeSource;
+  templateId: string | null;
   templateName: string;
+  documentFileName: string | null;
+  documentUrl: string | null;
   status: EnvelopeStatus;
   recipientName: string;
   recipientEmail: string;
@@ -73,6 +95,7 @@ type EnvelopeWithRelations = {
   voidedReason: string | null;
   createdAt: Date;
   opportunity: { opportunityId: string; assignedAgentId: string | null } | null;
+  recipients: { id: string; name: string; email: string; role: EnvelopeRecipientRole; roleLabel: string | null }[];
 };
 
 function toEnvelopeDto(
@@ -82,11 +105,15 @@ function toEnvelopeDto(
   return {
     id: e.id,
     docusignEnvelopeId: e.docusignEnvelopeId,
+    source: e.source,
     templateId: e.templateId,
     templateName: e.templateName,
+    documentFileName: e.documentFileName,
+    documentUrl: e.documentUrl,
     status: e.status,
     recipientName: e.recipientName,
     recipientEmail: e.recipientEmail,
+    recipients: e.recipients.map((r) => ({ id: r.id, name: r.name, email: r.email, role: r.role, roleLabel: r.roleLabel })),
     propertyReference: e.propertyReference,
     opportunityId: e.opportunityId,
     opportunityNumber: e.opportunity?.opportunityId ?? null,
@@ -102,6 +129,7 @@ function toEnvelopeDto(
 
 const envelopeInclude = {
   opportunity: { select: { opportunityId: true, assignedAgentId: true } },
+  recipients: { orderBy: { createdAt: "asc" } },
 } as const;
 
 // ── Record-level access ──────────────────────────────────────────────────────
@@ -254,6 +282,137 @@ export async function sendEnvelopeForSignature(
     entityType: "DOCUSIGN_ENVELOPE",
     entityId: envelope.id,
     newValues: { templateName: envelope.templateName, recipientEmail: envelope.recipientEmail },
+  });
+
+  void notifyEnvelopeSent({
+    envelopeId: envelope.id,
+    templateName: envelope.templateName,
+    recipientName: envelope.recipientName,
+    assignedAgentId: envelopeOwnerId(envelope),
+    actorId: gate.profile.id,
+  });
+
+  const agentMap = await buildAgentMap([envelope.sentById]);
+  return { ok: true, envelope: toEnvelopeDto(envelope, agentMap) };
+}
+
+// ── Upload custom contract ──────────────────────────────────────────────────
+// A one-off PDF/DOC/DOCX (not a reusable DocuSign template) sent via
+// DocuSign Free Form Signing, with staff-entered recipients/roles instead of
+// template roles. See [[docusign-custom-contracts]].
+
+export async function mintCustomContractUploadTicket(
+  file: { name: string; type: string },
+): Promise<ActionResult<{ ticket: { uploadId: string; storagePath: string; signedUrl: string; token: string } }>> {
+  const gate = await requirePermission("docusign:send");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const ticket = await mintDocusignDocumentUploadTicketInStorage(file);
+  return { ok: true, ticket };
+}
+
+export type CustomContractRecipientInput = {
+  name: string;
+  email: string;
+  role: EnvelopeRecipientRole;
+  roleLabel?: string;
+};
+
+export type SendCustomContractInput = {
+  documentStoragePath: string;
+  documentFileName: string;
+  recipients: CustomContractRecipientInput[];
+  propertyReference?: string;
+  expiresInDays?: number;
+  message?: string;
+  opportunityId?: string;
+};
+
+const ROLE_LABELS: Record<EnvelopeRecipientRole, string> = {
+  BUYER: "Buyer",
+  SELLER: "Seller",
+  AGENT: "Agent",
+  THIRD_PARTY: "Third-Party Company",
+  OTHER: "Other",
+};
+
+export async function sendCustomContractForSignature(
+  input: SendCustomContractInput,
+): Promise<ActionResult<{ envelope: DocusignEnvelopeDto }>> {
+  const gate = await requirePermission("docusign:send");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  if (!isDocusignConfigured()) {
+    return { ok: false, error: "DocuSign is not configured yet.", status: 503 };
+  }
+
+  const recipients = input.recipients
+    .map((r) => ({ ...r, name: r.name.trim(), email: r.email.trim(), roleLabel: r.roleLabel?.trim() || undefined }))
+    .filter((r) => r.name && r.email);
+  if (recipients.length === 0) {
+    return { ok: false, error: "At least one recipient with a name and email is required.", status: 400 };
+  }
+
+  let document;
+  try {
+    document = await readUploadedDocusignDocument(input.documentStoragePath);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to read the uploaded document.", status: 400 };
+  }
+
+  let created;
+  try {
+    created = await createEnvelopeFromDocument({
+      documentBase64: document.buffer.toString("base64"),
+      documentName: input.documentFileName,
+      fileExtension: extensionForDocumentFile(document.mimeType, input.documentFileName),
+      recipients: recipients.map((r) => ({
+        name: r.name,
+        email: r.email,
+        roleLabel: r.role === EnvelopeRecipientRole.OTHER ? r.roleLabel || "Other" : ROLE_LABELS[r.role],
+      })),
+      expiresInDays: input.expiresInDays,
+      message: input.message,
+    });
+  } catch (error) {
+    void removeDocusignDocumentObject(input.documentStoragePath);
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to send the document via DocuSign.", status: 502 };
+  }
+
+  const defaultExpiryDays = input.expiresInDays ?? (await getSettingsRow()).defaultExpiryDays;
+  const expiresAt = new Date(Date.now() + defaultExpiryDays * 24 * 60 * 60 * 1000);
+  const primary = recipients[0];
+
+  const envelope = await prisma.docusignEnvelope.create({
+    data: {
+      docusignEnvelopeId: created.envelopeId,
+      source: EnvelopeSource.CUSTOM_UPLOAD,
+      templateId: null,
+      templateName: input.documentFileName,
+      documentFileName: input.documentFileName,
+      documentStoragePath: input.documentStoragePath,
+      documentUrl: document.url,
+      documentMimeType: document.mimeType,
+      status: EnvelopeStatus.SENT,
+      recipientName: primary.name,
+      recipientEmail: primary.email,
+      propertyReference: input.propertyReference || null,
+      opportunityId: input.opportunityId || null,
+      sentById: gate.profile.id,
+      expiresAt,
+      recipients: {
+        create: recipients.map((r) => ({ name: r.name, email: r.email, role: r.role, roleLabel: r.roleLabel ?? null })),
+      },
+    },
+    include: envelopeInclude,
+  });
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "DOCUSIGN_ENVELOPE_SENT",
+    entityType: "DOCUSIGN_ENVELOPE",
+    entityId: envelope.id,
+    newValues: { documentFileName: envelope.documentFileName, recipientCount: recipients.length },
   });
 
   void notifyEnvelopeSent({
@@ -532,8 +691,10 @@ export type MyContractDto = {
 
 export async function getMyContracts(profileId: string): Promise<MyContractDto[]> {
   // Public users only see envelopes tied to an Opportunity they're a
-  // participant on (matched by contact email), or sent directly to their
-  // profile email — mirrors the getMyTours pattern.
+  // participant on (matched by contact email), sent directly to their
+  // profile email as the primary recipient, or naming them as any signer
+  // on a CUSTOM_UPLOAD envelope's recipient list — mirrors the getMyTours
+  // pattern.
   const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { email: true } });
   if (!profile) return [];
 
@@ -553,6 +714,10 @@ export async function getMyContracts(profileId: string): Promise<MyContractDto[]
       OR: [
         ...(opportunityIds.length ? [{ opportunityId: { in: opportunityIds } }] : []),
         { recipientEmail: profile.email },
+        // A named signer on a CUSTOM_UPLOAD envelope who isn't the primary
+        // recipient (and isn't covered by the opportunity match above,
+        // e.g. a standalone envelope with no Opportunity attached).
+        { recipients: { some: { email: profile.email } } },
       ],
     },
     orderBy: { sentAt: "desc" },

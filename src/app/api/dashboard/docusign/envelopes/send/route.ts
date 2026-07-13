@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { sendEnvelopeForSignature } from "@/features/integrations/docusign-actions";
+import { sendEnvelopeForSignature, sendCustomContractForSignature } from "@/features/integrations/docusign-actions";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const result = await sendEnvelopeForSignature(body);
+  const { source, ...rest } = body;
+  const result = source === "CUSTOM_UPLOAD" ? await sendCustomContractForSignature(rest) : await sendEnvelopeForSignature(rest);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

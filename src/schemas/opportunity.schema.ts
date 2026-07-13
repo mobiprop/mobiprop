@@ -56,5 +56,14 @@ export const createOpportunitySchema = z.object({
 
 export type CreateOpportunityInput = z.infer<typeof createOpportunitySchema>;
 
-export const updateOpportunitySchema = createOpportunitySchema.partial();
+// `.partial()` only wraps each field in `.optional()`; it doesn't remove a
+// field's `.default(...)`, so an omitted stage/status/probability in a
+// partial PATCH body would otherwise be silently coerced to the create-time
+// default and overwrite the existing value. Re-declare all three as plain
+// optionals.
+export const updateOpportunitySchema = createOpportunitySchema.partial().extend({
+  stage: z.nativeEnum(OpportunityStage).optional(),
+  status: z.nativeEnum(OpportunityStatus).optional(),
+  probability: z.coerce.number().int().min(0).max(100).optional(),
+});
 export type UpdateOpportunityInput = z.infer<typeof updateOpportunitySchema>;

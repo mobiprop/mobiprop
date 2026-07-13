@@ -234,6 +234,61 @@ export async function createEnvelopeFromTemplate(input: CreateEnvelopeInput): Pr
   return docusignFetch<CreatedEnvelope>("/envelopes", { method: "POST", body: JSON.stringify(body) });
 }
 
+export type EnvelopeRecipientInput = {
+  name: string;
+  email: string;
+  /** Human label shown in the DocuSign recipient list, e.g. "Buyer" or "Notary". */
+  roleLabel: string;
+};
+
+export type CreateEnvelopeFromDocumentInput = {
+  documentBase64: string;
+  documentName: string;
+  /** No leading dot, e.g. "pdf", "docx". */
+  fileExtension: string;
+  recipients: EnvelopeRecipientInput[];
+  expiresInDays?: number;
+  message?: string;
+};
+
+/**
+ * Sends an ad-hoc uploaded document (not a template) for signature. No
+ * signHere tabs are placed — this relies on the account's "Free Form
+ * Signing" setting so every recipient gets DocuSign's own tag-placement UI
+ * when they open the document. All recipients share routingOrder "1"
+ * (parallel — no sequential signing support).
+ */
+export async function createEnvelopeFromDocument(input: CreateEnvelopeFromDocumentInput): Promise<CreatedEnvelope> {
+  if (input.recipients.length === 0) throw new Error("At least one recipient is required.");
+
+  const body: Record<string, unknown> = {
+    documents: [
+      {
+        documentBase64: input.documentBase64,
+        name: input.documentName,
+        fileExtension: input.fileExtension,
+        documentId: "1",
+      },
+    ],
+    recipients: {
+      signers: input.recipients.map((r, i) => ({
+        email: r.email,
+        name: r.name,
+        recipientId: String(i + 1),
+        routingOrder: "1",
+        roleName: r.roleLabel,
+      })),
+    },
+    emailSubject: input.message?.trim() || "Please review and sign this document",
+    status: "sent",
+  };
+  if (input.expiresInDays) {
+    body.expirationSettings = { expireEnabled: "true", expireAfter: String(input.expiresInDays) };
+  }
+
+  return docusignFetch<CreatedEnvelope>("/envelopes", { method: "POST", body: JSON.stringify(body) });
+}
+
 export async function getEnvelope(envelopeId: string): Promise<{ envelopeId: string; status: string }> {
   return docusignFetch(`/envelopes/${envelopeId}`);
 }

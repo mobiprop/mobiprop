@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { EnvelopeStatus } from "@/generated/prisma/enums";
+import { EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
 import type { DocusignEnvelopeDto } from "@/features/integrations/docusign-actions";
 import type { DocusignTemplateSummary } from "@/lib/docusign";
 import {
@@ -637,12 +637,30 @@ function EnvelopeRow({ envelope, canVoid, canResend }: { envelope: DocusignEnvel
   return (
     <tr className="border-b border-[#e5e7eb] last:border-b-0">
       <td className="px-5 py-4">
-        <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{envelope.templateName}</span>
+        <div className="flex items-center gap-2">
+          {envelope.documentUrl ? (
+            <a href={envelope.documentUrl} target="_blank" rel="noopener noreferrer" className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap hover:text-[#1e4f86]" style={mont}>
+              {envelope.templateName}
+            </a>
+          ) : (
+            <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{envelope.templateName}</span>
+          )}
+          {envelope.source === EnvelopeSource.CUSTOM_UPLOAD && (
+            <span className="shrink-0 rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#6a7282]" style={mont}>Custom Document</span>
+          )}
+        </div>
       </td>
       <td className="px-5 py-4">
-        <div className="flex flex-col">
-          <span className="text-[13px] text-[#0d2138]" style={mont}>{envelope.recipientName}</span>
-          <span className="text-[11px] text-[#9ca3af]" style={mont}>{envelope.recipientEmail}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col">
+            <span className="text-[13px] text-[#0d2138]" style={mont}>{envelope.recipientName}</span>
+            <span className="text-[11px] text-[#9ca3af]" style={mont}>{envelope.recipientEmail}</span>
+          </div>
+          {envelope.recipients.length > 1 && (
+            <span className="shrink-0 rounded-full bg-[#eff6ff] px-2 py-0.5 text-[10px] font-medium text-[#1e4f86]" style={mont}>
+              +{envelope.recipients.length - 1} more
+            </span>
+          )}
         </div>
       </td>
       <td className="px-5 py-4">

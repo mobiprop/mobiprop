@@ -51,6 +51,8 @@ export type OpportunityParticipantDto = {
   /** Set for BUYER/SELLER rows (a linked Contact); null for AGENCY rows. */
   contactId: string | null;
   contactName: string | null;
+  /** Set for BUYER/SELLER rows with a Contact on file; null otherwise. Lets Send for Signature pull a recipient's email without staff retyping it. */
+  contactEmail: string | null;
   /** Set for AGENCY rows only — free text, no Contact record. */
   companyName: string | null;
 };

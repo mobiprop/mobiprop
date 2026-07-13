@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Filter, ChevronDown, Pencil, Trash2, MapPin, Pause, Play, Star } from "lucide-react";
+import { Search, Filter, ChevronDown, Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
@@ -27,6 +27,39 @@ function Badge({ label, style }: { label: string; style: { bg: string; text: str
   );
 }
 
+function RowCheckbox({
+  checked,
+  indeterminate = false,
+  onToggle,
+  label,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={indeterminate ? "mixed" : checked}
+      aria-label={label}
+      onClick={onToggle}
+      className={`flex size-[19px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
+        checked || indeterminate
+          ? "border-[#235b96] bg-[#235b96]"
+          : "border-[#d9dde3] bg-white"
+      }`}
+    >
+      {indeterminate ? (
+        <Minus size={13} strokeWidth={2.6} className="text-white" />
+      ) : checked ? (
+        <Check size={13} strokeWidth={2.6} className="text-white" />
+      ) : null}
+    </button>
+  );
+}
+
 export type ListingRowActions = {
   canUpdate: boolean;
   canPause: boolean;
@@ -38,13 +71,23 @@ export type ListingRowActions = {
   onDelete: (listing: DashboardListingDto) => void;
 };
 
+export type ListingSelection = {
+  selectedIds: Set<string>;
+  onToggleOne: (id: string) => void;
+  onToggleAll: () => void;
+};
+
 type ListingListViewProps = {
   listings: DashboardListingDto[];
   onFilterClick: () => void;
   actions: ListingRowActions;
+  selection: ListingSelection;
 };
 
-export function ListingListView({ listings, onFilterClick, actions }: ListingListViewProps) {
+export function ListingListView({ listings, onFilterClick, actions, selection }: ListingListViewProps) {
+  const selectedCount = listings.filter((listing) => selection.selectedIds.has(listing.id)).length;
+  const allSelected = listings.length > 0 && selectedCount === listings.length;
+  const someSelected = selectedCount > 0 && !allSelected;
 return (
   <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
     {/* Header / controls */}
@@ -99,6 +142,15 @@ return (
       <table className="w-full min-w-[1000px]">
         <thead>
           <tr className="border-y border-[#e5e7eb] bg-[#f9fafb]">
+            <th className="w-11 px-5 py-3">
+              <RowCheckbox
+                checked={allSelected}
+                indeterminate={someSelected}
+                onToggle={selection.onToggleAll}
+                label={allSelected ? "Deselect all listings" : "Select all listings"}
+              />
+            </th>
+
             {[
               "Listing ID",
               "Property",
@@ -125,8 +177,18 @@ return (
           {listings.map((listing) => (
             <tr
               key={listing.id}
-              className="border-b border-[#e5e7eb] last:border-b-0"
+              className={`border-b border-[#e5e7eb] last:border-b-0 ${
+                selection.selectedIds.has(listing.id) ? "bg-[#eff6ff]" : ""
+              }`}
             >
+              <td className="w-11 px-5 py-4">
+                <RowCheckbox
+                  checked={selection.selectedIds.has(listing.id)}
+                  onToggle={() => selection.onToggleOne(listing.id)}
+                  label={`Select ${listing.title}`}
+                />
+              </td>
+
               {/* Listing ID */}
               <td className="px-5 py-4">
                 <span
@@ -302,7 +364,7 @@ return (
           {listings.length === 0 && (
             <tr>
               <td
-                colSpan={8}
+                colSpan={9}
                 className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
                 style={mont}
               >
@@ -320,10 +382,20 @@ return (
         {listings.map((listing) => (
           <article
             key={listing.id}
-            className="border-b border-[#e5e7eb] p-4 md:border-r md:even:border-r-0"
+            className={`border-b border-[#e5e7eb] p-4 md:border-r md:even:border-r-0 ${
+              selection.selectedIds.has(listing.id) ? "bg-[#eff6ff]" : ""
+            }`}
           >
             {/* Top section */}
             <div className="flex gap-3">
+              <div className="pt-1">
+                <RowCheckbox
+                  checked={selection.selectedIds.has(listing.id)}
+                  onToggle={() => selection.onToggleOne(listing.id)}
+                  label={`Select ${listing.title}`}
+                />
+              </div>
+
               <div className="relative size-[72px] shrink-0 overflow-hidden rounded-[10px] bg-[#f3f4f6] sm:size-[82px]">
                 <Image
                   src={

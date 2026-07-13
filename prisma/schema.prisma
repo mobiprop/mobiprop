@@ -950,6 +950,23 @@ enum EnvelopeStatus {
   VOIDED
 }
 
+// TEMPLATE = sent from a reusable DocuSign template (templateId set).
+// CUSTOM_UPLOAD = a one-off PDF/DOC/DOCX uploaded from the CRM and sent via
+// DocuSign Free Form Signing (no templateId, no pre-placed tabs — see
+// [[docusign-custom-contracts]]).
+enum EnvelopeSource {
+  TEMPLATE
+  CUSTOM_UPLOAD
+}
+
+enum EnvelopeRecipientRole {
+  BUYER
+  SELLER
+  AGENT
+  THIRD_PARTY
+  OTHER
+}
+
 // A DocuSign e-signature envelope sent from this app. Status is kept in
 // sync by the DocuSign Connect webhook (not polled) — see
 // src/app/api/webhooks/docusign/route.ts. Optionally linked to an
@@ -957,9 +974,21 @@ enum EnvelopeStatus {
 model DocusignEnvelope {
   id                 String         @id @default(cuid())
   docusignEnvelopeId String         @unique @map("docusign_envelope_id")
-  templateId         String         @map("template_id")
+  source             EnvelopeSource @default(TEMPLATE)
+  // Null for CUSTOM_UPLOAD. templateName is required for both sources — it
+  // doubles as the generic "what was sent" display title (template name, or
+  // the uploaded file's name for a custom contract).
+  templateId         String?        @map("template_id")
   templateName       String         @map("template_name")
+  // Populated only for CUSTOM_UPLOAD — the original uploaded file.
+  documentFileName    String?       @map("document_file_name")
+  documentStoragePath String?       @map("document_storage_path")
+  documentUrl         String?       @map("document_url")
+  documentMimeType    String?       @map("document_mime_type")
   status             EnvelopeStatus @default(SENT)
+  // Primary (first-entered) recipient — used for list-view display,
+  // notifications, and "My Contracts" matching regardless of source. Full
+  // multi-signer detail for CUSTOM_UPLOAD lives in `recipients` below.
   recipientName      String         @map("recipient_name")
   recipientEmail     String         @map("recipient_email")
   propertyReference  String?        @map("property_reference")
@@ -979,11 +1008,31 @@ model DocusignEnvelope {
   createdAt          DateTime       @default(now()) @map("created_at")
   updatedAt          DateTime       @updatedAt @map("updated_at")
 
-  opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  opportunity Opportunity?              @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  recipients  DocusignEnvelopeRecipient[]
 
   @@index([opportunityId], map: "docusign_envelopes_opportunity_idx")
   @@index([status], map: "docusign_envelopes_status_idx")
   @@map("docusign_envelopes")
+}
+
+// Full signer list for a CUSTOM_UPLOAD envelope (buyer/seller/agent/
+// third-party company/other). TEMPLATE envelopes have no rows here — their
+// single recipient lives on DocusignEnvelope.recipientName/recipientEmail.
+model DocusignEnvelopeRecipient {
+  id         String                @id @default(cuid())
+  envelopeId String                @map("envelope_id")
+  name       String
+  email      String
+  role       EnvelopeRecipientRole
+  // Free-text label shown alongside the role, only meaningful when role = OTHER (e.g. "Notary").
+  roleLabel  String?               @map("role_label")
+  createdAt  DateTime              @default(now()) @map("created_at")
+
+  envelope DocusignEnvelope @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+
+  @@index([envelopeId], map: "docusign_envelope_recipients_envelope_idx")
+  @@map("docusign_envelope_recipients")
 }
 
 // Singleton row (fixed id "default") holding the DocuSign "Signature

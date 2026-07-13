@@ -8,6 +8,8 @@ const PROPERTY_IMAGES_BUCKET = "property-images";
 const OPPORTUNITY_DOCUMENTS_BUCKET = "opportunity-documents";
 // Must match CHAT_ATTACHMENTS_BUCKET in src/lib/supabase/storage.ts.
 const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
+// Must match DOCUSIGN_DOCUMENTS_BUCKET in src/lib/supabase/storage.ts.
+const DOCUSIGN_DOCUMENTS_BUCKET = "docusign-documents";
 
 type UploadTicket = { imageId: string; storagePath: string; token: string };
 
@@ -145,6 +147,33 @@ export async function uploadOpportunityDocument(
   return finalized.document as {
     id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: string;
   };
+}
+
+// ── DocuSign custom contract documents ──────────────────────────────────────
+
+type DocusignDocumentTicket = { uploadId: string; storagePath: string; token: string };
+
+/**
+ * Uploads a single PDF/DOC/DOCX directly to storage via a signed URL for the
+ * "Upload Custom Contract" flow. Unlike uploadOpportunityDocument, this does
+ * not finalize any DB row — there's no envelope yet. The caller holds
+ * `{storagePath, fileName}` in state until the recipients/message form is
+ * submitted together via sendCustomContractForSignature.
+ */
+export async function uploadDocusignDocument(file: File): Promise<{ storagePath: string; fileName: string }> {
+  const ticketData = await postJson("/api/dashboard/docusign/documents/upload-ticket", {
+    name: file.name,
+    type: file.type,
+  });
+  const ticket = ticketData.ticket as DocusignDocumentTicket;
+
+  const supabase = createClient();
+  const { error } = await supabase.storage
+    .from(DOCUSIGN_DOCUMENTS_BUCKET)
+    .uploadToSignedUrl(ticket.storagePath, ticket.token, file, { contentType: file.type });
+  if (error) throw new Error(`Document upload failed: ${error.message}`);
+
+  return { storagePath: ticket.storagePath, fileName: file.name };
 }
 
 // ── Chat attachments ─────────────────────────────────────────────────────────

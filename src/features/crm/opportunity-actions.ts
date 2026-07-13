@@ -52,7 +52,7 @@ type ParticipantWithRelations = {
   role: OpportunityParticipantRole;
   contactId: string | null;
   companyName: string | null;
-  contact: { firstName: string; lastName: string } | null;
+  contact: { firstName: string; lastName: string; email: string | null } | null;
 };
 
 type OpportunityListingWithRelations = {
@@ -82,6 +82,7 @@ function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDt
     role: p.role,
     contactId: p.contactId,
     contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
+    contactEmail: p.contact?.email ?? null,
     companyName: p.companyName,
   };
 }
@@ -141,7 +142,7 @@ function toOpportunityDto(
 
 const opportunityInclude = {
   participants: {
-    include: { contact: { select: { firstName: true, lastName: true } } },
+    include: { contact: { select: { firstName: true, lastName: true, email: true } } },
     orderBy: { createdAt: "asc" },
   },
   listings: {

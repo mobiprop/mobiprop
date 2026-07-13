@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, Upload, FileText, Loader2, FileSignature, Send, Link2Off } from "lucide-react";
 import { toast } from "sonner";
 
-import { ContactType, OpportunityStage, OpportunityStatus, EnvelopeStatus } from "@/generated/prisma/enums";
+import { ContactType, OpportunityStage, OpportunityStatus, EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
 import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
 import { computeCommissionAmount } from "@/lib/commission";
 import {
@@ -1043,9 +1043,14 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                   {linkedEnvelopes.map((e) => (
                     <div key={e.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2.5">
                       <div className="flex min-w-0 flex-col">
-                        <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>{e.templateName}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>{e.templateName}</span>
+                          {e.source === EnvelopeSource.CUSTOM_UPLOAD && (
+                            <span className="shrink-0 rounded-full bg-[#f3f4f6] px-1.5 py-0.5 text-[9px] font-medium text-[#6a7282]" style={mont}>Custom</span>
+                          )}
+                        </div>
                         <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
-                          {e.recipientName} · {e.status === EnvelopeStatus.COMPLETED ? "Signed" : e.status === EnvelopeStatus.DECLINED ? "Declined" : e.status === EnvelopeStatus.VOIDED ? "Voided" : "Awaiting signature"}
+                          {e.recipientName}{e.recipients.length > 1 ? ` +${e.recipients.length - 1} more` : ""} · {e.status === EnvelopeStatus.COMPLETED ? "Signed" : e.status === EnvelopeStatus.DECLINED ? "Declined" : e.status === EnvelopeStatus.VOIDED ? "Voided" : "Awaiting signature"}
                         </span>
                       </div>
                       <button
@@ -1114,8 +1119,11 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           initial={{
             opportunityId: initial.id,
             recipientName: initial.participants[0]?.contactName ?? "",
-            recipientEmail: "",
+            recipientEmail: initial.participants[0]?.contactEmail ?? "",
             propertyReference: initial.listings[0]?.propertyTitle ?? "",
+            participants: initial.participants
+              .filter((p) => p.contactEmail)
+              .map((p) => ({ name: (p.contactName ?? p.companyName ?? "Unknown").trim(), email: p.contactEmail as string, role: p.role })),
           }}
           onClose={() => setShowSendModal(false)}
           onSent={() => setShowSendModal(false)}

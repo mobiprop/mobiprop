@@ -3,9 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import type { DocusignEnvelopeDto, DocusignSettingsDto, SendForSignatureInput } from "@/features/integrations/docusign-actions";
+import type { DocusignEnvelopeDto, DocusignSettingsDto, SendForSignatureInput, SendCustomContractInput } from "@/features/integrations/docusign-actions";
 
-async function postSend(body: SendForSignatureInput): Promise<{ envelope: DocusignEnvelopeDto }> {
+type SendEnvelopeBody = ({ source: "TEMPLATE" } & SendForSignatureInput) | ({ source: "CUSTOM_UPLOAD" } & SendCustomContractInput);
+
+async function postSend(body: SendEnvelopeBody): Promise<{ envelope: DocusignEnvelopeDto }> {
   const res = await fetch("/api/dashboard/docusign/envelopes/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

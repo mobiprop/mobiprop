@@ -200,14 +200,24 @@ function validatePrices(
 
 export const createListingSchema = listingBaseSchema.superRefine(validatePrices);
 
-export const updateListingSchema = listingBaseSchema.partial().superRefine((data, ctx) => {
-  if (data.operationType) {
-    validatePrices(
-      { operationType: data.operationType, salePrice: data.salePrice, rentPrice: data.rentPrice },
-      ctx,
-    );
-  }
-});
+export const updateListingSchema = listingBaseSchema
+  .partial()
+  // `.partial()` only wraps each field in `.optional()`; it doesn't remove a
+  // field's `.default(...)`, so an omitted `isFeatured`/`amenities` in a
+  // partial PATCH body would otherwise be silently coerced to `false`/`[]`
+  // and overwrite the existing value. Re-declare both as plain optionals.
+  .extend({
+    isFeatured: z.boolean().optional(),
+    amenities: z.array(z.enum(AMENITY_KEYS)).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.operationType) {
+      validatePrices(
+        { operationType: data.operationType, salePrice: data.salePrice, rentPrice: data.rentPrice },
+        ctx,
+      );
+    }
+  });
 
 export const listingStatusSchema = z.object({
   status: z.enum(PropertyStatus, { error: "Status is required" }),

@@ -24,6 +24,7 @@ import { useDashboardListingsQuery } from "@/hooks/queries/useDashboardListingsQ
 import {
   useListingStatusMutation,
   useListingFeaturedMutation,
+  useUpdateListingMutation,
 } from "@/hooks/mutations/useUpdateListingMutation";
 import { useDeleteListingMutation } from "@/hooks/mutations/useDeleteListingMutation";
 import { TYPE_LABELS, STATUS_LABELS } from "./listings-data";
@@ -35,6 +36,8 @@ import { ListingGridView } from "./components/ListingGridView";
 import { ListingFilterModal } from "./components/ListingFilterModal";
 import { UploadListingModal } from "./components/UploadListingModal";
 import { SearchableSelect } from "./components/SearchableSelect";
+import { BulkActionsBar } from "./components/BulkActionsBar";
+import { BulkAssignAgentModal } from "./components/BulkAssignAgentModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -113,11 +116,15 @@ export function ListingsPage({ role }: ListingsPageProps) {
     "All",
   );
   const [typeFilter, setTypeFilter] = useState<PropertyType | "All">("All");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [showBulkAssign, setShowBulkAssign] = useState(false);
 
   const { data, isLoading, isError } = useDashboardListingsQuery();
   const statusMutation = useListingStatusMutation();
   const featuredMutation = useListingFeaturedMutation();
   const deleteMutation = useDeleteListingMutation();
+  const updateMutation = useUpdateListingMutation();
 
   const canCreate = hasPermission(role, "listings:create");
   const canUpdate = hasPermission(role, "listings:update");
@@ -225,6 +232,95 @@ export function ListingsPage({ role }: ListingsPageProps) {
     onToggleFeatured: handleToggleFeatured,
     onDelete: handleDelete,
   };
+
+  function toggleOneSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllSelected() {
+    setSelectedIds((prev) => {
+      const allVisibleSelected =
+        filtered.length > 0 && filtered.every((listing) => prev.has(listing.id));
+      return allVisibleSelected ? new Set() : new Set(filtered.map((listing) => listing.id));
+    });
+  }
+
+  async function runBulk(
+    ids: string[],
+    run: (id: string) => Promise<unknown>,
+    successLabel: (count: number) => string,
+    failureLabel: (count: number) => string,
+  ) {
+    setBulkBusy(true);
+    const results = await Promise.allSettled(ids.map(run));
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.length - succeeded;
+
+    if (succeeded > 0) toast.success(successLabel(succeeded));
+    if (failed > 0) toast.error(failureLabel(failed));
+
+    setBulkBusy(false);
+    setSelectedIds(new Set());
+  }
+
+  function handleBulkFeature(isFeatured: boolean) {
+    const ids = [...selectedIds];
+    return runBulk(
+      ids,
+      (id) => featuredMutation.mutateAsync({ id, isFeatured }),
+      (n) => `${n} listing${n === 1 ? "" : "s"} ${isFeatured ? "featured" : "unfeatured"}`,
+      (n) => `${n} listing${n === 1 ? "" : "s"} failed to update`,
+    );
+  }
+
+  function handleBulkStatus(status: PropertyStatus, verb: string) {
+    const ids = [...selectedIds];
+    return runBulk(
+      ids,
+      (id) => statusMutation.mutateAsync({ id, status }),
+      (n) => `${n} listing${n === 1 ? "" : "s"} ${verb}`,
+      (n) => `${n} listing${n === 1 ? "" : "s"} failed to update`,
+    );
+  }
+
+  function handleBulkArchive() {
+    const ids = [...selectedIds];
+    const confirmed = window.confirm(
+      `Archive ${ids.length} listing${ids.length === 1 ? "" : "s"}? They will be hidden from the public site until reactivated.`,
+    );
+    if (!confirmed) return;
+    return handleBulkStatus(PropertyStatus.INACTIVE, "archived");
+  }
+
+  function handleBulkDelete() {
+    const ids = [...selectedIds];
+    const confirmed = window.confirm(
+      `Permanently delete ${ids.length} listing${ids.length === 1 ? "" : "s"} and their images? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    return runBulk(
+      ids,
+      (id) => deleteMutation.mutateAsync(id),
+      (n) => `${n} listing${n === 1 ? "" : "s"} deleted`,
+      (n) => `${n} listing${n === 1 ? "" : "s"} failed to delete`,
+    );
+  }
+
+  function handleBulkAssign(agentId: string) {
+    const ids = [...selectedIds];
+    setShowBulkAssign(false);
+    return runBulk(
+      ids,
+      (id) => updateMutation.mutateAsync({ id, data: { assignedAgentId: agentId } }),
+      (n) => `${n} listing${n === 1 ? "" : "s"} assigned`,
+      (n) => `${n} listing${n === 1 ? "" : "s"} failed to assign`,
+    );
+  }
 
   return (
     <main className="min-h-full bg-[#f8fafc] px-4 py-4 sm:px-5 sm:py-5 lg:px-6">
@@ -451,6 +547,23 @@ export function ListingsPage({ role }: ListingsPageProps) {
           </div>
         </section>
 
+        <BulkActionsBar
+          selectedCount={selectedIds.size}
+          busy={bulkBusy}
+          canFeature={canFeature}
+          canPause={canPause}
+          canDelete={canDelete}
+          canAssign={canAssign}
+          onClear={() => setSelectedIds(new Set())}
+          onFeature={() => handleBulkFeature(true)}
+          onUnfeature={() => handleBulkFeature(false)}
+          onPause={() => handleBulkStatus(PropertyStatus.PAUSED, "paused")}
+          onActivate={() => handleBulkStatus(PropertyStatus.ACTIVE, "activated")}
+          onArchive={handleBulkArchive}
+          onDelete={handleBulkDelete}
+          onAssign={() => setShowBulkAssign(true)}
+        />
+
         {/* Content */}
         {isLoading ? (
           <div
@@ -499,6 +612,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
               listings={filtered}
               onFilterClick={() => setShowFilter(true)}
               actions={rowActions}
+              selection={{
+                selectedIds,
+                onToggleOne: toggleOneSelected,
+                onToggleAll: toggleAllSelected,
+              }}
             />
           </div>
         ) : (
@@ -529,6 +647,15 @@ export function ListingsPage({ role }: ListingsPageProps) {
             resultCount={filtered.length}
             onApply={() => setShowFilter(false)}
             onClose={() => setShowFilter(false)}
+          />
+        )}
+
+        {showBulkAssign && (
+          <BulkAssignAgentModal
+            count={selectedIds.size}
+            busy={bulkBusy}
+            onClose={() => setShowBulkAssign(false)}
+            onAssign={handleBulkAssign}
           />
         )}
       </div>

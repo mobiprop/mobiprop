@@ -13,13 +13,13 @@ const BLOG_IMAGES_BUCKET = "blog-images";
 const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
 
 export const OPPORTUNITY_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024; // 10MB, matches the upload UI's stated cap
-const OPPORTUNITY_DOCUMENT_MIME_TYPES = [
+export const OPPORTUNITY_DOCUMENT_MIME_TYPES = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
-function extensionForDocumentFile(mimeType: string, fileName: string): string {
+export function extensionForDocumentFile(mimeType: string, fileName: string): string {
   if (mimeType === "application/pdf") return "pdf";
   if (mimeType === "application/msword") return "doc";
   if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "docx";
@@ -406,6 +406,138 @@ export async function removeOpportunityDocumentObject(storagePath: string): Prom
   const supabase = createAdminClient();
   const { error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).remove([storagePath]);
   if (error) console.error("[storage] failed to remove opportunity document", error.message);
+}
+
+// ── DocuSign custom contract documents ──────────────────────────────────────
+//
+// Signed-upload-URL, private bucket, server-authoritative verification — an
+// ad-hoc PDF/DOC/DOCX a staff member uploads to send via DocuSign's "Upload
+// Custom Contract" flow (as opposed to a reusable DocuSign template). Kept
+// separate from OPPORTUNITY_DOCUMENTS_BUCKET because a custom contract can
+// be sent standalone with no Opportunity yet, so there's no opportunityId to
+// scope the path by at upload time (mirrors how sending from a template
+// works today). Same mime allowlist/size cap as opportunity documents.
+
+const DOCUSIGN_DOCUMENTS_BUCKET = "docusign-documents";
+let docusignDocumentsBucketReady = false;
+
+async function ensureDocusignDocumentsBucket(): Promise<void> {
+  if (docusignDocumentsBucketReady) return;
+
+  const supabase = createAdminClient();
+  const desiredOptions = {
+    public: false,
+    fileSizeLimit: OPPORTUNITY_DOCUMENT_MAX_BYTES,
+    allowedMimeTypes: OPPORTUNITY_DOCUMENT_MIME_TYPES,
+  };
+
+  const { data: existing } = await supabase.storage.getBucket(DOCUSIGN_DOCUMENTS_BUCKET);
+  if (existing) {
+    const { error: updateError } = await supabase.storage.updateBucket(DOCUSIGN_DOCUMENTS_BUCKET, desiredOptions);
+    if (updateError) {
+      console.error("[storage] could not raise docusign-documents bucket limits", updateError.message);
+    }
+    docusignDocumentsBucketReady = true;
+    return;
+  }
+
+  let { error } = await supabase.storage.createBucket(DOCUSIGN_DOCUMENTS_BUCKET, desiredOptions);
+  if (error && !/already exists/i.test(error.message)) {
+    ({ error } = await supabase.storage.createBucket(DOCUSIGN_DOCUMENTS_BUCKET, {
+      public: false,
+      allowedMimeTypes: OPPORTUNITY_DOCUMENT_MIME_TYPES,
+    }));
+  }
+  if (error && !/already exists/i.test(error.message)) {
+    throw new Error(`Failed to create ${DOCUSIGN_DOCUMENTS_BUCKET} bucket: ${error.message}`);
+  }
+  docusignDocumentsBucketReady = true;
+}
+
+export type DocusignDocumentUploadTicket = {
+  uploadId: string;
+  storagePath: string;
+  signedUrl: string;
+  token: string;
+};
+
+/** Mints a signed upload URL under `pending/{uploadId}.{ext}` — no owning envelope exists yet at upload time. */
+export async function mintDocusignDocumentUploadTicket(file: {
+  name: string;
+  type: string;
+}): Promise<DocusignDocumentUploadTicket> {
+  if (!OPPORTUNITY_DOCUMENT_MIME_TYPES.includes(file.type)) {
+    throw new Error("Only PDF, DOC, and DOCX files are supported.");
+  }
+
+  await ensureDocusignDocumentsBucket();
+  const supabase = createAdminClient();
+
+  const uploadId = randomUUID();
+  const storagePath = `pending/${uploadId}.${extensionForDocumentFile(file.type, file.name)}`;
+  const { data, error } = await supabase.storage.from(DOCUSIGN_DOCUMENTS_BUCKET).createSignedUploadUrl(storagePath);
+  if (error || !data) {
+    throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
+  }
+
+  return { uploadId, storagePath, signedUrl: data.signedUrl, token: data.token };
+}
+
+export type ReadDocusignDocument = {
+  url: string;
+  sizeBytes: number;
+  mimeType: string;
+  buffer: Buffer;
+};
+
+/**
+ * Verifies the upload landed in storage with an authoritative size/type
+ * (never trusting the client), and downloads its bytes so the caller can
+ * base64-encode them for the DocuSign "create envelope from document" call.
+ */
+export async function readUploadedDocusignDocument(storagePath: string): Promise<ReadDocusignDocument> {
+  if (!storagePath.startsWith("pending/")) {
+    throw new Error("Document path is not a pending DocuSign upload.");
+  }
+  const supabase = createAdminClient();
+
+  const { data: objects, error } = await supabase.storage.from(DOCUSIGN_DOCUMENTS_BUCKET).list("pending", { limit: 1000 });
+  if (error) throw new Error(`Failed to verify uploaded document: ${error.message}`);
+
+  const name = storagePath.slice("pending/".length);
+  const object = objects?.find((o) => o.name === name);
+  if (!object) throw new Error("Uploaded document is missing from storage.");
+
+  const sizeBytes = Number(object.metadata?.size ?? 0);
+  const mimeType = String(object.metadata?.mimetype ?? "");
+  if (!OPPORTUNITY_DOCUMENT_MIME_TYPES.includes(mimeType)) {
+    throw new Error("Uploaded document has an unsupported type.");
+  }
+  if (sizeBytes <= 0 || sizeBytes > OPPORTUNITY_DOCUMENT_MAX_BYTES) {
+    throw new Error("Uploaded document violates the size limit.");
+  }
+
+  const { data: downloaded, error: downloadError } = await supabase.storage
+    .from(DOCUSIGN_DOCUMENTS_BUCKET)
+    .download(storagePath);
+  if (downloadError || !downloaded) {
+    throw new Error(`Failed to read uploaded document: ${downloadError?.message ?? "unknown error"}`);
+  }
+  const buffer = Buffer.from(await downloaded.arrayBuffer());
+
+  const { data: signed, error: signError } = await supabase.storage
+    .from(DOCUSIGN_DOCUMENTS_BUCKET)
+    .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+  if (signError || !signed) throw new Error(`Failed to sign document URL: ${signError?.message ?? "unknown error"}`);
+
+  return { url: signed.signedUrl, sizeBytes, mimeType, buffer };
+}
+
+/** Removes a pending custom-contract upload. Best-effort: errors are logged. Called when the DocuSign send call fails after upload. */
+export async function removeDocusignDocumentObject(storagePath: string): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.storage.from(DOCUSIGN_DOCUMENTS_BUCKET).remove([storagePath]);
+  if (error) console.error("[storage] failed to remove docusign document", error.message);
 }
 
 // ── Blog cover images ────────────────────────────────────────────────────────

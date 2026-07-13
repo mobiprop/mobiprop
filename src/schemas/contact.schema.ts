@@ -17,7 +17,13 @@ export const createContactSchema = z.object({
 
 export type CreateContactInput = z.infer<typeof createContactSchema>;
 
-export const updateContactSchema = createContactSchema.partial();
+// `.partial()` only wraps each field in `.optional()`; it doesn't remove a
+// field's `.default(...)`, so an omitted `type` in a partial PATCH body
+// would otherwise be silently coerced to BUYER and overwrite the existing
+// value. Re-declare it as a plain optional.
+export const updateContactSchema = createContactSchema.partial().extend({
+  type: z.nativeEnum(ContactType).optional(),
+});
 export type UpdateContactInput = z.infer<typeof updateContactSchema>;
 
 // ── CSV import ────────────────────────────────────────────────────────────────
