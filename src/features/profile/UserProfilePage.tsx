@@ -13,6 +13,7 @@ import {
   Bookmark,
   MessageSquare,
   Heart, FileText, Calendar,
+  Download,
 } from "lucide-react";
 import { useMyToursQuery, useMyContractsQuery } from "@/hooks/queries/useDashboardToursQuery";
 import { useCancelMyTourMutation } from "@/hooks/mutations/useTourMutations";
@@ -557,6 +558,18 @@ function ContractCard({ contract }: { contract: MyContractDto }) {
       </div>
       {contract.propertyReference && (
         <p className="text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>{contract.propertyReference}</p>
+      )}
+      {contract.documentUrl && (
+        <a
+          href={contract.documentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          download={contract.documentFileName ?? undefined}
+          className="inline-flex w-fit items-center gap-1.5 text-[12px] font-medium text-[#4f46e5] hover:underline"
+          style={{ fontFamily: montserrat }}
+        >
+          <Download size={13} /> View / Download document
+        </a>
       )}
     </div>
   );

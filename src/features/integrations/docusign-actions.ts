@@ -730,6 +730,7 @@ export async function applyEnvelopeWebhookEvent(input: {
 export type MyContractDto = {
   id: string;
   templateName: string;
+  source: EnvelopeSource;
   status: EnvelopeStatus;
   role: "BUYER" | "SELLER" | "AGENCY" | null;
   opportunityNumber: string | null;
@@ -737,6 +738,14 @@ export type MyContractDto = {
   sentAt: string;
   expiresAt: string | null;
   completedAt: string | null;
+  /**
+   * Only set for CUSTOM_UPLOAD — a signed URL to the originally uploaded
+   * document. TEMPLATE envelopes have no locally-held file (the document
+   * lives in DocuSign's own system), so this stays null for those; there is
+   * no "view/download" surface for a template-sourced contract yet.
+   */
+  documentUrl: string | null;
+  documentFileName: string | null;
 };
 
 export async function getMyContracts(profileId: string): Promise<MyContractDto[]> {
@@ -782,6 +791,7 @@ export async function getMyContracts(profileId: string): Promise<MyContractDto[]
     contracts.push({
       id: r.id,
       templateName: r.templateName,
+      source: r.source,
       status: r.status,
       role: r.opportunityId ? roleByOpportunity.get(r.opportunityId) ?? null : null,
       opportunityNumber: r.opportunity?.opportunityId ?? null,
@@ -789,6 +799,8 @@ export async function getMyContracts(profileId: string): Promise<MyContractDto[]
       sentAt: r.sentAt.toISOString(),
       expiresAt: r.expiresAt?.toISOString() ?? null,
       completedAt: r.completedAt?.toISOString() ?? null,
+      documentUrl: r.documentUrl,
+      documentFileName: r.documentFileName,
     });
   }
   return contracts;
