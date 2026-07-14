@@ -10,7 +10,9 @@ import { APP_NAME, APP_URL } from "@/lib/constants";
  * `{{ .Token }}`) so the same renderers produce the dashboard paste-ins.
  */
 
-const BRAND = {
+// Shared with the marketing/newsletter templates (email-marketing-templates.ts)
+// so campaign emails carry exactly the same brand shell as auth emails.
+export const BRAND = {
   navy: "#0d2138",
   heroFrom: "#16406e",
   heroTo: "#2f6cb5",
@@ -27,7 +29,7 @@ const BRAND = {
   canvas: "#eef2f7",
 };
 
-const FONT = `'Poppins','Segoe UI',Helvetica,Arial,sans-serif`;
+export const FONT = `'Poppins','Segoe UI',Helvetica,Arial,sans-serif`;
 
 const px = (n: number) => `${n}px`;
 
@@ -44,7 +46,7 @@ function wordmark(color: string): string {
     <div style="font-family:${FONT};color:${color};font-size:8px;font-weight:500;letter-spacing:3px;line-height:1;margin-top:4px;">PROPIEDADES</div>`;
 }
 
-function header(): string {
+export function header(): string {
   return `<tr><td bgcolor="${BRAND.navy}" style="padding:18px 28px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
       <td valign="middle">
@@ -60,7 +62,7 @@ function header(): string {
   </td></tr>`;
 }
 
-function hero(opts: { icon: string; eyebrow?: string; title: string; subtitle: string }): string {
+export function hero(opts: { icon: string; eyebrow?: string; title: string; subtitle: string }): string {
   return `<tr><td align="center" bgcolor="${BRAND.button}" style="background-color:${BRAND.button};background-image:linear-gradient(135deg,${BRAND.heroFrom} 0%,${BRAND.heroTo} 100%);padding:44px 32px 48px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
       <td align="center" valign="middle" style="width:64px;height:64px;border-radius:32px;background-color:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);">
@@ -73,7 +75,7 @@ function hero(opts: { icon: string; eyebrow?: string; title: string; subtitle: s
   </td></tr>`;
 }
 
-function footer(): string {
+export function footer(): string {
   const year = new Date().getFullYear();
   return `<tr><td bgcolor="${BRAND.navy}" align="center" style="padding:32px 28px;">
     ${logoTile(40)}
@@ -91,7 +93,7 @@ function footer(): string {
   </td></tr>`;
 }
 
-function button(label: string, url: string): string {
+export function button(label: string, url: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 0;"><tr>
     <td align="center" bgcolor="${BRAND.button}" style="border-radius:12px;">
       <a href="${url}" style="display:block;font-family:${FONT};font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;padding:16px 24px;border-radius:12px;">${label}</a>

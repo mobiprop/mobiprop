@@ -401,6 +401,20 @@ export async function verifyUploadedOpportunityDocument(
   return { storagePath, url: signed.signedUrl, sizeBytes, mimeType };
 }
 
+/**
+ * Downloads a saved supporting document's bytes so it can be sent through
+ * DocuSign ("Use Supporting Document" send source). Size/type/url are read
+ * from the OpportunityDocument row, which was server-verified at upload time.
+ */
+export async function readOpportunityDocumentBytes(storagePath: string): Promise<Buffer> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).download(storagePath);
+  if (error || !data) {
+    throw new Error(`Failed to read the supporting document: ${error?.message ?? "unknown error"}`);
+  }
+  return Buffer.from(await data.arrayBuffer());
+}
+
 /** Removes a single opportunity document object. Best-effort: errors are logged. */
 export async function removeOpportunityDocumentObject(storagePath: string): Promise<void> {
   const supabase = createAdminClient();

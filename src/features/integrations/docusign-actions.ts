@@ -20,6 +20,7 @@ import {
 import {
   mintDocusignDocumentUploadTicket as mintDocusignDocumentUploadTicketInStorage,
   readUploadedDocusignDocument,
+  readOpportunityDocumentBytes,
   removeDocusignDocumentObject,
   extensionForDocumentFile,
 } from "@/lib/supabase/storage";
@@ -154,6 +155,24 @@ function envelopeOwnerId(e: { sentById: string | null; opportunity: { assignedAg
   return e.sentById ?? e.opportunity?.assignedAgentId ?? null;
 }
 
+/** Mirrors opportunityRecordScope in opportunity-actions: AGENT/team scope only reaches opportunities they created or are assigned to. */
+async function opportunityRecordScope(profile: Profile): Promise<Prisma.OpportunityWhereInput> {
+  const scopeIds = await resolveOwnerScopeIds(profile);
+  if (scopeIds === null) return {};
+  return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
+}
+
+/** 404s (never 403s, to avoid existence leaks) when the opportunity is missing, deleted, or outside the caller's record scope. */
+async function assertOpportunityAccess(opportunityId: string, profile: Profile): Promise<CrmActionError | null> {
+  const scope = await opportunityRecordScope(profile);
+  const opportunity = await prisma.opportunity.findFirst({
+    where: { id: opportunityId, isDeleted: false, ...scope },
+    select: { id: true },
+  });
+  if (!opportunity) return { ok: false, error: "Opportunity not found.", status: 404 };
+  return null;
+}
+
 // ── List + stats ─────────────────────────────────────────────────────────────
 
 export async function listEnvelopes(): Promise<ActionResult<{ envelopes: DocusignEnvelopeDto[]; stats: EnvelopeStats }>> {
@@ -243,6 +262,11 @@ export async function sendEnvelopeForSignature(
     return { ok: false, error: "DocuSign is not configured yet.", status: 503 };
   }
 
+  if (input.opportunityId) {
+    const accessError = await assertOpportunityAccess(input.opportunityId, gate.profile);
+    if (accessError) return accessError;
+  }
+
   let created;
   try {
     created = await createEnvelopeFromTemplate({
@@ -319,8 +343,14 @@ export type CustomContractRecipientInput = {
 };
 
 export type SendCustomContractInput = {
-  documentStoragePath: string;
-  documentFileName: string;
+  // Exactly one document source:
+  //  - documentStoragePath + documentFileName — a fresh upload sitting in the
+  //    docusign-documents bucket's pending/ area, or
+  //  - opportunityDocumentId — an already-saved supporting document on the
+  //    Opportunity ("Use Supporting Document" in the Opportunity send modal).
+  documentStoragePath?: string;
+  documentFileName?: string;
+  opportunityDocumentId?: string;
   recipients: CustomContractRecipientInput[];
   propertyReference?: string;
   expiresInDays?: number;
@@ -346,6 +376,11 @@ export async function sendCustomContractForSignature(
     return { ok: false, error: "DocuSign is not configured yet.", status: 503 };
   }
 
+  if (input.opportunityId) {
+    const accessError = await assertOpportunityAccess(input.opportunityId, gate.profile);
+    if (accessError) return accessError;
+  }
+
   const recipients = input.recipients
     .map((r) => ({ ...r, name: r.name.trim(), email: r.email.trim(), roleLabel: r.roleLabel?.trim() || undefined }))
     .filter((r) => r.name && r.email);
@@ -353,19 +388,51 @@ export async function sendCustomContractForSignature(
     return { ok: false, error: "At least one recipient with a name and email is required.", status: 400 };
   }
 
-  let document;
-  try {
-    document = await readUploadedDocusignDocument(input.documentStoragePath);
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Failed to read the uploaded document.", status: 400 };
+  // Resolve the document to send: a saved supporting document, or a fresh
+  // pending upload. `storagePath` stays null for supporting documents — the
+  // file keeps living in the opportunity-documents bucket, owned by the
+  // OpportunityDocument row; the envelope only references its bytes/url.
+  let document: { fileName: string; url: string; mimeType: string; buffer: Buffer; pendingStoragePath: string | null };
+  if (input.opportunityDocumentId) {
+    if (!input.opportunityId) {
+      return { ok: false, error: "A supporting document can only be sent from its opportunity.", status: 400 };
+    }
+    const doc = await prisma.opportunityDocument.findFirst({
+      where: { id: input.opportunityDocumentId, opportunityId: input.opportunityId },
+    });
+    if (!doc) return { ok: false, error: "Supporting document not found.", status: 404 };
+    let buffer;
+    try {
+      buffer = await readOpportunityDocumentBytes(doc.storagePath);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : "Failed to read the supporting document.", status: 400 };
+    }
+    document = { fileName: doc.fileName, url: doc.url, mimeType: doc.mimeType, buffer, pendingStoragePath: null };
+  } else {
+    if (!input.documentStoragePath || !input.documentFileName) {
+      return { ok: false, error: "An uploaded document is required.", status: 400 };
+    }
+    let uploaded;
+    try {
+      uploaded = await readUploadedDocusignDocument(input.documentStoragePath);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : "Failed to read the uploaded document.", status: 400 };
+    }
+    document = {
+      fileName: input.documentFileName,
+      url: uploaded.url,
+      mimeType: uploaded.mimeType,
+      buffer: uploaded.buffer,
+      pendingStoragePath: input.documentStoragePath,
+    };
   }
 
   let created;
   try {
     created = await createEnvelopeFromDocument({
       documentBase64: document.buffer.toString("base64"),
-      documentName: input.documentFileName,
-      fileExtension: extensionForDocumentFile(document.mimeType, input.documentFileName),
+      documentName: document.fileName,
+      fileExtension: extensionForDocumentFile(document.mimeType, document.fileName),
       recipients: recipients.map((r) => ({
         name: r.name,
         email: r.email,
@@ -375,7 +442,9 @@ export async function sendCustomContractForSignature(
       message: input.message,
     });
   } catch (error) {
-    void removeDocusignDocumentObject(input.documentStoragePath);
+    // Only clean up throwaway pending uploads — never a supporting document,
+    // which stays attached to its Opportunity regardless of the send outcome.
+    if (document.pendingStoragePath) void removeDocusignDocumentObject(document.pendingStoragePath);
     return { ok: false, error: error instanceof Error ? error.message : "Failed to send the document via DocuSign.", status: 502 };
   }
 
@@ -388,9 +457,9 @@ export async function sendCustomContractForSignature(
       docusignEnvelopeId: created.envelopeId,
       source: EnvelopeSource.CUSTOM_UPLOAD,
       templateId: null,
-      templateName: input.documentFileName,
-      documentFileName: input.documentFileName,
-      documentStoragePath: input.documentStoragePath,
+      templateName: document.fileName,
+      documentFileName: document.fileName,
+      documentStoragePath: document.pendingStoragePath,
       documentUrl: document.url,
       documentMimeType: document.mimeType,
       status: EnvelopeStatus.SENT,
@@ -515,7 +584,11 @@ export async function attachEnvelopeToOpportunity(
   const gate = await requirePermission("opportunities:update");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
-  const envelope = await prisma.docusignEnvelope.findUnique({ where: { id: envelopeId }, select: { id: true } });
+  const accessError = await assertOpportunityAccess(opportunityId, gate.profile);
+  if (accessError) return accessError;
+
+  const scope = await envelopeRecordScope(gate.profile);
+  const envelope = await prisma.docusignEnvelope.findFirst({ where: { id: envelopeId, ...scope }, select: { id: true } });
   if (!envelope) return { ok: false, error: "Envelope not found.", status: 404 };
 
   await prisma.docusignEnvelope.update({ where: { id: envelopeId }, data: { opportunityId } });
@@ -535,7 +608,8 @@ export async function detachEnvelopeFromOpportunity(envelopeId: string): Promise
   const gate = await requirePermission("opportunities:update");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
-  const envelope = await prisma.docusignEnvelope.findUnique({ where: { id: envelopeId }, select: { id: true, opportunityId: true } });
+  const scope = await envelopeRecordScope(gate.profile);
+  const envelope = await prisma.docusignEnvelope.findFirst({ where: { id: envelopeId, ...scope }, select: { id: true, opportunityId: true } });
   if (!envelope) return { ok: false, error: "Envelope not found.", status: 404 };
 
   await prisma.docusignEnvelope.update({ where: { id: envelopeId }, data: { opportunityId: null } });

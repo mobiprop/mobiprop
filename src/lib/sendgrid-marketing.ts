@@ -176,11 +176,31 @@ type BatchOutcome = {
 };
 
 function buildHtml(message: CampaignMessage): string {
-  // Preheader (hidden preview text) + body + compliance footer.
-  const preheader = message.previewText
-    ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(message.previewText)}</div>`
-    : "";
-  return `${preheader}${message.htmlBody}${marketingFooterHtml()}`;
+  let html = message.htmlBody;
+
+  // Hidden preheader (inbox preview text) — inject just inside <body> when the
+  // template is a full HTML document, else prepend.
+  if (message.previewText) {
+    const preheader = `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(message.previewText)}</div>`;
+    const bodyTag = /<body[^>]*>/i.exec(html);
+    html = bodyTag
+      ? html.replace(bodyTag[0], `${bodyTag[0]}${preheader}`)
+      : `${preheader}${html}`;
+  }
+
+  // Compliance footer: the built-in templates already carry a branded
+  // unsubscribe bar (%unsubscribe_url% present). Only fully custom HTML
+  // without one gets the generic fallback footer appended — inside </body>
+  // when there is one, so the document stays valid.
+  if (!html.includes("%unsubscribe_url%")) {
+    const closeIdx = html.toLowerCase().lastIndexOf("</body>");
+    html =
+      closeIdx >= 0
+        ? `${html.slice(0, closeIdx)}${marketingFooterHtml()}${html.slice(closeIdx)}`
+        : `${html}${marketingFooterHtml()}`;
+  }
+
+  return html;
 }
 
 export function escapeHtml(value: string): string {
