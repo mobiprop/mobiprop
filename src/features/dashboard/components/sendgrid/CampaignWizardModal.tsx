@@ -106,7 +106,11 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   const [validationError, setValidationError] = useState<string | null>(null);
   // Listings featured in the email's PROPERTIES block (dynamic template content).
   const [featured, setFeatured] = useState<EmailListingCard[]>([]);
-  const [featuredLoading, setFeaturedLoading] = useState(false);
+  // Starts true when an opened draft has featured ids to rehydrate (the effect
+  // below fetches them), so the section shows its loading row immediately.
+  const [featuredLoading, setFeaturedLoading] = useState<boolean>(() =>
+    Boolean(campaign && (parsePropertiesBlockIds(campaign.htmlBody)?.length ?? 0) > 0),
+  );
 
   const listsQuery = useSendgridListsQuery();
   const createMutation = useCreateCampaignMutation();
@@ -127,7 +131,6 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   useEffect(() => {
     const ids = campaign ? parsePropertiesBlockIds(campaign.htmlBody) : null;
     if (!ids || ids.length === 0) return;
-    setFeaturedLoading(true);
     fetchListingCards(ids)
       .then((cards) => setFeatured(cards))
       .catch(() => toast.error("Could not load this campaign's featured properties"))
