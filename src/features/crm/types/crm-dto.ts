@@ -55,6 +55,8 @@ export type OpportunityParticipantDto = {
   contactEmail: string | null;
   /** Set for AGENCY rows only — free text, no Contact record. */
   companyName: string | null;
+  /** Set for AGENCY rows only — lets the agency be picked as a DocuSign signer. */
+  companyEmail: string | null;
 };
 
 export type OpportunityListingDto = {
@@ -63,22 +65,12 @@ export type OpportunityListingDto = {
   propertySlug: string;
 };
 
-export type OpportunityDocumentDto = {
-  id: string;
-  fileName: string;
-  url: string;
-  mimeType: string;
-  sizeBytes: number;
-  createdAt: string;
-};
-
 export type OpportunityDto = {
   id: string;
   opportunityId: string;
   title: string;
   participants: OpportunityParticipantDto[];
   listings: OpportunityListingDto[];
-  documents: OpportunityDocumentDto[];
   dealType: string | null;
   dealSize: number | null;
   stage: OpportunityStage;

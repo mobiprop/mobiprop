@@ -4,8 +4,6 @@ import type { ListingImageDescriptor } from "@/schemas/listing.schema";
 
 // Must match PROPERTY_IMAGES_BUCKET in src/lib/supabase/storage.ts.
 const PROPERTY_IMAGES_BUCKET = "property-images";
-// Must match OPPORTUNITY_DOCUMENTS_BUCKET in src/lib/supabase/storage.ts.
-const OPPORTUNITY_DOCUMENTS_BUCKET = "opportunity-documents";
 // Must match CHAT_ATTACHMENTS_BUCKET in src/lib/supabase/storage.ts.
 const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
 // Must match DOCUSIGN_DOCUMENTS_BUCKET in src/lib/supabase/storage.ts.
@@ -114,39 +112,6 @@ export async function uploadImagesForExistingListing(
   const tickets = data.tickets as UploadTicket[];
 
   return uploadWithTickets(tickets, optimized, files.map((f) => f.name));
-}
-
-// ── Opportunity documents ───────────────────────────────────────────────────
-
-type OpportunityDocumentTicket = { documentId: string; storagePath: string; token: string };
-
-/**
- * Uploads a single PDF/DOC/DOCX directly to storage via a signed URL, then
- * finalizes it against the opportunity record. Returns the saved document row.
- */
-export async function uploadOpportunityDocument(
-  opportunityId: string,
-  file: File,
-): Promise<{ id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: string }> {
-  const ticketData = await postJson(`/api/dashboard/opportunities/${opportunityId}/documents/upload-ticket`, {
-    name: file.name,
-    type: file.type,
-  });
-  const ticket = ticketData.ticket as OpportunityDocumentTicket;
-
-  const supabase = createClient();
-  const { error } = await supabase.storage
-    .from(OPPORTUNITY_DOCUMENTS_BUCKET)
-    .uploadToSignedUrl(ticket.storagePath, ticket.token, file, { contentType: file.type });
-  if (error) throw new Error(`Document upload failed: ${error.message}`);
-
-  const finalized = await postJson(`/api/dashboard/opportunities/${opportunityId}/documents`, {
-    storagePath: ticket.storagePath,
-    fileName: file.name,
-  });
-  return finalized.document as {
-    id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: string;
-  };
 }
 
 // ── DocuSign custom contract documents ──────────────────────────────────────

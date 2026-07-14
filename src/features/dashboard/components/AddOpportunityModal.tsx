@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, Upload, FileText, Loader2, FileSignature, Send, Link2Off } from "lucide-react";
+import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, FileSignature, Send, Link2Off, RefreshCw, XCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 import { ContactType, OpportunityStage, OpportunityStatus, EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
 import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
 import { computeCommissionAmount } from "@/lib/commission";
-import {
-  useCreateContactMutation,
-  useUploadOpportunityDocumentMutation,
-  useRemoveOpportunityDocumentMutation,
-} from "@/hooks/mutations/useCrmMutations";
+import { hasPermission, type Role } from "@/lib/permissions";
+import { useCreateContactMutation } from "@/hooks/mutations/useCrmMutations";
 import { useDocusignEnvelopesQuery, useDocusignTemplatesQuery } from "@/hooks/queries/useDocusignQuery";
-import { useAttachEnvelopeMutation, useDetachEnvelopeMutation } from "@/hooks/mutations/useDocusignMutations";
+import {
+  useAttachEnvelopeMutation,
+  useDetachEnvelopeMutation,
+  useVoidEnvelopeMutation,
+  useResendEnvelopeMutation,
+  useSendForSignatureMutation,
+} from "@/hooks/mutations/useDocusignMutations";
+import { uploadDocusignDocument } from "@/lib/client-upload";
 import { SearchableSelect } from "./SearchableSelect";
 import { ContactPicker } from "./ContactPicker";
 import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
 import { SendOpportunityContractModal } from "./SendOpportunityContractModal";
+import { ContractSourcePicker, type ContractSelection } from "./ContractSourcePicker";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -29,8 +34,12 @@ export type ParticipantFormRow = {
   role: OpportunityParticipantRole;
   contactId: string;
   contactLabel: string;
+  /** BUYER/SELLER: the linked Contact's email. AGENCY: companyEmail below. Used to offer this participant as a contract signer. */
+  contactEmail: string;
   /** AGENCY rows only — free text, no Contact record. */
   companyName: string;
+  /** AGENCY rows only — lets the agency be picked as a DocuSign signer. */
+  companyEmail: string;
 };
 
 type ListingFormRow = {
@@ -75,6 +84,8 @@ type AddOpportunityModalProps = {
   isSaving?: boolean;
   /** When set (AGENT logged in), the Assigned Agent field is locked to self. */
   lockedAgent?: { id: string; name: string } | null;
+  /** Gates Resend/Void actions on linked envelopes (docusign:resend/docusign:void). */
+  role: Role;
 };
 
 const inputClass =
@@ -127,7 +138,9 @@ function participantsFromInitial(initial?: OpportunityDto): ParticipantFormRow[]
     role: p.role,
     contactId: p.contactId ?? "",
     contactLabel: p.contactName ?? "",
+    contactEmail: p.role === "AGENCY" ? (p.companyEmail ?? "") : (p.contactEmail ?? ""),
     companyName: p.companyName ?? "",
+    companyEmail: p.companyEmail ?? "",
   }));
 }
 
@@ -142,18 +155,25 @@ function listingRowsFromInitial(initial?: OpportunityDto): ListingFormRow[] {
   return initial.listings.map((l) => ({ key: newListingRowKey(), propertyId: l.propertyId, propertyLabel: l.propertyTitle }));
 }
 
-function fmtBytes(n: number) {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+// Mirrors DocuSignPage's STATUS_BADGE — keep in sync if that palette changes.
+const ENVELOPE_STATUS_BADGE: Record<EnvelopeStatus, { bg: string; text: string; dot: string; label: string }> = {
+  SENT: { bg: "#fef3e2", text: "#b45309", dot: "#f59e0b", label: "Awaiting Signature" },
+  DELIVERED: { bg: "#e6fbf8", text: "#0f766e", dot: "#14b8a6", label: "Viewed" },
+  COMPLETED: { bg: "#dcfce7", text: "#16a34a", dot: "#22c55e", label: "Completed" },
+  DECLINED: { bg: "#fee2e2", text: "#dc2626", dot: "#ef4444", label: "Declined" },
+  VOIDED: { bg: "#f3f4f6", text: "#6a7282", dot: "#9ca3af", label: "Voided" },
+};
 
 function fmtPreview(amount: number | null) {
   if (amount === null) return null;
   return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
-export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving, lockedAgent }: AddOpportunityModalProps) {
+export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving, lockedAgent, role }: AddOpportunityModalProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [participants, setParticipants] = useState<ParticipantFormRow[]>(() => participantsFromInitial(initial));
   const [participantsError, setParticipantsError] = useState<string | null>(null);
@@ -163,7 +183,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   const [existingRole, setExistingRole] = useState<OpportunityParticipantRole>("BUYER");
   const [existingContactId, setExistingContactId] = useState("");
   const [existingContactLabel, setExistingContactLabel] = useState("");
+  const [existingContactEmail, setExistingContactEmail] = useState("");
   const [existingCompanyName, setExistingCompanyName] = useState("");
+  const [existingCompanyEmail, setExistingCompanyEmail] = useState("");
 
   // "Add Contact" panel
   const [ncFirstName, setNcFirstName] = useState("");
@@ -196,32 +218,27 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
 
-  // Existing (already-uploaded) documents — edit mode only.
-  const [documents] = useState(initial?.documents ?? []);
-  // Newly chosen files, staged in memory until the form is submitted. Nothing
-  // hits storage until Save, so cancelling the form never orphans a file.
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  // Existing documents the user removed — applied (DELETE) only on Save.
-  const [removedDocIds, setRemovedDocIds] = useState<string[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const uploadMutation = useUploadOpportunityDocumentMutation();
-  const removeMutation = useRemoveOpportunityDocumentMutation();
-
-  const visibleDocuments = documents.filter((d) => !removedDocIds.includes(d.id));
-
-  // ── DocuSign envelope attachment — edit mode only (a not-yet-saved
-  // opportunity has no id to attach an envelope to). ──
+  // ── Contracts & Signatures ──────────────────────────────────────────────
+  // Create mode: the chosen contract action is staged here and only sent
+  // after the Opportunity is created (handleSubmit). Edit mode: envelope
+  // attach/detach + the "Add Contract / Send for Signature" modal.
+  const [contractSelection, setContractSelection] = useState<ContractSelection | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const { data: envelopesData } = useDocusignEnvelopesQuery();
   const { data: templatesData } = useDocusignTemplatesQuery();
   const attachMutation = useAttachEnvelopeMutation();
   const detachMutation = useDetachEnvelopeMutation();
+  const voidMutation = useVoidEnvelopeMutation();
+  const resendMutation = useResendEnvelopeMutation();
+  const sendMutation = useSendForSignatureMutation();
   const allEnvelopes = envelopesData?.envelopes ?? [];
   const linkedEnvelopes = initial ? allEnvelopes.filter((e) => e.opportunityId === initial.id) : [];
   const availableEnvelopes = initial ? allEnvelopes.filter((e) => !e.opportunityId) : [];
   const [selectedEnvelopeId, setSelectedEnvelopeId] = useState("");
+  const canVoidEnvelope = hasPermission(role, "docusign:void");
+  const canResendEnvelope = hasPermission(role, "docusign:resend");
 
   async function attachSelectedEnvelope() {
     if (!initial || !selectedEnvelopeId) return;
@@ -244,6 +261,26 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     }
   }
 
+  async function voidLinkedEnvelope(envelopeId: string) {
+    const reason = window.prompt("Reason for voiding this envelope?");
+    if (!reason) return;
+    try {
+      await voidMutation.mutateAsync({ id: envelopeId, reason });
+      toast.success("Envelope voided");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to void envelope");
+    }
+  }
+
+  async function resendLinkedEnvelope(envelopeId: string) {
+    try {
+      await resendMutation.mutateAsync(envelopeId);
+      toast.success("Reminder sent");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to resend");
+    }
+  }
+
   // Discard-confirmation: any change to a real form field after mount marks
   // the form dirty, so closing (X / backdrop / Cancel / Escape) asks first
   // instead of silently dropping what the user typed.
@@ -260,7 +297,6 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     title, participants, dealType, dealSize, contractStart, contractEnd,
     commission, commissionUnit, paymentTerms, probability, stage, expectedCloseAt,
     listingRows, status, assignedAgentId, agentCommissionValue, agentCommissionUnit, notes,
-    pendingFiles, removedDocIds,
   ]);
 
   function requestClose() {
@@ -306,7 +342,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     setExistingRole("BUYER");
     setExistingContactId("");
     setExistingContactLabel("");
+    setExistingContactEmail("");
     setExistingCompanyName("");
+    setExistingCompanyEmail("");
   }
   function resetNewContactPanel() {
     setNcFirstName("");
@@ -335,13 +373,19 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
         toast.error("Enter a company name.");
         return;
       }
-      setParticipants((rows) => [...rows, { key: newRowKey(), role: "AGENCY", contactId: "", contactLabel: "", companyName: existingCompanyName.trim() }]);
+      setParticipants((rows) => [...rows, {
+        key: newRowKey(), role: "AGENCY", contactId: "", contactLabel: "",
+        contactEmail: existingCompanyEmail.trim(), companyName: existingCompanyName.trim(), companyEmail: existingCompanyEmail.trim(),
+      }]);
     } else {
       if (!existingContactId) {
         toast.error("Select a contact.");
         return;
       }
-      setParticipants((rows) => [...rows, { key: newRowKey(), role: existingRole, contactId: existingContactId, contactLabel: existingContactLabel, companyName: "" }]);
+      setParticipants((rows) => [...rows, {
+        key: newRowKey(), role: existingRole, contactId: existingContactId, contactLabel: existingContactLabel,
+        contactEmail: existingContactEmail, companyName: "", companyEmail: "",
+      }]);
     }
     setParticipantsError(null);
     closeParticipantPanel();
@@ -366,7 +410,10 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       });
       toast.success("Contact created");
       if (ncAddAsParticipant) {
-        setParticipants((rows) => [...rows, { key: newRowKey(), role: ncRole, contactId: contact.id, contactLabel: contact.fullName, companyName: "" }]);
+        setParticipants((rows) => [...rows, {
+          key: newRowKey(), role: ncRole, contactId: contact.id, contactLabel: contact.fullName,
+          contactEmail: ncEmail.trim(), companyName: "", companyEmail: "",
+        }]);
         setParticipantsError(null);
       }
       closeParticipantPanel();
@@ -385,34 +432,6 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   }
   function removeListingRow(key: string) {
     setListingRows((rows) => rows.filter((r) => r.key !== key));
-  }
-
-  // ── Signature documents ───────────────────────────────────────────────────
-
-  // Validate and stage selected files locally (no upload yet).
-  function stageFiles(files: FileList | File[]) {
-    const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-    const next: File[] = [];
-    for (const file of Array.from(files)) {
-      if (!allowed.includes(file.type)) {
-        toast.error(`${file.name}: only PDF, DOC, and DOCX files are supported.`);
-        continue;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`${file.name}: exceeds the 10MB limit.`);
-        continue;
-      }
-      next.push(file);
-    }
-    if (next.length) setPendingFiles((prev) => [...prev, ...next]);
-  }
-
-  function removePendingFile(index: number) {
-    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function markExistingRemoved(documentId: string) {
-    setRemovedDocIds((prev) => (prev.includes(documentId) ? prev : [...prev, documentId]));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -451,22 +470,49 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       });
 
       // onSubmit returns null on failure (it already surfaced the error toast) —
-      // keep the modal open so the user doesn't lose their input or staged files.
+      // keep the modal open so the user doesn't lose their input.
       if (!saved) return;
 
-      // Now that the opportunity exists, apply the staged document changes.
-      for (const file of pendingFiles) {
-        await uploadMutation.mutateAsync({ opportunityId: saved.id, file });
-      }
-      for (const documentId of removedDocIds) {
-        await removeMutation.mutateAsync({ opportunityId: saved.id, documentId });
+      // Now that the opportunity exists, send the staged contract (create
+      // mode only — edit mode sends via its own modal). Never rolls back the
+      // opportunity: a send failure just means the user retries from Edit.
+      if (mode === "create" && contractSelection) {
+        const propertyReference = listingRows[0]?.propertyLabel || undefined;
+        try {
+          if (contractSelection.source === "TEMPLATE") {
+            await sendMutation.mutateAsync({
+              source: "TEMPLATE",
+              templateId: contractSelection.templateId,
+              templateName: contractSelection.templateName,
+              recipientName: contractSelection.recipientName,
+              recipientEmail: contractSelection.recipientEmail,
+              propertyReference,
+              opportunityId: saved.id,
+            });
+          } else {
+            const uploaded = await uploadDocusignDocument(contractSelection.file);
+            await sendMutation.mutateAsync({
+              source: "CUSTOM_UPLOAD",
+              documentStoragePath: uploaded.storagePath,
+              documentFileName: uploaded.fileName,
+              recipients: contractSelection.recipients,
+              propertyReference,
+              opportunityId: saved.id,
+            });
+          }
+          toast.success("Opportunity created and contract sent");
+        } catch {
+          toast.error("Opportunity created, but contract sending failed. You can retry from the Opportunity.");
+          onClose();
+          return;
+        }
+      } else {
+        toast.success(mode === "edit" ? "Opportunity updated" : "Opportunity created");
       }
 
       onClose();
     } catch (err) {
-      // Opportunity saved but a document op failed — leave the modal open so
-      // the user can retry; the already-removed staged files stay staged.
-      toast.error(err instanceof Error ? err.message : "Failed to attach documents");
+      toast.error(err instanceof Error ? err.message : "Failed to save opportunity");
     } finally {
       setSubmitting(false);
     }
@@ -613,7 +659,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                       <ContactPicker
                         value={existingContactId}
                         label={existingContactLabel}
-                        onSelect={(id, lbl) => { setExistingContactId(id); setExistingContactLabel(lbl); }}
+                        onSelect={(id, lbl, email) => { setExistingContactId(id); setExistingContactLabel(lbl); setExistingContactEmail(email ?? ""); }}
                         placeholder="Search and select contact…"
                       />
                     )}
@@ -630,6 +676,20 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     />
                   </div>
                 </div>
+                {existingRole === "AGENCY" && (
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <label className={labelClass} style={mont}>Company Email</label>
+                    <input
+                      type="email"
+                      value={existingCompanyEmail}
+                      onChange={(e) => setExistingCompanyEmail(e.target.value)}
+                      placeholder="contracts@agency.com"
+                      className={inputClass}
+                      style={mont}
+                    />
+                    <p className="text-[11px] text-[#9ca3af]" style={mont}>Optional — lets this company be picked as a contract signer.</p>
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -943,175 +1003,119 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Describe this opportunity..." rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
           </div>
 
-          {/* Documents & Signatures */}
+          {/* Contracts & Signatures */}
           <div className="flex flex-col gap-4 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
             <div className="flex items-center gap-2">
               <FileSignature size={15} className="shrink-0 text-[#1a5ea8]" />
-              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Documents &amp; Signatures</p>
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Contracts &amp; Signatures</p>
             </div>
+            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
+              Contracts added here are sent through DocuSign and linked to this Opportunity. They will also appear in the dashboard DocuSign page and in the client&apos;s My Contracts area when the client is a recipient.
+            </p>
 
-            {/* Supporting Documents */}
-            <div className="flex flex-col gap-2">
-              <label className={labelClass} style={mont}>Supporting Documents</label>
-              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-                Stored with this opportunity for internal reference — ID copies, drafts, notes. They are not sent to the client unless you send them through DocuSign.
-              </p>
-
-            {/* Already-saved documents (edit mode) */}
-            {visibleDocuments.length > 0 && (
-              <div className="flex flex-col gap-2">
-                {visibleDocuments.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between gap-3 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2.5">
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138] hover:text-[#1e4f86]">
-                      <FileText size={16} className="shrink-0 text-[#6a7282]" />
-                      <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{doc.fileName}</span>
-                      <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(doc.sizeBytes)}</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => markExistingRemoved(doc.id)}
-                      disabled={submitting || isSaving}
-                      title="Remove"
-                      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Staged files — not uploaded until Save */}
-            {pendingFiles.length > 0 && (
-              <div className="flex flex-col gap-2">
-                {pendingFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-[8px] border border-dashed border-[#c2dcff] bg-[#f5f9ff] px-3 py-2.5">
-                    <div className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138]">
-                      <FileText size={16} className="shrink-0 text-[#1e4f86]" />
-                      <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{file.name}</span>
-                      <span className="shrink-0 rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-medium text-[#1e4f86]" style={mont}>Pending</span>
-                      <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(file.size)}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removePendingFile(index)}
-                      disabled={submitting || isSaving}
-                      title="Remove"
-                      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDragOver(false);
-                if (e.dataTransfer.files.length) stageFiles(e.dataTransfer.files);
-              }}
-              className={`flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed px-4 py-6 text-center transition-colors ${
-                isDragOver ? "border-[#1e4f86] bg-[#eff6ff]" : "border-[#e5e7eb] bg-[#fafbfc]"
-              }`}
-            >
-              {submitting ? (
-                <Loader2 size={24} className="animate-spin text-[#1e4f86]" />
-              ) : (
-                <Upload size={24} className="text-[#9ca3af]" />
-              )}
-              <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
-                Click to upload or drag and drop
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => { if (e.target.files?.length) stageFiles(e.target.files); e.target.value = ""; }}
-                />
-              </label>
-              <p className="text-[11px] text-[#9ca3af]" style={mont}>
-                PDF, DOC, DOCX up to 10MB — attached when you save
-              </p>
-            </div>
-            </div>
-
-            {/* DocuSign Envelopes — edit mode only (a not-yet-saved opportunity has no id to send/attach against) */}
             {initial ? (
-            <div className="flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
-              <label className={labelClass} style={mont}>DocuSign Envelopes</label>
-              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-                Documents sent for signature through DocuSign. They are tracked on the DocuSign page and linked to this opportunity.
-              </p>
-
-              {linkedEnvelopes.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  {linkedEnvelopes.map((e) => (
-                    <div key={e.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2.5">
-                      <div className="flex min-w-0 flex-col">
-                        <div className="flex items-center gap-1.5">
-                          <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>{e.templateName}</span>
-                          {e.source === EnvelopeSource.CUSTOM_UPLOAD && (
-                            <span className="shrink-0 rounded-full bg-[#f3f4f6] px-1.5 py-0.5 text-[9px] font-medium text-[#6a7282]" style={mont}>Custom</span>
-                          )}
+              <div className="flex flex-col gap-3">
+                {linkedEnvelopes.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    {linkedEnvelopes.map((e) => {
+                      const badge = ENVELOPE_STATUS_BADGE[e.status];
+                      const isPending = e.status === EnvelopeStatus.SENT || e.status === EnvelopeStatus.DELIVERED;
+                      return (
+                        <div key={e.id} className="flex flex-col gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3.5 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 flex-col gap-1">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>{e.templateName}</span>
+                                <span className="shrink-0 rounded-full bg-[#f3f4f6] px-1.5 py-0.5 text-[9px] font-medium text-[#6a7282]" style={mont}>
+                                  {e.source === EnvelopeSource.CUSTOM_UPLOAD ? "Custom Document" : "DocuSign Template"}
+                                </span>
+                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium" style={{ backgroundColor: badge.bg, color: badge.text }}>
+                                  <span className="size-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
+                                  {badge.label}
+                                </span>
+                              </div>
+                              <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
+                                {e.recipientName}{e.recipients.length > 1 ? ` +${e.recipients.length - 1} more` : ""}
+                                {e.propertyReference ? ` · ${e.propertyReference}` : ""} · Updated {fmtDate(e.updatedAt)}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              {e.documentUrl && (
+                                <a href={e.documentUrl} target="_blank" rel="noopener noreferrer" title="View" className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+                                  <ExternalLink size={14} />
+                                </a>
+                              )}
+                              {canResendEnvelope && isPending && (
+                                <button type="button" onClick={() => resendLinkedEnvelope(e.id)} title="Resend" className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+                                  <RefreshCw size={14} />
+                                </button>
+                              )}
+                              {canVoidEnvelope && isPending && (
+                                <button type="button" onClick={() => voidLinkedEnvelope(e.id)} title="Void" className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]">
+                                  <XCircle size={14} />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => detachEnvelope(e.id)}
+                                disabled={detachMutation.isPending}
+                                title="Detach from this Opportunity"
+                                className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                              >
+                                <Link2Off size={14} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
-                          {e.recipientName}{e.recipients.length > 1 ? ` +${e.recipients.length - 1} more` : ""} · {e.status === EnvelopeStatus.COMPLETED ? "Signed" : e.status === EnvelopeStatus.DECLINED ? "Declined" : e.status === EnvelopeStatus.VOIDED ? "Voided" : "Awaiting signature"}
-                        </span>
-                      </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {availableEnvelopes.length > 0 && (
+                    <>
+                      <SearchableSelect
+                        className="min-w-[220px] flex-1"
+                        size="sm"
+                        value={selectedEnvelopeId}
+                        onChange={(next) => setSelectedEnvelopeId(next)}
+                        options={availableEnvelopes.map((e) => ({ value: e.id, label: `${e.templateName} — ${e.recipientName}` }))}
+                        placeholder="Attach an existing envelope…"
+                      />
                       <button
                         type="button"
-                        onClick={() => detachEnvelope(e.id)}
-                        disabled={detachMutation.isPending}
-                        title="Detach"
-                        className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
+                        onClick={attachSelectedEnvelope}
+                        disabled={!selectedEnvelopeId || attachMutation.isPending}
+                        className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        style={mont}
                       >
-                        <Link2Off size={14} />
+                        Attach
                       </button>
-                    </div>
-                  ))}
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowSendModal(true)}
+                    className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
+                    style={mont}
+                  >
+                    <Send size={14} /> Add Contract / Send for Signature
+                  </button>
                 </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-2">
-                {availableEnvelopes.length > 0 && (
-                  <>
-                    <SearchableSelect
-                      className="min-w-[220px] flex-1"
-                      size="sm"
-                      value={selectedEnvelopeId}
-                      onChange={(next) => setSelectedEnvelopeId(next)}
-                      options={availableEnvelopes.map((e) => ({ value: e.id, label: `${e.templateName} — ${e.recipientName}` }))}
-                      placeholder="Attach an existing envelope…"
-                    />
-                    <button
-                      type="button"
-                      onClick={attachSelectedEnvelope}
-                      disabled={!selectedEnvelopeId || attachMutation.isPending}
-                      className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                      style={mont}
-                    >
-                      Attach
-                    </button>
-                  </>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowSendModal(true)}
-                  className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
-                  style={mont}
-                >
-                  <Send size={14} /> Send for Signature
-                </button>
               </div>
-            </div>
             ) : (
-              <p className="rounded-[10px] border border-dashed border-[#e5e7eb] bg-white px-4 py-3 text-[12px] leading-5 text-[#6a7282]" style={mont}>
-                Sending documents for signature becomes available after this opportunity is created.
-              </p>
+              <ContractSourcePicker
+                allowNone
+                disabled={submitting || isSaving}
+                participants={participants.map((p) => ({
+                  name: (p.role === "AGENCY" ? p.companyName : p.contactLabel).trim() || "Unknown",
+                  email: p.contactEmail || null,
+                  role: p.role,
+                }))}
+                templates={templatesData?.templates ?? []}
+                onSelectionChange={setContractSelection}
+              />
             )}
           </div>
 
@@ -1121,7 +1125,13 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
               Cancel
             </button>
             <button type="submit" disabled={submitting || isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>
-              {submitting || isSaving ? "Saving…" : mode === "edit" ? "Save Changes" : "Create Opportunity"}
+              {submitting || isSaving
+                ? "Saving…"
+                : mode === "edit"
+                  ? "Save Changes"
+                  : contractSelection
+                    ? "Create Opportunity & Send Contract"
+                    : "Create Opportunity"}
             </button>
           </div>
         </form>
@@ -1134,10 +1144,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           propertyReference={initial.listings[0]?.propertyTitle ?? null}
           participants={initial.participants.map((p) => ({
             name: (p.contactName ?? p.companyName ?? "Unknown").trim(),
-            email: p.contactEmail,
+            email: p.role === "AGENCY" ? p.companyEmail : p.contactEmail,
             role: p.role,
           }))}
-          supportingDocuments={visibleDocuments.map((d) => ({ id: d.id, fileName: d.fileName, sizeBytes: d.sizeBytes }))}
           hasActiveEnvelope={linkedEnvelopes.some(
             (e) => e.status === EnvelopeStatus.SENT || e.status === EnvelopeStatus.DELIVERED,
           )}

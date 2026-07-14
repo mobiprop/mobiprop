@@ -12,14 +12,14 @@ const VISIBLE_ROWS = 4.5;
 const SEARCH_DEBOUNCE_MS = 300;
 const RESULTS_LIMIT = 8;
 
-export type ContactOption = { id: string; contactId: string; fullName: string; type?: string };
+export type ContactOption = { id: string; contactId: string; fullName: string; type?: string; email?: string | null };
 
 type ContactPickerProps = {
   /** Selected contact id, or "" for none. */
   value: string;
   /** Display label for `value` — the caller knows this from wherever the id came from. */
   label: string;
-  onSelect: (id: string, label: string) => void;
+  onSelect: (id: string, label: string, email: string | null) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -119,11 +119,12 @@ export function ContactPicker({
           .then((json) => {
             if (requestId !== requestIdRef.current) return;
             const contacts: ContactOption[] = (json.contacts ?? []).map(
-              (c: { id: string; contactId: string; fullName: string; type?: string }) => ({
+              (c: { id: string; contactId: string; fullName: string; type?: string; email?: string | null }) => ({
                 id: c.id,
                 contactId: c.contactId,
                 fullName: c.fullName,
                 type: c.type,
+                email: c.email ?? null,
               }),
             );
             setResults(contacts);
@@ -142,7 +143,7 @@ export function ContactPicker({
   }, [isOpen, query]);
 
   function selectOption(contact: ContactOption) {
-    onSelect(contact.id, formatContactLabel(contact));
+    onSelect(contact.id, formatContactLabel(contact), contact.email ?? null);
     setIsOpen(false);
     setQuery("");
   }
@@ -206,7 +207,7 @@ export function ContactPicker({
                 <button
                   type="button"
                   onClick={() => {
-                    onSelect("", "");
+                    onSelect("", "", null);
                     setIsOpen(false);
                     setQuery("");
                   }}

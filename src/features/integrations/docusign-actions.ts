@@ -20,7 +20,6 @@ import {
 import {
   mintDocusignDocumentUploadTicket as mintDocusignDocumentUploadTicketInStorage,
   readUploadedDocusignDocument,
-  readOpportunityDocumentBytes,
   removeDocusignDocumentObject,
   extensionForDocumentFile,
 } from "@/lib/supabase/storage";
@@ -67,6 +66,7 @@ export type DocusignEnvelopeDto = {
   completedAt: string | null;
   voidedReason: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 export type EnvelopeStats = {
@@ -95,6 +95,7 @@ type EnvelopeWithRelations = {
   completedAt: Date | null;
   voidedReason: string | null;
   createdAt: Date;
+  updatedAt: Date;
   opportunity: { opportunityId: string; assignedAgentId: string | null } | null;
   recipients: { id: string; name: string; email: string; role: EnvelopeRecipientRole; roleLabel: string | null }[];
 };
@@ -125,6 +126,7 @@ function toEnvelopeDto(
     completedAt: e.completedAt?.toISOString() ?? null,
     voidedReason: e.voidedReason,
     createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
   };
 }
 
@@ -343,14 +345,11 @@ export type CustomContractRecipientInput = {
 };
 
 export type SendCustomContractInput = {
-  // Exactly one document source:
-  //  - documentStoragePath + documentFileName — a fresh upload sitting in the
-  //    docusign-documents bucket's pending/ area, or
-  //  - opportunityDocumentId — an already-saved supporting document on the
-  //    Opportunity ("Use Supporting Document" in the Opportunity send modal).
-  documentStoragePath?: string;
-  documentFileName?: string;
-  opportunityDocumentId?: string;
+  // A fresh upload sitting in the docusign-documents bucket's pending/ area —
+  // always required. There is no other document source; Opportunities don't
+  // hold their own internal file storage.
+  documentStoragePath: string;
+  documentFileName: string;
   recipients: CustomContractRecipientInput[];
   propertyReference?: string;
   expiresInDays?: number;
@@ -388,44 +387,23 @@ export async function sendCustomContractForSignature(
     return { ok: false, error: "At least one recipient with a name and email is required.", status: 400 };
   }
 
-  // Resolve the document to send: a saved supporting document, or a fresh
-  // pending upload. `storagePath` stays null for supporting documents — the
-  // file keeps living in the opportunity-documents bucket, owned by the
-  // OpportunityDocument row; the envelope only references its bytes/url.
-  let document: { fileName: string; url: string; mimeType: string; buffer: Buffer; pendingStoragePath: string | null };
-  if (input.opportunityDocumentId) {
-    if (!input.opportunityId) {
-      return { ok: false, error: "A supporting document can only be sent from its opportunity.", status: 400 };
-    }
-    const doc = await prisma.opportunityDocument.findFirst({
-      where: { id: input.opportunityDocumentId, opportunityId: input.opportunityId },
-    });
-    if (!doc) return { ok: false, error: "Supporting document not found.", status: 404 };
-    let buffer;
-    try {
-      buffer = await readOpportunityDocumentBytes(doc.storagePath);
-    } catch (error) {
-      return { ok: false, error: error instanceof Error ? error.message : "Failed to read the supporting document.", status: 400 };
-    }
-    document = { fileName: doc.fileName, url: doc.url, mimeType: doc.mimeType, buffer, pendingStoragePath: null };
-  } else {
-    if (!input.documentStoragePath || !input.documentFileName) {
-      return { ok: false, error: "An uploaded document is required.", status: 400 };
-    }
-    let uploaded;
-    try {
-      uploaded = await readUploadedDocusignDocument(input.documentStoragePath);
-    } catch (error) {
-      return { ok: false, error: error instanceof Error ? error.message : "Failed to read the uploaded document.", status: 400 };
-    }
-    document = {
-      fileName: input.documentFileName,
-      url: uploaded.url,
-      mimeType: uploaded.mimeType,
-      buffer: uploaded.buffer,
-      pendingStoragePath: input.documentStoragePath,
-    };
+  // Resolve the document to send — always a fresh pending upload.
+  if (!input.documentStoragePath || !input.documentFileName) {
+    return { ok: false, error: "An uploaded document is required.", status: 400 };
   }
+  let uploaded;
+  try {
+    uploaded = await readUploadedDocusignDocument(input.documentStoragePath);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to read the uploaded document.", status: 400 };
+  }
+  const document = {
+    fileName: input.documentFileName,
+    url: uploaded.url,
+    mimeType: uploaded.mimeType,
+    buffer: uploaded.buffer,
+    pendingStoragePath: input.documentStoragePath,
+  };
 
   let created;
   try {
@@ -442,9 +420,7 @@ export async function sendCustomContractForSignature(
       message: input.message,
     });
   } catch (error) {
-    // Only clean up throwaway pending uploads — never a supporting document,
-    // which stays attached to its Opportunity regardless of the send outcome.
-    if (document.pendingStoragePath) void removeDocusignDocumentObject(document.pendingStoragePath);
+    void removeDocusignDocumentObject(document.pendingStoragePath);
     return { ok: false, error: error instanceof Error ? error.message : "Failed to send the document via DocuSign.", status: 502 };
   }
 

@@ -10,14 +10,9 @@ import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
 import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
-import {
-  mintOpportunityDocumentUploadTicket,
-  verifyUploadedOpportunityDocument,
-  removeOpportunityDocumentObject,
-} from "@/lib/supabase/storage";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
 import type { CreateOpportunityInput, UpdateOpportunityInput, ParticipantInput } from "@/schemas/opportunity.schema";
-import type { OpportunityDto, OpportunityMetrics, OpportunityParticipantDto, OpportunityListingDto, OpportunityDocumentDto } from "./types/crm-dto";
+import type { OpportunityDto, OpportunityMetrics, OpportunityParticipantDto, OpportunityListingDto } from "./types/crm-dto";
 
 export type { CrmActionError, CrmActionResult } from "./contact-actions";
 import type { CrmActionError } from "./contact-actions";
@@ -52,6 +47,7 @@ type ParticipantWithRelations = {
   role: OpportunityParticipantRole;
   contactId: string | null;
   companyName: string | null;
+  companyEmail: string | null;
   contact: { firstName: string; lastName: string; email: string | null } | null;
 };
 
@@ -73,7 +69,6 @@ type OppWithRelations = {
   createdAt: Date;
   participants: ParticipantWithRelations[];
   listings: OpportunityListingWithRelations[];
-  documents: { id: string; fileName: string; url: string; mimeType: string; sizeBytes: number; createdAt: Date }[];
 };
 
 function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDto {
@@ -84,6 +79,7 @@ function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDt
     contactName: p.contact ? `${p.contact.firstName} ${p.contact.lastName}`.trim() : null,
     contactEmail: p.contact?.email ?? null,
     companyName: p.companyName,
+    companyEmail: p.companyEmail,
   };
 }
 
@@ -109,14 +105,6 @@ function toOpportunityDto(
     title: o.title,
     participants: o.participants.map(toParticipantDto),
     listings: o.listings.map(toOpportunityListingDto),
-    documents: o.documents.map((d): OpportunityDocumentDto => ({
-      id: d.id,
-      fileName: d.fileName,
-      url: d.url,
-      mimeType: d.mimeType,
-      sizeBytes: d.sizeBytes,
-      createdAt: d.createdAt.toISOString(),
-    })),
     dealType: o.dealType,
     dealSize,
     stage: o.stage,
@@ -148,7 +136,6 @@ const opportunityInclude = {
   listings: {
     include: { property: { select: { title: true, slug: true } } },
   },
-  documents: { orderBy: { createdAt: "desc" as const } },
 } as const;
 
 // ── List ──────────────────────────────────────────────────────────────────────
@@ -224,6 +211,7 @@ function participantsCreateData(participants: ParticipantInput[]) {
     role: p.role as OpportunityParticipantRole,
     contactId: p.role === "AGENCY" ? null : (p.contactId ?? null),
     companyName: p.role === "AGENCY" ? (p.companyName ?? null) : null,
+    companyEmail: p.role === "AGENCY" ? (p.companyEmail ?? null) : null,
   }));
 }
 
@@ -422,97 +410,3 @@ export async function deleteOpportunity(id: string): Promise<CrmActionResult<{ i
   return { ok: true, id };
 }
 
-// ── Documents ─────────────────────────────────────────────────────────────────
-
-async function assertOpportunityAccess(id: string, gate: { profile: Profile }): Promise<CrmActionError | null> {
-  const scope = await opportunityRecordScope(gate.profile);
-  const opp = await prisma.opportunity.findFirst({
-    where: { id, isDeleted: false, ...scope },
-    select: { id: true },
-  });
-  if (!opp) return { ok: false, error: "Opportunity not found.", status: 404 };
-  return null;
-}
-
-export async function mintOpportunityDocumentTicket(
-  opportunityId: string,
-  file: { name: string; type: string },
-): Promise<CrmActionResult<{ ticket: { documentId: string; storagePath: string; signedUrl: string; token: string } }>> {
-  const gate = await requirePermission("opportunities:uploadDocuments");
-  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
-
-  const accessError = await assertOpportunityAccess(opportunityId, gate);
-  if (accessError) return accessError;
-
-  const ticket = await mintOpportunityDocumentUploadTicket(opportunityId, file);
-  return { ok: true, ticket };
-}
-
-export async function addOpportunityDocument(
-  opportunityId: string,
-  storagePath: string,
-  fileName: string,
-): Promise<CrmActionResult<{ document: OpportunityDocumentDto }>> {
-  const gate = await requirePermission("opportunities:uploadDocuments");
-  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
-
-  const accessError = await assertOpportunityAccess(opportunityId, gate);
-  if (accessError) return accessError;
-
-  const verified = await verifyUploadedOpportunityDocument(opportunityId, storagePath);
-
-  const doc = await prisma.opportunityDocument.create({
-    data: {
-      opportunityId,
-      fileName,
-      storagePath: verified.storagePath,
-      url: verified.url,
-      mimeType: verified.mimeType,
-      sizeBytes: verified.sizeBytes,
-      uploadedById: gate.profile.id,
-    },
-  });
-
-  await logActivity({
-    actorId: gate.profile.id,
-    action: "OPPORTUNITY_DOCUMENT_UPLOADED",
-    entityType: "OPPORTUNITY",
-    entityId: opportunityId,
-    newValues: { fileName: doc.fileName, mimeType: doc.mimeType, sizeBytes: doc.sizeBytes },
-  });
-
-  return {
-    ok: true,
-    document: {
-      id: doc.id, fileName: doc.fileName, url: doc.url, mimeType: doc.mimeType,
-      sizeBytes: doc.sizeBytes, createdAt: doc.createdAt.toISOString(),
-    },
-  };
-}
-
-export async function removeOpportunityDocument(
-  opportunityId: string,
-  documentId: string,
-): Promise<CrmActionResult<{ id: string }>> {
-  const gate = await requirePermission("opportunities:uploadDocuments");
-  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
-
-  const accessError = await assertOpportunityAccess(opportunityId, gate);
-  if (accessError) return accessError;
-
-  const doc = await prisma.opportunityDocument.findFirst({ where: { id: documentId, opportunityId } });
-  if (!doc) return { ok: false, error: "Document not found.", status: 404 };
-
-  await prisma.opportunityDocument.delete({ where: { id: documentId } });
-  await removeOpportunityDocumentObject(doc.storagePath);
-
-  await logActivity({
-    actorId: gate.profile.id,
-    action: "OPPORTUNITY_DOCUMENT_REMOVED",
-    entityType: "OPPORTUNITY",
-    entityId: opportunityId,
-    oldValues: { fileName: doc.fileName },
-  });
-
-  return { ok: true, id: documentId };
-}

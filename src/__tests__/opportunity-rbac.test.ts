@@ -33,15 +33,6 @@ vi.mock("@/lib/require-permission", () => ({
 
 vi.mock("@/lib/activity-log", () => ({ logActivity: vi.fn().mockResolvedValue(undefined) }));
 
-// opportunity-actions.ts's document-upload helpers pull in the Supabase admin
-// client (env.ts) transitively — stub the storage module so importing it
-// doesn't require real Supabase env vars in the test runner.
-vi.mock("@/lib/supabase/storage", () => ({
-  mintOpportunityDocumentUploadTicket: vi.fn(),
-  verifyUploadedOpportunityDocument: vi.fn(),
-  removeOpportunityDocumentObject: vi.fn(),
-}));
-
 // notify-events.ts transitively imports send-web-push.ts -> env.ts, which
 // throws at module-load time outside a real runtime env — stub it out so
 // importing opportunity-actions doesn't pull that chain in.
@@ -146,7 +137,7 @@ describe("updateOpportunity — ownership guard", () => {
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
       commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
       expectedCloseAt: null, agentCommissionValue: null, agentCommissionUnit: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
-      createdAt: new Date(), participants: [], listings: [], documents: [],
+      createdAt: new Date(), participants: [], listings: [],
     });
 
     const res = await updateOpportunity("opp-1", {});
@@ -182,7 +173,7 @@ describe("updateOpportunity — ownership guard", () => {
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
       commission: null, commissionUnit: null, paymentTerms: null, contractStart: null, contractEnd: null,
       expectedCloseAt: null, agentCommissionValue: null, agentCommissionUnit: null, notes: null, assignedAgentId: AGENT_A_ID, createdById: null,
-      createdAt: new Date(), participants: [], listings: [], documents: [],
+      createdAt: new Date(), participants: [], listings: [],
     });
 
     const res = await updateOpportunity("opp-1", {});
