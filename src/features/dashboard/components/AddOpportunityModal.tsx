@@ -19,7 +19,7 @@ import { ContactPicker } from "./ContactPicker";
 import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
-import { SendForSignatureModal } from "./SendForSignatureModal";
+import { SendOpportunityContractModal } from "./SendOpportunityContractModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -943,9 +943,19 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Describe this opportunity..." rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
           </div>
 
-          {/* Signature Documents */}
-          <div className="flex flex-col gap-2">
-            <label className={labelClass} style={mont}>Signature Documents</label>
+          {/* Documents & Signatures */}
+          <div className="flex flex-col gap-4 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+            <div className="flex items-center gap-2">
+              <FileSignature size={15} className="shrink-0 text-[#1a5ea8]" />
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Documents &amp; Signatures</p>
+            </div>
+
+            {/* Supporting Documents */}
+            <div className="flex flex-col gap-2">
+              <label className={labelClass} style={mont}>Supporting Documents</label>
+              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
+                Stored with this opportunity for internal reference — ID copies, drafts, notes. They are not sent to the client unless you send them through DocuSign.
+              </p>
 
             {/* Already-saved documents (edit mode) */}
             {visibleDocuments.length > 0 && (
@@ -1027,16 +1037,15 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 PDF, DOC, DOCX up to 10MB — attached when you save
               </p>
             </div>
-          </div>
+            </div>
 
-          {/* Attached Envelopes — edit mode only, needs a saved opportunity id */}
-          {initial && (
-            <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
-              <div className="flex items-center gap-2">
-                <FileSignature size={15} className="shrink-0 text-[#1a5ea8]" />
-                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Attached Envelopes</p>
-              </div>
-              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Link an existing DocuSign envelope, or send a new one for signature.</p>
+            {/* DocuSign Envelopes — edit mode only (a not-yet-saved opportunity has no id to send/attach against) */}
+            {initial ? (
+            <div className="flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
+              <label className={labelClass} style={mont}>DocuSign Envelopes</label>
+              <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
+                Documents sent for signature through DocuSign. They are tracked on the DocuSign page and linked to this opportunity.
+              </p>
 
               {linkedEnvelopes.length > 0 && (
                 <div className="flex flex-col gap-2">
@@ -1099,7 +1108,12 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 </button>
               </div>
             </div>
-          )}
+            ) : (
+              <p className="rounded-[10px] border border-dashed border-[#e5e7eb] bg-white px-4 py-3 text-[12px] leading-5 text-[#6a7282]" style={mont}>
+                Sending documents for signature becomes available after this opportunity is created.
+              </p>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3 border-t border-[#e5e7eb] pt-4">
@@ -1114,17 +1128,20 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       </div>
 
       {showSendModal && initial && (
-        <SendForSignatureModal
+        <SendOpportunityContractModal
+          opportunityId={initial.id}
+          opportunityLabel={`${initial.opportunityId} — ${initial.title}`}
+          propertyReference={initial.listings[0]?.propertyTitle ?? null}
+          participants={initial.participants.map((p) => ({
+            name: (p.contactName ?? p.companyName ?? "Unknown").trim(),
+            email: p.contactEmail,
+            role: p.role,
+          }))}
+          supportingDocuments={visibleDocuments.map((d) => ({ id: d.id, fileName: d.fileName, sizeBytes: d.sizeBytes }))}
+          hasActiveEnvelope={linkedEnvelopes.some(
+            (e) => e.status === EnvelopeStatus.SENT || e.status === EnvelopeStatus.DELIVERED,
+          )}
           templates={templatesData?.templates ?? []}
-          initial={{
-            opportunityId: initial.id,
-            recipientName: initial.participants[0]?.contactName ?? "",
-            recipientEmail: initial.participants[0]?.contactEmail ?? "",
-            propertyReference: initial.listings[0]?.propertyTitle ?? "",
-            participants: initial.participants
-              .filter((p) => p.contactEmail)
-              .map((p) => ({ name: (p.contactName ?? p.companyName ?? "Unknown").trim(), email: p.contactEmail as string, role: p.role })),
-          }}
           onClose={() => setShowSendModal(false)}
           onSent={() => setShowSendModal(false)}
         />

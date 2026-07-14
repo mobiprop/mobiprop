@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { X, Check, Mail, Loader2, Send, Eye, Code, ShieldCheck, AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { X, Check, Mail, Loader2, Send, Eye, Code, ShieldCheck, AlertTriangle, Home } from "lucide-react";
 import { toast } from "sonner";
 
 import type { EmailCampaignDto, EmailListDto } from "@/features/integrations/sendgrid-actions";
-import { MARKETING_TEMPLATES } from "@/features/integrations/email-marketing-templates";
+import {
+  MARKETING_TEMPLATES,
+  PROPERTIES_BLOCK_RE,
+  parsePropertiesBlockIds,
+  replacePropertiesBlock,
+  type EmailListingCard,
+} from "@/features/integrations/email-marketing-templates";
 import { useSendgridListsQuery } from "@/hooks/queries/useSendgridQuery";
 import {
   useCreateCampaignMutation,
@@ -13,6 +19,15 @@ import {
   useSendCampaignMutation,
   useSendTestEmailMutation,
 } from "@/hooks/mutations/useSendgridMutations";
+import { ListingPicker } from "@/features/dashboard/components/ListingPicker";
+
+async function fetchListingCards(ids: string[]): Promise<EmailListingCard[]> {
+  if (ids.length === 0) return [];
+  const res = await fetch(`/api/dashboard/sendgrid/listing-cards?ids=${ids.join(",")}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to load properties");
+  return data.cards as EmailListingCard[];
+}
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -89,6 +104,9 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   const [savedId, setSavedId] = useState<string | null>(campaign?.id ?? null);
   const [confirm, setConfirm] = useState<{ recipientCount: number; listName: string } | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  // Listings featured in the email's PROPERTIES block (dynamic template content).
+  const [featured, setFeatured] = useState<EmailListingCard[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
 
   const listsQuery = useSendgridListsQuery();
   const createMutation = useCreateCampaignMutation();
@@ -102,14 +120,55 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
 
   const busy = createMutation.isPending || updateMutation.isPending || sendMutation.isPending;
 
+  const hasPropertiesBlock = PROPERTIES_BLOCK_RE.test(htmlBody);
+
+  // Reopening a draft: the featured-listing ids ride in the PROPERTIES marker —
+  // rehydrate the picker chips (and refresh the cards' data) from them.
+  useEffect(() => {
+    const ids = campaign ? parsePropertiesBlockIds(campaign.htmlBody) : null;
+    if (!ids || ids.length === 0) return;
+    setFeaturedLoading(true);
+    fetchListingCards(ids)
+      .then((cards) => setFeatured(cards))
+      .catch(() => toast.error("Could not load this campaign's featured properties"))
+      .finally(() => setFeaturedLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once per opened campaign
+  }, [campaign?.id]);
+
+  /** Re-renders the PROPERTIES block in the body for a new selection. */
+  async function updateFeatured(ids: string[]) {
+    setFeaturedLoading(true);
+    try {
+      const cards = await fetchListingCards(ids);
+      setFeatured(cards);
+      setHtmlBody((body) => replacePropertiesBlock(body, cards));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update properties");
+    } finally {
+      setFeaturedLoading(false);
+    }
+  }
+
+  /** True when a field still holds another template's pristine value (or is
+   *  empty) — safe to overwrite when the user picks a different template. */
+  const isPristine = {
+    subject: !subject || MARKETING_TEMPLATES.some((t) => t.subject === subject),
+    previewText: !previewText || MARKETING_TEMPLATES.some((t) => t.previewText === previewText),
+    htmlBody: !htmlBody || MARKETING_TEMPLATES.some((t) => t.html === htmlBody),
+  };
+
   function applyTemplate(key: string) {
     setTemplateKey(key);
     const template = MARKETING_TEMPLATES.find((t) => t.key === key);
     if (!template) return;
-    // Only prefill fields the user hasn't already typed into.
-    if (!subject) setSubject(template.subject);
-    if (!previewText) setPreviewText(template.previewText);
-    if (!htmlBody) setHtmlBody(template.html);
+    // Overwrite untouched fields so switching templates in step 1 really
+    // switches the email; hand-edited content is never clobbered.
+    if (isPristine.subject) setSubject(template.subject);
+    if (isPristine.previewText) setPreviewText(template.previewText);
+    if (isPristine.htmlBody) {
+      setHtmlBody(template.html);
+      setFeatured([]);
+    }
   }
 
   function validateConfigure(): string | null {
@@ -117,6 +176,9 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
     if (!subject.trim()) return "Subject line is required.";
     if (!listId) return "Select an audience list.";
     if (!htmlBody.trim()) return "Email content is empty.";
+    if (hasPropertiesBlock && (parsePropertiesBlockIds(htmlBody)?.length ?? 0) === 0) {
+      return "Select at least one property to feature, or remove the properties section from the HTML.";
+    }
     if (selectedList && subscribedCount <= 0) return "The selected audience has no subscribed recipients.";
     if (scheduleMode === "later") {
       if (!scheduleDate || !scheduleTime) return "Pick a date and time to schedule the send.";
@@ -388,8 +450,8 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                     <iframe
                       title="Email preview"
                       sandbox=""
-                      srcDoc={htmlBody.replace(/%first_name%/g, "María")}
-                      className="h-[320px] w-full bg-white"
+                      srcDoc={htmlBody.replace(/%first_name%/g, "María").replace(/%unsubscribe_url%/g, "#")}
+                      className="h-[420px] w-full bg-white"
                     />
                   ) : (
                     <textarea
@@ -403,6 +465,58 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                   )}
                 </div>
               </Field>
+
+              {hasPropertiesBlock && (
+                <Field label="Featured Properties">
+                  <div className="flex flex-col gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] p-3.5">
+                    <p className="text-[11px] text-[#6a7282]" style={mont}>
+                      Pick the real listings to show in this email — they are inserted as property cards with
+                      photo, price and a link to the listing page.
+                    </p>
+                    <ListingPicker
+                      value=""
+                      label=""
+                      tone="neutral"
+                      placeholder="Search listings to feature…"
+                      excludeIds={featured.map((c) => c.id)}
+                      disabled={featuredLoading || featured.length >= 12}
+                      onSelect={(id) => void updateFeatured([...featured.map((c) => c.id), id])}
+                    />
+                    {featuredLoading && (
+                      <span className="flex items-center gap-1.5 text-[11px] text-[#6a7282]" style={mont}>
+                        <Loader2 size={11} className="animate-spin" /> Updating properties…
+                      </span>
+                    )}
+                    {featured.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        {featured.map((card) => (
+                          <div key={card.id} className="flex items-center gap-2.5 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2">
+                            <Home size={13} className="shrink-0 text-[#1e4f86]" />
+                            <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0d2138]" style={mont}>
+                              {card.listingId} — {card.title}
+                            </span>
+                            <span className="shrink-0 text-[11px] text-[#6a7282]" style={mont}>{card.priceLabel}</span>
+                            <button
+                              type="button"
+                              aria-label={`Remove ${card.title}`}
+                              onClick={() => void updateFeatured(featured.filter((c) => c.id !== card.id).map((c) => c.id))}
+                              className="flex size-6 shrink-0 items-center justify-center rounded-[6px] text-[#9ca3af] hover:bg-[#fff1f2] hover:text-[#dc2626]"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      !featuredLoading && (
+                        <span className="text-[11px] text-[#9ca3af]" style={mont}>
+                          No properties selected yet — the email shows an empty placeholder until you add some.
+                        </span>
+                      )
+                    )}
+                  </div>
+                </Field>
+              )}
 
               <Field label="Send Schedule">
                 <div className="grid grid-cols-2 gap-3">
@@ -448,6 +562,9 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                   ["Subject", subject],
                   ["From", `${fromName} <${NEWSLETTER_SENDER}>`],
                   ["Audience", selectedList ? `${selectedList.name} (${subscribedCount} subscribed)` : "—"],
+                  ...(hasPropertiesBlock
+                    ? [["Properties", featured.length > 0 ? featured.map((c) => c.listingId).join(", ") : "None selected"] as [string, string]]
+                    : []),
                   [
                     "Schedule",
                     scheduleMode === "now"

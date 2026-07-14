@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Check, ShieldCheck, FileText, Upload, Loader2, Plus, Trash2, FileSignature } from "lucide-react";
+import { X, Check, ShieldCheck, FileText, Upload, Plus, Trash2, FileSignature } from "lucide-react";
 import { toast } from "sonner";
 
 import type { DocusignTemplateSummary } from "@/lib/docusign";
@@ -82,10 +82,12 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
   const [recipientName, setRecipientName] = useState(initial?.recipientName ?? "");
   const [recipientEmail, setRecipientEmail] = useState(initial?.recipientEmail ?? "");
 
-  // Custom-upload-flow state
-  const [uploading, setUploading] = useState(false);
-  const [document, setDocument] = useState<{ storagePath: string; fileName: string; size: number } | null>(null);
+  // Custom-upload-flow state. The chosen file is staged in memory and only
+  // uploaded to storage inside handleSend — cancelling or abandoning the
+  // modal can never leave an orphaned file behind.
+  const [file, setFile] = useState<File | null>(null);
   const [recipients, setRecipients] = useState<CustomRecipient[]>([newRecipient()]);
+  const [submitting, setSubmitting] = useState(false);
 
   // Shared state
   const [propertyReference, setPropertyReference] = useState(initial?.propertyReference ?? "");
@@ -118,32 +120,24 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
     setStep(3);
   }
 
-  async function handleFileSelected(files: FileList | File[]) {
-    const file = Array.from(files)[0];
-    if (!file) return;
+  function handleFileSelected(files: FileList | File[]) {
+    const next = Array.from(files)[0];
+    if (!next) return;
     const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-    if (!allowed.includes(file.type)) {
+    if (!allowed.includes(next.type)) {
       toast.error("Only PDF, DOC, and DOCX files are supported.");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
+    if (next.size > 10 * 1024 * 1024) {
       toast.error("File must be 10MB or smaller.");
       return;
     }
-    setUploading(true);
-    try {
-      const uploaded = await uploadDocusignDocument(file);
-      setDocument({ storagePath: uploaded.storagePath, fileName: uploaded.fileName, size: file.size });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload document");
-    } finally {
-      setUploading(false);
-    }
+    setFile(next);
   }
 
   function goToRecipients() {
-    if (!document) {
-      toast.error("Upload a document to continue.");
+    if (!file) {
+      toast.error("Choose a document to continue.");
       return;
     }
     setStep(2);
@@ -197,6 +191,8 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
   }
 
   async function handleSend() {
+    if (submitting) return;
+    setSubmitting(true);
     try {
       if (source === "TEMPLATE") {
         if (!selectedTemplate) return;
@@ -212,11 +208,13 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
           opportunityId: initial?.opportunityId,
         });
       } else {
-        if (!document) return;
+        if (!file) return;
+        // Upload only now, at send time — an abandoned modal leaves nothing behind.
+        const uploaded = await uploadDocusignDocument(file);
         await sendMutation.mutateAsync({
           source: "CUSTOM_UPLOAD",
-          documentStoragePath: document.storagePath,
-          documentFileName: document.fileName,
+          documentStoragePath: uploaded.storagePath,
+          documentFileName: uploaded.fileName,
           recipients: recipients.map((r) => ({
             name: r.name.trim(),
             email: r.email.trim(),
@@ -234,6 +232,8 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
       onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to send envelope");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -398,16 +398,16 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
             <div className="flex flex-col gap-2">
               <p className="text-[12px] text-[#6a7282]" style={mont}>Upload the contract to send for signature</p>
 
-              {document && (
+              {file && (
                 <div className="flex items-center justify-between gap-3 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2.5">
                   <div className="flex min-w-0 flex-1 items-center gap-2.5 text-[#0d2138]">
                     <FileText size={16} className="shrink-0 text-[#1e4f86]" />
-                    <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{document.fileName}</span>
-                    <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(document.size)}</span>
+                    <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{file.name}</span>
+                    <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(file.size)}</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setDocument(null)}
+                    onClick={() => setFile(null)}
                     title="Remove"
                     className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
                   >
@@ -416,20 +416,19 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                 </div>
               )}
 
-              {!document && (
+              {!file && (
                 <div className="flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed border-[#e5e7eb] bg-[#fafbfc] px-4 py-8 text-center transition-colors">
-                  {uploading ? <Loader2 size={24} className="animate-spin text-[#1e4f86]" /> : <Upload size={24} className="text-[#9ca3af]" />}
+                  <Upload size={24} className="text-[#9ca3af]" />
                   <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
                     Click to upload or drag and drop
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       className="hidden"
-                      disabled={uploading}
                       onChange={(e) => { if (e.target.files?.length) handleFileSelected(e.target.files); e.target.value = ""; }}
                     />
                   </label>
-                  <p className="text-[11px] text-[#9ca3af]" style={mont}>PDF, DOC, DOCX up to 10MB</p>
+                  <p className="text-[11px] text-[#9ca3af]" style={mont}>PDF, DOC, DOCX up to 10MB — uploaded when you send</p>
                 </div>
               )}
             </div>
@@ -520,13 +519,13 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
             </div>
           )}
 
-          {source === "CUSTOM_UPLOAD" && step === 4 && document && (
+          {source === "CUSTOM_UPLOAD" && step === 4 && file && (
             <div className="flex flex-col gap-4">
               <p className="text-[12px] text-[#6a7282]" style={mont}>Review the details before sending</p>
               <div className="flex flex-col divide-y divide-[#e5e7eb] rounded-[10px] border border-[#e5e7eb]">
                 <div className="flex items-center justify-between px-4 py-3">
                   <span className="text-[12px] text-[#6a7282]" style={mont}>Document</span>
-                  <span className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{document.fileName}</span>
+                  <span className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{file.name}</span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
                   <span className="text-[12px] text-[#6a7282]" style={mont}>Property</span>
@@ -564,7 +563,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
             <button
               type="button"
               onClick={() => setStep((s) => (s - 1) as Step)}
-              disabled={sendMutation.isPending}
+              disabled={submitting}
               className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
               style={mont}
             >
@@ -574,7 +573,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
           <button
             type="button"
             onClick={onClose}
-            disabled={sendMutation.isPending}
+            disabled={submitting}
             className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
             style={mont}
           >
@@ -589,7 +588,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                   ? step === 1 ? goToTemplateSelect : goToTemplateRecipient
                   : step === 1 ? goToRecipients : step === 2 ? goToDetails : () => setStep(4)
               }
-              disabled={source === "CUSTOM_UPLOAD" && step === 1 && (uploading || !document)}
+              disabled={source === "CUSTOM_UPLOAD" && step === 1 && !file}
               className="h-10 px-5 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
               style={mont}
             >
@@ -600,11 +599,11 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
             <button
               type="button"
               onClick={handleSend}
-              disabled={sendMutation.isPending}
+              disabled={submitting}
               className="h-10 px-5 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
               style={mont}
             >
-              {sendMutation.isPending ? "Sending…" : "Send for Signature"}
+              {submitting ? "Sending…" : "Send for Signature"}
             </button>
           )}
         </div>

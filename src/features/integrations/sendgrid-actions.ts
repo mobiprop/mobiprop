@@ -27,7 +27,11 @@ import {
   type SendgridConfigStatus,
   type SendgridConnectionInfo,
 } from "@/lib/sendgrid-marketing";
-import { getMarketingTemplate } from "@/features/integrations/email-marketing-templates";
+import { APP_URL } from "@/lib/constants";
+import {
+  getMarketingTemplate,
+  type EmailListingCard,
+} from "@/features/integrations/email-marketing-templates";
 import { dispatchNotification } from "@/features/notifications/server/notify-events";
 
 import type { CrmActionError } from "@/features/crm/contact-actions";
@@ -1082,6 +1086,71 @@ export async function cancelScheduledCampaign(id: string): Promise<ActionResult<
   });
 
   return { ok: true };
+}
+
+// ── Featured-property cards (dynamic template content) ──────────────────────
+
+/** Max listings one campaign can feature — keeps emails a sane size. */
+const LISTING_CARD_LIMIT = 12;
+
+/**
+ * Resolves real listings into the card data the campaign editor renders into
+ * the email's PROPERTIES block. Order follows the requested ids.
+ */
+export async function getEmailListingCards(
+  ids: string[],
+): Promise<ActionResult<{ cards: EmailListingCard[] }>> {
+  const gate = await requirePermission("sendgrid:manageCampaigns");
+  if (!gate.ok) return fail(403, gate.error);
+
+  const unique = [...new Set(ids)].slice(0, LISTING_CARD_LIMIT);
+  if (unique.length === 0) return { ok: true, cards: [] };
+
+  const properties = await prisma.property.findMany({
+    where: { id: { in: unique } },
+    select: {
+      id: true,
+      listingId: true,
+      title: true,
+      location: true,
+      slug: true,
+      salePrice: true,
+      rentPrice: true,
+      bedrooms: true,
+      bathrooms: true,
+      totalAreaM2: true,
+      images: {
+        orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }],
+        take: 1,
+        select: { url: true },
+      },
+    },
+  });
+
+  const byId = new Map(properties.map((p) => [p.id, p]));
+  const cards: EmailListingCard[] = unique.flatMap((id) => {
+    const p = byId.get(id);
+    if (!p) return [];
+    const priceLabel = p.salePrice
+      ? `USD ${Number(p.salePrice).toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+      : p.rentPrice
+        ? `USD ${Number(p.rentPrice).toLocaleString("en-US", { maximumFractionDigits: 0 })} / month`
+        : "Price on request";
+    return [{
+      id: p.id,
+      listingId: p.listingId,
+      title: p.title,
+      location: p.location,
+      priceLabel,
+      bedrooms: p.bedrooms,
+      bathrooms: p.bathrooms,
+      totalAreaM2: p.totalAreaM2,
+      coverImageUrl: p.images[0]?.url ?? null,
+      url: `${APP_URL}/listings/${p.slug}`,
+    }];
+  });
+
+  return { ok: true, cards };
 }
 
 // ── Send validation ──────────────────────────────────────────────────────────
