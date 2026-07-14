@@ -24,7 +24,7 @@ import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
 import { SendOpportunityContractModal } from "./SendOpportunityContractModal";
-import { ContractSourcePicker, type ContractSelection } from "./ContractSourcePicker";
+import { ContractSourcePicker, type ContractSelection, type Source as ContractSourcePickerSource } from "./ContractSourcePicker";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -225,6 +225,12 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   // after the Opportunity is created (handleSubmit). Edit mode: envelope
   // attach/detach + the "Add Contract / Send for Signature" modal.
   const [contractSelection, setContractSelection] = useState<ContractSelection | null>(null);
+  // Mirrors ContractSourcePicker's internal tab — lets handleSubmit tell the
+  // difference between "user chose No Contract" (fine to submit) and "user
+  // picked a source but never finished it" (block — otherwise the contract
+  // silently never gets sent and the user has no idea why).
+  const [contractSource, setContractSource] = useState<ContractSourcePickerSource>("NONE");
+  const [contractError, setContractError] = useState<string | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const { data: envelopesData } = useDocusignEnvelopesQuery();
   const { data: templatesData } = useDocusignTemplatesQuery();
@@ -445,6 +451,18 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       setParticipantsError("At least one Buyer or Seller contact is required.");
       return;
     }
+    // A source was picked (document/template) but never finished (no
+    // confirmed signer) — block instead of silently creating a
+    // contract-less Opportunity with no indication anything went wrong.
+    if (mode === "create" && contractSource !== "NONE" && !contractSelection) {
+      setContractError(
+        contractSource === "TEMPLATE"
+          ? "Select a template and a signer to send this contract, or switch to No Contract."
+          : "Select a document and at least one signer to send this contract, or switch to No Contract.",
+      );
+      return;
+    }
+    setContractError(null);
 
     setSubmitting(true);
     try {
@@ -1105,17 +1123,21 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 </div>
               </div>
             ) : (
-              <ContractSourcePicker
-                allowNone
-                disabled={submitting || isSaving}
-                participants={participants.map((p) => ({
-                  name: (p.role === "AGENCY" ? p.companyName : p.contactLabel).trim() || "Unknown",
-                  email: p.contactEmail || null,
-                  role: p.role,
-                }))}
-                templates={templatesData?.templates ?? []}
-                onSelectionChange={setContractSelection}
-              />
+              <>
+                <ContractSourcePicker
+                  allowNone
+                  disabled={submitting || isSaving}
+                  participants={participants.map((p) => ({
+                    name: (p.role === "AGENCY" ? p.companyName : p.contactLabel).trim() || "Unknown",
+                    email: p.contactEmail || null,
+                    role: p.role,
+                  }))}
+                  templates={templatesData?.templates ?? []}
+                  onSelectionChange={(selection) => { setContractSelection(selection); if (selection) setContractError(null); }}
+                  onSourceChange={setContractSource}
+                />
+                {contractError && <p className="text-[11px] text-[#dc2626]" style={mont}>{contractError}</p>}
+              </>
             )}
           </div>
 

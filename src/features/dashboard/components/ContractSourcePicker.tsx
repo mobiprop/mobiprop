@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, FileText, Upload, Trash2 } from "lucide-react";
+import { Check, FileText, Upload, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 import type { DocusignTemplateSummary } from "@/lib/docusign";
@@ -10,7 +10,7 @@ import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-type Source = "NONE" | "TEMPLATE" | "CUSTOM_UPLOAD";
+export type Source = "NONE" | "TEMPLATE" | "CUSTOM_UPLOAD";
 
 export type ContractParticipantOption = {
   name: string;
@@ -61,6 +61,15 @@ type ContractSourcePickerProps = {
   /** Prepends a "No Contract" tab, selected by default — used in the New Opportunity form. */
   allowNone?: boolean;
   onSelectionChange: (selection: ContractSelection | null) => void;
+  /**
+   * Fires whenever the active tab changes — lets a caller with a "silent"
+   * submit path (e.g. AddOpportunityModal's create-mode form, where the
+   * Opportunity itself is still valid to submit with no contract) tell the
+   * difference between "user chose No Contract" and "user picked a source
+   * but never finished it," so it can block the submit instead of quietly
+   * creating a contract-less Opportunity.
+   */
+  onSourceChange?: (source: Source) => void;
 };
 
 /**
@@ -77,6 +86,7 @@ export function ContractSourcePicker({
   disabled,
   allowNone,
   onSelectionChange,
+  onSourceChange,
 }: ContractSourcePickerProps) {
   const [source, setSource] = useState<Source>(allowNone ? "NONE" : "TEMPLATE");
   const [templateId, setTemplateId] = useState("");
@@ -134,6 +144,7 @@ export function ContractSourcePicker({
   }, [source, templateId, file, selectedEmail, selectedEmails]);
 
   function switchSource(next: Source) {
+    onSourceChange?.(next);
     if (next === source) return;
     setSource(next);
     setTemplateId("");
@@ -141,6 +152,12 @@ export function ContractSourcePicker({
     setSelectedEmail("");
     setSelectedEmails(new Set());
   }
+
+  // True once the user has picked a source but hasn't finished it yet (no
+  // document, or no confirmed signer) — the exact "silently drops the
+  // contract" trap a caller with a no-contract-is-valid submit path needs
+  // to catch instead of quietly proceeding.
+  const isIncomplete = source !== "NONE" && (!documentName || signerNames.length === 0);
 
   function handleFileSelected(files: FileList | File[]) {
     const next = Array.from(files)[0];
@@ -299,6 +316,21 @@ export function ContractSourcePicker({
               </div>
             )}
           </div>
+
+          {/* Incomplete warning — a document/template with no confirmed signer (or
+              vice versa) would otherwise be silently dropped on submit. */}
+          {isIncomplete && (
+            <div className="flex items-start gap-2.5 rounded-[10px] border border-[#fde68a] bg-[#fffbeb] px-4 py-3">
+              <AlertTriangle size={15} className="mt-0.5 shrink-0 text-[#b45309]" />
+              <p className="text-[12px] leading-5 text-[#92400e]" style={mont}>
+                {!documentName
+                  ? source === "TEMPLATE"
+                    ? "Select a template to include this contract, or switch to No Contract."
+                    : "Upload a document to include this contract, or switch to No Contract."
+                  : "Select at least one signer above — otherwise this contract won't be sent."}
+              </p>
+            </div>
+          )}
 
           {/* Review — Document/Signers rows only; callers add their own context rows */}
           {documentName && signerNames.length > 0 && (
