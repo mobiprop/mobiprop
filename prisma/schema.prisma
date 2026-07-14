@@ -522,7 +522,6 @@ model Opportunity {
   sourceLead   Lead?                    @relation("LeadConversion")
   participants OpportunityParticipant[]
   listings     OpportunityListing[]
-  documents    OpportunityDocument[]
   envelopes    DocusignEnvelope[]
 
   @@index([status], map: "opportunities_status_idx")
@@ -546,6 +545,9 @@ model OpportunityParticipant {
   role          OpportunityParticipantRole
   contactId     String?                    @map("contact_id")
   companyName   String?                    @map("company_name")
+  // AGENCY rows only — lets a co-broking company be picked as a DocuSign
+  // signer, which a bare company name can't support on its own.
+  companyEmail  String?                    @map("company_email")
   createdAt     DateTime                   @default(now()) @map("created_at")
 
   opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
@@ -906,8 +908,10 @@ model MessageAttachment {
   @@map("message_attachments")
 }
 
-// ── Opportunity listings/documents + DocuSign ───────────────────────────────
+// ── Opportunity listings + DocuSign ─────────────────────────────────────────
 // Contracts (a signing/tracking module) was retired in favor of DocuSign.
+// An Opportunity has exactly one contract/signature surface — real DocuSign
+// envelopes below — no separate internal-file-upload concept.
 
 // Many-to-many: which properties are linked to an opportunity.
 model OpportunityListing {
@@ -920,26 +924,6 @@ model OpportunityListing {
   @@id([opportunityId, propertyId])
   @@index([propertyId], map: "opportunity_listings_property_idx")
   @@map("opportunity_listings")
-}
-
-// A document (PDF/DOC/DOCX) attached to an Opportunity by hand, stored in
-// Supabase Storage. Distinct from DocusignEnvelope: this is any file an
-// agent uploads directly, not a tracked e-signature package.
-model OpportunityDocument {
-  id            String   @id @default(cuid())
-  opportunityId String   @map("opportunity_id")
-  fileName      String   @map("file_name")
-  storagePath   String   @map("storage_path")
-  url           String
-  mimeType      String   @map("mime_type")
-  sizeBytes     Int      @map("size_bytes")
-  uploadedById  String?  @map("uploaded_by_id") @db.Uuid
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-
-  @@index([opportunityId], map: "opportunity_documents_opportunity_idx")
-  @@map("opportunity_documents")
 }
 
 enum EnvelopeStatus {

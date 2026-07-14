@@ -78,7 +78,6 @@ export type Permission =
   | "opportunities:create"
   | "opportunities:update"
   | "opportunities:delete"
-  | "opportunities:uploadDocuments"
   | "docusign:view"
   // Unscoped visibility. ADMIN/MANAGER hold this; AGENT holders only see
   // envelopes whose linked Opportunity they created or are assigned to (or
@@ -173,7 +172,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:create",
     "opportunities:update",
     "opportunities:delete",
-    "opportunities:uploadDocuments",
     "docusign:view",
     "docusign:view_all",
     "docusign:send",
@@ -244,7 +242,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:create",
     "opportunities:update",
     "opportunities:delete",
-    "opportunities:uploadDocuments",
     "docusign:view",
     "docusign:view_all",
     "docusign:send",
@@ -300,7 +297,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "opportunities:view",
     "opportunities:create",
     "opportunities:update",
-    "opportunities:uploadDocuments",
     // No docusign:view_all — an agent only sees envelopes tied to their own
     // opportunities (record-level check in docusign-actions).
     "docusign:view",

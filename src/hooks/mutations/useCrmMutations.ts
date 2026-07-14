@@ -3,8 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import type { ContactDto, OpportunityDto, OpportunityDocumentDto } from "@/features/crm/types/crm-dto";
-import { uploadOpportunityDocument } from "@/lib/client-upload";
+import type { ContactDto, OpportunityDto } from "@/features/crm/types/crm-dto";
 
 // ── Contacts ──────────────────────────────────────────────────────────────────
 
@@ -151,33 +150,6 @@ export function useUpdateOpportunityMutation() {
       // Closing/editing an opportunity can change an agent's computed earnings.
       qc.invalidateQueries({ queryKey: queryKeys.agents() });
     },
-  });
-}
-
-async function uploadOppDocument({ opportunityId, file }: { opportunityId: string; file: File }): Promise<OpportunityDocumentDto> {
-  return uploadOpportunityDocument(opportunityId, file);
-}
-
-export function useUploadOpportunityDocumentMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: uploadOppDocument,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardOpportunities() }),
-  });
-}
-
-async function removeOppDocument({ opportunityId, documentId }: { opportunityId: string; documentId: string }): Promise<{ id: string }> {
-  const res = await fetch(`/api/dashboard/opportunities/${opportunityId}/documents/${documentId}`, { method: "DELETE" });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Failed to remove document");
-  return data;
-}
-
-export function useRemoveOpportunityDocumentMutation() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: removeOppDocument,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardOpportunities() }),
   });
 }
 

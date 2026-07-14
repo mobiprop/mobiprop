@@ -9,6 +9,9 @@ const participantSchema = z
     role: z.enum(["BUYER", "SELLER", "AGENCY"]),
     contactId: z.string().trim().min(1).optional(),
     companyName: z.string().trim().min(1).max(150).optional(),
+    // AGENCY rows only — optional, but needed to pick the agency as a
+    // DocuSign signer (they have no Contact record/email otherwise).
+    companyEmail: z.string().trim().email().max(200).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.role === "AGENCY") {

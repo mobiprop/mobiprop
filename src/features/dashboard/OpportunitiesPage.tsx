@@ -323,11 +323,9 @@ export function OpportunitiesPage({
     try {
       if (editing && editing !== "new") {
         const { opportunity } = await updateMutation.mutateAsync({ id: editing.id, body: payload });
-        toast.success("Opportunity updated");
         return opportunity;
       }
       const { opportunity } = await createMutation.mutateAsync(payload);
-      toast.success("Opportunity created");
       return opportunity;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save opportunity");
@@ -517,6 +515,7 @@ export function OpportunitiesPage({
           onSubmit={handleSubmit}
           isSaving={isSaving}
           lockedAgent={lockedAgent}
+          role={role}
         />
       )}
       {showFilter && (

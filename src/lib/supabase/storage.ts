@@ -8,7 +8,6 @@ import { BLOG_COVER_MAX_BYTES } from "@/schemas/blog.schema";
 
 const AVATAR_BUCKET = "avatars";
 const PROPERTY_IMAGES_BUCKET = "property-images";
-const OPPORTUNITY_DOCUMENTS_BUCKET = "opportunity-documents";
 const BLOG_IMAGES_BUCKET = "blog-images";
 const CHAT_ATTACHMENTS_BUCKET = "chat-attachments";
 
@@ -289,148 +288,15 @@ export async function removePropertyImages(storagePaths: string[]): Promise<void
   if (error) console.error("[storage] failed to remove listing images", error.message);
 }
 
-// ── Opportunity documents ───────────────────────────────────────────────────
-//
-// Signed-upload-URL, private bucket, server-authoritative verification — a
-// file an agent attaches by hand to an Opportunity. Distinct from a DocuSign
-// envelope's tracked signing flow.
-
-let opportunityDocumentsBucketReady = false;
-
-async function ensureOpportunityDocumentsBucket(): Promise<void> {
-  if (opportunityDocumentsBucketReady) return;
-
-  const supabase = createAdminClient();
-  const desiredOptions = {
-    public: false,
-    fileSizeLimit: OPPORTUNITY_DOCUMENT_MAX_BYTES,
-    allowedMimeTypes: OPPORTUNITY_DOCUMENT_MIME_TYPES,
-  };
-
-  const { data: existing } = await supabase.storage.getBucket(OPPORTUNITY_DOCUMENTS_BUCKET);
-  if (existing) {
-    const { error: updateError } = await supabase.storage.updateBucket(OPPORTUNITY_DOCUMENTS_BUCKET, desiredOptions);
-    if (updateError) {
-      console.error("[storage] could not raise opportunity-documents bucket limits", updateError.message);
-    }
-    opportunityDocumentsBucketReady = true;
-    return;
-  }
-
-  let { error } = await supabase.storage.createBucket(OPPORTUNITY_DOCUMENTS_BUCKET, desiredOptions);
-  if (error && !/already exists/i.test(error.message)) {
-    ({ error } = await supabase.storage.createBucket(OPPORTUNITY_DOCUMENTS_BUCKET, {
-      public: false,
-      allowedMimeTypes: OPPORTUNITY_DOCUMENT_MIME_TYPES,
-    }));
-  }
-  if (error && !/already exists/i.test(error.message)) {
-    throw new Error(`Failed to create ${OPPORTUNITY_DOCUMENTS_BUCKET} bucket: ${error.message}`);
-  }
-  opportunityDocumentsBucketReady = true;
-}
-
-export type OpportunityDocumentUploadTicket = {
-  documentId: string;
-  storagePath: string;
-  signedUrl: string;
-  token: string;
-};
-
-/** Mints a signed upload URL under `{opportunityId}/{documentId}.{ext}`. */
-export async function mintOpportunityDocumentUploadTicket(
-  opportunityId: string,
-  file: { name: string; type: string },
-): Promise<OpportunityDocumentUploadTicket> {
-  if (!OPPORTUNITY_DOCUMENT_MIME_TYPES.includes(file.type)) {
-    throw new Error("Only PDF, DOC, and DOCX files are supported.");
-  }
-
-  await ensureOpportunityDocumentsBucket();
-  const supabase = createAdminClient();
-
-  const documentId = randomUUID();
-  const storagePath = `${opportunityId}/${documentId}.${extensionForDocumentFile(file.type, file.name)}`;
-  const { data, error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).createSignedUploadUrl(storagePath);
-  if (error || !data) {
-    throw new Error(`Failed to create upload URL: ${error?.message ?? "unknown error"}`);
-  }
-
-  return { documentId, storagePath, signedUrl: data.signedUrl, token: data.token };
-}
-
-export type VerifiedOpportunityDocument = {
-  storagePath: string;
-  url: string;
-  sizeBytes: number;
-  mimeType: string;
-};
-
-/** Confirms the upload landed in storage and reads its authoritative size/type — never trusts the client. */
-export async function verifyUploadedOpportunityDocument(
-  opportunityId: string,
-  storagePath: string,
-): Promise<VerifiedOpportunityDocument> {
-  if (!storagePath.startsWith(`${opportunityId}/`)) {
-    throw new Error("Document path does not belong to this opportunity.");
-  }
-  const supabase = createAdminClient();
-
-  const name = storagePath.slice(opportunityId.length + 1);
-  const { data: objects, error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).list(opportunityId, { limit: 1000 });
-  if (error) throw new Error(`Failed to verify uploaded document: ${error.message}`);
-
-  const object = objects?.find((o) => o.name === name);
-  if (!object) throw new Error("Uploaded document is missing from storage.");
-
-  const sizeBytes = Number(object.metadata?.size ?? 0);
-  const mimeType = String(object.metadata?.mimetype ?? "");
-  if (!OPPORTUNITY_DOCUMENT_MIME_TYPES.includes(mimeType)) {
-    throw new Error("Uploaded document has an unsupported type.");
-  }
-  if (sizeBytes <= 0 || sizeBytes > OPPORTUNITY_DOCUMENT_MAX_BYTES) {
-    throw new Error("Uploaded document violates the size limit.");
-  }
-
-  // Bucket is private — mint a long-lived signed URL rather than a public one.
-  const { data: signed, error: signError } = await supabase.storage
-    .from(OPPORTUNITY_DOCUMENTS_BUCKET)
-    .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
-  if (signError || !signed) throw new Error(`Failed to sign document URL: ${signError?.message ?? "unknown error"}`);
-
-  return { storagePath, url: signed.signedUrl, sizeBytes, mimeType };
-}
-
-/**
- * Downloads a saved supporting document's bytes so it can be sent through
- * DocuSign ("Use Supporting Document" send source). Size/type/url are read
- * from the OpportunityDocument row, which was server-verified at upload time.
- */
-export async function readOpportunityDocumentBytes(storagePath: string): Promise<Buffer> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).download(storagePath);
-  if (error || !data) {
-    throw new Error(`Failed to read the supporting document: ${error?.message ?? "unknown error"}`);
-  }
-  return Buffer.from(await data.arrayBuffer());
-}
-
-/** Removes a single opportunity document object. Best-effort: errors are logged. */
-export async function removeOpportunityDocumentObject(storagePath: string): Promise<void> {
-  const supabase = createAdminClient();
-  const { error } = await supabase.storage.from(OPPORTUNITY_DOCUMENTS_BUCKET).remove([storagePath]);
-  if (error) console.error("[storage] failed to remove opportunity document", error.message);
-}
-
 // ── DocuSign custom contract documents ──────────────────────────────────────
 //
 // Signed-upload-URL, private bucket, server-authoritative verification — an
 // ad-hoc PDF/DOC/DOCX a staff member uploads to send via DocuSign's "Upload
-// Custom Contract" flow (as opposed to a reusable DocuSign template). Kept
-// separate from OPPORTUNITY_DOCUMENTS_BUCKET because a custom contract can
-// be sent standalone with no Opportunity yet, so there's no opportunityId to
-// scope the path by at upload time (mirrors how sending from a template
-// works today). Same mime allowlist/size cap as opportunity documents.
+// Custom Contract" flow (as opposed to a reusable DocuSign template). This is
+// the only document-upload surface an Opportunity has — there's no separate
+// internal-file-storage bucket. Uploaded standalone (no opportunityId scoping
+// the path) since a custom contract can be sent with or without an
+// Opportunity attached.
 
 const DOCUSIGN_DOCUMENTS_BUCKET = "docusign-documents";
 let docusignDocumentsBucketReady = false;
