@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 
+import { Reveal, RevealItem } from "@/components/common/Reveal";
+import { SplitHeading } from "@/components/common/SplitHeading";
 import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
@@ -56,7 +58,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="relative block w-full h-[360px] sm:h-[420px] lg:h-[539px] rounded-[16px] sm:rounded-[20px] overflow-hidden group"
+      className="hover-shine relative block w-full h-[360px] sm:h-[420px] lg:h-[539px] rounded-[16px] sm:rounded-[20px] overflow-hidden group"
     >
       <img
         src={coverFor(post, 0)}
@@ -122,7 +124,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
       className="flex flex-col gap-4 sm:gap-5 cursor-pointer group"
     >
       {/* image */}
-      <div className="relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
+      <div className="hover-shine relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
         <img
           src={coverFor(post, index)}
           alt={post.title}
@@ -285,35 +287,51 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
           className="absolute inset-0"
           style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)" }}
         />
-        <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
+        <Reveal
+          as="div"
+          amount={0.6}
+          className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
+        >
           <SectionTag label="Blog Page" />
-          <h1
+          <SplitHeading
+            as="h1"
+            text="Insights for the Modern Property Market"
             className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
             style={{ fontFamily: poppins }}
-          >
-            Insights for the Modern Property Market
-          </h1>
+            amount={0.6}
+          />
           <p
             className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
             style={{ fontFamily: montserrat }}
           >
             Stay ahead of the curve with expert analysis, local market trends, and comprehensive guides for buyers, sellers, and investors.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── Content ── */}
       <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
         {hasContent ? (
           <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[60px] w-full">
-            {featured && <FeaturedBlog post={featured} />}
+            {featured && (
+              <Reveal key={`featured-${currentPage}`} amount={0.2}>
+                <FeaturedBlog post={featured} />
+              </Reveal>
+            )}
 
             {posts.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-[30px]">
+              <Reveal
+                key={`grid-${currentPage}`}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-[30px]"
+                stagger={0.1}
+                amount={0.1}
+              >
                 {posts.map((post, i) => (
-                  <BlogCard key={post.id} post={post} index={i} />
+                  <RevealItem key={post.id}>
+                    <BlogCard post={post} index={i} />
+                  </RevealItem>
                 ))}
-              </div>
+              </Reveal>
             )}
 
             {totalPages > 1 && (

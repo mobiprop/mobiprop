@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
+import { Reveal, RevealItem } from "@/components/common/Reveal";
+import { SplitHeading } from "@/components/common/SplitHeading";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
 import {
@@ -164,11 +167,13 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
         className="flex w-full min-w-0 flex-col gap-4 sm:gap-5 group"
       >
       {/* Image */}
-      <div className="relative h-[230px] sm:h-[250px] lg:h-[296px] w-full rounded-[16px] overflow-hidden">
-        <img
+      <div className="hover-shine relative h-[230px] sm:h-[250px] lg:h-[296px] w-full rounded-[16px] overflow-hidden">
+        <Image
           src={property.coverImageUrl ?? fallbackImg}
           alt={property.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          fill
+          sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
 
         {/* Badges */}
@@ -312,7 +317,7 @@ export function FeaturedListings() {
     <section className="bg-white py-16 lg:py-20">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
   {/* Header */}
-  <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10">
+  <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10" amount={0.4}>
     {/* Badge */}
     <div className="flex items-center gap-2">
       <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
@@ -326,12 +331,12 @@ export function FeaturedListings() {
 
     {/* Title */}
     <div className="text-center">
-      <h2
+      <SplitHeading
+        as="h2"
+        text={t("featuredListings.title")}
         className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-tight tracking-[-0.01em]"
         style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-        {t("featuredListings.title")}
-      </h2>
+      />
 
       <p
         className="mt-2 sm:mt-3 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.01em] max-w-[520px] mx-auto"
@@ -358,7 +363,7 @@ export function FeaturedListings() {
         </button>
       ))}
     </div>
-  </div>
+  </Reveal>
 
   {/* Grid */}
   {isLoading ? (
@@ -372,11 +377,18 @@ export function FeaturedListings() {
     ))}
   </div>
   ) : properties.length > 0 ? (
-  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 lg:gap-8">
+  <Reveal
+    key={activeFilter}
+    className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7 lg:gap-8"
+    stagger={0.12}
+    amount={0.15}
+  >
     {properties.map((p) => (
-      <PropertyCard key={p.slug} property={p} />
+      <RevealItem key={p.slug}>
+        <PropertyCard property={p} />
+      </RevealItem>
     ))}
-  </div>
+  </Reveal>
   ) : (
   <p
     className="text-center text-[15px] text-[#6a7282] py-8"

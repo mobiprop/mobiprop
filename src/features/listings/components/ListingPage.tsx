@@ -3,8 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { queryKeys } from "@/lib/query-keys";
 import { useShallow } from "zustand/react/shallow";
+import { Reveal, RevealItem } from "@/components/common/Reveal";
+import { SplitHeading } from "@/components/common/SplitHeading";
 import svgPaths from "./svgPaths";
 import { FiltersModal, type FiltersState } from "./FiltersModal";
 import {
@@ -219,7 +222,7 @@ return (
    className="flex flex-col gap-[20px] items-start w-full group"
    >
 {/* Image */}
-<div className="relative w-full h-[296px] rounded-[16px] overflow-hidden flex-shrink-0">
+<div className="hover-shine relative w-full h-[296px] rounded-[16px] overflow-hidden flex-shrink-0">
    <img
       src={item.coverImageUrl ?? fallbackImg}
       alt={item.title}
@@ -516,6 +519,13 @@ function SearchBarDropdown<T extends string>({
 
 /* ─── main export ─── */
 export function ListingPageContent() {
+const heroRef = useRef<HTMLElement>(null);
+const { scrollYProgress } = useScroll({
+  target: heroRef,
+  offset: ["start start", "end start"],
+});
+const heroImgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+
 const [page, setPage] = useState(1);
 const [isMapOpen, setIsMapOpen] = useState(false);
 const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -647,13 +657,14 @@ function applyModalFilters(state: FiltersState) {
 return (
 <>
 {/* ── Hero ── */}
-<section className="relative h-[360px] sm:h-[400px] overflow-hidden border-b border-black/10">
+<section ref={heroRef} className="relative h-[360px] sm:h-[400px] overflow-hidden border-b border-black/10">
    {/* bg photo */}
    <div className="absolute inset-0 overflow-hidden">
-      <img
+      <motion.img
          src={heroImg}
          alt=""
-         className="absolute w-full h-[110%] -top-[10%] object-cover"
+         className="absolute w-full h-[130%] -top-[15%] object-cover"
+         style={{ y: heroImgY }}
          />
    </div>
    {/* gradient overlay */}
@@ -681,7 +692,11 @@ return (
    }}
    />
    {/* Text content */}
-   <div className="relative h-full w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[760px] mx-auto flex flex-col items-center justify-center gap-2 text-center pt-6">
+   <Reveal
+     as="div"
+     amount={0.6}
+     className="relative h-full w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[760px] mx-auto flex flex-col items-center justify-center gap-2 text-center pt-6"
+   >
    <div className="flex items-center gap-2">
       <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
          <span
@@ -692,12 +707,13 @@ return (
          </span>
       </div>
       <div className="flex flex-col gap-3 sm:gap-4 items-center">
-         <h1
-         className="text-[28px] sm:text-[38px] lg:text-[44px] font-semibold text-[#0d2138] leading-[38px] sm:leading-[48px] lg:leading-[56px] tracking-[-0.01em]"
-         style={{ fontFamily: "Poppins, sans-serif" }}
-         >
-         Featured Luxury Listings
-         </h1>
+         <SplitHeading
+           as="h1"
+           text="Featured Luxury Listings"
+           className="text-[28px] sm:text-[38px] lg:text-[44px] font-semibold text-[#0d2138] leading-[38px] sm:leading-[48px] lg:leading-[56px] tracking-[-0.01em]"
+           style={{ fontFamily: "Poppins, sans-serif" }}
+           amount={0.6}
+         />
          <p
          className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.01em] max-w-[560px]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -706,11 +722,14 @@ return (
          estates, tailored to suit every need and budget.
          </p>
       </div>
-   </div>
+   </Reveal>
 </section>
 {/* ── Search Bar Card ── */}
 <div className="bg-white px-6 lg:px-10 flex justify-center ">
-  <div className="relative z-10 -mt-[69px] w-full max-w-[1440px] bg-white border border-[#e5e7eb] rounded-[24px] px-[10px] py-[10px] flex flex-col items-center justify-center min-h-[138px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
+  <Reveal
+    delay={0.3}
+    amount={0.6}
+    className="relative z-10 -mt-[69px] w-full max-w-[1440px] bg-white border border-[#e5e7eb] rounded-[24px] px-[10px] py-[10px] flex flex-col items-center justify-center min-h-[138px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
   <div className="flex flex-wrap gap-3.5 items-end justify-center w-full max-xl:grid max-xl:grid-cols-2 max-md:grid-cols-1 max-xl:gap-4">
     {/* Location */}
     <div className="flex flex-col gap-3 items-start flex-1 min-w-[200px] max-w-[361px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
@@ -899,13 +918,13 @@ return (
       </button>
     </div>
   </div>
-</div>
+</Reveal>
 </div>
 {/* ── Listings Grid ── */}
 <section className="bg-white py-8 sm:py-10 lg:py-14">
    <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
       {/* Results header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8">
+      <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8" amount={0.5}>
          <h2
          className="text-[20px] sm:text-[22px] lg:text-[24px] font-semibold text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.01em]"
          style={{ fontFamily: "Poppins, sans-serif" }}
@@ -921,7 +940,7 @@ return (
             <MapIcon />
             Map
          </button>
-      </div>
+      </Reveal>
       {/* Card grid */}
       {isLoading ? (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
@@ -936,11 +955,18 @@ return (
          ))}
       </div>
       ) : listings.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
+      <Reveal
+        key={`${filterKey}-${safePage}`}
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10"
+        stagger={0.08}
+        amount={0.1}
+      >
          {listings.map((item) => (
-         <PropertyCard key={item.slug} item={item} />
+         <RevealItem key={item.slug}>
+           <PropertyCard item={item} />
+         </RevealItem>
          ))}
-      </div>
+      </Reveal>
       ) : (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
          <p
@@ -985,26 +1011,28 @@ return (
    <div className="might">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
          {/* Section heading */}
-         <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center">
-            <h2
-            className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-[50px] xl:leading-[56px] tracking-[-0.01em]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-            You might also like
-            </h2>
+         <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
+            <SplitHeading
+              as="h2"
+              text="You might also like"
+              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-[50px] xl:leading-[56px] tracking-[-0.01em]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            />
             <p
             className="text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] text-[#2b3038] tracking-[-0.01em] max-w-[520px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             We have over +10 years of experience in the real estate market
             </p>
-         </div>
+         </Reveal>
          {/* 3-card row */}
-         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+         <Reveal className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6" stagger={0.12} amount={0.15}>
             {suggestions.map((item) => (
-            <PropertyCard key={item.slug} item={item} />
+            <RevealItem key={item.slug}>
+              <PropertyCard item={item} />
+            </RevealItem>
             ))}
-         </div>
+         </Reveal>
       </div>
    </div>
 </section>

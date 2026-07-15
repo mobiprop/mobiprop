@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { motion, type Variants } from "framer-motion";
 
 import { signOut } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/client";
@@ -134,6 +135,16 @@ function Logo() {
   );
 }
 
+const headerContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15, delayChildren: 0.05 } },
+};
+
+const headerItem: Variants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
 const navLinks = [
   { key: "home", href: "/" },
   { key: "listings", href: "/listings" },
@@ -153,14 +164,22 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   return (
     <header className="sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]">
-  <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between">
+  <motion.div
+    className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between"
+    variants={headerContainer}
+    initial="hidden"
+    animate="visible"
+  >
     {/* Logo */}
-    <div className="flex-shrink-0">
+    <motion.div className="flex-shrink-0" variants={headerItem}>
       <Logo />
-    </div>
+    </motion.div>
 
     {/* Desktop Menu */}
-    <nav className="hidden md:flex items-center gap-8 bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]">
+    <motion.nav
+      className="hidden md:flex items-center gap-8 bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
+      variants={headerItem}
+    >
       {navLinks.map((link) => (
         <Link
           key={link.href}
@@ -175,10 +194,10 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           {t(link.key)}
         </Link>
       ))}
-    </nav>
+    </motion.nav>
 
     {/* Desktop Buttons */}
-    <div className="hidden md:flex items-center gap-3">
+    <motion.div className="hidden md:flex items-center gap-3" variants={headerItem}>
       <LanguageSwitcher />
       {user ? (
         <ProfileMenu user={user} />
@@ -201,13 +220,14 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           </Link>
         </>
       )}
-    </div>
+    </motion.div>
 
     {/* Mobile Hamburger */}
-    <button
+    <motion.button
       className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
       onClick={() => setMenuOpen(!menuOpen)}
       aria-label="Toggle menu"
+      variants={headerItem}
     >
       <svg
         width="24"
@@ -230,8 +250,8 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           </>
         )}
       </svg>
-    </button>
-  </div>
+    </motion.button>
+  </motion.div>
 
   {/* Mobile Menu Dropdown */}
   {menuOpen && (
