@@ -194,16 +194,16 @@ export function Footer() {
               className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              4517 Washington Ave. Manchester,
+              Tortugas Country Club,
               <br />
-              Kentucky 39495
+              Buenos Aires, Argentina, 1667
             </p>
           </div>
         </div>
 
         {/* Email + Phone */}
         <div className="flex flex-col gap-4 sm:gap-[24px]">
-          <SectionHeading>Visit Our Office</SectionHeading>
+          <SectionHeading>Get In Touch</SectionHeading>
 
           <div className="flex flex-col gap-[12px] opacity-80">
             <div className="flex gap-[12px] items-center">
@@ -215,7 +215,7 @@ export function Footer() {
                 className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px] break-all"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                contact@ulrichpropiedades.com
+                info@ulrichpropiedades.com
               </p>
             </div>
 
@@ -228,7 +228,7 @@ export function Footer() {
                 className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px]"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                (239) 555-0108
+                +54 9 11 6161 8646
               </p>
             </div>
           </div>

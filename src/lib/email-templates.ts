@@ -82,7 +82,7 @@ export function footer(): string {
     <div style="margin-top:8px;">${wordmark("#ffffff")}</div>
     <div style="font-family:${FONT};color:${BRAND.heroEyebrow};font-size:14px;margin-top:14px;">Premium real estate, expertly curated.</div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:13px;margin-top:18px;">
-      <a href="mailto:contact@ulrichpropiedades.com" style="color:${BRAND.footerText};text-decoration:none;">contact@ulrichpropiedades.com</a>
+      <a href="mailto:info@ulrichpropiedades.com" style="color:${BRAND.footerText};text-decoration:none;">info@ulrichpropiedades.com</a>
     </div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:12px;line-height:1.7;margin-top:16px;">
       &copy; ${year} ${APP_NAME}. All rights reserved.<br />
