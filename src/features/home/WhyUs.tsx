@@ -1,51 +1,32 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const personImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whyexpert.webp";
 
-const stats = [
-  {
-    value: "84%",
-    label: "Close faster",
-    desc: "When clients collaborate with expert agents, they finish their transactions more quickly.",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 34.1918 34.1731" fill="none">
-        <path d={svgPaths.p2cb34680} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
-      </svg>
-    ),
-  },
-  {
-    value: "$5M+",
-    label: "Saved yearly",
-    desc: "We help buyers avoid overpaying while securing value in Florida markets.",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 25 39.6667" fill="none">
-        <path d={svgPaths.p3ec057c0} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
-      </svg>
-    ),
-  },
-  {
-    value: "3 in 5",
-    label: "Win offers",
-    desc: "More than half of our clients secure their ideal home on the first or second offer.",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 39.6667 39.6667" fill="none">
-        <path d={svgPaths.p1a11c480} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
-      </svg>
-    ),
-  },
-  {
-    value: "95%",
-    label: "Refer friends",
-    desc: "Most clients recommend our team after experiencing smooth closings.",
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 39.4325 36.0007" fill="none">
-        <path d={svgPaths.p1fbdbc80} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
-      </svg>
-    ),
-  },
+const STAT_VALUES = ["84%", "$5M+", "3 in 5", "95%"];
+const STAT_ICONS = [
+  <svg key="0" width="32" height="32" viewBox="0 0 34.1918 34.1731" fill="none">
+    <path d={svgPaths.p2cb34680} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+  </svg>,
+  <svg key="1" width="32" height="32" viewBox="0 0 25 39.6667" fill="none">
+    <path d={svgPaths.p3ec057c0} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+  </svg>,
+  <svg key="2" width="32" height="32" viewBox="0 0 39.6667 39.6667" fill="none">
+    <path d={svgPaths.p1a11c480} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+  </svg>,
+  <svg key="3" width="32" height="32" viewBox="0 0 39.4325 36.0007" fill="none">
+    <path d={svgPaths.p1fbdbc80} stroke="#2B3038" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+  </svg>,
 ];
 
 export function WhyUs() {
+  const { t } = useTranslation("home");
+  const stats = (t("whyUs.stats", { returnObjects: true }) as { label: string; desc: string }[]).map(
+    (s, i) => ({ ...s, value: STAT_VALUES[i], icon: STAT_ICONS[i] }),
+  );
+
   return (
     <section className="bg-white py-16 lg:py-20">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
@@ -57,7 +38,7 @@ export function WhyUs() {
         className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Why Us
+        {t("whyUs.badge")}
       </span>
     </div>
 
@@ -66,14 +47,14 @@ export function WhyUs() {
         className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] leading-[36px] sm:leading-[42px] lg:leading-tight"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        Ulrich&apos;s home experts
+        {t("whyUs.title")}
       </h2>
 
       <p
         className="mt-2 sm:mt-3 text-[14px] sm:text-[16px] text-[#2b3038] max-w-[460px] mx-auto leading-[22px] sm:leading-[24px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        We have over +10 years of experience in the real estate market
+        {t("whyUs.subtitle")}
       </p>
     </div>
   </div>
@@ -108,7 +89,7 @@ export function WhyUs() {
             className="text-white text-[14px] sm:text-[16px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            Ulrich&apos;s best agency
+            {t("whyUs.cardBadge")}
           </span>
         </div>
 
@@ -116,7 +97,7 @@ export function WhyUs() {
           className="text-white text-[22px] sm:text-[26px] lg:text-[28px] font-medium leading-[30px] sm:leading-[34px] lg:leading-[36px] max-w-[360px]"
           style={{ fontFamily: "Poppins, sans-serif" }}
         >
-          2K+ clients choose Ulrich
+          {t("whyUs.cardHeading")}
         </p>
       </div>
 
@@ -126,8 +107,7 @@ export function WhyUs() {
           className="text-white text-[14px] sm:text-[16px] leading-[22px] sm:leading-[24px] opacity-90 max-w-[472px]"
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
-          Choosing us matters — experience and clear guidance shape every
-          real-estate decision. We help clients move forward with confidence.
+          {t("whyUs.cardText")}
         </p>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const bgImg =
@@ -15,6 +16,7 @@ function ArrowRight() {
 }
 
 export function ConsultationBanner() {
+  const { t } = useTranslation("common");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -43,7 +45,7 @@ export function ConsultationBanner() {
         className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-[1.3] mb-5 sm:mb-7"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        Schedule a free consultation
+        {t("consultation.heading")}
       </h2>
 
       <div className="flex flex-col gap-3 sm:gap-4">
@@ -53,13 +55,13 @@ export function ConsultationBanner() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            Full Name
+            {t("consultation.fullName")}
           </label>
           <input
             name="name"
             value={form.name}
             onChange={handleChange}
-            placeholder="eg. Albert Jones"
+            placeholder={t("consultation.fullNamePlaceholder")}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           />
@@ -71,14 +73,14 @@ export function ConsultationBanner() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            Email address
+            {t("consultation.email")}
           </label>
           <input
             name="email"
             type="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="albert@email.com"
+            placeholder={t("consultation.emailPlaceholder")}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           />
@@ -90,13 +92,13 @@ export function ConsultationBanner() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            Topic
+            {t("consultation.topic")}
           </label>
           <input
             name="topic"
             value={form.topic}
             onChange={handleChange}
-            placeholder="Consultation"
+            placeholder={t("consultation.topicPlaceholder")}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           />
@@ -108,13 +110,13 @@ export function ConsultationBanner() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            Messages
+            {t("consultation.messages")}
           </label>
           <textarea
             name="message"
             value={form.message}
             onChange={handleChange}
-            placeholder="Enter a message"
+            placeholder={t("consultation.messagesPlaceholder")}
             rows={4}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#99a1af] outline-none focus:border-[#1e4f86] transition-colors resize-none"
             style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -141,7 +143,7 @@ export function ConsultationBanner() {
         />
 
         <span className="relative z-10 flex items-center justify-center gap-3">
-          Book a Free consultation
+          {t("consultation.submit")}
           <ArrowRight />
         </span>
       </button>

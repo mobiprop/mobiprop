@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const testimonialPerson =
@@ -46,6 +47,7 @@ function QuoteIcon() {
 }
 
 export function Testimonial() {
+  const { t } = useTranslation("home");
   const [activeIndex, setActiveIndex] = useState(0);
 
   const currentTestimonial = testimonials[activeIndex];
@@ -141,7 +143,7 @@ export function Testimonial() {
                   className="text-[16px] sm:text-[18px] font-medium text-[#6a7282]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
-                  Testimonials
+                  {t("testimonial.badge")}
                 </span>
               </div>
 
@@ -149,8 +151,7 @@ export function Testimonial() {
                 className="text-[15px] sm:text-[18px] text-[#6a7282] leading-[24px] sm:leading-[26px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
-                Here's what clients say about our work. True impressions, built
-                from real projects, real partnerships, and results.
+                {t("testimonial.subtitle")}
               </p>
             </div>
 

@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 
 import { updateLocalePreferences } from "@/features/profile/actions";
 import { resolvePreferences } from "@/features/profile/preferences";
+import { syncSiteLanguageFromPreference } from "@/i18n/client";
 import type { Profile } from "@/generated/prisma/client";
 import { SearchableSelect } from "../SearchableSelect";
 
@@ -13,18 +14,8 @@ const mont = {
 };
 
 const LANGUAGE_OPTIONS = [
-  {
-    value: "en-US",
-    label: "English",
-  },
-  {
-    value: "es-AR",
-    label: "Español",
-  },
-  {
-    value: "pt-BR",
-    label: "Português",
-  },
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
 ];
 
 const TIMEZONE_OPTIONS = [
@@ -93,6 +84,7 @@ export function PreferencesTab({
         return;
       }
 
+      syncSiteLanguageFromPreference(language);
       setSuccess(true);
     } catch {
       setError(

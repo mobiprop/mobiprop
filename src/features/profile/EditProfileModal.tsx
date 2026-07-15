@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import {
   Bell,
-  ChevronDown,
   Clock,
   Globe,
   KeyRound,
@@ -35,6 +34,8 @@ import {
   type SecurityPreferences,
 } from "./preferences";
 import type { Profile } from "@/generated/prisma/client";
+import { SearchableSelect } from "@/features/dashboard/components/SearchableSelect";
+import { syncSiteLanguageFromPreference } from "@/i18n/client";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
@@ -69,11 +70,8 @@ const TIMEZONES: { value: string; label: string }[] = [
 ];
 
 const LANGUAGES = [
-  { value: "en-US", label: "English (US)" },
-  { value: "en-GB", label: "English (UK)" },
-  { value: "es-AR", label: "Español (Argentina)" },
-  { value: "es-ES", label: "Español (España)" },
-  { value: "pt-BR", label: "Português (Brasil)" },
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
 ];
 
 const DATE_FORMATS = [
@@ -261,7 +259,6 @@ function SelectField({
   onChange,
   options,
   placeholder,
-  variant = "white",
   hint,
 }: {
   label: string;
@@ -275,26 +272,15 @@ function SelectField({
   return (
     <div className="flex flex-col gap-[4px] w-full">
       <FieldLabel>{label}</FieldLabel>
-      <div className="relative w-full">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`${variant === "white" ? inputWhite : inputGray} appearance-none pr-[36px] ${value ? "" : "text-[#6a7282]"}`}
-          style={{ fontFamily: montserrat }}
-        >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={20} className="absolute right-[12px] top-1/2 -translate-y-1/2 text-[#6a7282] pointer-events-none" />
-      </div>
+      <SearchableSelect
+        ariaLabel={label}
+        searchable={false}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder ?? ""}
+        options={options}
+        className="[&>button]:h-[38px]"
+      />
       {hint && (
         <p className="text-[12px] text-[#6a7282] leading-[18px] tracking-[-0.12px]" style={{ fontFamily: montserrat }}>
           {hint}
@@ -933,6 +919,7 @@ function LanguageTab({
         return;
       }
       onSaved(result.profile);
+      syncSiteLanguageFromPreference(locale.language);
       setSuccess("Language & region preferences saved.");
     } catch {
       setError("Something went wrong while saving. Please try again.");
@@ -1056,8 +1043,8 @@ export function EditProfileModal({
       aria-modal="true"
       aria-label="Edit Profile"
     >
-      <div className="bg-white border border-[#e5e7eb] rounded-[20px] w-full max-w-[1196px] max-h-[92vh] overflow-y-auto shadow-2xl">
-        <div className="flex flex-col gap-[24px] p-[20px] sm:p-[31px]">
+      <div className="bg-white border border-[#e5e7eb] rounded-[20px] w-full max-w-[1196px] max-h-[92vh] overflow-hidden shadow-2xl">
+        <div className="flex flex-col gap-[24px] p-[20px] sm:p-[31px] max-h-[92vh] overflow-y-auto">
           {/* ── Header ── */}
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-[8px]">

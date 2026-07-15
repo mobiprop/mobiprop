@@ -1,19 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const footerBg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/footerbackground.webp";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Listing", href: "/listings" },
-  { label: "About Us", href: "/about" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
-  { label: "FAQ", href: "/faq" },
-  { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms & Conditions", href: "/terms-conditions" },
-];
+  { key: "home", href: "/" },
+  { key: "listings", href: "/listings" },
+  { key: "about", href: "/about" },
+  { key: "blog", href: "/blog" },
+  { key: "contact", href: "/contact" },
+  { key: "faq", href: "/faq" },
+  { key: "privacyPolicy", href: "/privacy-policy" },
+  { key: "termsConditions", href: "/terms-conditions" },
+] as const;
 
 function MailIcon() {
   return (
@@ -93,6 +96,8 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 export function Footer() {
+  const { t } = useTranslation(["footer", "navigation"]);
+
   return (
     <footer className="relative bg-[#0d2138] overflow-hidden">
       {/* Background building image — extends above footer per Figma (top:-113px, h:902px) */}
@@ -113,7 +118,7 @@ export function Footer() {
         className="text-[24px] sm:text-[28px] font-medium text-white leading-[32px] sm:leading-[36px] tracking-[-0.28px] mb-5 sm:mb-6 max-w-[412px]"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        From concept sketches to final execution.
+        {t("newsletterHeadline")}
       </p>
 
       <div className="flex flex-col gap-[10px]">
@@ -121,13 +126,13 @@ export function Footer() {
           className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px]"
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
-          Subscribe our news letter
+          {t("newsletterSubtext")}
         </p>
 
         <div className="relative bg-[#f5f7fa] min-h-[56px] rounded-[100px] w-full">
           <input
             type="email"
-            placeholder="Enter your email address"
+            placeholder={t("emailPlaceholder")}
             className="h-[56px] w-full bg-transparent pl-5 sm:pl-6 pr-[122px] sm:pr-[150px] text-[14px] sm:text-[16px] text-[#717784] outline-none rounded-[100px] tracking-[-0.16px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           />
@@ -151,7 +156,7 @@ export function Footer() {
               }}
             />
 
-            <span className="relative z-10">Subscribe</span>
+            <span className="relative z-10">{t("subscribe")}</span>
           </button>
         </div>
       </div>
@@ -161,19 +166,19 @@ export function Footer() {
     <div className="flex flex-col sm:flex-row gap-8 sm:gap-12 lg:gap-[85px] flex-1 lg:justify-end">
       {/* Navigation */}
       <div className="flex flex-col gap-4 sm:gap-[24px] lg:w-[221px]">
-        <SectionHeading>Navigation</SectionHeading>
+        <SectionHeading>{t("navigationHeading")}</SectionHeading>
 
         <div
           className="flex flex-col gap-3 sm:gap-[16px] opacity-80"
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
-          {navLinks.map(({ label, href }) => (
+          {navLinks.map(({ key, href }) => (
             <Link
-              key={label}
+              key={key}
               href={href}
               className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px] hover:opacity-100 transition-opacity whitespace-nowrap"
             >
-              {label}
+              {t(key, { ns: "navigation" })}
             </Link>
           ))}
         </div>
@@ -183,7 +188,7 @@ export function Footer() {
       <div className="flex flex-col gap-6 sm:gap-[28px] lg:w-[305px]">
         {/* Address */}
         <div className="flex flex-col gap-4 sm:gap-[24px]">
-          <SectionHeading>Visit Our Office</SectionHeading>
+          <SectionHeading>{t("officeHeading")}</SectionHeading>
 
           <div className="flex gap-[12px] items-start opacity-80">
             <span className="flex-shrink-0 mt-1">
@@ -194,16 +199,16 @@ export function Footer() {
               className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              Tortugas Country Club,
+              {t("officeAddressLine1")}
               <br />
-              Buenos Aires, Argentina, 1667
+              {t("officeAddressLine2")}
             </p>
           </div>
         </div>
 
         {/* Email + Phone */}
         <div className="flex flex-col gap-4 sm:gap-[24px]">
-          <SectionHeading>Get In Touch</SectionHeading>
+          <SectionHeading>{t("contactHeading")}</SectionHeading>
 
           <div className="flex flex-col gap-[12px] opacity-80">
             <div className="flex gap-[12px] items-center">
@@ -243,7 +248,7 @@ export function Footer() {
       className="text-[14px] sm:text-[16px] text-white leading-[22px] sm:leading-[24px] tracking-[-0.16px]"
       style={{ fontFamily: "Montserrat, sans-serif" }}
     >
-      Ulrich Propiedades © 2026. All rights reserved.
+      {t("copyright")}
     </p>
   </div>
 </div>

@@ -1,0 +1,95 @@
+{
+  "hero": {
+    "title": "Espacios para la próxima etapa de tu vida.",
+    "subtitle": "Desde departamentos urbanos hasta casas en barrios cerrados, encontrá propiedades seleccionadas por su calidad y ubicación.",
+    "tabBuy": "Venta",
+    "tabRent": "Alquiler",
+    "locationLabel": "Ubicación",
+    "locationPlaceholder": "Ingresá ciudad, zona o dirección",
+    "propertyTypeLabel": "Tipo de Propiedad",
+    "priceLabel": "Precio",
+    "searchButton": "Buscar Propiedades",
+    "propertyTypeOptions": {
+      "any": "Todos los tipos de propiedad",
+      "apartment": "Departamento",
+      "house": "Casa",
+      "commercialOffice": "Oficina Comercial",
+      "lot": "Terreno",
+      "townhouse": "Casa Adosada"
+    },
+    "priceOptions": {
+      "any": "Cualquier precio",
+      "upTo100k": "Hasta $100.000",
+      "100kTo500k": "$100.000 – $500.000",
+      "500kTo1m": "$500.000 – $1.000.000",
+      "1mTo5m": "$1.000.000 – $5.000.000",
+      "over5m": "Más de $5.000.000"
+    }
+  },
+  "featuredListings": {
+    "badge": "Propiedades",
+    "title": "Nuestra Selección",
+    "subtitle": "Una selección de propiedades elegidas por ubicación, diseño y calidad.",
+    "filterSale": "En Venta",
+    "filterRent": "En Alquiler",
+    "noneAvailable": "No hay propiedades {{filter}} disponibles por el momento."
+  },
+  "featuredSpots": {
+    "badge": "Ubicación",
+    "title": "Explorá por Zona",
+    "subtitle": "Descubrí los barrios más buscados para vivir e invertir."
+  },
+  "whyUs": {
+    "badge": "¿Por Qué Elegirnos?",
+    "title": "Más que una inmobiliaria.",
+    "subtitle": "Cada operación es distinta. Por eso desarrollamos procesos pensados para brindar mayor transparencia, velocidad y resultados.",
+    "cardBadge": "Ulrich Propiedades",
+    "cardHeading": "Una experiencia diseñada alrededor del cliente.",
+    "cardText": "Acompañamos cada operación con asesoramiento estratégico, comunicación transparente y un proceso pensado.",
+    "stats": [
+      {
+        "label": "Asesoramiento Estratégico",
+        "desc": "Analizamos cada operación desde una perspectiva comercial, financiera y de mercado."
+      },
+      {
+        "label": "Valor de Mercado",
+        "desc": "Tasaciones basadas en datos reales, comportamiento del mercado y comparables actualizados."
+      },
+      {
+        "label": "Tecnología Aplicada",
+        "desc": "Utilizamos herramientas propias para brindar un seguimiento ordenado, rápido y transparente."
+      },
+      {
+        "label": "Gestión Integral",
+        "desc": "Desde la primera consulta hasta la firma, nuestro equipo está presente en cada etapa de la operación."
+      }
+    ]
+  },
+  "ourServices": {
+    "badge": "Nuestros Servicios",
+    "title": "Servicios Inmobiliarios",
+    "subtitle": "Te acompañamos en cada etapa del proceso inmobiliario con un servicio personalizado.",
+    "services": [
+      { "title": "Ventas", "desc": "Nos especializamos en la compra y venta de propiedades." },
+      { "title": "Alquileres", "desc": "Gestionamos alquileres con procesos claros y seguimiento permanente." },
+      { "title": "Tasaciones", "desc": "Realizamos tasaciones profesionales basadas en información de mercado." }
+    ]
+  },
+  "agents": {
+    "badge": "Nuestro Equipo",
+    "title": "Conocé al equipo detrás de cada operación."
+  },
+  "testimonial": {
+    "badge": "Testimonios",
+    "subtitle": "La confianza de nuestros clientes es el reflejo del trabajo que hacemos todos los días."
+  },
+  "faq": {
+    "badge": "FAQ",
+    "title": "Preguntas Frecuentes",
+    "blurb": "¿Tenés dudas? ¿No encontraste lo que buscabas?"
+  },
+  "blog": {
+    "badge": "Más Publicaciones",
+    "title": "Seguí Leyendo"
+  }
+}

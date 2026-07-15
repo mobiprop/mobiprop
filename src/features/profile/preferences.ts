@@ -79,13 +79,20 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
     loginAlerts: true,
   },
   locale: {
-    language: "en-US",
+    language: "en",
     timezone: "America/Los_Angeles",
     autoDetectTimezone: true,
     dateFormat: "MM/DD/YYYY",
     timeFormat: "12h",
   },
 };
+
+/** Collapses legacy/regional codes ("en-US", "es-AR", "pt-BR", ...) down to the
+ * two languages the site actually supports, so profiles saved before the
+ * dropdown was simplified still resolve to a valid option. */
+function normalizeLanguage(language: string): "en" | "es" {
+  return language.split("-")[0] === "es" ? "es" : "en";
+}
 
 /** Merge the stored JSON (possibly null / partial / from older versions) over the defaults. */
 export function resolvePreferences(profile: Pick<Profile, "preferences">): ProfilePreferences {
@@ -103,6 +110,10 @@ export function resolvePreferences(profile: Pick<Profile, "preferences">): Profi
       ...stored.dashboardNotifications,
     },
     security: { ...DEFAULT_PREFERENCES.security, ...stored.security },
-    locale: { ...DEFAULT_PREFERENCES.locale, ...stored.locale },
+    locale: {
+      ...DEFAULT_PREFERENCES.locale,
+      ...stored.locale,
+      language: normalizeLanguage(stored.locale?.language ?? DEFAULT_PREFERENCES.locale.language),
+    },
   };
 }

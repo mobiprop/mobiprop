@@ -1,26 +1,19 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
+
 const saleImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whatweoffer1.webp";
 const rentImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/rentals.webp";
 const valuationImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/Valuation.webp";
 
-const services = [
-  {
-    img: saleImg,
-    title: "Sale",
-    desc: "We make finding your perfect property effortless and fast.",
-  },
-  {
-    img: rentImg,
-    title: "Rentals",
-    desc: "We make finding your perfect rental effortless in Florida neighborhoods.",
-  },
-  {
-    img: valuationImg,
-    title: "Valuation",
-    desc: "We make understanding your home's value and best deals effortless.",
-  },
-];
+const SERVICE_IMAGES = [saleImg, rentImg, valuationImg];
 
 export function OurServices() {
+  const { t } = useTranslation("home");
+  const services = (
+    t("ourServices.services", { returnObjects: true }) as { title: string; desc: string }[]
+  ).map((s, i) => ({ ...s, img: SERVICE_IMAGES[i] }));
+
   return (
     <section className="bg-[#f8fafc] py-16 lg:py-20">
      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
@@ -32,7 +25,7 @@ export function OurServices() {
         className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Our services
+        {t("ourServices.badge")}
       </span>
     </div>
 
@@ -41,15 +34,14 @@ export function OurServices() {
         className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#232323] leading-[36px] sm:leading-[42px] lg:leading-tight"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        What we offer
+        {t("ourServices.title")}
       </h2>
 
       <p
         className="mt-2 sm:mt-3 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        We help simplify selling and purchase decisions with a reliable
-        service, speed &amp; transparency
+        {t("ourServices.subtitle")}
       </p>
     </div>
   </div>

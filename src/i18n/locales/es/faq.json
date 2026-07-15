@@ -1,0 +1,224 @@
+{
+  "hero": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Encontrá respuestas a las preguntas más frecuentes sobre comprar, vender y alquilar propiedades con Ulrich Propiedades.",
+    "searchPlaceholder": "Buscar",
+    "popularLabel": "Preguntas populares:",
+    "popularTags": [
+      "Venta",
+      "Alquiler",
+      "Créditos"
+    ]
+  },
+  "allCategories": "Todas las Categorías",
+  "categories": {
+    "generalInformation": "Información General",
+    "sales": "Venta",
+    "rentals": "Alquiler",
+    "propertyValuations": "Tasaciones",
+    "closingsDeeds": "Escrituras",
+    "fees": "Honorarios",
+    "mortgages": "Créditos",
+    "investments": "Inversiones"
+  },
+  "faqs": [
+    {
+      "id": "generalInformation-0",
+      "categoryId": "generalInformation",
+      "question": "¿Cómo puedo coordinar una visita?",
+      "answer": "Podés comunicarte con nosotros por teléfono, WhatsApp o a través del formulario de contacto de cada propiedad. Coordinaremos una visita en el horario que te resulte más conveniente."
+    },
+    {
+      "id": "generalInformation-1",
+      "categoryId": "generalInformation",
+      "question": "¿En qué zonas trabajan?",
+      "answer": "Nos especializamos en Zona Norte y CABA, aunque también acompañamos operaciones en otras zonas según las necesidades de nuestros clientes."
+    },
+    {
+      "id": "generalInformation-2",
+      "categoryId": "generalInformation",
+      "question": "¿Qué diferencia a Ulrich Propiedades?",
+      "answer": "Combinamos experiencia, tecnología y procesos propios para brindar un servicio más organizado, transparente y eficiente en cada operación."
+    },
+    {
+      "id": "generalInformation-3",
+      "categoryId": "generalInformation",
+      "question": "¿Qué servicios ofrecen?",
+      "answer": "Nos dedicamos a la compra, venta y alquiler de propiedades, tasaciones, inversiones y asesoramiento integral durante todo el proceso inmobiliario."
+    },
+    {
+      "id": "generalInformation-4",
+      "categoryId": "generalInformation",
+      "question": "¿Cómo puedo comenzar?",
+      "answer": "Solo tenés que contactarnos. Un asesor se comunicará con vos para conocer tus necesidades y ayudarte a encontrar la mejor solución."
+    },
+    {
+      "id": "sales-0",
+      "categoryId": "sales",
+      "question": "¿Cómo venden mi propiedad?",
+      "answer": "Comenzamos con una tasación profesional, definimos una estrategia comercial personalizada, producimos el material fotográfico y audiovisual, publicamos la propiedad en los principales portales y acompañamos todo el proceso hasta la escritura."
+    },
+    {
+      "id": "sales-1",
+      "categoryId": "sales",
+      "question": "¿Cómo promocionan una propiedad?",
+      "answer": "Utilizamos fotografía profesional, video, recorridos virtuales, campañas digitales, redes sociales, nuestra base de clientes y los principales portales inmobiliarios para maximizar su exposición."
+    },
+    {
+      "id": "sales-2",
+      "categoryId": "sales",
+      "question": "¿Publican mi propiedad en ZonaProp, Argenprop y Mercado Libre?",
+      "answer": "Sí. Publicamos las propiedades en los principales portales inmobiliarios, además de promocionarlas mediante campañas digitales, redes sociales y nuestra base de clientes."
+    },
+    {
+      "id": "sales-3",
+      "categoryId": "sales",
+      "question": "¿Cuánto tiempo demora vender una propiedad?",
+      "answer": "Depende del precio, la ubicación y las condiciones del mercado. Una correcta estrategia comercial suele reducir significativamente los tiempos de venta."
+    },
+    {
+      "id": "sales-4",
+      "categoryId": "sales",
+      "question": "¿Cómo coordinan las visitas?",
+      "answer": "Organizamos las visitas de acuerdo con la disponibilidad del propietario y de los potenciales compradores, optimizando tiempos y manteniendo una comunicación constante."
+    },
+    {
+      "id": "sales-5",
+      "categoryId": "sales",
+      "question": "¿Qué documentación necesito para vender?",
+      "answer": "Generalmente se requiere la escritura, el DNI del titular y la documentación correspondiente según cada caso. Nuestro equipo te acompañará durante todo el proceso."
+    },
+    {
+      "id": "sales-6",
+      "categoryId": "sales",
+      "question": "¿Puedo vender una propiedad que aún tiene hipoteca?",
+      "answer": "Sí. Existen distintos mecanismos para cancelar la deuda durante la operación. Analizamos cada caso y te asesoramos sobre la mejor alternativa."
+    },
+    {
+      "id": "rentals-0",
+      "categoryId": "rentals",
+      "question": "¿También trabajan con alquileres?",
+      "answer": "Sí. Comercializamos propiedades en alquiler y acompañamos tanto a propietarios como a inquilinos durante todo el proceso, desde la publicación hasta la firma del contrato."
+    },
+    {
+      "id": "propertyValuations-0",
+      "categoryId": "propertyValuations",
+      "question": "¿Cómo realizan una tasación?",
+      "answer": "Analizamos la ubicación, el estado de la propiedad, los metros cuadrados, las operaciones recientes, la oferta disponible y el comportamiento del mercado para determinar un valor competitivo."
+    },
+    {
+      "id": "propertyValuations-1",
+      "categoryId": "propertyValuations",
+      "question": "¿La tasación tiene costo?",
+      "answer": "En la mayoría de los casos, nuestras tasaciones comerciales no tienen costo. Contactanos y evaluaremos tu caso."
+    },
+    {
+      "id": "propertyValuations-2",
+      "categoryId": "propertyValuations",
+      "question": "¿Cómo definen el precio de publicación?",
+      "answer": "El valor surge de un análisis de mercado, propiedades comparables y nuestra experiencia comercial, buscando un equilibrio entre competitividad y rentabilidad."
+    },
+    {
+      "id": "closingsDeeds-0",
+      "categoryId": "closingsDeeds",
+      "question": "¿Qué es la escritura de una propiedad?",
+      "answer": "La escritura es el documento público que formaliza la transferencia del dominio de un inmueble. Se firma ante un escribano y constituye el paso final de una operación de compraventa."
+    },
+    {
+      "id": "closingsDeeds-1",
+      "categoryId": "closingsDeeds",
+      "question": "¿Quién elige al escribano?",
+      "answer": "Generalmente, el comprador tiene derecho a elegir al escribano, salvo que ambas partes acuerden lo contrario."
+    },
+    {
+      "id": "closingsDeeds-2",
+      "categoryId": "closingsDeeds",
+      "question": "¿Cuánto tiempo demora una escritura?",
+      "answer": "Depende de cada operación y de la documentación requerida, aunque normalmente el proceso puede demorar entre 30 y 60 días desde la firma del boleto de compraventa."
+    },
+    {
+      "id": "closingsDeeds-3",
+      "categoryId": "closingsDeeds",
+      "question": "¿Qué gastos tiene una escritura?",
+      "answer": "Los costos pueden incluir honorarios del escribano, impuestos, certificados registrales y otros gastos administrativos. El detalle dependerá del tipo de operación y de la jurisdicción."
+    },
+    {
+      "id": "closingsDeeds-4",
+      "categoryId": "closingsDeeds",
+      "question": "¿Qué documentación necesito para escriturar?",
+      "answer": "Habitualmente se requiere el título de propiedad, DNI de las partes, certificados registrales y la documentación específica que solicite el escribano según cada caso."
+    },
+    {
+      "id": "closingsDeeds-5",
+      "categoryId": "closingsDeeds",
+      "question": "¿Qué pasa si la propiedad aún no está escriturada?",
+      "answer": "Dependiendo de la situación, puede ser posible realizar la operación mediante cesión de derechos u otras figuras legales. Analizamos cada caso para encontrar la mejor alternativa."
+    },
+    {
+      "id": "closingsDeeds-6",
+      "categoryId": "closingsDeeds",
+      "question": "¿Se puede vender una propiedad sin escritura?",
+      "answer": "En algunos casos sí, aunque dependerá de la situación jurídica del inmueble. Es fundamental analizar la documentación antes de avanzar con cualquier operación."
+    },
+    {
+      "id": "closingsDeeds-7",
+      "categoryId": "closingsDeeds",
+      "question": "¿Qué diferencia hay entre boleto de compraventa y escritura?",
+      "answer": "El boleto de compraventa establece el compromiso entre comprador y vendedor. La escritura es el acto que transfiere legalmente la propiedad al nuevo titular."
+    },
+    {
+      "id": "closingsDeeds-8",
+      "categoryId": "closingsDeeds",
+      "question": "¿Qué sucede el día de la escritura?",
+      "answer": "Las partes firman la escritura ante el escribano, se realiza el pago del saldo acordado y se formaliza la transferencia del inmueble."
+    },
+    {
+      "id": "closingsDeeds-9",
+      "categoryId": "closingsDeeds",
+      "question": "¿Los acompaña un escribano durante la operación?",
+      "answer": "Trabajamos junto a escribanos de confianza y acompañamos a nuestros clientes durante todo el proceso para garantizar una operación clara, segura y ordenada."
+    },
+    {
+      "id": "fees-0",
+      "categoryId": "fees",
+      "question": "¿Qué honorarios cobran?",
+      "answer": "Nuestros honorarios varían según el tipo de operación y se informan con total transparencia antes de iniciar cualquier gestión. Contactanos para recibir el detalle correspondiente a tu caso."
+    },
+    {
+      "id": "mortgages-0",
+      "categoryId": "mortgages",
+      "question": "¿Trabajan con compradores que necesitan un crédito hipotecario?",
+      "answer": "Sí. Acompañamos a compradores que financian su operación con crédito hipotecario y coordinamos el proceso junto con la entidad bancaria hasta la escritura."
+    },
+    {
+      "id": "mortgages-1",
+      "categoryId": "mortgages",
+      "question": "¿Las propiedades publicadas son aptas para crédito?",
+      "answer": "Depende de cada inmueble. Te indicaremos cuáles son aptas para crédito y verificaremos previamente que la documentación necesaria esté en regla."
+    },
+    {
+      "id": "mortgages-2",
+      "categoryId": "mortgages",
+      "question": "¿Puedo reservar una propiedad mientras gestiono el crédito?",
+      "answer": "Sí. En muchos casos es posible realizar una reserva o firmar un boleto de compraventa sujeto a las condiciones acordadas entre comprador y vendedor."
+    },
+    {
+      "id": "mortgages-3",
+      "categoryId": "mortgages",
+      "question": "¿Cuánto demora la aprobación de un crédito hipotecario?",
+      "answer": "Los tiempos varían según la entidad financiera, aunque normalmente el proceso completo puede demorar entre 30 y 90 días desde el inicio de la gestión."
+    },
+    {
+      "id": "mortgages-4",
+      "categoryId": "mortgages",
+      "question": "¿Me asesoran durante todo el proceso hasta la escritura?",
+      "answer": "Sí. Te acompañamos en cada etapa de la operación, desde la búsqueda de la propiedad y la negociación hasta la aprobación del crédito y la firma de la escritura."
+    },
+    {
+      "id": "investments-0",
+      "categoryId": "investments",
+      "question": "¿También asesoran a inversores?",
+      "answer": "Sí. Analizamos oportunidades de inversión y te asesoramos para encontrar propiedades con el mayor potencial según tus objetivos."
+    }
+  ]
+}
