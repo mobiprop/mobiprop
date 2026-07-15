@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
-import { Reveal } from "@/components/common/Reveal";
+import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
@@ -384,9 +384,9 @@ export function FeaturedListings() {
     amount={0.15}
   >
     {properties.map((p) => (
-      <Reveal.Item key={p.slug}>
+      <RevealItem key={p.slug}>
         <PropertyCard property={p} />
-      </Reveal.Item>
+      </RevealItem>
     ))}
   </Reveal>
   ) : (

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { FAQ } from "@/features/home/FAQ";
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
+import { Reveal } from "@/components/common/Reveal";
+import { SplitHeading } from "@/components/common/SplitHeading";
 
 /* ─── assets ─── */
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
@@ -75,15 +77,20 @@ function HeroBanner() {
     }}
   />
 
-  <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
+  <Reveal
+    as="div"
+    amount={0.6}
+    className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
+  >
     <SectionTag label="Contact Us" />
 
-    <h1
+    <SplitHeading
+      as="h1"
+      text="Get in Touch with Us"
       className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
       style={{ fontFamily: poppins }}
-    >
-      Get in Touch with Us
-    </h1>
+      amount={0.6}
+    />
 
     <p
       className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
@@ -92,7 +99,7 @@ function HeroBanner() {
       Whether you&apos;re ready to buy, sell, or have questions about the
       market, the Ulrich team is here to guide you.
     </p>
-  </div>
+  </Reveal>
 </section>
   );
 }
@@ -119,10 +126,19 @@ function ContactCard() {
 
   return (
     <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1360px] mx-auto">
-  <div className="bg-white rounded-[18px] sm:rounded-[20px] lg:rounded-[24px] shadow-[0px_10px_35px_-5px_#1B2D5412] overflow-hidden">
+  <Reveal
+    scale={1.03}
+    amount={0.2}
+    className="bg-white rounded-[18px] sm:rounded-[20px] lg:rounded-[24px] shadow-[0px_10px_35px_-5px_#1B2D5412] overflow-hidden"
+  >
     <div className="flex flex-col lg:flex-row">
       {/* Left: Contact information */}
-      <div className="w-full shrink-0 px-5 py-7 sm:p-8 md:px-10 md:py-10 lg:pl-[60px] lg:pt-[50px] lg:pb-[60px] lg:pr-8 lg:w-[532px]">
+      <Reveal
+        as="div"
+        direction="left"
+        amount={0.3}
+        className="w-full shrink-0 px-5 py-7 sm:p-8 md:px-10 md:py-10 lg:pl-[60px] lg:pt-[50px] lg:pb-[60px] lg:pr-8 lg:w-[532px]"
+      >
         <h2
           className="text-[24px] sm:text-[26px] lg:text-[28px] font-semibold text-[#101828] leading-[32px] sm:leading-[34px] lg:leading-[36px] tracking-[-0.28px] mb-2 sm:mb-3"
           style={{ fontFamily: poppins }}
@@ -183,13 +199,19 @@ function ContactCard() {
             </div>
           ))}
         </div>
-      </div>
+      </Reveal>
 
       {/* Mobile/tablet divider */}
       <div className="h-px bg-[#e5e7eb] mx-5 sm:mx-8 lg:hidden" />
 
       {/* Right: Contact form */}
-      <div className="flex-1 min-w-0 px-5 py-7 sm:p-8 md:px-10 md:py-10 lg:pt-[48px] lg:pr-[60px] lg:pb-[60px] lg:pl-0">
+      <Reveal
+        as="div"
+        direction="right"
+        delay={0.15}
+        amount={0.3}
+        className="flex-1 min-w-0 px-5 py-7 sm:p-8 md:px-10 md:py-10 lg:pt-[48px] lg:pr-[60px] lg:pb-[60px] lg:pl-0"
+      >
         <div className="flex flex-col gap-4 sm:gap-[18px]">
           <input
             name="name"
@@ -304,9 +326,9 @@ function ContactCard() {
             Send
           </button>
         </div>
-      </div>
+      </Reveal>
     </div>
-  </div>
+  </Reveal>
 </div>
   );
 }
@@ -316,16 +338,16 @@ function LocationSection() {
   return (
     <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[60px] pt-[50px] sm:pt-[60px] lg:pt-[80px] pb-[50px] sm:pb-[60px] lg:pb-[80px]">
   {/* Heading */}
-  <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center max-w-[570px] mx-auto">
+  <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center max-w-[570px] mx-auto" amount={0.5}>
     <div className="flex flex-col items-center gap-2">
       <SectionTag label="Location" muted />
 
-      <h2
+      <SplitHeading
+        as="h2"
+        text="Let's Talk About Your Real Estate Needs"
         className="text-[26px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[44px] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px]"
         style={{ fontFamily: poppins }}
-      >
-        Let&apos;s Talk About Your Real Estate Needs
-      </h2>
+      />
     </div>
 
     <p
@@ -335,10 +357,16 @@ function LocationSection() {
       Whether you&apos;re ready to buy, sell, or have questions about the
       market, the Ulrich team is here to guide you.
     </p>
-  </div>
+  </Reveal>
 
   {/* Map */}
-  <div className="relative h-[360px] sm:h-[460px] lg:h-[609px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
+  <Reveal
+    as="div"
+    scale={1.08}
+    duration={0.9}
+    amount={0.2}
+    className="relative h-[360px] sm:h-[460px] lg:h-[609px] rounded-[16px] sm:rounded-[20px] overflow-hidden"
+  >
     <div className="absolute inset-0">
       <PropertyLocationMap
         latitude={OFFICE.lat}
@@ -434,7 +462,7 @@ function LocationSection() {
         </span>
       </div>
     </div>
-  </div>
+  </Reveal>
 </section>
   );
 }
@@ -461,7 +489,7 @@ function ConsultationBannerSection() {
   </div>
 
   <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto flex justify-center">
-    <div className="bg-white rounded-[18px] sm:rounded-[20px] p-5 sm:p-8 lg:p-10 w-full max-w-[540px] shadow-xl">
+    <Reveal className="bg-white rounded-[18px] sm:rounded-[20px] p-5 sm:p-8 lg:p-10 w-full max-w-[540px] shadow-xl" amount={0.3}>
       <h2
         className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-tight mb-5 sm:mb-7"
         style={{ fontFamily: poppins }}
@@ -572,7 +600,7 @@ function ConsultationBannerSection() {
           </svg>
         </span>
       </button>
-    </div>
+    </Reveal>
   </div>
 </section>
   );

@@ -1,3 +1,6 @@
+import { Reveal, RevealItem } from "@/components/common/Reveal";
+import { SplitHeading } from "@/components/common/SplitHeading";
+
 const heroBg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const clouds =
@@ -126,15 +129,20 @@ export function AboutUsContent() {
               "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
           }}
         />
-        <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
+        <Reveal
+          as="div"
+          amount={0.6}
+          className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
+        >
           <SectionTag label="About Us" />
 
-          <h1
+          <SplitHeading
+            as="h1"
+            text="Where Global Property Meets Local Expertise"
             className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
             style={{ fontFamily: poppins }}
-          >
-            Where Global Property Meets Local Expertise
-          </h1>
+            amount={0.6}
+          />
 
           <p
             className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
@@ -143,45 +151,50 @@ export function AboutUsContent() {
             Discover a wide range of properties, from cozy apartments to
             luxurious estates, tailored to suit every need and budget.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── Our Story ── */}
       <section className="bg-white">
         <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
-          <div className="flex flex-col items-center gap-2 text-center">
+          <Reveal className="flex flex-col items-center gap-2 text-center" amount={0.5}>
             <SectionTag label="Our Story" />
 
-            <h2
+            <SplitHeading
+              as="h2"
+              text="Finding a Property Should be Exciting, not Overwhelming."
               className="text-[23px] sm:text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.2] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[629px]"
               style={{ fontFamily: poppins }}
-            >
-              Finding a Property Should be Exciting, not Overwhelming.
-            </h2>
-          </div>
+            />
+          </Reveal>
 
-          <div className="w-full rounded-[16px] sm:rounded-[20px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[656px]">
+          <Reveal
+            className="w-full rounded-[16px] sm:rounded-[20px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[656px]"
+            scale={1.1}
+            duration={1}
+            amount={0.3}
+          >
             <img
               src={teamImg}
               alt="Our team"
               className="w-full h-full object-cover"
             />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ── Our Gallery ── */}
       <section className="bg-white">
         <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
-          <div className="flex flex-col gap-2 max-w-[631px]">
+          <Reveal className="flex flex-col gap-2 max-w-[631px]" amount={0.5}>
             <SectionTag label="Our Gallery" />
 
-            <h2
+            <SplitHeading
+              as="h2"
+              text="Property Moments Captured Beautifully"
               className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px]"
               style={{ fontFamily: poppins }}
-            >
-              Property Moments Captured Beautifully
-            </h2>
+            />
 
             <p
               className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px] max-w-[501px]"
@@ -190,29 +203,32 @@ export function AboutUsContent() {
               Explore high quality images reflecting comfort design, location,
               &amp; everyday living experience.
             </p>
-          </div>
+          </Reveal>
 
           {/* image grid with top/bottom fade */}
           <div className="relative">
             <div className="flex flex-col gap-4 sm:gap-6">
               {galleryRows.map((row, r) => (
-                <div
+                <Reveal
                   key={r}
+                  as="div"
+                  stagger={0.12}
+                  amount={0.15}
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
                 >
                   {row.map((src, c) => (
-                    <div
+                    <RevealItem
                       key={`${r}-${c}`}
-                      className="h-[220px] sm:h-[280px] lg:h-[420px] rounded-[16px] sm:rounded-[20px] overflow-hidden"
+                      className="hover-shine h-[220px] sm:h-[280px] lg:h-[420px] rounded-[16px] sm:rounded-[20px] overflow-hidden"
                     >
                       <img
                         src={src}
                         alt=""
                         className="w-full h-full object-cover"
                       />
-                    </div>
+                    </RevealItem>
                   ))}
-                </div>
+                </Reveal>
               ))}
             </div>
 
@@ -227,15 +243,15 @@ export function AboutUsContent() {
         <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col lg:flex-row gap-8 lg:gap-6 items-start">
           {/* Left: heading + subtext + image */}
           <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 lg:w-1/2">
-            <div className="flex flex-col gap-2">
+            <Reveal className="flex flex-col gap-2" amount={0.5}>
               <SectionTag label="Our Expertise" />
 
-              <h2
+              <SplitHeading
+                as="h2"
+                text="Driven by Experience, All About Excellence"
                 className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px] max-w-[540px]"
                 style={{ fontFamily: poppins }}
-              >
-                Driven by Experience, All About Excellence
-              </h2>
+              />
 
               <p
                 className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[25.6px] max-w-[597px]"
@@ -245,21 +261,30 @@ export function AboutUsContent() {
                 home-buying journey — combining market insight, design
                 sensibility, and trusted service.
               </p>
-            </div>
+            </Reveal>
 
-            <div className="rounded-[16px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[406px] w-full">
+            <Reveal
+              className="rounded-[16px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[406px] w-full"
+              scale={1.1}
+              duration={1}
+              amount={0.3}
+            >
               <img
                 src={expertiseImg}
                 alt="Our expertise"
                 className="w-full h-full object-cover"
               />
-            </div>
+            </Reveal>
           </div>
 
           {/* Right: cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-4 sm:gap-5 lg:w-1/2 w-full">
+          <Reveal
+            className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-4 sm:gap-5 lg:w-1/2 w-full"
+            stagger={0.15}
+            amount={0.2}
+          >
             {expertiseCards.map((card) => (
-              <div
+              <RevealItem
                 key={card.title}
                 className="bg-white border border-[#d1d5dc] rounded-[16px] p-5 sm:p-6 lg:p-[30px] flex flex-col gap-3 sm:gap-4"
               >
@@ -278,9 +303,9 @@ export function AboutUsContent() {
                 >
                   {card.desc}
                 </p>
-              </div>
+              </RevealItem>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -288,17 +313,16 @@ export function AboutUsContent() {
       <section className="bg-white">
         <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
           {/* Text block */}
-          <div className="flex flex-col gap-3 sm:gap-4 max-w-[1196px]">
+          <Reveal className="flex flex-col gap-3 sm:gap-4 max-w-[1196px]" amount={0.4}>
             <SectionTag label="About Us" />
 
             <div className="flex flex-col gap-5 sm:gap-6">
-              <h2
+              <SplitHeading
+                as="h2"
+                text="At Ulrich, every home begins with a promise — a place where modern design meets lasting comfort."
                 className="text-[26px] sm:text-[30px] lg:text-[36px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[48px] tracking-[-0.3px] lg:tracking-[-0.36px] max-w-[761px]"
                 style={{ fontFamily: poppins }}
-              >
-                At Ulrich, every home begins with a promise — a place where
-                modern design meets lasting comfort.
-              </h2>
+              />
 
               <div className="flex flex-col gap-4 sm:gap-6">
                 <p
@@ -326,33 +350,37 @@ export function AboutUsContent() {
                 </p>
               </div>
             </div>
-          </div>
+          </Reveal>
 
           {/* Images + stats */}
           <div className="flex flex-col gap-6 sm:gap-8">
             {/* two images */}
-            <div className="grid grid-cols-2 gap-4 sm:gap-6">
-              <div className="h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[16px] overflow-hidden">
+            <Reveal className="grid grid-cols-2 gap-4 sm:gap-6" stagger={0.15} amount={0.2}>
+              <RevealItem className="hover-shine h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[16px] overflow-hidden">
                 <img
                   src={aboutImg1}
                   alt="Our story"
                   className="w-full h-full object-cover"
                 />
-              </div>
+              </RevealItem>
 
-              <div className="h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[12px] overflow-hidden">
+              <RevealItem className="hover-shine h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[12px] overflow-hidden">
                 <img
                   src={aboutImg2}
                   alt="Our story"
                   className="w-full h-full object-cover"
                 />
-              </div>
-            </div>
+              </RevealItem>
+            </Reveal>
 
             {/* stats with dividers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-0">
+            <Reveal
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-0"
+              stagger={0.15}
+              amount={0.3}
+            >
               {stats.map((s, i) => (
-                <div
+                <RevealItem
                   key={s.label}
                   className={`flex flex-col gap-3 sm:gap-4 ${
                     i > 0 ? "sm:pl-6 lg:pl-10" : "sm:pr-6 lg:pr-10"
@@ -380,9 +408,9 @@ export function AboutUsContent() {
                       {s.desc}
                     </p>
                   </div>
-                </div>
+                </RevealItem>
               ))}
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>

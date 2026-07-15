@@ -20,12 +20,14 @@ interface RevealProps {
   duration?: number;
   /**
    * When set, children are staggered instead of animating together.
-   * Wrap each child in <Reveal.Item> when using this.
+   * Wrap each child in <RevealItem> when using this.
    */
   stagger?: number;
   /** Portion of the element that must be visible to trigger the reveal (0-1). */
   amount?: number;
   as?: "div" | "section";
+  /** Starting scale before the reveal (e.g. 1.15 for a scale-down-in image effect). */
+  scale?: number;
 }
 
 const offsetFor = (direction: RevealDirection, distance: number) => {
@@ -53,6 +55,7 @@ export function Reveal({
   stagger,
   amount = 0.2,
   as = "div",
+  scale,
 }: RevealProps) {
   const container: Variants = {
     hidden: {},
@@ -64,11 +67,12 @@ export function Reveal({
   };
 
   const item: Variants = {
-    hidden: { opacity: 0, ...offsetFor(direction, distance) },
+    hidden: { opacity: 0, ...offsetFor(direction, distance), ...(scale ? { scale } : {}) },
     visible: {
       opacity: 1,
       x: 0,
       y: 0,
+      ...(scale ? { scale: 1 } : {}),
       transition: { duration, delay: stagger ? 0 : delay, ease: "easeOut" },
     },
   };
@@ -88,7 +92,7 @@ export function Reveal({
   );
 }
 
-Reveal.Item = function RevealItem({
+export function RevealItem({
   children,
   className,
   direction = "up",
@@ -105,4 +109,4 @@ Reveal.Item = function RevealItem({
       {children}
     </motion.div>
   );
-};
+}

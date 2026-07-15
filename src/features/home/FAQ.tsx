@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { Reveal, RevealItem } from "@/components/common/Reveal";
+import { SplitHeading } from "@/components/common/SplitHeading";
+
 const faqImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-14.webp";
 
@@ -61,7 +64,7 @@ export function FAQ() {
   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
     <div className="flex flex-col lg:flex-row gap-10 lg:gap-[88px]">
       {/* Left column */}
-      <div className="lg:w-[399px] lg:min-h-[492px] flex !flex-col lg:flex-row gap-10 lg:gap-[187px]">
+      <Reveal as="div" direction="left" amount={0.4} className="lg:w-[399px] lg:min-h-[492px] flex !flex-col lg:flex-row gap-10 lg:gap-[187px]">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-[5px] h-[5px] rounded-full bg-[#4896b6]" />
@@ -73,12 +76,12 @@ export function FAQ() {
             </span>
           </div>
 
-          <h2
+          <SplitHeading
+            as="h2"
+            text={t("faq.title", { ns: "home" })}
             className="text-[26px] sm:text-[34px] lg:text-[40px] font-semibold text-[#232323] leading-[36px] sm:leading-[42px] lg:leading-[46px]"
             style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("faq.title", { ns: "home" })}
-          </h2>
+          />
         </div>
 
         <div className="mt-8 lg:mt-0 flex flex-col gap-3">
@@ -118,12 +121,12 @@ export function FAQ() {
             <span className="relative z-10">{t("getInTouch", { ns: "common" })}</span>
           </button>
         </div>
-      </div>
+      </Reveal>
 
       {/* Right column */}
-      <div className="flex-1 flex flex-col">
+      <Reveal className="flex-1 flex flex-col" direction="right" stagger={0.08} amount={0.1}>
         {faqs.map((faq, i) => (
-          <div
+          <RevealItem
             key={faq.id}
             className="border-b border-[#d1d5dc] py-5 first:pt-0"
           >
@@ -151,9 +154,9 @@ export function FAQ() {
                 {faq.answer}
               </p>
             )}
-          </div>
+          </RevealItem>
         ))}
-      </div>
+      </Reveal>
     </div>
   </div>
 </section>
