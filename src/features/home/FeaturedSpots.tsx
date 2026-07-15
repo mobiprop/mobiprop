@@ -1,12 +1,56 @@
-"use client";
-
+import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import svgPaths from "@/assets/svg-6s7nojygyu";
-import type { PublicFeaturedLocationDto } from "../listings/listing-actions";
 
-const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/pilar.webp";
+import svgPaths from "@/assets/svg-6s7nojygyu";
+
+const ASSET_BASE =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal";
+
+// Static per the client's latest Figma — was DB-driven ("most active listings
+// per location") until they asked for these exact 5 spots, in this order,
+// regardless of live inventory. `searchLocation` is the Listings page's
+// `?location=` value, which does a case-insensitive `contains` match against
+// each property's location string, so it must match the real DB value
+// (confirmed against production data), not necessarily this card's display title.
+type FeaturedSpot = {
+  title: string;
+  category: string;
+  imageUrl: string;
+  searchLocation: string;
+};
+
+const FEATURED_SPOTS: FeaturedSpot[] = [
+  {
+    title: "Martindale",
+    category: "Country Club",
+    imageUrl: `${ASSET_BASE}/featured-martindale.webp`,
+    searchLocation: "Martindale",
+  },
+  {
+    title: "Altos del Pilar",
+    category: "Barrio Privado",
+    imageUrl: `${ASSET_BASE}/featured-altos-del-pilar.webp`,
+    searchLocation: "Altos del Pilar",
+  },
+  {
+    title: "Ayres de Pilar",
+    category: "Barrio Privado",
+    imageUrl: `${ASSET_BASE}/featured-ayres-de-pilar.webp`,
+    searchLocation: "Ayres del Pilar",
+  },
+  {
+    title: "Bouquet Pilar",
+    category: "Condominio",
+    imageUrl: `${ASSET_BASE}/featured-bouquet-pilar.webp`,
+    searchLocation: "Bouquet",
+  },
+  {
+    title: "Vilahaus",
+    category: "Condominio",
+    imageUrl: `${ASSET_BASE}/featured-vilahaus.webp`,
+    searchLocation: "Vila Haus",
+  },
+];
 
 function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
   return (
@@ -20,19 +64,26 @@ function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
 function SpotCard({
   spot,
   imgHeight,
+  sizes,
   emphasize,
 }: {
-  spot: PublicFeaturedLocationDto;
+  spot: FeaturedSpot;
   imgHeight: string;
+  sizes: string;
   emphasize: boolean;
 }) {
   return (
-    <Link href={`/listings?location=${encodeURIComponent(spot.name)}`} className="flex flex-col gap-5 group">
-      <div className={`${imgHeight} rounded-[24px] overflow-hidden bg-[#f3f4f6]`}>
-        <img
-          src={spot.coverImageUrl ?? fallbackImg}
-          alt={spot.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+    <Link
+      href={`/listings?location=${encodeURIComponent(spot.searchLocation)}`}
+      className="flex flex-col gap-5 group"
+    >
+      <div className={`relative ${imgHeight} rounded-[24px] overflow-hidden bg-[#f3f4f6]`}>
+        <Image
+          src={spot.imageUrl}
+          alt={spot.title}
+          fill
+          sizes={sizes}
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
       </div>
       <div className="flex items-start justify-between gap-3">
@@ -41,13 +92,13 @@ function SpotCard({
             className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#0d2138] leading-[24px] sm:leading-[26px] lg:leading-[28px]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            {spot.name}
+            {spot.title}
           </p>
           <p
             className="mt-1 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {spot.activeListings} {spot.activeListings === 1 ? "listing" : "listings"}
+            {spot.category}
           </p>
         </div>
 
@@ -64,17 +115,7 @@ function SpotCard({
 }
 
 export function FeaturedSpots() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["listings", "featured-locations"],
-    queryFn: async () => {
-      const res = await fetch("/api/listings/featured-locations");
-      if (!res.ok) throw new Error("Failed to fetch featured locations");
-      return res.json();
-    },
-  });
-  const spots: PublicFeaturedLocationDto[] = data?.locations ?? [];
-
-  if (!isLoading && spots.length === 0) return null;
+  const [topRow, bottomRow] = [FEATURED_SPOTS.slice(0, 2), FEATURED_SPOTS.slice(2)];
 
   return (
     <section className="bg-white py-16 lg:py-20">
@@ -106,37 +147,31 @@ export function FeaturedSpots() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-5 animate-pulse">
-                <div className="h-[300px] lg:h-[400px] rounded-[24px] bg-[#f3f4f6]" />
-                <div className="flex flex-col gap-2">
-                  <div className="h-5 w-1/2 rounded bg-[#f3f4f6]" />
-                  <div className="h-4 w-1/3 rounded bg-[#f3f4f6]" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            {/* Top row: 2 large cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {spots.slice(0, 2).map((spot, i) => (
-                <SpotCard key={spot.id} spot={spot} imgHeight="h-[300px] lg:h-[400px]" emphasize={i === 0} />
-              ))}
-            </div>
+        {/* Top row: 2 large cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {topRow.map((spot, i) => (
+            <SpotCard
+              key={spot.title}
+              spot={spot}
+              imgHeight="h-[300px] lg:h-[400px]"
+              sizes="(min-width: 768px) 50vw, 100vw"
+              emphasize={i === 0}
+            />
+          ))}
+        </div>
 
-            {/* Bottom row: up to 3 smaller cards */}
-            {spots.length > 2 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {spots.slice(2).map((spot) => (
-                  <SpotCard key={spot.id} spot={spot} imgHeight="h-[240px]" emphasize={false} />
-                ))}
-              </div>
-            ) : null}
-          </>
-        )}
+        {/* Bottom row: 3 smaller cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {bottomRow.map((spot) => (
+            <SpotCard
+              key={spot.title}
+              spot={spot}
+              imgHeight="h-[240px]"
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              emphasize={false}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
