@@ -218,7 +218,7 @@ function TermsContent() {
           </p>
           <p>
             <span className="font-medium text-[#0d2138]">
-              support@ulrich.com
+              info@ulrichpropiedades.com
             </span>
             <br />
             or via our{" "}

@@ -11,10 +11,10 @@ const consultationBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/obje
 
 /* Office location (used by the live map below) */
 const OFFICE = {
-  name: "Ulrich Estate",
-  address: "Rozengracht 207, 1016 LZ\nAmsterdam, Netherlands",
-  lat: 52.37403,
-  lng: 4.88103,
+  name: "Ulrich Propiedades",
+  address: "Tortugas Country Club\nBuenos Aires, Argentina, 1667",
+  lat: -34.433,
+  lng: -58.7203,
 };
 const OFFICE_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${OFFICE.lat},${OFFICE.lng}`;
 const iconPhone = "/assets/figma-temp/UserProfile/phone.svg";
@@ -143,17 +143,17 @@ function ContactCard() {
             {
               icon: iconPhone,
               label: "Phone Number",
-              value: "+1 (555) 123-4567",
+              value: "+54 9 11 6161 8646",
             },
             {
               icon: iconEmail,
               label: "Email Address",
-              value: "contact@ulrich.com",
+              value: "info@ulrichpropiedades.com",
             },
             {
               icon: iconAddress,
               label: "Address",
-              value: "120 Brickell Avenue, Suite 450, Miami, FL",
+              value: "Tortugas Country Club, Buenos Aires, Argentina, 1667",
             },
           ].map(({ icon, label, value }) => (
             <div key={label} className="flex items-start gap-3 sm:gap-4">
@@ -333,7 +333,7 @@ function LocationSection() {
       style={{ fontFamily: montserrat }}
     >
       Whether you&apos;re ready to buy, sell, or have questions about the
-      market, the Goeboek team is here to guide you.
+      market, the Ulrich team is here to guide you.
     </p>
   </div>
 
@@ -354,7 +354,7 @@ function LocationSection() {
           className="text-[15px] sm:text-[16px] font-medium text-[#101828] leading-[22px] sm:leading-[24px] tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
-          Ulrich Estate
+          Ulrich Propiedades
         </p>
 
         <div className="flex gap-2 shrink-0">
@@ -405,9 +405,9 @@ function LocationSection() {
         className="text-[13px] sm:text-[14px] text-[#4a5565] leading-[19px] sm:leading-[20px] tracking-[-0.14px] mb-3"
         style={{ fontFamily: montserrat }}
       >
-        Rozengracht 207, 1016 LZ
+        Tortugas Country Club
         <br />
-        Amsterdam, Netherlands
+        Buenos Aires, Argentina, 1667
       </p>
 
       <div className="flex items-center gap-1.5">
