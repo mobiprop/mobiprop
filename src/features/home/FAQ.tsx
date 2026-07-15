@@ -1,32 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const faqImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-14.webp";
-
-const faqs = [
-  {
-    q: "How does your buying process work?",
-    a: "We understand your goals, budget, and preferred areas, then curate listings, arrange viewings, and guide you smoothly from offer to closing.",
-  },
-  {
-    q: "Do you help with mortgage pre-approval?",
-    a: "Yes, we work with trusted lending partners to help you get pre-approved quickly and confidently before beginning your home search.",
-  },
-  {
-    q: "Can you coordinate inspections and appraisals?",
-    a: "Absolutely. We coordinate all inspections and appraisals on your behalf to ensure a smooth and timely transaction.",
-  },
-  {
-    q: "Do you assist with selling my current home?",
-    a: "Yes. We provide full-service listing support including staging advice, photography, pricing strategy, and marketing to attract the right buyers.",
-  },
-  {
-    q: "Are virtual tours available for out-of-state buyers?",
-    a: "Yes, we offer high-quality virtual tours and live video walkthroughs to help out-of-state or international buyers make confident decisions remotely.",
-  },
-];
 
 function PlusIcon({ open }: { open: boolean }) {
   return (
@@ -70,8 +48,13 @@ function PlusIcon({ open }: { open: boolean }) {
   );
 }
 
+type FaqEntry = { id: string; categoryId: string; question: string; answer: string };
+
 export function FAQ() {
   const [openIdx, setOpenIdx] = useState(0);
+  const { t } = useTranslation(["home", "faq", "common"]);
+  const allFaqs = t("faqs", { ns: "faq", returnObjects: true }) as FaqEntry[];
+  const faqs = allFaqs.filter((f) => f.categoryId === "generalInformation");
 
   return (
     <section className="bg-[#f8fafc] py-12 sm:py-16 lg:py-20">
@@ -86,7 +69,7 @@ export function FAQ() {
               className="text-[16px] font-medium text-[#6a7282]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              FAQ
+              {t("faq.badge", { ns: "home" })}
             </span>
           </div>
 
@@ -94,7 +77,7 @@ export function FAQ() {
             className="text-[26px] sm:text-[34px] lg:text-[40px] font-semibold text-[#232323] leading-[36px] sm:leading-[42px] lg:leading-[46px]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Frequent Questions
+            {t("faq.title", { ns: "home" })}
           </h2>
         </div>
 
@@ -111,7 +94,7 @@ export function FAQ() {
             className="text-[11px] sm:text-[14px] text-[#2b3038] max-w-[236px] leading-[16px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            Have more questions? Our team is happy to help.
+            {t("faq.blurb", { ns: "home" })}
           </p>
 
           <button
@@ -132,7 +115,7 @@ export function FAQ() {
               }}
             />
 
-            <span className="relative z-10">Get in touch</span>
+            <span className="relative z-10">{t("getInTouch", { ns: "common" })}</span>
           </button>
         </div>
       </div>
@@ -141,7 +124,7 @@ export function FAQ() {
       <div className="flex-1 flex flex-col">
         {faqs.map((faq, i) => (
           <div
-            key={i}
+            key={faq.id}
             className="border-b border-[#d1d5dc] py-5 first:pt-0"
           >
             <button
@@ -152,7 +135,7 @@ export function FAQ() {
                 className="text-[17px] sm:text-[18px] lg:text-[24px] font-medium text-[#0d2138] leading-[26px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
-                {faq.q}
+                {faq.question}
               </span>
 
               <span className="flex-shrink-0">
@@ -165,7 +148,7 @@ export function FAQ() {
                 className="max-w-[803.67px] mt-[10px] text-[12px] sm:text-[13px] lg:text-[16px] text-[#2b3038] leading-[18px] sm:leading-[22px] lg:leading-[24px]"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                {faq.a}
+                {faq.answer}
               </p>
             )}
           </div>

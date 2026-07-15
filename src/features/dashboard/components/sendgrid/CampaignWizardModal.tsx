@@ -20,6 +20,7 @@ import {
   useSendTestEmailMutation,
 } from "@/hooks/mutations/useSendgridMutations";
 import { ListingPicker } from "@/features/dashboard/components/ListingPicker";
+import { SearchableSelect } from "@/features/dashboard/components/SearchableSelect";
 
 async function fetchListingCards(ids: string[]): Promise<EmailListingCard[]> {
   if (ids.length === 0) return [];
@@ -423,14 +424,16 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               </div>
 
               <Field label="Audience List" required>
-                <select value={listId} onChange={(e) => setListId(e.target.value)} className={inputCls} style={mont}>
-                  <option value="">Select an audience…</option>
-                  {lists.map((list) => (
-                    <option key={list.id} value={list.id}>
-                      {list.name} ({list.memberCount - list.unsubscribedCount - list.bouncedCount} subscribed)
-                    </option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  searchable={false}
+                  value={listId}
+                  onChange={setListId}
+                  placeholder="Select an audience…"
+                  options={lists.map((list) => ({
+                    value: list.id,
+                    label: `${list.name} (${list.memberCount - list.unsubscribedCount - list.bouncedCount} subscribed)`,
+                  }))}
+                />
               </Field>
 
               <Field label="Email Content" required>

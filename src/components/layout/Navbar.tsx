@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 import { signOut } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/client";
 import type { NavUser } from "@/lib/nav-user";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 function initialsOf(name: string) {
   return name
@@ -133,16 +135,17 @@ function Logo() {
 }
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Listings", href: "/listings" },
-  { label: "About Us", href: "/about" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
-];
+  { key: "home", href: "/" },
+  { key: "listings", href: "/listings" },
+  { key: "about", href: "/about" },
+  { key: "blog", href: "/blog" },
+  { key: "contact", href: "/contact" },
+] as const;
 
 export function Navbar({ initialUser = null }: { initialUser?: NavUser | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { t } = useTranslation("navigation");
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -169,13 +172,14 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           }`}
           style={{ fontFamily: "Poppins, sans-serif" }}
         >
-          {link.label}
+          {t(link.key)}
         </Link>
       ))}
     </nav>
 
     {/* Desktop Buttons */}
-    <div className="hidden md:flex items-center gap-2">
+    <div className="hidden md:flex items-center gap-3">
+      <LanguageSwitcher />
       {user ? (
         <ProfileMenu user={user} />
       ) : (
@@ -185,7 +189,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             className="bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Log In
+            {t("login")}
           </Link>
 
           <Link
@@ -193,7 +197,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             className="bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Sign up
+            {t("signup")}
           </Link>
         </>
       )}
@@ -245,10 +249,14 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             }`}
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            {link.label}
+            {t(link.key)}
           </Link>
         ))}
       </nav>
+
+      <div className="mt-4 px-4">
+        <LanguageSwitcher />
+      </div>
 
       {user ? (
         <div className="mt-5 flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
@@ -294,7 +302,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             className="text-center bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Log In
+            {t("login")}
           </Link>
 
           <Link
@@ -303,7 +311,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             className="text-center bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Sign up
+            {t("signup")}
           </Link>
         </div>
       )}

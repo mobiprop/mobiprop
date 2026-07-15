@@ -1,0 +1,16 @@
+{
+  "getInTouch": "Get in touch",
+  "search": "Search",
+  "consultation": {
+    "heading": "Schedule a free consultation",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "eg. Albert Jones",
+    "email": "Email address",
+    "emailPlaceholder": "albert@email.com",
+    "topic": "Topic",
+    "topicPlaceholder": "Consultation",
+    "messages": "Messages",
+    "messagesPlaceholder": "Enter a message",
+    "submit": "Book a Free consultation"
+  }
+}

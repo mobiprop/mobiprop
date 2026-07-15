@@ -1,0 +1,16 @@
+{
+  "getInTouch": "Contactanos",
+  "search": "Buscar",
+  "consultation": {
+    "heading": "Agendá una consulta gratuita",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Ej. Alberto Fernández",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "alberto@email.com",
+    "topic": "Tema",
+    "topicPlaceholder": "Consulta",
+    "messages": "Mensaje",
+    "messagesPlaceholder": "Escribí tu mensaje",
+    "submit": "Reservar consulta gratuita"
+  }
+}

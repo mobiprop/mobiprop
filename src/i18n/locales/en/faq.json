@@ -1,0 +1,224 @@
+{
+  "hero": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to the most common questions about buying, selling, and renting property with Ulrich Propiedades.",
+    "searchPlaceholder": "Search",
+    "popularLabel": "Popular questions:",
+    "popularTags": [
+      "Sales",
+      "Rentals",
+      "Mortgages"
+    ]
+  },
+  "allCategories": "All Categories",
+  "categories": {
+    "generalInformation": "General Information",
+    "sales": "Sales",
+    "rentals": "Rentals",
+    "propertyValuations": "Property Valuations",
+    "closingsDeeds": "Closings & Deeds",
+    "fees": "Fees",
+    "mortgages": "Mortgages",
+    "investments": "Investments"
+  },
+  "faqs": [
+    {
+      "id": "generalInformation-0",
+      "categoryId": "generalInformation",
+      "question": "How can I schedule a property viewing?",
+      "answer": "You can contact us by phone, WhatsApp, or through the contact form on any property listing. We’ll arrange a viewing at a time that works best for you."
+    },
+    {
+      "id": "generalInformation-1",
+      "categoryId": "generalInformation",
+      "question": "What areas do you specialize in?",
+      "answer": "We specialize in Buenos Aires’ North Zone and the City of Buenos Aires (CABA), while also assisting clients with transactions in other areas based on their needs."
+    },
+    {
+      "id": "generalInformation-2",
+      "categoryId": "generalInformation",
+      "question": "What makes Ulrich Propiedades different?",
+      "answer": "We combine experience, technology, and proprietary processes to deliver a more organized, transparent, and efficient real estate experience."
+    },
+    {
+      "id": "generalInformation-3",
+      "categoryId": "generalInformation",
+      "question": "What services do you offer?",
+      "answer": "We specialize in buying, selling, and renting properties, property valuations, investment advisory, and end-to-end real estate guidance."
+    },
+    {
+      "id": "generalInformation-4",
+      "categoryId": "generalInformation",
+      "question": "How do I get started?",
+      "answer": "Simply contact us. One of our advisors will reach out to understand your needs and help you find the best solution."
+    },
+    {
+      "id": "sales-0",
+      "categoryId": "sales",
+      "question": "How do you sell my property?",
+      "answer": "We begin with a professional valuation, develop a tailored marketing strategy, produce high-quality photography and video, list your property on leading real estate platforms, and guide you through every step until closing."
+    },
+    {
+      "id": "sales-1",
+      "categoryId": "sales",
+      "question": "How do you market a property?",
+      "answer": "We maximize your property’s exposure through professional photography, video, virtual tours, digital campaigns, social media, our buyer database, and the leading real estate portals."
+    },
+    {
+      "id": "sales-2",
+      "categoryId": "sales",
+      "question": "Do you publish my property on ZonaProp, Argenprop, and Mercado Libre?",
+      "answer": "Yes. We list properties on the leading real estate platforms while also promoting them through digital marketing campaigns, social media, and our network of qualified buyers."
+    },
+    {
+      "id": "sales-3",
+      "categoryId": "sales",
+      "question": "How long does it take to sell a property?",
+      "answer": "The timeline depends on factors such as pricing, location, and market conditions. A well-executed sales strategy can significantly reduce the time on the market."
+    },
+    {
+      "id": "sales-4",
+      "categoryId": "sales",
+      "question": "How do you coordinate property viewings?",
+      "answer": "We schedule viewings based on the availability of both the property owner and prospective buyers, ensuring an efficient and well-organized process."
+    },
+    {
+      "id": "sales-5",
+      "categoryId": "sales",
+      "question": "What documents do I need to sell my property?",
+      "answer": "Typically, you’ll need the property deed, your ID, and any additional documentation required for your specific situation. Our team will guide you throughout the process."
+    },
+    {
+      "id": "sales-6",
+      "categoryId": "sales",
+      "question": "Can I sell a property that still has a mortgage?",
+      "answer": "Yes. There are different ways to settle the outstanding mortgage during the transaction. We’ll help you determine the best option for your situation."
+    },
+    {
+      "id": "rentals-0",
+      "categoryId": "rentals",
+      "question": "Do you also handle rental properties?",
+      "answer": "Yes. We manage residential rentals and support both landlords and tenants throughout the entire process, from listing the property to signing the lease agreement."
+    },
+    {
+      "id": "propertyValuations-0",
+      "categoryId": "propertyValuations",
+      "question": "How do you determine a property’s value?",
+      "answer": "We analyze the property’s location, condition, size, recent comparable sales, current market inventory, and local market trends to determine a competitive market value."
+    },
+    {
+      "id": "propertyValuations-1",
+      "categoryId": "propertyValuations",
+      "question": "Is the property valuation free?",
+      "answer": "In most cases, our commercial property valuations are provided at no cost. Contact us and we’ll evaluate your specific situation."
+    },
+    {
+      "id": "propertyValuations-2",
+      "categoryId": "propertyValuations",
+      "question": "How do you determine the listing price?",
+      "answer": "The listing price is based on a comprehensive market analysis, comparable properties, and our commercial expertise, balancing competitiveness with maximum value."
+    },
+    {
+      "id": "closingsDeeds-0",
+      "categoryId": "closingsDeeds",
+      "question": "What is a property deed?",
+      "answer": "A property deed is the legal document that officially transfers ownership of a property. It is signed before a notary public and represents the final step in a real estate transaction."
+    },
+    {
+      "id": "closingsDeeds-1",
+      "categoryId": "closingsDeeds",
+      "question": "Who chooses the notary public?",
+      "answer": "In most cases, the buyer has the right to choose the notary public, unless both parties agree otherwise."
+    },
+    {
+      "id": "closingsDeeds-2",
+      "categoryId": "closingsDeeds",
+      "question": "How long does the closing process take?",
+      "answer": "The timeline depends on the transaction and the required documentation, but it typically takes between 30 and 60 days after signing the purchase agreement."
+    },
+    {
+      "id": "closingsDeeds-3",
+      "categoryId": "closingsDeeds",
+      "question": "What are the costs associated with closing?",
+      "answer": "Closing costs may include notary fees, taxes, registry certificates, and other administrative expenses. The exact amount depends on the transaction and jurisdiction."
+    },
+    {
+      "id": "closingsDeeds-4",
+      "categoryId": "closingsDeeds",
+      "question": "What documents are required for closing?",
+      "answer": "You’ll generally need the property deed, identification documents, registry certificates, and any additional documentation requested by the notary."
+    },
+    {
+      "id": "closingsDeeds-5",
+      "categoryId": "closingsDeeds",
+      "question": "What happens if the property hasn’t been deeded yet?",
+      "answer": "Depending on the legal status of the property, the transaction may still be possible through an assignment of rights or other legal mechanisms. We’ll evaluate your case and recommend the best approach."
+    },
+    {
+      "id": "closingsDeeds-6",
+      "categoryId": "closingsDeeds",
+      "question": "Can I sell a property without a deed?",
+      "answer": "In some cases, yes. However, it depends on the property’s legal status. We always review the documentation before moving forward with any transaction."
+    },
+    {
+      "id": "closingsDeeds-7",
+      "categoryId": "closingsDeeds",
+      "question": "What’s the difference between a purchase agreement and a deed?",
+      "answer": "A purchase agreement outlines the commitment between buyer and seller. The deed is the legal document that officially transfers ownership."
+    },
+    {
+      "id": "closingsDeeds-8",
+      "categoryId": "closingsDeeds",
+      "question": "What happens on closing day?",
+      "answer": "Both parties sign the deed before the notary, the remaining balance is paid, and ownership of the property is officially transferred."
+    },
+    {
+      "id": "closingsDeeds-9",
+      "categoryId": "closingsDeeds",
+      "question": "Do you work with notaries throughout the transaction?",
+      "answer": "Yes. We work alongside trusted notaries and support our clients throughout the entire process to ensure a smooth, secure, and transparent transaction."
+    },
+    {
+      "id": "fees-0",
+      "categoryId": "fees",
+      "question": "What are your fees?",
+      "answer": "Our fees vary depending on the type of transaction and are always disclosed transparently before any engagement begins. Contact us for a personalized quote."
+    },
+    {
+      "id": "mortgages-0",
+      "categoryId": "mortgages",
+      "question": "Do you work with buyers using mortgage financing?",
+      "answer": "Yes. We assist buyers financing their purchase with a mortgage and coordinate the entire process with the lender through closing."
+    },
+    {
+      "id": "mortgages-1",
+      "categoryId": "mortgages",
+      "question": "Are your listed properties eligible for mortgage financing?",
+      "answer": "It depends on the individual property. We’ll let you know which properties qualify and verify that all required documentation is in place."
+    },
+    {
+      "id": "mortgages-2",
+      "categoryId": "mortgages",
+      "question": "Can I reserve a property while my mortgage is being processed?",
+      "answer": "Yes. In many cases, it’s possible to reserve a property or sign a purchase agreement while the mortgage approval is underway, subject to the agreed terms."
+    },
+    {
+      "id": "mortgages-3",
+      "categoryId": "mortgages",
+      "question": "How long does mortgage approval take?",
+      "answer": "Approval times vary by lender, but the complete process typically takes between 30 and 90 days."
+    },
+    {
+      "id": "mortgages-4",
+      "categoryId": "mortgages",
+      "question": "Do you assist throughout the entire process until closing?",
+      "answer": "Absolutely. We support you every step of the way, from finding the right property and negotiating the purchase to mortgage approval and the final closing."
+    },
+    {
+      "id": "investments-0",
+      "categoryId": "investments",
+      "question": "Do you advise real estate investors?",
+      "answer": "Yes. We help identify investment opportunities and analyze each property’s potential based on your investment goals."
+    }
+  ]
+}

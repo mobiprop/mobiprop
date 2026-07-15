@@ -1,0 +1,95 @@
+{
+  "hero": {
+    "title": "Your Gateway To Prestige Properties",
+    "subtitle": "Uncover a world of unique homes and unforgettable experiences. Your perfect getaway awaits just a search away!",
+    "tabBuy": "Buy",
+    "tabRent": "Rent",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Enter city, area, or address",
+    "propertyTypeLabel": "Property Type",
+    "priceLabel": "Price",
+    "searchButton": "Search Properties",
+    "propertyTypeOptions": {
+      "any": "All property types",
+      "apartment": "Apartment",
+      "house": "House",
+      "commercialOffice": "Commercial Office",
+      "lot": "Lot",
+      "townhouse": "Townhouse"
+    },
+    "priceOptions": {
+      "any": "Any price",
+      "upTo100k": "Up to $100,000",
+      "100kTo500k": "$100,000 – $500,000",
+      "500kTo1m": "$500,000 – $1,000,000",
+      "1mTo5m": "$1,000,000 – $5,000,000",
+      "over5m": "$5,000,000+"
+    }
+  },
+  "featuredListings": {
+    "badge": "Properties",
+    "title": "Featured Luxury Listings",
+    "subtitle": "Handpicked exclusive properties that redefine luxury living",
+    "filterSale": "For Sale",
+    "filterRent": "For Rent",
+    "noneAvailable": "No {{filter}} listings available right now."
+  },
+  "featuredSpots": {
+    "badge": "Location",
+    "title": "Featured Spots",
+    "subtitle": "Explore the areas with the most listings right now"
+  },
+  "whyUs": {
+    "badge": "Why Us",
+    "title": "Ulrich's home experts",
+    "subtitle": "We have over +10 years of experience in the real estate market",
+    "cardBadge": "Ulrich's best agency",
+    "cardHeading": "2K+ clients choose Ulrich",
+    "cardText": "Choosing us matters — experience and clear guidance shape every real-estate decision. We help clients move forward with confidence.",
+    "stats": [
+      {
+        "label": "Close faster",
+        "desc": "When clients collaborate with expert agents, they finish their transactions more quickly."
+      },
+      {
+        "label": "Saved yearly",
+        "desc": "We help buyers avoid overpaying while securing value in Florida markets."
+      },
+      {
+        "label": "Win offers",
+        "desc": "More than half of our clients secure their ideal home on the first or second offer."
+      },
+      {
+        "label": "Refer friends",
+        "desc": "Most clients recommend our team after experiencing smooth closings."
+      }
+    ]
+  },
+  "ourServices": {
+    "badge": "Our services",
+    "title": "What we offer",
+    "subtitle": "We help simplify selling and purchase decisions with a reliable service, speed & transparency",
+    "services": [
+      { "title": "Sale", "desc": "We make finding your perfect property effortless and fast." },
+      { "title": "Rentals", "desc": "We make finding your perfect rental effortless in Florida neighborhoods." },
+      { "title": "Valuation", "desc": "We make understanding your home's value and best deals effortless." }
+    ]
+  },
+  "agents": {
+    "badge": "Agents",
+    "title": "Meet The Experts Who Make It Happen."
+  },
+  "testimonial": {
+    "badge": "Testimonials",
+    "subtitle": "Here's what clients say about our work. True impressions, built from real projects, real partnerships, and results."
+  },
+  "faq": {
+    "badge": "FAQ",
+    "title": "Frequent Questions",
+    "blurb": "Have more questions? Our team is happy to help."
+  },
+  "blog": {
+    "badge": "More Posts",
+    "title": "Continue Reading"
+  }
+}

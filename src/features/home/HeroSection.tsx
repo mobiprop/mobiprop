@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const heroImg =
@@ -65,23 +66,23 @@ function ChevronDown() {
   );
 }
 
-const PROPERTY_TYPE_OPTIONS = [
-  { value: "", label: "All property types" },
-  { value: "APARTMENT", label: "Apartment" },
-  { value: "HOUSE", label: "House" },
-  { value: "COMMERCIAL_OFFICE", label: "Commercial Office" },
-  { value: "LOT", label: "Lot" },
-  { value: "TOWNHOUSE", label: "Townhouse" },
-];
+const PROPERTY_TYPE_VALUES = [
+  { value: "", labelKey: "hero.propertyTypeOptions.any" },
+  { value: "APARTMENT", labelKey: "hero.propertyTypeOptions.apartment" },
+  { value: "HOUSE", labelKey: "hero.propertyTypeOptions.house" },
+  { value: "COMMERCIAL_OFFICE", labelKey: "hero.propertyTypeOptions.commercialOffice" },
+  { value: "LOT", labelKey: "hero.propertyTypeOptions.lot" },
+  { value: "TOWNHOUSE", labelKey: "hero.propertyTypeOptions.townhouse" },
+] as const;
 
-const PRICE_OPTIONS = [
-  { value: { min: "", max: "" }, label: "Any price" },
-  { value: { min: "", max: "100000" }, label: "Up to $100,000" },
-  { value: { min: "100000", max: "500000" }, label: "$100,000 – $500,000" },
-  { value: { min: "500000", max: "1000000" }, label: "$500,000 – $1,000,000" },
-  { value: { min: "1000000", max: "5000000" }, label: "$1,000,000 – $5,000,000" },
-  { value: { min: "5000000", max: "" }, label: "$5,000,000+" },
-];
+const PRICE_VALUES = [
+  { value: { min: "", max: "" }, labelKey: "hero.priceOptions.any" },
+  { value: { min: "", max: "100000" }, labelKey: "hero.priceOptions.upTo100k" },
+  { value: { min: "100000", max: "500000" }, labelKey: "hero.priceOptions.100kTo500k" },
+  { value: { min: "500000", max: "1000000" }, labelKey: "hero.priceOptions.500kTo1m" },
+  { value: { min: "1000000", max: "5000000" }, labelKey: "hero.priceOptions.1mTo5m" },
+  { value: { min: "5000000", max: "" }, labelKey: "hero.priceOptions.over5m" },
+] as const;
 
 /** Pill-styled dropdown matching the Figma hero search fields. */
 function HeroDropdown({
@@ -151,6 +152,15 @@ function HeroDropdown({
 
 export function HeroSection() {
   const router = useRouter();
+  const { t } = useTranslation("home");
+  const propertyTypeOptions = PROPERTY_TYPE_VALUES.map((opt) => ({
+    value: opt.value,
+    label: t(opt.labelKey),
+  }));
+  const priceOptions = PRICE_VALUES.map((opt) => ({
+    value: opt.value,
+    label: t(opt.labelKey),
+  }));
   const [activeTab, setActiveTab] = useState<"buy" | "rent">("buy");
   const [location, setLocation] = useState("");
   const [typeIndex, setTypeIndex] = useState(0);
@@ -189,10 +199,10 @@ export function HeroSection() {
   function handleSearch() {
     const params = new URLSearchParams();
     if (location.trim()) params.set("location", location.trim());
-    const propertyType = PROPERTY_TYPE_OPTIONS[typeIndex].value;
+    const propertyType = propertyTypeOptions[typeIndex].value;
     if (propertyType) params.set("propertyType", propertyType);
     params.set("transactionType", activeTab === "buy" ? "SALE" : "RENT");
-    const price = PRICE_OPTIONS[priceIndex].value;
+    const price = priceOptions[priceIndex].value;
     if (price.min) params.set("minPrice", price.min);
     if (price.max) params.set("maxPrice", price.max);
     router.push(`/listings?${params.toString()}`);
@@ -220,9 +230,7 @@ export function HeroSection() {
         letterSpacing: "0",
       }}
     >
-      Your Gateway To
-      <br />
-      Prestige Properties
+      {t("hero.title")}
     </h1>
 
     <p
@@ -231,9 +239,7 @@ export function HeroSection() {
         fontFamily: "Poppins, sans-serif",
       }}
     >
-      Uncover a world of unique homes and unforgettable experiences.
-      <br className="hidden sm:block" />
-      Your perfect getaway awaits just a search away!
+      {t("hero.subtitle")}
     </p>
   </div>
 
@@ -251,7 +257,7 @@ export function HeroSection() {
           letterSpacing: "-0.01em",
         }}
       >
-        Buy
+        {t("hero.tabBuy")}
       </button>
 
       <button
@@ -266,7 +272,7 @@ export function HeroSection() {
           letterSpacing: "-0.01em",
         }}
       >
-        Rent
+        {t("hero.tabRent")}
       </button>
     </div>
 
@@ -277,7 +283,7 @@ export function HeroSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Location
+            {t("hero.locationLabel")}
           </p>
 
           <div ref={locationRef} className="relative w-full">
@@ -295,10 +301,10 @@ export function HeroSection() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSearch();
                   }}
-                  placeholder="Enter city, area, or address"
+                  placeholder={t("hero.locationPlaceholder")}
                   className="w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] placeholder:text-[#4a5565] outline-none"
                   style={{ fontFamily: "Poppins, sans-serif" }}
-                  aria-label="Search by location"
+                  aria-label={t("hero.locationLabel")}
                 />
               </div>
               <ChevronDown />
@@ -330,12 +336,12 @@ export function HeroSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Property Type
+            {t("hero.propertyTypeLabel")}
           </p>
 
           <HeroDropdown
             icon={<BuildingIcon />}
-            options={PROPERTY_TYPE_OPTIONS}
+            options={propertyTypeOptions}
             selectedIndex={typeIndex}
             onSelect={setTypeIndex}
           />
@@ -346,12 +352,12 @@ export function HeroSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Price
+            {t("hero.priceLabel")}
           </p>
 
           <HeroDropdown
             icon={<DollarIcon />}
-            options={PRICE_OPTIONS}
+            options={priceOptions}
             selectedIndex={priceIndex}
             onSelect={setPriceIndex}
           />
@@ -376,7 +382,7 @@ export function HeroSection() {
             }}
           />
 
-          <span className="relative z-10">Search Properties</span>
+          <span className="relative z-10">{t("hero.searchButton")}</span>
         </button>
       </div>
     </div>

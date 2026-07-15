@@ -25,6 +25,7 @@ import {
 } from "@/hooks/mutations/useDocusignMutations";
 import { SendForSignatureModal } from "./components/SendForSignatureModal";
 import { Toggle } from "./components/settings/Toggle";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -506,19 +507,23 @@ export function DocuSignPage({ role }: { role: Role }) {
                 style={mont}
               />
             </div>
-            <select
+            <SearchableSelect
+              ariaLabel="Filter by status"
+              searchable={false}
+              size="sm"
+              className="w-[160px]"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as "ALL" | EnvelopeStatus)}
-              className="h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[13px] text-[#4a5565] outline-none"
-              style={mont}
-            >
-              <option value="ALL">All statuses</option>
-              <option value={EnvelopeStatus.SENT}>Sent</option>
-              <option value={EnvelopeStatus.DELIVERED}>Delivered</option>
-              <option value={EnvelopeStatus.COMPLETED}>Completed</option>
-              <option value={EnvelopeStatus.DECLINED}>Declined</option>
-              <option value={EnvelopeStatus.VOIDED}>Voided</option>
-            </select>
+              onChange={(v) => setStatusFilter(v as "ALL" | EnvelopeStatus)}
+              placeholder="All statuses"
+              options={[
+                { value: "ALL", label: "All statuses" },
+                { value: EnvelopeStatus.SENT, label: "Sent" },
+                { value: EnvelopeStatus.DELIVERED, label: "Delivered" },
+                { value: EnvelopeStatus.COMPLETED, label: "Completed" },
+                { value: EnvelopeStatus.DECLINED, label: "Declined" },
+                { value: EnvelopeStatus.VOIDED, label: "Voided" },
+              ]}
+            />
           </div>
 
           {isLoading ? (

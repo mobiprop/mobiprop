@@ -1,67 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 
 /* ─── assets ─── */
 const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const heroOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.webp";
-const consultationBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.webp";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
-/* ─── data ─── */
-const categories = [
-  "All Categories",
-  "Venta",
-  "Alquiler",
-  "Alquiler Temporal",
-  "Proyectos/Emprendimientos",
-  "Casas",
-  "Departamentos",
-  "Terrenos",
-  "Oficinas y Locales",
-  "Barrios Cerrados",
-];
+type FaqEntry = { id: string; categoryId: string; question: string; answer: string };
 
-const faqs = [
-  {
-    q: "How can I schedule a viewing for a property?",
-    a: 'You can request a viewing by clicking the "Contact" or "Saber más" button on any listing. Our agents (like Carola) will coordinate a visit. You can also contact us directly via WhatsApp or email at info@ulrichpropiedades.com.',
-  },
-  {
-    q: "What areas do you specialize in?",
-    a: "We are specialists in Zona Norte (Buenos Aires), with a heavy focus on exclusive areas such as Pilar, Tortugas Country Club, Ayres del Pilar, Las Liebres, Highland Park, and Azzurra.",
-  },
-  {
-    q: "Do you offer property appraisals (Tasaciones)?",
-    a: "Yes, we offer professional property appraisal services conducted by our experienced agents. Contact us to schedule an appraisal.",
-  },
-  {
-    q: "What documentation is required for a property sale?",
-    a: "For a property sale you will typically need a valid ID, proof of property ownership, title deed, and relevant municipal documentation. Our agents will guide you through the full process.",
-  },
-  {
-    q: "Can I list my property with Ulrich Propiedades?",
-    a: "Absolutely. We welcome property listings from owners in Zona Norte. Reach out via our contact form or call us directly to discuss listing your property.",
-  },
-  {
-    q: "Are there temporary rental options for summer?",
-    a: "Yes, we handle a selection of temporary and seasonal rental properties, including summer rentals in exclusive residential neighborhoods.",
-  },
-  {
-    q: "How do I filter searches for specific amenities like a pool or security?",
-    a: "Use the advanced filters on our listings page to narrow down properties by amenities such as swimming pool, 24/7 security, garage, and more.",
-  },
-  {
-    q: "What are the commission rates for buyers and sellers?",
-    a: "Commission rates vary depending on the type of transaction. Please contact our team for a detailed breakdown tailored to your specific situation.",
-  },
-  {
-    q: "How to Send one-time or recurring invoices to customers",
-    a: "You can manage invoices through your client portal. Our team can assist you with setting up one-time or recurring payment arrangements.",
-  },
-];
+const CATEGORY_ORDER = [
+  "generalInformation",
+  "sales",
+  "rentals",
+  "propertyValuations",
+  "closingsDeeds",
+  "fees",
+  "mortgages",
+  "investments",
+] as const;
 
 /* ─── Plus / Minus icons ─── */
 function PlusIcon() {
@@ -97,6 +59,9 @@ function SearchIcon() {
 
 /* ─── 1. Hero ─── */
 function HeroBanner() {
+  const { t } = useTranslation("faq");
+  const popularTags = t("hero.popularTags", { returnObjects: true }) as string[];
+
   return (
     <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
   <div className="absolute inset-0 overflow-hidden">
@@ -137,15 +102,14 @@ function HeroBanner() {
         className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
         style={{ fontFamily: poppins }}
       >
-        Frequently Asked Questions
+        {t("hero.title")}
       </h1>
 
       <p
         className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
         style={{ fontFamily: montserrat }}
       >
-        Build stronger customer relationships, make more sales and save time.
-        Tendly makes it easy to build the exact CRM your business needs.
+        {t("hero.subtitle")}
       </p>
     </div>
 
@@ -155,7 +119,7 @@ function HeroBanner() {
 
         <input
           type="text"
-          placeholder="Search"
+          placeholder={t("hero.searchPlaceholder")}
           className="flex-1 min-w-0 text-[14px] sm:text-[16px] text-[#737373] leading-[1.6] outline-none bg-transparent"
           style={{ fontFamily: "Inter, sans-serif" }}
         />
@@ -186,10 +150,10 @@ function HeroBanner() {
           className="text-[14px] font-medium text-[#666d80] leading-5 tracking-[-0.14px] whitespace-nowrap"
           style={{ fontFamily: montserrat }}
         >
-          Popular questions:
+          {t("hero.popularLabel")}
         </span>
 
-        {["Importing", "Billing", "Integrations"].map((tag) => (
+        {popularTags.map((tag) => (
           <span
             key={tag}
             className="bg-[#f9fafb] border border-[#e5e7eb] rounded-[1000px] px-2 py-[2px] text-[12px] text-[#666d80] tracking-[-0.12px] whitespace-nowrap cursor-pointer hover:bg-[#f0f2f5] transition-colors"
@@ -207,7 +171,12 @@ function HeroBanner() {
 
 /* ─── 2. FAQ Content ─── */
 function FAQContent() {
-  const [activeCategory, setActiveCategory] = useState("All Categories");
+  const { t } = useTranslation("faq");
+  const allCategoriesLabel = t("allCategories");
+  const categoryLabels = t("categories", { returnObjects: true }) as Record<string, string>;
+  const allFaqs = t("faqs", { returnObjects: true }) as FaqEntry[];
+
+  const [activeCategory, setActiveCategory] = useState<string>(allCategoriesLabel);
   const [openIndexes, setOpenIndexes] = useState<Set<number>>(new Set([0, 1]));
 
   function toggle(i: number) {
@@ -219,6 +188,12 @@ function FAQContent() {
     });
   }
 
+  const categoryOptions = [allCategoriesLabel, ...CATEGORY_ORDER.map((id) => categoryLabels[id])];
+  const activeCategoryId = CATEGORY_ORDER.find((id) => categoryLabels[id] === activeCategory);
+  const faqs = activeCategoryId
+    ? allFaqs.filter((f) => f.categoryId === activeCategoryId)
+    : allFaqs;
+
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[76px] py-10 sm:py-14 lg:py-[80px]">
   <div className="flex flex-col lg:flex-row gap-8 lg:gap-[70px] items-start">
@@ -228,11 +203,11 @@ function FAQContent() {
         className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-[#0d0d12] leading-6 lg:leading-[32px] tracking-[-0.16px] lg:tracking-[-0.2px]"
         style={{ fontFamily: poppins }}
       >
-        Categories
+        {allCategoriesLabel}
       </p>
 
       <div className="flex flex-col border-l border-[#dfe1e7]">
-        {categories.map((cat) => {
+        {categoryOptions.map((cat) => {
           const isActive = activeCategory === cat;
 
           return (
@@ -267,7 +242,7 @@ function FAQContent() {
         className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-[#0d0d12] leading-6 lg:leading-[32px] tracking-[-0.16px] lg:tracking-[-0.2px]"
         style={{ fontFamily: poppins }}
       >
-        General Information
+        {activeCategory}
       </p>
 
       <div className="flex flex-col gap-3 lg:gap-[16px]">
@@ -276,7 +251,7 @@ function FAQContent() {
 
           return (
             <div
-              key={i}
+              key={faq.id}
               className="bg-white border border-[#dfe1e7] rounded-[10px] lg:rounded-[12px] overflow-hidden"
               style={{
                 boxShadow:
@@ -291,7 +266,7 @@ function FAQContent() {
                   className="flex-1 min-w-0 text-[15px] sm:text-[16px] lg:text-[20px] font-medium text-[#0d0d12] leading-[22px] sm:leading-6 lg:leading-[32px] tracking-[-0.15px] sm:tracking-[-0.16px] lg:tracking-[-0.2px]"
                   style={{ fontFamily: poppins }}
                 >
-                  {faq.q}
+                  {faq.question}
                 </span>
 
                 <span className="mt-[2px] sm:mt-0 shrink-0 text-[#1e4f86]">
@@ -305,7 +280,7 @@ function FAQContent() {
                     className="text-[13px] sm:text-[14px] lg:text-[16px] text-[#666d80] leading-5 sm:leading-[22px] lg:leading-[24px] tracking-[-0.13px] sm:tracking-[-0.14px] lg:tracking-[-0.16px]"
                     style={{ fontFamily: montserrat }}
                   >
-                    {faq.a}
+                    {faq.answer}
                   </p>
                 </div>
               )}
@@ -316,120 +291,6 @@ function FAQContent() {
     </div>
   </div>
 </div>
-  );
-}
-
-/* ─── 3. Consultation Banner ─── */
-function ConsultationBanner() {
-  const [form, setForm] = useState({ name: "", email: "", topic: "", message: "" });
-
-  return (
-    <section className="relative h-[680px] lg:h-[784px] overflow-hidden">
-      <img src={consultationBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
-
-      <div className="relative z-10 h-full flex items-center justify-center px-6">
-        <div className="bg-white rounded-[20px] p-[20px] w-full max-w-[539px] flex flex-col gap-[28px]">
-          <h3
-            className="text-[24px] lg:text-[36px] font-medium text-[#0d2138] leading-[1.22] lg:leading-[48px] tracking-[-0.36px]"
-            style={{ fontFamily: poppins }}
-          >
-            Schedule a free consultation
-          </h3>
-
-          <div className="flex flex-col gap-[12px]">
-            {/* Full Name */}
-            <div className="flex flex-col gap-[4px]">
-              <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
-                style={{ fontFamily: montserrat }}
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                placeholder="eg. Albert Jones"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-            {/* Email */}
-            <div className="flex flex-col gap-[4px]">
-              <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
-                style={{ fontFamily: montserrat }}
-              >
-                Email address
-              </label>
-              <input
-                type="email"
-                placeholder="albert@email.com"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-            {/* Topic */}
-            <div className="flex flex-col gap-[4px]">
-              <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
-                style={{ fontFamily: montserrat }}
-              >
-                Topic
-              </label>
-              <input
-                type="text"
-                placeholder="Consultation"
-                value={form.topic}
-                onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-            {/* Messages */}
-            <div className="flex flex-col gap-[4px]">
-              <label
-                className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]"
-                style={{ fontFamily: montserrat }}
-              >
-                Messages
-              </label>
-              <textarea
-                placeholder="Enter a message"
-                rows={4}
-                value={form.message}
-                onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                className="border border-[#d1d5dc] rounded-[10px] p-[12px] text-[14px] text-[#99a1af] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors resize-none"
-                style={{ fontFamily: montserrat }}
-              />
-            </div>
-          </div>
-
-          <button
-            className="w-full h-[46px] rounded-[48px] flex items-center justify-center gap-[12px] text-[16px] font-medium text-white leading-[24px] tracking-[-0.16px]"
-            style={{
-              fontFamily: montserrat,
-              background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-              border: "1px solid #0088ff",
-            }}
-          >
-            Book a Free consultation
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
-              <path
-                d="M4.16666 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </section>
   );
 }
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
@@ -153,6 +154,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const { isSaved, toggleSave } = useSavedListings();
   const saved = isSaved(property.listingId);
+  const { t } = useTranslation("home");
 
   return (
     <>
@@ -175,7 +177,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
             className="bg-white/90 px-3 py-1 rounded-[36px] text-[12px] sm:text-[14px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {property.operationType === "RENT" ? "Rent" : "Sale"}
+            {property.operationType === "RENT" ? t("hero.tabRent") : t("hero.tabBuy")}
           </span>
 
           <span
@@ -282,7 +284,8 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
 }
 
 export function FeaturedListings() {
-  const [activeFilter, setActiveFilter] = useState("For Sale");
+  const { t } = useTranslation("home");
+  const [activeFilter, setActiveFilter] = useState<"sale" | "rent">("sale");
 
   // All ACTIVE listings come back featured-first, newest-first; the homepage
   // shows the top 6 per transaction tab.
@@ -297,7 +300,7 @@ export function FeaturedListings() {
   const allListings: PublicListingDto[] = data?.listings ?? [];
   const properties = allListings
     .filter((listing) =>
-      activeFilter === "For Sale"
+      activeFilter === "sale"
         ? listing.operationType !== "RENT"
         : listing.operationType !== "SALE",
     )
@@ -317,7 +320,7 @@ export function FeaturedListings() {
         className="text-[14px] sm:text-[16px] font-medium text-[#6a7282] tracking-[-0.01em]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Properties
+        {t("featuredListings.badge")}
       </span>
     </div>
 
@@ -327,20 +330,20 @@ export function FeaturedListings() {
         className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-tight tracking-[-0.01em]"
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
-        Featured Luxury Listings
+        {t("featuredListings.title")}
       </h2>
 
       <p
         className="mt-2 sm:mt-3 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.01em] max-w-[520px] mx-auto"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Handpicked exclusive properties that redefine luxury living
+        {t("featuredListings.subtitle")}
       </p>
     </div>
 
     {/* Filter Buttons */}
     <div className="flex items-center justify-center gap-2 mt-1 sm:mt-0">
-      {["For Sale", "For Rent"].map((f) => (
+      {(["sale", "rent"] as const).map((f) => (
         <button
           key={f}
           onClick={() => setActiveFilter(f)}
@@ -351,7 +354,7 @@ export function FeaturedListings() {
           }`}
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
-          {f}
+          {f === "sale" ? t("featuredListings.filterSale") : t("featuredListings.filterRent")}
         </button>
       ))}
     </div>
@@ -379,7 +382,9 @@ export function FeaturedListings() {
     className="text-center text-[15px] text-[#6a7282] py-8"
     style={{ fontFamily: "Montserrat, sans-serif" }}
   >
-    No {activeFilter.toLowerCase()} listings available right now.
+    {t("featuredListings.noneAvailable", {
+      filter: activeFilter === "sale" ? t("featuredListings.filterSale") : t("featuredListings.filterRent"),
+    })}
   </p>
   )}
 </div>

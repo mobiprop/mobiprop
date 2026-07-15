@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
@@ -115,6 +118,7 @@ function SpotCard({
 }
 
 export function FeaturedSpots() {
+  const { t } = useTranslation("home");
   const [topRow, bottomRow] = [FEATURED_SPOTS.slice(0, 2), FEATURED_SPOTS.slice(2)];
 
   return (
@@ -128,7 +132,7 @@ export function FeaturedSpots() {
               className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              Location
+              {t("featuredSpots.badge")}
             </span>
           </div>
           <div className="text-center">
@@ -136,13 +140,13 @@ export function FeaturedSpots() {
               className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-tight"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
-              Featured Spots
+              {t("featuredSpots.title")}
             </h2>
             <p
               className="mt-3 text-[14px] sm:text-[16px] text-[#2b3038] max-w-[460px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              Explore the areas with the most listings right now
+              {t("featuredSpots.subtitle")}
             </p>
           </div>
         </div>

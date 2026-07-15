@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -120,6 +121,7 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
 }
 
 export function Agents() {
+  const { t } = useTranslation("home");
   const settings = {
     dots: true,
     arrows: false,
@@ -190,7 +192,7 @@ export function Agents() {
               className="text-[14px] font-medium text-[#6a7282] sm:text-[16px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              Agents
+              {t("agents.badge")}
             </span>
           </div>
 
@@ -198,7 +200,7 @@ export function Agents() {
             className="max-w-[500px] text-center text-[26px] font-semibold leading-[36px] text-[#232323] sm:text-[34px] sm:leading-[42px] lg:text-[44px] lg:leading-tight"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            Meet The Experts Who Make It Happen.
+            {t("agents.title")}
           </h2>
         </div>
 
