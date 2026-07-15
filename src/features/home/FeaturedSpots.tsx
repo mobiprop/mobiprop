@@ -80,7 +80,7 @@ function SpotCard({
       href={`/listings?location=${encodeURIComponent(spot.searchLocation)}`}
       className="flex flex-col gap-5 group"
     >
-      <div className={`relative ${imgHeight} rounded-[24px] overflow-hidden bg-[#f3f4f6]`}>
+      <div className={`hover-shine relative ${imgHeight} rounded-[24px] overflow-hidden bg-[#f3f4f6]`}>
         <Image
           src={spot.imageUrl}
           alt={spot.title}

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { motion, useScroll, useTransform } from "framer-motion";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const heroImg =
@@ -151,6 +152,13 @@ function HeroDropdown({
 }
 
 export function HeroSection() {
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const imgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+
   const router = useRouter();
   const { t } = useTranslation("home");
   const propertyTypeOptions = PROPERTY_TYPE_VALUES.map((opt) => ({
@@ -209,19 +217,28 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative w-full min-h-[760px] sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]">
+    <section
+      ref={heroRef}
+      className="relative w-full min-h-[760px] sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]"
+    >
       <div className="absolute inset-0 overflow-hidden">
-        <img
+        <motion.img
           src={heroImg}
           alt="Luxury property"
-          className="h-full w-full object-fill"
+          className="h-full w-full object-fill scale-[1.15]"
+          style={{ y: imgY }}
         />
         <div className="absolute inset-0 bg-[rgba(20,78,128,0.12)]" />
         <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.62)] to-[rgba(255,255,255,0.9)]" />
       </div>
 
       <div className="relative z-10 flex min-h-[calc(100vh-70px)] flex-col items-center px-4 pt-[70px] pb-6 sm:pt-[90px] lg:pt-[95px]">
-  <div className="mx-auto max-w-[760px] text-center text-white">
+  <motion.div
+    className="mx-auto max-w-[760px] text-center text-white"
+    initial={{ opacity: 0.2, y: 60, scale: 0.95 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 1, ease: "easeOut" }}
+  >
     <h1
       className="mb-4 sm:mb-5 capitalize text-[32px] sm:text-[42px] md:text-[54px] lg:text-[60px] leading-[39px] sm:leading-[50px] md:leading-[64px] lg:leading-[70px]"
       style={{
@@ -241,9 +258,14 @@ export function HeroSection() {
     >
       {t("hero.subtitle")}
     </p>
-  </div>
+  </motion.div>
 
-  <div className="mt-auto w-full max-w-[1370px] px-0 pb-4 sm:px-4 lg:pb-6">
+  <motion.div
+    className="mt-auto w-full max-w-[1370px] px-0 pb-4 sm:px-4 lg:pb-6"
+    initial={{ opacity: 0, y: 40 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.7, ease: "easeOut", delay: 0.35 }}
+  >
     <div className="flex pl-0">
       <button
         onClick={() => setActiveTab("buy")}
@@ -386,7 +408,7 @@ export function HeroSection() {
         </button>
       </div>
     </div>
-  </div>
+  </motion.div>
 </div>
     </section>
   );
