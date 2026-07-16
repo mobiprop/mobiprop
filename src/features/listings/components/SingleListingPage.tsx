@@ -13,9 +13,9 @@ import type { ListingImageDto, PublicListingDto } from "../types/listing-dto";
 import type { AmenityKey } from "@/schemas/listing.schema";
 import { AMENITY_OPTIONS } from "@/schemas/listing.schema";
 import {
-  PROPERTY_TYPE_LABELS,
   formatRentPrice,
   formatSalePrice,
+  propertyTypeLabel,
 } from "../utils/format";
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
 
@@ -807,7 +807,7 @@ function buildStats(listing: PublicListingDto, t: TFunction) {
 
   push("Type", operationTypeLabel(t, listing.operationType));
   if (listing.salePrice !== null) push("Price", formatSalePrice(listing.salePrice));
-  else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice));
+  else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice, t));
   if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
   if (listing.bathrooms !== null) push("Baths", String(listing.bathrooms));
   if (listing.totalAreaM2 !== null) push("Size", `${listing.totalAreaM2.toLocaleString("en-US")} m²`);
@@ -1004,7 +1004,7 @@ export function SingleListingPageContent({
 
   const badges = [
     operationTypeLabel(t, listing.operationType),
-    PROPERTY_TYPE_LABELS[listing.type],
+    propertyTypeLabel(listing.type, t),
     ...(listing.yearBuilt !== null ? [String(listing.yearBuilt)] : []),
   ];
 
@@ -1132,7 +1132,7 @@ export function SingleListingPageContent({
           {/* Title & Location */}
           <div className="flex flex-col gap-2 max-w-full md:max-w-[520px]">
             <h1
-              className="text-[#232323] text-[22px] sm:text-[28px] lg:text-[32px] leading-[32px] sm:leading-[38px] lg:leading-[44px]"
+              className="text-[#232323] text-[22px] sm:text-[28px] lg:text-[32px] leading-[32px] sm:leading-[38px] lg:leading-[44px] line-clamp-2"
               style={{
                 fontFamily: "Poppins, sans-serif",
                 fontWeight: 500,
@@ -1236,7 +1236,7 @@ export function SingleListingPageContent({
                     letterSpacing: "-0.24px",
                   }}
                 >
-                  {formatRentPrice(listing.rentPrice)}
+                  {formatRentPrice(listing.rentPrice, t)}
                 </span>
               </div>
             ) : null}

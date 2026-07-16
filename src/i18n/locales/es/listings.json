@@ -2,7 +2,7 @@
   "hero": {
     "badge": "Propiedades",
     "title": "Propiedades de Lujo Destacadas",
-    "subtitle": "Descubrí una amplia variedad de propiedades, desde acogedores departamentos hasta majestuosas mansiones, pensadas para adaptarse a cada necesidad y presupuesto."
+    "subtitle": "Descubrí una amplia variedad de propiedades pensadas para adaptarse a cada necesidad y presupuesto."
   },
   "searchBar": {
     "locationLabel": "Ubicación",
@@ -10,9 +10,9 @@
     "locationAriaLabel": "Buscar por ubicación",
     "clearLocationAriaLabel": "Borrar ubicación",
     "propertyTypeLabel": "Tipo de Propiedad",
-    "propertyTypePlaceholder": "Seleccioná el tipo de propiedad",
+    "propertyTypePlaceholder": "Casa, departamento, oficina",
     "transactionTypeLabel": "Tipo de Transacción",
-    "transactionTypePlaceholder": "Seleccioná el tipo de operación",
+    "transactionTypePlaceholder": "Venta, Alquiler",
     "moreFiltersButton": "Más Filtros",
     "searchButton": "Buscar Propiedades"
   },
@@ -35,6 +35,39 @@
     "clearFiltersButton": "Borrar todos los filtros"
   },
   "card": {
+    "removeSavedAriaLabel": "Quitar de guardados",
+    "saveAriaLabel": "Guardar propiedad",
+    "sale": "Venta",
+    "rent": "Alquiler",
+    "apartment": "Departamento",
+    "house": "Casa",
+    "lot": "Lote",
+    "commercialOffice": "Local Comercial",
+    "townhouse": "Casa Adosada",
+    "beds": "Dormitorios",
+    "baths": "Baños",
+    "perMonthSuffix": "/mes",
+    "priceOnRequest": "Consultar precio"
+  },
+  "map": {
+    "title": "Mapa de Propiedades",
+    "circleButton": "Círculo",
+    "freehandButton": "Mano Alzada",
+    "drawing": "Dibujando…",
+    "clearButton": "Limpiar",
+    "closeAriaLabel": "Cerrar mapa de propiedades",
+    "mapUnavailable": "Mapa no disponible",
+    "circleHint": "Hacé clic para fijar el centro y arrastrá para ajustar el radio — soltá para filtrar",
+    "freehandHint": "Mantené presionado y arrastrá para trazar cualquier forma — soltá para filtrar las propiedades dentro de ella",
+    "areaResult_one": "{{count}} propiedad encontrada en el área seleccionada",
+    "areaResult_other": "{{count}} propiedades encontradas en el área seleccionada",
+    "noCoordinates": "Todavía no hay propiedades con coordenadas en el mapa",
+    "defaultHint": "Hacé clic en un pin para ver los detalles · Activá el dibujo para filtrar por área",
+    "listingsFound_one": "{{count}} Propiedad Encontrada",
+    "listingsFound_other": "{{count}} Propiedades Encontradas",
+    "noListingsInArea": "No hay propiedades en esta área",
+    "moreListings": "+{{count}} más — acotá tu área de búsqueda",
+    "viewListing": "Ver Propiedad →",
     "removeSavedAriaLabel": "Quitar de guardados",
     "saveAriaLabel": "Guardar propiedad"
   },

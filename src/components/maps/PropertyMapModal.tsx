@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
@@ -140,10 +142,12 @@ function SidebarCard({
   item,
   isSelected,
   onClick,
+  t,
 }: {
   item: PublicListingDto;
   isSelected: boolean;
   onClick: () => void;
+  t: TFunction;
 }) {
   return (
     <button
@@ -180,13 +184,13 @@ function SidebarCard({
             className="text-[13px] font-semibold text-[#005ea4] leading-[18px] mt-0.5"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            {listingDisplayPrice(item)}
+            {listingDisplayPrice(item, t)}
           </p>
           <p
             className="text-[11px] text-[#6a7282] leading-[15px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {[formatBeds(item.bedrooms), formatBaths(item.bathrooms), formatArea(item.totalAreaM2)]
+            {[formatBeds(item.bedrooms, t), formatBaths(item.bathrooms, t), formatArea(item.totalAreaM2)]
               .filter(Boolean)
               .join(" · ")}
           </p>
@@ -229,10 +233,12 @@ function MapPropertyCard({
   item,
   position,
   onUnauth,
+  t,
 }: {
   item: PublicListingDto;
   position: { x: number; y: number };
   onUnauth: () => void;
+  t: TFunction;
 }) {
   const { isSaved, toggleSave } = useSavedListings();
   const saved = isSaved(item.listingId);
@@ -262,7 +268,7 @@ function MapPropertyCard({
           />
 
           <div className="absolute left-2 top-2 flex gap-1">
-            {listingTags(item).map((tag) => (
+            {listingTags(item, t).map((tag) => (
               <span
                 key={tag}
                 className="rounded-full bg-white/90 px-2 py-[2px] text-[10px] font-medium text-[#0d2138]"
@@ -280,7 +286,7 @@ function MapPropertyCard({
               e.stopPropagation();
               toggleSave(item.listingId, onUnauth);
             }}
-            aria-label={saved ? "Remove from saved" : "Save property"}
+            aria-label={saved ? t("map.removeSavedAriaLabel") : t("map.saveAriaLabel")}
             className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-white shadow-sm"
           >
             <MapCardHeartIcon filled={saved} />
@@ -299,7 +305,7 @@ function MapPropertyCard({
               className="shrink-0 text-[13px] font-medium text-[#0d2138]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
-              {listingDisplayPrice(item)}
+              {listingDisplayPrice(item, t)}
             </p>
           </div>
 
@@ -314,7 +320,7 @@ function MapPropertyCard({
           </div>
 
           <p className="text-[12px] text-[#2b3038]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-            {[formatArea(item.totalAreaM2), formatBeds(item.bedrooms), formatBaths(item.bathrooms)]
+            {[formatArea(item.totalAreaM2), formatBeds(item.bedrooms, t), formatBaths(item.bathrooms, t)]
               .filter(Boolean)
               .join(" · ")}
           </p>
@@ -344,6 +350,7 @@ export function PropertyMapModal({
   listings: PublicListingDto[];
   onClose: () => void;
 }) {
+  const { t } = useTranslation("listings");
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapWrapperRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -425,7 +432,7 @@ export function PropertyMapModal({
         for (const listing of geoListings) {
           const overlay = new OverlayClass(
             { lat: listing.latitude as number, lng: listing.longitude as number },
-            listingDisplayPrice(listing),
+            listingDisplayPrice(listing, t),
             () => handlePinClick(listing.slug),
           );
           overlay.setMap(map);
@@ -695,7 +702,7 @@ export function PropertyMapModal({
               className="text-[20px] font-[500] leading-[26px] text-[#0d2138] sm:text-[26px] sm:leading-[32px] lg:text-[28px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
-              Property Map
+              {t("map.title")}
             </h2>
 
             <div className="flex flex-wrap gap-2">
@@ -712,7 +719,7 @@ export function PropertyMapModal({
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
                 </svg>
-                {drawType === "circle" ? "Drawing…" : "Circle"}
+                {drawType === "circle" ? t("map.drawing") : t("map.circleButton")}
               </button>
 
               {/* Freehand mode */}
@@ -728,7 +735,7 @@ export function PropertyMapModal({
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {drawType === "freehand" ? "Drawing…" : "Freehand"}
+                {drawType === "freehand" ? t("map.drawing") : t("map.freehandButton")}
               </button>
 
               {hasShape ? (
@@ -739,7 +746,7 @@ export function PropertyMapModal({
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
                   <span className="text-[16px] leading-none">×</span>
-                  Clear
+                  {t("map.clearButton")}
                 </button>
               ) : null}
             </div>
@@ -747,7 +754,7 @@ export function PropertyMapModal({
 
           <button
             onClick={onClose}
-            aria-label="Close property map"
+            aria-label={t("map.closeAriaLabel")}
             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#f3f6f9] sm:right-5 sm:top-5 sm:h-9 sm:w-9 md:static"
           >
             <CloseIcon />
@@ -768,7 +775,7 @@ export function PropertyMapModal({
                     className="text-[14px] text-[#6a7282]"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
-                    Map unavailable
+                    {t("map.mapUnavailable")}
                   </p>
                 </div>
               ) : (
@@ -784,6 +791,7 @@ export function PropertyMapModal({
                 item={selectedListing}
                 position={cardPosition}
                 onUnauth={() => setLoginOpen(true)}
+                t={t}
               />
             ) : null}
 
@@ -792,14 +800,14 @@ export function PropertyMapModal({
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {drawType === "circle"
-                ? "Click to set the center, then drag to grow the radius — release to filter"
+                ? t("map.circleHint")
                 : drawType === "freehand"
-                  ? "Hold and drag to trace any shape — release to filter listings inside it"
+                  ? t("map.freehandHint")
                   : hasShape
-                  ? `${sidebarListings.length} listing${sidebarListings.length !== 1 ? "s" : ""} found in selected area`
+                  ? t("map.areaResult", { count: sidebarListings.length })
                   : geoListings.length === 0
-                    ? "No listings have map coordinates yet"
-                    : "Click a pin to see details · Enable Drawing to filter by area"}
+                    ? t("map.noCoordinates")
+                    : t("map.defaultHint")}
             </p>
           </div>
 
@@ -809,8 +817,7 @@ export function PropertyMapModal({
               className="mb-3 text-[17px] font-medium leading-[22px] text-[#0d2138] sm:mb-4 sm:text-[18px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
-              {sidebarListings.length}{" "}
-              {sidebarListings.length === 1 ? "Listing" : "Listings"} Found
+              {t("map.listingsFound", { count: sidebarListings.length })}
             </h3>
 
             {sidebarListings.length === 0 ? (
@@ -818,7 +825,7 @@ export function PropertyMapModal({
                 className="text-[13px] text-[#6a7282]"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                No listings in this area
+                {t("map.noListingsInArea")}
               </p>
             ) : (
               <div className="flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: "420px" }}>
@@ -827,6 +834,7 @@ export function PropertyMapModal({
                     key={item.slug}
                     item={item}
                     isSelected={selectedListing?.slug === item.slug}
+                    t={t}
                     onClick={() => {
                       const entry = overlaysRef.current.find((o) => o.slug === item.slug);
                       if (entry) {
@@ -851,7 +859,7 @@ export function PropertyMapModal({
                     className="pt-1 text-center text-[12px] text-[#6a7282]"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
-                    +{sidebarListings.length - 20} more — narrow your search area
+                    {t("map.moreListings", { count: sidebarListings.length - 20 })}
                   </p>
                 ) : null}
               </div>
@@ -863,7 +871,7 @@ export function PropertyMapModal({
                 className="mt-4 block rounded-[8px] bg-[#1e4f86] px-4 py-2.5 text-center text-[13px] font-medium text-white hover:bg-[#17446f] transition-colors"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                View Listing →
+                {t("map.viewListing")}
               </Link>
             ) : null}
           </aside>

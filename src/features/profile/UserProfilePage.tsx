@@ -22,12 +22,13 @@ import type { MyTourDto } from "@/features/crm/types/crm-dto";
 import type { MyContractDto } from "@/features/integrations/docusign-actions";
 import { TOUR_STATUS_BADGE, CONTRACT_STATUS_BADGE } from "@/features/crm/tour-status-badge";
 import { format } from "date-fns";
+import type { PropertyType } from "@/generated/prisma/enums";
 import {
   listingDisplayPrice,
   formatArea,
   formatBeds,
   formatBaths,
-  PROPERTY_TYPE_LABELS,
+  propertyTypeLabel,
 } from "@/features/listings/utils/format";
 
 /* ─── assets ─── */
@@ -100,15 +101,16 @@ function SavedCard({
     onRemove(listing.id);
   };
 
-  const price = listingDisplayPrice({
-    salePrice: listing.salePrice,
-    rentPrice: listing.rentPrice,
-    operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
-  } as Parameters<typeof listingDisplayPrice>[0]);
+  const price = listingDisplayPrice(
+    {
+      salePrice: listing.salePrice,
+      rentPrice: listing.rentPrice,
+      operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
+    } as Parameters<typeof listingDisplayPrice>[0],
+    t,
+  );
 
-  const typeLabel =
-    PROPERTY_TYPE_LABELS[listing.type as keyof typeof PROPERTY_TYPE_LABELS] ??
-    listing.type;
+  const typeLabel = propertyTypeLabel(listing.type as PropertyType, t);
   const opLabel = listing.operationType === "RENT" ? t("card.rent") : t("card.sale");
 
   return (
@@ -194,7 +196,7 @@ function SavedCard({
             <div className="flex items-center gap-[6px] sm:gap-[8px]">
               <img src={iconBed} alt="" className="w-[20px] h-[20px] shrink-0" />
               <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
-                {formatBeds(listing.bedrooms)}
+                {formatBeds(listing.bedrooms, t)}
               </span>
             </div>
           )}
@@ -202,7 +204,7 @@ function SavedCard({
             <div className="flex items-center gap-[6px] sm:gap-[8px]">
               <img src={iconBath} alt="" className="w-[20px] h-[20px] shrink-0" />
               <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
-                {formatBaths(listing.bathrooms)}
+                {formatBaths(listing.bathrooms, t)}
               </span>
             </div>
           )}
@@ -214,9 +216,12 @@ function SavedCard({
 
 /* ─── Hero / Profile Card ─── */
 function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; onEditClick: () => void; savedCount: number }) {
-  const { t } = useTranslation("accountProfile");
+  const { t, i18n } = useTranslation("accountProfile");
   const displayName = profile.fullName?.trim() || profile.email;
-  const joinedLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(profile.createdAt);
+  const joinedLabel = new Intl.DateTimeFormat(i18n.language === "es" ? "es-AR" : "en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(profile.createdAt);
   const locationLabel = [profile.city, profile.country].filter(Boolean).join(", ");
 
   return (

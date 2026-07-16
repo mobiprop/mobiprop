@@ -42,6 +42,7 @@ export function SplitHeading({
   return (
     <Tag className={cn(className)} style={style} aria-label={text}>
       <motion.span
+        key={text}
         className="inline-block"
         variants={container(staggerChildren, delay)}
         initial="hidden"

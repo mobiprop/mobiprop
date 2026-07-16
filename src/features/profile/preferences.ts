@@ -80,7 +80,7 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
   },
   locale: {
     language: "en",
-    timezone: "America/Los_Angeles",
+    timezone: "America/Argentina/Buenos_Aires",
     autoDetectTimezone: true,
     dateFormat: "MM/DD/YYYY",
     timeFormat: "12h",

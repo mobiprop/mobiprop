@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { getPostLoginRedirect, resendSignUpOtp, sendMagicLink, verifyOtp } from "./actions";
 import { AuthBanner } from "./components/AuthBanner";
 
@@ -64,6 +65,7 @@ function IconHelp() {
 
 export function OtpPageContent({ email: emailProp, backHref = "/register" }: OtpPageProps) {
   const searchParams = useSearchParams();
+  const { t } = useTranslation("auth");
 
   const email = emailProp ?? searchParams.get("email") ?? "";
   const otpType = (searchParams.get("type") === "email" ? "email" : "signup") as "email" | "signup";
@@ -136,11 +138,15 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
   const handleVerify = async () => {
     const token = otp.join("");
     if (!email) {
-      flashBanner({ type: "error", title: "Missing email", message: "We couldn't find the email to verify. Please start again." });
+      flashBanner({ type: "error", title: t("otp.missingEmailTitle"), message: t("otp.missingEmailMessage") });
       return;
     }
     if (token.length !== OTP_LENGTH) {
-      flashBanner({ type: "error", title: "Incomplete code", message: `Enter the ${OTP_LENGTH}-digit code we sent to your email.` });
+      flashBanner({
+        type: "error",
+        title: t("otp.incompleteCodeTitle"),
+        message: t("otp.incompleteCodeMessage", { length: OTP_LENGTH }),
+      });
       return;
     }
 
@@ -149,7 +155,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
 
     if (result.error) {
       setIsVerifying(false);
-      flashBanner({ type: "error", title: "Verification failed", message: result.error });
+      flashBanner({ type: "error", title: t("otp.verificationFailedTitle"), message: result.error });
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
       inputRefs.current[0]?.focus();
       return;
@@ -170,12 +176,12 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     setIsResending(false);
 
     if (result.error) {
-      flashBanner({ type: "error", title: "Couldn't resend code", message: result.error });
+      flashBanner({ type: "error", title: t("otp.couldntResendTitle"), message: result.error });
       return;
     }
 
     setSeconds(RESEND_SECONDS);
-    flashBanner({ type: "success", title: "Code sent", message: `We've sent a new code to ${email}.` });
+    flashBanner({ type: "success", title: t("otp.codeSentTitle"), message: t("otp.codeSentMessage", { email }) });
   };
 
   return (
@@ -185,7 +191,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
       {/* Back arrow */}
       <Link href={backHref} className="absolute top-10 left-10 flex items-center gap-[6px] hover:opacity-70 transition-opacity">
         <IconArrowLeft />
-        <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>Back</span>
+        <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>{t("footer.back")}</span>
       </Link>
 
       {/* Centered card */}
@@ -236,7 +242,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
           "
           style={{ ...poppins, fontWeight: 500 }}
         >
-          OTP Verification
+          {t("otp.title")}
         </p>
 
         <p
@@ -250,7 +256,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
           "
           style={{ ...mont, fontWeight: 400 }}
         >
-          We have sent a verification code to email address{" "}
+          {t("otp.subtitlePrefix")}{" "}
           <span
             className="font-medium text-[#0d0d12] break-all"
             style={mont}
@@ -320,7 +326,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
       "
       style={mont}
     >
-      {isVerifying ? "Verifying…" : "Verify"}
+      {isVerifying ? t("otp.verifying") : t("otp.verifyButton")}
     </button>
 
     {/* Resend */}
@@ -336,7 +342,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     >
       {seconds > 0 ? (
         <>
-          Resend code in{" "}
+          {t("otp.resendPrefix")}{" "}
           <span
             className="text-[#1e4f86] font-medium"
             style={mont}
@@ -355,7 +361,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
           "
           style={mont}
         >
-          {isResending ? "Sending…" : "Resend code"}
+          {isResending ? t("otp.sending") : t("otp.resendButton")}
         </button>
       )}
     </p>
@@ -387,7 +393,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     "
     style={{ ...mont, fontWeight: 400 }}
   >
-    © 2026 Ulrich. All rights reserved.
+    {t("footer.copyrightShort")}
   </span>
 
   <div
@@ -403,9 +409,9 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     "
   >
     {[
-      { icon: <IconShield />, label: "Privacy", href: "/privacy-policy" },
-      { icon: <IconFile />, label: "Terms", href: "/terms-conditions" },
-      { icon: <IconHelp />, label: "Get help", href: "/help" },
+      { icon: <IconShield />, label: t("footer.privacy"), href: "/privacy-policy" },
+      { icon: <IconFile />, label: t("footer.terms"), href: "/terms-conditions" },
+      { icon: <IconHelp />, label: t("footer.getHelp"), href: "/help" },
     ].map(({ icon, label, href }) => (
       <Link
         key={label}

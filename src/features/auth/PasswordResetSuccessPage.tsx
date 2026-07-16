@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthLogo } from "./components/AuthLogo";
 
@@ -52,6 +55,7 @@ function IconArrowLeft() {
 }
 
 export function PasswordResetSuccessPageContent() {
+  const { t } = useTranslation("auth");
   const mont = {
     fontFamily: "'Montserrat', sans-serif",
   };
@@ -90,7 +94,7 @@ export function PasswordResetSuccessPageContent() {
                     fontWeight: 600,
                   }}
                 >
-                  Your Password has been Successfully Reset!
+                  {t("resetSuccess.title")}
                 </h1>
 
                 <p
@@ -100,8 +104,7 @@ export function PasswordResetSuccessPageContent() {
                     fontWeight: 400,
                   }}
                 >
-                  Your password has been updated securely. You can now sign in
-                  with your new password.
+                  {t("resetSuccess.subtitle")}
                 </p>
               </div>
 
@@ -110,7 +113,7 @@ export function PasswordResetSuccessPageContent() {
                 className="flex w-full items-center justify-center rounded-[12px] border border-[#1b487a] bg-[#1e4f86] px-4 py-[13px] text-[15px] font-medium leading-[24px] tracking-[-0.15px] text-white transition-colors hover:bg-[#1b487a] sm:py-[14px] sm:text-[16px] sm:tracking-[-0.16px]"
                 style={mont}
               >
-                Sign In
+                {t("resetSuccess.signIn")}
               </Link>
             </div>
           </div>
@@ -129,7 +132,7 @@ export function PasswordResetSuccessPageContent() {
             }}
           >
             <IconArrowLeft />
-            Back to home
+            {t("footer.backToHome")}
           </Link>
 
           <Link
@@ -137,7 +140,7 @@ export function PasswordResetSuccessPageContent() {
             className="whitespace-nowrap text-[14px] font-medium leading-[20px] text-[#2b3038] transition-colors hover:text-[#1e4f86] sm:text-[16px]"
             style={mont}
           >
-            Sign In
+            {t("resetSuccess.signIn")}
           </Link>
         </footer>
       </div>

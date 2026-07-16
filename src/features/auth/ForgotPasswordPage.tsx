@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthBanner } from "./components/AuthBanner";
 import { AuthLogo } from "./components/AuthLogo";
@@ -35,6 +36,7 @@ function IconArrowLeft() {
 }
 
 export function ForgotPasswordPageContent() {
+  const { t } = useTranslation("auth");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [banner, setBanner] = useState<{ type: "error" | "success"; title: string; message: string } | null>(null);
@@ -53,11 +55,15 @@ export function ForgotPasswordPageContent() {
     setIsSubmitting(false);
 
     if (result.error) {
-      flashBanner({ type: "error", title: "Couldn't send reset link", message: result.error });
+      flashBanner({ type: "error", title: t("forgotPassword.couldntSendResetLinkTitle"), message: result.error });
       return;
     }
 
-    flashBanner({ type: "success", title: "Check your email", message: `We've sent a password reset link to ${email}.` });
+    flashBanner({
+      type: "success",
+      title: t("forgotPassword.checkYourEmailTitle"),
+      message: t("forgotPassword.checkYourEmailMessage", { email }),
+    });
   };
 
   return (
@@ -72,7 +78,7 @@ export function ForgotPasswordPageContent() {
             {/* Back link */}
             <Link href="/login" className="flex items-center gap-[6px] mb-4 w-fit hover:opacity-70 transition-opacity">
               <IconArrowLeft />
-              <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>Back</span>
+              <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>{t("footer.back")}</span>
             </Link>
 
             {/* Heading */}
@@ -88,10 +94,10 @@ export function ForgotPasswordPageContent() {
   max-sm:text-[26px]
   max-sm:leading-[34px]
   max-sm:tracking-[-0.26px]" style={{ ...poppins, fontWeight: 600 }}>
-                Reset Password
+                {t("forgotPassword.title")}
               </h1>
               <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#6a7282]" style={{ ...mont, fontWeight: 400 }}>
-                Enter your email to reset your password.
+                {t("forgotPassword.subtitle")}
               </p>
             </div>
 
@@ -100,7 +106,7 @@ export function ForgotPasswordPageContent() {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-[4px]">
                   <label className="flex items-center gap-px text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#2b3038]" style={mont}>
-                    Email Address<span className="text-[#8b5cf6]" style={{ fontFamily: "'Inter', sans-serif" }}>*</span>
+                    {t("forgotPassword.emailLabel")}<span className="text-[#8b5cf6]" style={{ fontFamily: "'Inter', sans-serif" }}>*</span>
                   </label>
                   <div className="flex items-center gap-2 bg-white border border-[#d1d5dc] rounded-[12px] pl-[12px] pr-[10px] py-4 shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus-within:border-[#1e4f86] transition-colors">
                     <IconEnvelope />
@@ -108,7 +114,7 @@ export function ForgotPasswordPageContent() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
+                      placeholder={t("forgotPassword.emailPlaceholder")}
                       className="flex-1 min-w-0 text-[16px] leading-[24px] tracking-[-0.16px] text-[#868c98] placeholder:text-[#868c98] bg-transparent outline-none"
                       style={{ ...mont, fontWeight: 400 }}
                     />
@@ -117,7 +123,7 @@ export function ForgotPasswordPageContent() {
                 <div className="flex items-center gap-2">
                   <IconInfo />
                   <span className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#99a1af]" style={{ ...mont, fontWeight: 400 }}>
-                    Enter the email with which you&apos;ve registered
+                    {t("forgotPassword.emailHint")}
                   </span>
                 </div>
               </div>
@@ -130,7 +136,7 @@ export function ForgotPasswordPageContent() {
                 className="w-full bg-[#1e4f86] border border-[#1b487a] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] px-2 py-[14px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:opacity-60"
                 style={mont}
               >
-                {isSubmitting ? "Sending…" : "Forget Password"}
+                {isSubmitting ? t("forgotPassword.sending") : t("forgotPassword.submitButton")}
               </button>
             </div>
           </div>
@@ -142,7 +148,7 @@ export function ForgotPasswordPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:w-full max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    © 2026 Ulrich Propiedades
+    {t("footer.copyright")}
   </span>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />
@@ -152,7 +158,7 @@ export function ForgotPasswordPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Privacy
+    {t("footer.privacy")}
   </Link>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
@@ -162,7 +168,7 @@ export function ForgotPasswordPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Terms
+    {t("footer.terms")}
   </Link>
 </div>
       </div>

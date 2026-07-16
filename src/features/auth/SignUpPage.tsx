@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { signUpWithPassword } from "./actions";
 import { signInWithOAuth } from "./oauth";
 import { AuthBanner } from "./components/AuthBanner";
@@ -212,6 +213,7 @@ function GoogleLogo() {
 
 export function SignUpPageContent() {
   const router = useRouter();
+  const { t } = useTranslation("auth");
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -234,7 +236,7 @@ export function SignUpPageContent() {
     const result = await signInWithOAuth(provider);
     if (result.error) {
       setIsOAuthSubmitting(false);
-      flashBanner("Sign-in failed", result.error);
+      flashBanner(t("signup.signInFailedTitle"), result.error);
     }
   };
 
@@ -243,8 +245,8 @@ export function SignUpPageContent() {
 
     if (!fullName || !email || !password) {
       setBanner({
-        title: "Missing information",
-        message: "Please fill in your name, email, and password.",
+        title: t("signup.missingInfoTitle"),
+        message: t("signup.missingInfoMessage"),
       });
       setTimeout(() => setBanner(null), 4000);
       return;
@@ -256,7 +258,7 @@ export function SignUpPageContent() {
 
     if (result.error) {
       setBanner({
-        title: "Couldn't create your account",
+        title: t("signup.couldntCreateAccountTitle"),
         message: result.error,
       });
       setTimeout(() => setBanner(null), 5000);
@@ -304,13 +306,13 @@ export function SignUpPageContent() {
                   fontWeight: 600,
                 }}
               >
-                Sign Up
+                {t("signup.title")}
               </h1>
               <p
                 className="text-[18px] leading-[26px] tracking-[-0.18px] text-[#6a7282]"
                 style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 400 }}
               >
-                Sign up to continue to your dashboard
+                {t("signup.subtitle")}
               </p>
             </div>
 
@@ -323,7 +325,7 @@ export function SignUpPageContent() {
                     className="flex items-center gap-[1px] text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#2b3038]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    Full Name
+                    {t("signup.fullNameLabel")}
                     <span
                       className="text-[#8b5cf6]"
                       style={{ fontFamily: "'Inter', sans-serif" }}
@@ -335,7 +337,7 @@ export function SignUpPageContent() {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder={t("signup.fullNamePlaceholder")}
                     className="w-full bg-white border border-[#d1d5dc] rounded-[12px] px-[12px] py-[16px] text-[16px] leading-[24px] tracking-[-0.16px] text-[#868c98] placeholder:text-[#868c98] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] outline-none focus:border-[#1e4f86] focus:ring-0 transition-colors"
                     style={{
                       fontFamily: "'Montserrat', sans-serif",
@@ -350,7 +352,7 @@ export function SignUpPageContent() {
                     className="flex items-center gap-[1px] text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#2b3038]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    Email Address
+                    {t("signup.emailLabel")}
                     <span
                       className="text-[#8b5cf6]"
                       style={{ fontFamily: "'Inter', sans-serif" }}
@@ -364,7 +366,7 @@ export function SignUpPageContent() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
+                      placeholder={t("signup.emailPlaceholder")}
                       className="flex-1 min-w-0 text-[16px] leading-[24px] tracking-[-0.16px] text-[#868c98] placeholder:text-[#868c98] bg-transparent outline-none"
                       style={{
                         fontFamily: "'Montserrat', sans-serif",
@@ -380,7 +382,7 @@ export function SignUpPageContent() {
                     className="flex items-center gap-[1px] text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#2b3038]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    Password
+                    {t("signup.passwordLabel")}
                     <span
                       className="text-[#8b5cf6]"
                       style={{ fontFamily: "'Inter', sans-serif" }}
@@ -421,7 +423,7 @@ export function SignUpPageContent() {
                   className="w-full bg-[#1e4f86] border border-[#1b487a] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] px-[8px] py-[14px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:opacity-60"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  {isSubmitting ? "Creating your account…" : "Sign Up"}
+                  {isSubmitting ? t("signup.creatingAccount") : t("signup.signUpButton")}
                 </button>
               </div>
 
@@ -434,7 +436,7 @@ export function SignUpPageContent() {
                     className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#808284]"
                     style={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
-                    OR
+                    {t("signup.or")}
                   </span>
                   <div className="flex-1 h-px bg-[#e6e6e6]" />
                 </div>
@@ -482,13 +484,13 @@ export function SignUpPageContent() {
                   fontWeight: 500,
                 }}
               >
-                Already have an account?{" "}
+                {t("signup.alreadyHaveAccount")}{" "}
                 <Link
                   href="/login"
                   className="font-medium text-[#1e4f86] underline decoration-solid underline-offset-auto hover:text-[#1b487a]"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  Sign in
+                  {t("signup.signIn")}
                 </Link>
               </p>
             </div>
@@ -501,7 +503,7 @@ export function SignUpPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:text-[12px] max-sm:leading-[18px] max-sm:text-center"
     style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}
   >
-    © 2026 Ulrich Propiedades
+    {t("footer.copyright")}
   </span>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />
@@ -512,7 +514,7 @@ export function SignUpPageContent() {
       className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
       style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}
     >
-      Privacy
+      {t("footer.privacy")}
     </Link>
 
     <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
@@ -522,7 +524,7 @@ export function SignUpPageContent() {
       className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
       style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}
     >
-      Terms
+      {t("footer.terms")}
     </Link>
   </div>
 </div>
@@ -551,7 +553,7 @@ export function SignUpPageContent() {
                 className="text-[32px] leading-[44px] tracking-[-0.32px] text-white"
                 style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}
               >
-                Your Data, Your Control
+                {t("signup.rightPanel.title")}
               </h2>
               <p
                 className="text-[16px] leading-[24px] tracking-[-0.16px] text-white"
@@ -560,8 +562,7 @@ export function SignUpPageContent() {
                   fontWeight: 400,
                 }}
               >
-                We store only what&apos;s needed to run your account. No
-                tracking pixels. No behavioral analytics. No selling your data.
+                {t("signup.rightPanel.body")}
               </p>
             </div>
            <Link
@@ -569,7 +570,7 @@ export function SignUpPageContent() {
               className="text-[16px] leading-[24px] tracking-[-0.16px] font-medium text-white no-underline"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              Read our privacy policy →
+              {t("signup.rightPanel.cta")}
             </Link>
           </div>
 

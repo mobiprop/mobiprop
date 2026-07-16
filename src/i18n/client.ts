@@ -20,6 +20,7 @@ import enDashboardSettings from "./locales/en/dashboardSettings.json";
 import enAccountProfile from "./locales/en/accountProfile.json";
 import enSavedListings from "./locales/en/savedListings.json";
 import enAccountSettings from "./locales/en/accountSettings.json";
+import enAuth from "./locales/en/auth.json";
 
 import esCommon from "./locales/es/common.json";
 import esNavigation from "./locales/es/navigation.json";
@@ -38,6 +39,7 @@ import esDashboardSettings from "./locales/es/dashboardSettings.json";
 import esAccountProfile from "./locales/es/accountProfile.json";
 import esSavedListings from "./locales/es/savedListings.json";
 import esAccountSettings from "./locales/es/accountSettings.json";
+import esAuth from "./locales/es/auth.json";
 
 const resources = {
   en: {
@@ -58,6 +60,7 @@ const resources = {
     accountProfile: enAccountProfile,
     savedListings: enSavedListings,
     accountSettings: enAccountSettings,
+    auth: enAuth,
   },
   es: {
     common: esCommon,
@@ -77,6 +80,7 @@ const resources = {
     accountProfile: esAccountProfile,
     savedListings: esSavedListings,
     accountSettings: esAccountSettings,
+    auth: esAuth,
   },
 };
 
@@ -85,7 +89,7 @@ if (!i18next.isInitialized) {
     resources,
     lng: DEFAULT_LANGUAGE,
     fallbackLng: "es",
-    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings"],
+    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     returnEmptyString: false,

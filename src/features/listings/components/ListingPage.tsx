@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { queryKeys } from "@/lib/query-keys";
@@ -24,12 +25,12 @@ import {
 import type { PublicListingDto } from "../types/listing-dto";
 import { PropertyMapModal } from "@/components/maps/PropertyMapModal";
 import {
-  PROPERTY_TYPE_LABELS,
   formatArea,
   formatBaths,
   formatBeds,
   listingDisplayPrice,
   listingTags,
+  propertyTypeLabel,
 } from "../utils/format";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
@@ -232,13 +233,13 @@ return (
       />
    {/* Tags top-left */}
    <div className="absolute top-4 left-4 flex gap-1">
-      {listingTags(item).map((t) => (
+      {listingTags(item, t).map((tag) => (
       <span
-      key={t}
+      key={tag}
       className="bg-white opacity-90 px-3 py-[4px] rounded-[36px] text-[14px] text-[#0d2138]"
       style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-      {t}
+      {tag}
       </span>
       ))}
    </div>
@@ -262,7 +263,7 @@ return (
    <div className="flex items-center sm:items-start justify-between w-full pb-[10px] border-b border-[#e5e7eb]">
       <div className="flex flex-col gap-[2px]">
          <p
-         className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[32px] truncate max-w-[260px]"
+         className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[24px] line-clamp-2 max-w-[260px]"
          style={{ fontFamily: "Poppins, sans-serif" }}
          >
          {item.title}
@@ -281,7 +282,7 @@ return (
       className="text-[17px] sm:text-[18px] font-semibold text-[#2b3038] leading-[26px] whitespace-nowrap text-right"
       style={{ fontFamily: "Poppins, sans-serif" }}
       >
-      {listingDisplayPrice(item)}
+      {listingDisplayPrice(item, t)}
       </p>
    </div>
    {/* Stats row */}
@@ -301,7 +302,7 @@ return (
          className="text-[14px] text-[#2b3038]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         {formatBeds(item.bedrooms)}
+         {formatBeds(item.bedrooms, t)}
          </span>
       </div>
       <div className="flex items-center gap-[7px]">
@@ -310,7 +311,7 @@ return (
          className="text-[14px] text-[#2b3038]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         {formatBaths(item.bathrooms)}
+         {formatBaths(item.bathrooms, t)}
          </span>
       </div>
    </div>
@@ -423,15 +424,15 @@ return (
 /* ─── filter option catalogs ─── */
 // Built inside the component (not module scope) so labels re-render on language change.
 function getPropertyTypeOptions(
-  t: (key: string) => string,
+  t: TFunction,
 ): { value: PropertyTypeFilter; label: string }[] {
   return [
     { value: "", label: t("filterOptions.allTypes") },
-    { value: "APARTMENT", label: PROPERTY_TYPE_LABELS.APARTMENT },
-    { value: "HOUSE", label: PROPERTY_TYPE_LABELS.HOUSE },
-    { value: "COMMERCIAL_OFFICE", label: PROPERTY_TYPE_LABELS.COMMERCIAL_OFFICE },
-    { value: "LOT", label: PROPERTY_TYPE_LABELS.LOT },
-    { value: "TOWNHOUSE", label: PROPERTY_TYPE_LABELS.TOWNHOUSE },
+    { value: "APARTMENT", label: propertyTypeLabel("APARTMENT", t) },
+    { value: "HOUSE", label: propertyTypeLabel("HOUSE", t) },
+    { value: "COMMERCIAL_OFFICE", label: propertyTypeLabel("COMMERCIAL_OFFICE", t) },
+    { value: "LOT", label: propertyTypeLabel("LOT", t) },
+    { value: "TOWNHOUSE", label: propertyTypeLabel("TOWNHOUSE", t) },
   ];
 }
 function getTransactionOptions(
@@ -490,10 +491,10 @@ function SearchBarDropdown<T extends string>({
         onClick={() => setOpen((o) => !o)}
         className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3 cursor-pointer"
       >
-        <div className="flex items-center gap-[10px] min-w-0">
+        <div className="flex items-center gap-[10px] min-w-0 flex-1">
           {icon}
           <span
-            className={`text-[16px] leading-[24px] whitespace-nowrap max-xl:text-[14px] max-xl:truncate ${
+            className={`text-[16px] leading-[24px] truncate min-w-0 max-xl:text-[14px] ${
               selected && selected.value !== "" ? "text-[#0d2138]" : "text-[#6a7282]"
             }`}
             style={{ fontFamily: "Montserrat, sans-serif" }}

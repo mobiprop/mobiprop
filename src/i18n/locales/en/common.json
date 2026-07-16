@@ -1,6 +1,12 @@
 {
   "getInTouch": "Get in touch",
   "search": "Search",
+  "notFound": {
+    "eyebrow": "OOPS! PAGE NOT FOUND",
+    "title": "We can't seem to find the page you're looking for.",
+    "backHome": "Back to home",
+    "contactSupport": "Contact Support"
+  },
   "consultation": {
     "heading": "Schedule a free consultation",
     "fullName": "Full Name",

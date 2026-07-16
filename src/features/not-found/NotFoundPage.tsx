@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
 export function NotFoundPage() {
+  const { t } = useTranslation("common");
   return (
   <section className="relative flex min-h-[520px] items-center justify-center overflow-hidden lg:min-h-[720px]">
     <p
@@ -24,14 +28,14 @@ export function NotFoundPage() {
           className="text-[14px] font-medium tracking-[-0.14px] text-[#6a7282] sm:text-[18px] sm:tracking-[-0.18px]"
           style={{ fontFamily: poppins }}
         >
-          OOPS! PAGE NOT FOUND
+          {t("notFound.eyebrow")}
         </p>
 
         <h1
           className="text-[26px] font-semibold leading-[30px] tracking-[-0.28px] text-[#0d2138] sm:text-[48px] sm:leading-[1.15] sm:tracking-[-0.64px] lg:text-[64px] lg:leading-[76px]"
           style={{ fontFamily: poppins }}
         >
-          We can&apos;t seem to find the page you&apos;re looking for.
+          {t("notFound.title")}
         </h1>
       </div>
 
@@ -41,7 +45,7 @@ export function NotFoundPage() {
           className="rounded-[40px] bg-[#4896b6] px-5 py-3 text-[14px] font-medium tracking-[-0.14px] text-white transition-colors hover:bg-[#3d7e9b] sm:px-[26px] sm:py-[13px] sm:text-[16px] sm:tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
-          Back to home
+          {t("notFound.backHome")}
         </Link>
 
         <Link
@@ -49,7 +53,7 @@ export function NotFoundPage() {
           className="rounded-[32px] bg-[#1e4f86] px-5 py-3 text-[14px] font-medium tracking-[-0.14px] text-white transition-colors hover:bg-[#1b487a] sm:px-[26px] sm:py-[13px] sm:text-[16px] sm:tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
-          Contact Support
+          {t("notFound.contactSupport")}
         </Link>
       </div>
     </div>
