@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FAQ } from "@/features/home/FAQ";
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
 import { Reveal } from "@/components/common/Reveal";
@@ -43,6 +44,7 @@ function SectionTag({ label, muted = false }: { label: string; muted?: boolean }
 
 /* ─── 1. Hero ─── */
 function HeroBanner() {
+  const { t } = useTranslation("contact");
   return (
     <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
   <div className="absolute inset-0 overflow-hidden">
@@ -82,11 +84,11 @@ function HeroBanner() {
     amount={0.6}
     className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
   >
-    <SectionTag label="Contact Us" />
+    <SectionTag label={t("hero.tag")} />
 
     <SplitHeading
       as="h1"
-      text="Get in Touch with Us"
+      text={t("hero.title")}
       className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
       style={{ fontFamily: poppins }}
       amount={0.6}
@@ -96,8 +98,7 @@ function HeroBanner() {
       className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
       style={{ fontFamily: montserrat }}
     >
-      Whether you&apos;re ready to buy, sell, or have questions about the
-      market, the Ulrich team is here to guide you.
+      {t("hero.subtitle")}
     </p>
   </Reveal>
 </section>
@@ -106,6 +107,7 @@ function HeroBanner() {
 
 /* ─── 2. Contact Card ─── */
 function ContactCard() {
+  const { t } = useTranslation("contact");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -143,32 +145,31 @@ function ContactCard() {
           className="text-[24px] sm:text-[26px] lg:text-[28px] font-semibold text-[#101828] leading-[32px] sm:leading-[34px] lg:leading-[36px] tracking-[-0.28px] mb-2 sm:mb-3"
           style={{ fontFamily: poppins }}
         >
-          Connect with Us:
+          {t("card.heading")}
         </h2>
 
         <p
           className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#4a5565] leading-[21px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.16px] mb-7 sm:mb-8 lg:mb-10 max-w-[420px]"
           style={{ fontFamily: montserrat }}
         >
-          We&apos;re here to assist with buying or selling your home. Send us
-          a message today.
+          {t("card.subtitle")}
         </p>
 
         <div className="flex flex-col gap-6 sm:gap-7 lg:gap-8">
           {[
             {
               icon: iconPhone,
-              label: "Phone Number",
+              label: t("card.info.phoneLabel"),
               value: "+54 9 11 6161 8646",
             },
             {
               icon: iconEmail,
-              label: "Email Address",
+              label: t("card.info.emailLabel"),
               value: "info@ulrichpropiedades.com",
             },
             {
               icon: iconAddress,
-              label: "Address",
+              label: t("card.info.addressLabel"),
               value: "Tortugas Country Club, Buenos Aires, Argentina, 1667",
             },
           ].map(({ icon, label, value }) => (
@@ -217,7 +218,7 @@ function ContactCard() {
             name="name"
             value={form.name}
             onChange={handleChange}
-            placeholder="Full Name*"
+            placeholder={t("card.form.namePlaceholder")}
             className={inputCls}
             style={{ fontFamily: poppins }}
           />
@@ -227,7 +228,7 @@ function ContactCard() {
             type="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="Email Address*"
+            placeholder={t("card.form.emailPlaceholder")}
             className={inputCls}
             style={{ fontFamily: poppins }}
           />
@@ -237,7 +238,7 @@ function ContactCard() {
             type="tel"
             value={form.phone}
             onChange={handleChange}
-            placeholder="Phone Number*"
+            placeholder={t("card.form.phonePlaceholder")}
             className={inputCls}
             style={{ fontFamily: poppins }}
           />
@@ -251,12 +252,12 @@ function ContactCard() {
               style={{ fontFamily: poppins }}
             >
               <option value="" disabled>
-                Service Interested In
+                {t("card.form.serviceDefault")}
               </option>
-              <option value="buying">Buying</option>
-              <option value="selling">Selling</option>
-              <option value="consultation">Consultation</option>
-              <option value="other">Other</option>
+              <option value="buying">{t("card.form.serviceOptions.buying")}</option>
+              <option value="selling">{t("card.form.serviceOptions.selling")}</option>
+              <option value="consultation">{t("card.form.serviceOptions.consultation")}</option>
+              <option value="other">{t("card.form.serviceOptions.other")}</option>
             </select>
 
             <svg
@@ -280,7 +281,7 @@ function ContactCard() {
             name="message"
             value={form.message}
             onChange={handleChange}
-            placeholder="Your Message"
+            placeholder={t("card.form.messagePlaceholder")}
             rows={5}
             className="w-full min-h-[130px] sm:min-h-[145px] bg-[#f8fafc] border border-[#e5e7eb] rounded-[12px] sm:rounded-[14px] px-4 sm:px-5 py-3.5 sm:py-4 text-[14px] sm:text-[16px] text-[#101828] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none"
             style={{ fontFamily: poppins }}
@@ -314,7 +315,7 @@ function ContactCard() {
               className="text-[13px] sm:text-[14px] font-medium text-[#4a5565] leading-[20px]"
               style={{ fontFamily: poppins }}
             >
-              I accept the terms and conditions
+              {t("card.form.terms")}
             </span>
           </label>
 
@@ -323,7 +324,7 @@ function ContactCard() {
             className="w-full sm:w-auto h-[48px] px-8 bg-[#1e4f86] text-white text-[15px] sm:text-[16px] font-medium rounded-[12px] sm:rounded-[14px] hover:bg-[#1a4475] transition-colors whitespace-nowrap"
             style={{ fontFamily: poppins }}
           >
-            Send
+            {t("card.form.submit")}
           </button>
         </div>
       </Reveal>
@@ -335,16 +336,17 @@ function ContactCard() {
 
 /* ─── 3. Location / Map ─── */
 function LocationSection() {
+  const { t } = useTranslation("contact");
   return (
     <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[60px] pt-[50px] sm:pt-[60px] lg:pt-[80px] pb-[50px] sm:pb-[60px] lg:pb-[80px]">
   {/* Heading */}
   <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center max-w-[570px] mx-auto" amount={0.5}>
     <div className="flex flex-col items-center gap-2">
-      <SectionTag label="Location" muted />
+      <SectionTag label={t("location.tag")} muted />
 
       <SplitHeading
         as="h2"
-        text="Let's Talk About Your Real Estate Needs"
+        text={t("location.title")}
         className="text-[26px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[44px] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px]"
         style={{ fontFamily: poppins }}
       />
@@ -354,8 +356,7 @@ function LocationSection() {
       className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[520px]"
       style={{ fontFamily: montserrat }}
     >
-      Whether you&apos;re ready to buy, sell, or have questions about the
-      market, the Ulrich team is here to guide you.
+      {t("location.subtitle")}
     </p>
   </Reveal>
 
@@ -390,7 +391,7 @@ function LocationSection() {
             href={OFFICE_DIRECTIONS_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Get directions"
+            aria-label={t("location.directionsAria")}
             className="w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] bg-[#f3f4f6] rounded-[8px] sm:rounded-[9px] flex items-center justify-center hover:bg-[#e5e7eb] transition-colors"
           >
             <svg
@@ -411,7 +412,7 @@ function LocationSection() {
 
           <button
             type="button"
-            aria-label="View location"
+            aria-label={t("location.viewLocationAria")}
             className="w-[30px] h-[30px] sm:w-[32px] sm:h-[32px] bg-[#f3f4f6] rounded-[8px] sm:rounded-[9px] flex items-center justify-center hover:bg-[#e5e7eb] transition-colors"
           >
             <svg
@@ -469,6 +470,7 @@ function LocationSection() {
 
 /* ─── 5. Consultation Banner (contact-page specific bg) ─── */
 function ConsultationBannerSection() {
+  const { t } = useTranslation("common");
   const [form, setForm] = useState({ name: "", email: "", topic: "", message: "" });
 
   const handleChange = (
@@ -494,7 +496,7 @@ function ConsultationBannerSection() {
         className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-tight mb-5 sm:mb-7"
         style={{ fontFamily: poppins }}
       >
-        Schedule a free consultation
+        {t("consultation.heading")}
       </h2>
 
       <div className="flex flex-col gap-3">
@@ -503,13 +505,13 @@ function ConsultationBannerSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: montserrat }}
           >
-            Full Name
+            {t("consultation.fullName")}
           </label>
           <input
             name="name"
             value={form.name}
             onChange={handleChange}
-            placeholder="eg. Albert Jones"
+            placeholder={t("consultation.fullNamePlaceholder")}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
             style={{ fontFamily: montserrat }}
           />
@@ -520,14 +522,14 @@ function ConsultationBannerSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: montserrat }}
           >
-            Email address
+            {t("consultation.email")}
           </label>
           <input
             name="email"
             type="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="albert@email.com"
+            placeholder={t("consultation.emailPlaceholder")}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
             style={{ fontFamily: montserrat }}
           />
@@ -538,13 +540,13 @@ function ConsultationBannerSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: montserrat }}
           >
-            Topic
+            {t("consultation.topic")}
           </label>
           <input
             name="topic"
             value={form.topic}
             onChange={handleChange}
-            placeholder="Consultation"
+            placeholder={t("consultation.topicPlaceholder")}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
             style={{ fontFamily: montserrat }}
           />
@@ -555,13 +557,13 @@ function ConsultationBannerSection() {
             className="text-[14px] font-medium text-[#0d2138]"
             style={{ fontFamily: montserrat }}
           >
-            Messages
+            {t("consultation.messages")}
           </label>
           <textarea
             name="message"
             value={form.message}
             onChange={handleChange}
-            placeholder="Enter a message"
+            placeholder={t("consultation.messagesPlaceholder")}
             rows={4}
             className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#99a1af] outline-none focus:border-[#1e4f86] transition-colors resize-none"
             style={{ fontFamily: montserrat }}
@@ -588,7 +590,7 @@ function ConsultationBannerSection() {
         />
 
         <span className="relative z-10 flex items-center justify-center gap-3">
-          Book a Free consultation
+          {t("consultation.submit")}
           <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
             <path
               d="M1 7h16M10 1l6 6-6 6"

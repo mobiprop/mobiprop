@@ -1,0 +1,50 @@
+{
+  "hero": {
+    "badge": "Propiedades",
+    "title": "Propiedades de Lujo Destacadas",
+    "subtitle": "Descubrí una amplia variedad de propiedades, desde acogedores departamentos hasta majestuosas mansiones, pensadas para adaptarse a cada necesidad y presupuesto."
+  },
+  "searchBar": {
+    "locationLabel": "Ubicación",
+    "locationPlaceholder": "Ingresá ciudad, zona o dirección",
+    "locationAriaLabel": "Buscar por ubicación",
+    "clearLocationAriaLabel": "Borrar ubicación",
+    "propertyTypeLabel": "Tipo de Propiedad",
+    "propertyTypePlaceholder": "Seleccioná el tipo de propiedad",
+    "transactionTypeLabel": "Tipo de Transacción",
+    "transactionTypePlaceholder": "Seleccioná el tipo de operación",
+    "moreFiltersButton": "Más Filtros",
+    "searchButton": "Buscar Propiedades"
+  },
+  "filterOptions": {
+    "allTypes": "Todos los Tipos",
+    "buyOrRent": "Venta o Alquiler",
+    "buy": "Venta",
+    "rent": "Alquiler"
+  },
+  "results": {
+    "searching": "Buscando propiedades…",
+    "error": "No pudimos cargar las propiedades en este momento",
+    "found_one": "{{count}} propiedad encontrada",
+    "found_other": "{{count}} propiedades encontradas",
+    "mapButton": "Mapa",
+    "emptyErrorTitle": "Algo salió mal",
+    "emptyErrorMessage": "Actualizá la página o intentá nuevamente en un momento.",
+    "emptyNoResultsTitle": "Ninguna propiedad coincide con tu búsqueda",
+    "emptyNoResultsMessage": "Probá ajustar tus filtros o buscar en otra ubicación.",
+    "clearFiltersButton": "Borrar todos los filtros"
+  },
+  "card": {
+    "removeSavedAriaLabel": "Quitar de guardados",
+    "saveAriaLabel": "Guardar propiedad"
+  },
+  "pagination": {
+    "pageOf": "Página {{current}} de {{total}}",
+    "goToPageAriaLabel": "Ir a la página",
+    "pageOption": "Página {{page}}"
+  },
+  "suggestions": {
+    "title": "También te podría interesar",
+    "subtitle": "Contamos con más de 10 años de experiencia en el mercado inmobiliario"
+  }
+}

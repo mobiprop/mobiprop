@@ -1,0 +1,38 @@
+{
+  "hero": {
+    "tag": "Contact Us",
+    "title": "Get in Touch with Us",
+    "subtitle": "Whether you're ready to buy, sell, or have questions about the market, the Ulrich team is here to guide you."
+  },
+  "card": {
+    "heading": "Connect with Us:",
+    "subtitle": "We're here to assist with buying or selling your home. Send us a message today.",
+    "info": {
+      "phoneLabel": "Phone Number",
+      "emailLabel": "Email Address",
+      "addressLabel": "Address"
+    },
+    "form": {
+      "namePlaceholder": "Full Name*",
+      "emailPlaceholder": "Email Address*",
+      "phonePlaceholder": "Phone Number*",
+      "serviceDefault": "Service Interested In",
+      "serviceOptions": {
+        "buying": "Buying",
+        "selling": "Selling",
+        "consultation": "Consultation",
+        "other": "Other"
+      },
+      "messagePlaceholder": "Your Message",
+      "terms": "I accept the terms and conditions",
+      "submit": "Send"
+    }
+  },
+  "location": {
+    "tag": "Location",
+    "title": "Let's Talk About Your Real Estate Needs",
+    "subtitle": "Whether you're ready to buy, sell, or have questions about the market, the Ulrich team is here to guide you.",
+    "directionsAria": "Get directions",
+    "viewLocationAria": "View location"
+  }
+}

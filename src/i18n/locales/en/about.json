@@ -1,0 +1,55 @@
+{
+  "hero": {
+    "badge": "About Us",
+    "title": "Where Global Property Meets Local Expertise",
+    "subtitle": "Discover a wide range of properties, from cozy apartments to luxurious estates, tailored to suit every need and budget."
+  },
+  "ourStory": {
+    "badge": "Our Story",
+    "title": "Finding a Property Should be Exciting, not Overwhelming."
+  },
+  "gallery": {
+    "badge": "Our Gallery",
+    "title": "Property Moments Captured Beautifully",
+    "subtitle": "Explore high quality images reflecting comfort design, location, & everyday living experience."
+  },
+  "expertise": {
+    "badge": "Our Expertise",
+    "title": "Driven by Experience, All About Excellence",
+    "subtitle": "Ulrich brings clarity and confidence to every step of your home-buying journey — combining market insight, design sensibility, and trusted service.",
+    "cards": [
+      {
+        "title": "Property Sales & Consultation",
+        "desc": "Expert guidance through every step — from first inquiry to final handover, ensuring a smooth and confident buying experience."
+      },
+      {
+        "title": "Premium Listing Curation",
+        "desc": "Each property is carefully selected for its design, quality, and comfort reflecting Ulrich commitment to modern minimalist."
+      },
+      {
+        "title": "After-Sales Support",
+        "desc": "Our commitment doesn't end with a sale — we're here to ensure every client feels supported, understood, and valued."
+      }
+    ]
+  },
+  "aboutSection": {
+    "badge": "About Us",
+    "heading": "At Ulrich, every home begins with a promise — a place where modern design meets lasting comfort.",
+    "paragraph1": "Built on trust and guided by integrity, Ulrich was founded to redefine how people experience real estate. We believe that a home should be more than just a property — it should reflect a lifestyle of quality, simplicity, and peace of mind. Through a thoughtful and transparent approach, our team ensures that every client finds a home that truly fits their needs and aspirations.",
+    "paragraph2": "Our commitment goes beyond transactions. We focus on craftsmanship, design, and service that stand the test of time — values that shape every decision we make. At Ulrich, we don't just sell homes; we create experiences built on trust, guided by professionalism, and inspired by modern living.",
+    "stats": [
+      {
+        "label": "Properties sold",
+        "desc": "Over $150M in sales, helping clients find homes and investments with ease and confidence."
+      },
+      {
+        "label": "Happy Clients",
+        "desc": "More than 500 satisfied clients trust us to make their real estate journey smooth and successful."
+      },
+      {
+        "label": "Years of Expertise",
+        "desc": "Over 20 years of experience guiding clients with market insight and professional advice."
+      }
+    ]
+  }
+}

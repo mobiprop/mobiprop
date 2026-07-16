@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
+import { DEFAULT_LANGUAGE, LANGUAGE_COOKIE_NAME, isSupportedLanguage } from "@/i18n/config";
 
 export const metadata: Metadata = {
   title: "Ulrich Propiedades — Your Gateway to Prestige Properties",
@@ -9,13 +11,17 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const storedLang = cookieStore.get(LANGUAGE_COOKIE_NAME)?.value;
+  const lang = isSupportedLanguage(storedLang) ? storedLang : DEFAULT_LANGUAGE;
+
   return (
-    <html lang="es" className="h-full antialiased">
+    <html lang={lang} className="h-full antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -29,7 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <Providers initialLanguage={lang}>{children}</Providers>
       </body>
     </html>
   );

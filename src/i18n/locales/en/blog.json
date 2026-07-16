@@ -1,0 +1,28 @@
+{
+  "listHero": {
+    "badge": "Blog Page",
+    "title": "Insights for the Modern Property Market",
+    "subtitle": "Stay ahead of the curve with expert analysis, local market trends, and comprehensive guides for buyers, sellers, and investors."
+  },
+  "card": {
+    "uncategorized": "Uncategorized",
+    "readMore": "Read More"
+  },
+  "pagination": {
+    "pageOf": "Page {{current}} of {{total}}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "perPage": "9 / page"
+  },
+  "emptyState": "No blog posts published yet. Check back soon.",
+  "singleHero": {
+    "badge": "Blog Post",
+    "title": "Our Blog Posts",
+    "subtitle": "Explore our latest blog posts, where we share insights, market trends, and thoughtful perspectives on real estate."
+  },
+  "back": "Back",
+  "continueReading": {
+    "badge": "More Posts",
+    "title": "Continue Reading"
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 
-import { LANGUAGE_STORAGE_KEY, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n/config";
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n/config";
 
 export function LanguageSwitcher({ className = "" }: { className?: string }) {
   const { i18n } = useTranslation();
@@ -10,8 +10,10 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
 
   function switchTo(lang: SupportedLanguage) {
     if (lang === current) return;
+    // Persisting to localStorage + the language cookie happens centrally in
+    // I18nProvider's `languageChanged` listener, covering every trigger
+    // (this switcher, Settings, Edit Profile) from one place.
     i18n.changeLanguage(lang);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
   }
 
   return (

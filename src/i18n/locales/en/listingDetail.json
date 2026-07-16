@@ -1,0 +1,71 @@
+{
+  "propertyDetails": "Property details",
+  "gallery": {
+    "openGalleryAria": "Open image gallery",
+    "openGalleryAtPhotoAria": "Open image gallery at photo {{number}}",
+    "viewPhotos": "View photos",
+    "moreCount": "+{{count}} more",
+    "photoAlt": "{{title}} view {{number}}"
+  },
+  "share": {
+    "label": "Share:",
+    "facebookAria": "Share on Facebook",
+    "xAria": "Share on X",
+    "instagramAria": "Open Instagram",
+    "linkedinAria": "Share on LinkedIn",
+    "whatsappAria": "Share on WhatsApp",
+    "copyLink": "Copy Link",
+    "copied": "Copied!"
+  },
+  "save": {
+    "save": "Save",
+    "saved": "Saved",
+    "saveAria": "Save property",
+    "removeAria": "Remove from saved"
+  },
+  "sections": {
+    "description": "Description",
+    "featuresAmenities": "Features & Amenities",
+    "videoPreview": "Video Preview",
+    "onTheMap": "On the Map"
+  },
+  "stats": {
+    "type": "Type",
+    "price": "Price",
+    "beds": "Beds",
+    "baths": "Baths",
+    "size": "Size",
+    "parking": "Parking",
+    "lotSize": "Lot Size",
+    "coveredM2": "Covered m²",
+    "semiCoveredM2": "Semi-covered m²",
+    "lotFrontage": "Lot Frontage",
+    "lotDepth": "Lot Depth",
+    "builtIn": "Built in",
+    "floors": "Floors",
+    "propertyId": "Property ID",
+    "oneStory": "1 story",
+    "storiesCount": "{{count}} stories",
+    "copyPropertyIdAria": "Copy property ID"
+  },
+  "video": {
+    "previewNotAvailable": "Preview Not Available",
+    "playAria": "Play video preview for {{title}}",
+    "playerTitle": "{{title}} — video preview"
+  },
+  "map": {
+    "reviewsCount": "{{count}} reviews"
+  },
+  "badges": {
+    "saleAndRent": "For Sale & Rent"
+  },
+  "agentCard": {
+    "role": "Listing Agent",
+    "ourTeam": "our team",
+    "heading": "Ready to see this property",
+    "ctaTextBefore": "Book a private tour or send a message directly to",
+    "ctaTextAfter": "No commitment needed",
+    "scheduleVisit": "Schedule a Visit",
+    "sendInquiry": "Send Inquiry"
+  }
+}
