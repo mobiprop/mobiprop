@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { User, Lock, Bell, Shield, Globe, type LucideIcon } from "lucide-react";
 
 import type { Profile } from "@/generated/prisma/client";
@@ -15,12 +16,12 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 type SettingsTab = "profile" | "security" | "notifications" | "privacy" | "preferences";
 
-const TABS: { id: SettingsTab; label: string; icon: LucideIcon }[] = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "security", label: "Security", icon: Lock },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "privacy", label: "Privacy", icon: Shield },
-  { id: "preferences", label: "Preferences", icon: Globe },
+const TABS: { id: SettingsTab; icon: LucideIcon }[] = [
+  { id: "profile", icon: User },
+  { id: "security", icon: Lock },
+  { id: "notifications", icon: Bell },
+  { id: "privacy", icon: Shield },
+  { id: "preferences", icon: Globe },
 ];
 
 type SettingsPageProps = {
@@ -28,6 +29,7 @@ type SettingsPageProps = {
 };
 
 export function SettingsPage({ profile }: SettingsPageProps) {
+  const { t } = useTranslation("dashboardSettings");
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
  return (
@@ -39,14 +41,14 @@ export function SettingsPage({ profile }: SettingsPageProps) {
           className="text-[20px] font-semibold leading-8 text-[#0d2138]"
           style={poppins}
         >
-          Settings
+          {t("pageTitle")}
         </h1>
 
         <p
           className="text-[14px] leading-5 text-[#6a7282]"
           style={mont}
         >
-          Manage your account and preferences
+          {t("pageSubtitle")}
         </p>
       </div>
 
@@ -55,7 +57,7 @@ export function SettingsPage({ profile }: SettingsPageProps) {
         {/* Settings navigation */}
         <nav
           role="tablist"
-          aria-label="Settings navigation"
+          aria-label={t("navAria")}
           className="
             flex w-full min-w-0 gap-2 overflow-x-auto
             rounded-[14px] border border-[#e5e7eb]
@@ -112,7 +114,7 @@ export function SettingsPage({ profile }: SettingsPageProps) {
                   className="shrink-0"
                 />
 
-                <span>{tab.label}</span>
+                <span>{t(`tabs.${tab.id}`)}</span>
               </button>
             );
           })}

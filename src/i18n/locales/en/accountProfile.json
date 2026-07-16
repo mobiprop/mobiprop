@@ -1,0 +1,54 @@
+{
+  "hero": {
+    "addPhoto": "Add Photo",
+    "premiumMemberJoined": "Premium Member · Joined {{date}}",
+    "editProfile": "Edit Profile",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "addPhoneNumber": "Add phone number",
+    "locationLabel": "Location",
+    "addLocation": "Add location",
+    "activeBuyer": "Active Buyer",
+    "verifiedAccount": "Verified Account",
+    "savedProperty_one": "{{count}} Saved Property",
+    "savedProperty_other": "{{count}} Saved Properties",
+    "activeInquiries_one": "{{count}} Active Inquiry",
+    "activeInquiries_other": "{{count}} Active Inquiries"
+  },
+  "card": {
+    "removeSavedAria": "Remove from saved",
+    "rent": "Rent",
+    "sale": "Sale"
+  },
+  "tabs": {
+    "savedProperties": "Saved Properties",
+    "myContracts": "My Contracts",
+    "scheduledTours": "Scheduled tours"
+  },
+  "tours": {
+    "durationMinutes": "{{count}} min",
+    "agentLabel": "Agent:",
+    "reasonLabel": "Reason:",
+    "cancelTour": "Cancel tour",
+    "empty": "No scheduled tours yet.",
+    "browseListingsToBook": "Browse listings",
+    "browseListingsToBookSuffix": "to book a visit."
+  },
+  "contracts": {
+    "role": {
+      "BUYER": "Buyer",
+      "SELLER": "Seller",
+      "AGENCY": "Agency"
+    },
+    "sent": "Sent {{date}}",
+    "signed": "Signed {{date}}",
+    "roleLabel": "Role:",
+    "opportunityLabel": "Opportunity:",
+    "viewDownload": "View / Download document",
+    "empty": "No contracts found."
+  },
+  "savedProperties": {
+    "empty": "No saved properties yet.",
+    "browseListings": "Browse listings"
+  }
+}

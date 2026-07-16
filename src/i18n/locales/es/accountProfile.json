@@ -1,0 +1,54 @@
+{
+  "hero": {
+    "addPhoto": "Agregar Foto",
+    "premiumMemberJoined": "Miembro Premium · Desde {{date}}",
+    "editProfile": "Editar Perfil",
+    "emailLabel": "Correo Electrónico",
+    "phoneLabel": "Teléfono",
+    "addPhoneNumber": "Agregar número de teléfono",
+    "locationLabel": "Ubicación",
+    "addLocation": "Agregar ubicación",
+    "activeBuyer": "Comprador Activo",
+    "verifiedAccount": "Cuenta Verificada",
+    "savedProperty_one": "{{count}} Propiedad Guardada",
+    "savedProperty_other": "{{count}} Propiedades Guardadas",
+    "activeInquiries_one": "{{count}} Consulta Activa",
+    "activeInquiries_other": "{{count}} Consultas Activas"
+  },
+  "card": {
+    "removeSavedAria": "Quitar de guardados",
+    "rent": "Alquiler",
+    "sale": "Venta"
+  },
+  "tabs": {
+    "savedProperties": "Propiedades Guardadas",
+    "myContracts": "Mis Contratos",
+    "scheduledTours": "Visitas Agendadas"
+  },
+  "tours": {
+    "durationMinutes": "{{count}} min",
+    "agentLabel": "Agente:",
+    "reasonLabel": "Motivo:",
+    "cancelTour": "Cancelar visita",
+    "empty": "Todavía no hay visitas agendadas.",
+    "browseListingsToBook": "Explorá las propiedades",
+    "browseListingsToBookSuffix": "para reservar una visita."
+  },
+  "contracts": {
+    "role": {
+      "BUYER": "Comprador",
+      "SELLER": "Vendedor",
+      "AGENCY": "Inmobiliaria"
+    },
+    "sent": "Enviado el {{date}}",
+    "signed": "Firmado el {{date}}",
+    "roleLabel": "Rol:",
+    "opportunityLabel": "Oportunidad:",
+    "viewDownload": "Ver / Descargar documento",
+    "empty": "No se encontraron contratos."
+  },
+  "savedProperties": {
+    "empty": "Todavía no hay propiedades guardadas.",
+    "browseListings": "Explorá las propiedades"
+  }
+}

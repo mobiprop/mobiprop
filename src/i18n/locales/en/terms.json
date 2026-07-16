@@ -1,0 +1,91 @@
+{
+  "hero": {
+    "title": "Terms & Conditions",
+    "lastUpdated": "Last updated: October 15, 2023"
+  },
+  "sections": [
+    {
+      "heading": "1. Acceptance of terms",
+      "intro": "By accessing the Ulrich Propiedades website, submitting property information, contacting our agents, or using any tools (such as home valuations or neighborhood guides), you confirm that:",
+      "items": [
+        "You are at least 18 years old.",
+        "You agree to comply with these Terms and Conditions.",
+        "You are using the website for lawful purposes only."
+      ],
+      "outro": "If you do not meet these conditions, you may not use our services."
+    },
+    {
+      "heading": "2. Services we provide",
+      "intro": "Ulrich Propiedades offers property-related resources including:",
+      "items": [
+        "Residential and commercial property listings",
+        "Home valuation tools",
+        "Neighborhood information",
+        "Agent profiles and contact services",
+        "Property submission features",
+        "Guides, news, and blog content"
+      ],
+      "outro": "We may update, change, or discontinue parts of the platform at any time without prior notice."
+    },
+    {
+      "heading": "3. User responsibilities",
+      "intro": "When using our website, you agree that:",
+      "items": [
+        "All information you submit is accurate and truthful.",
+        "You will not upload false, misleading, or fraudulent property details.",
+        "You will not attempt to hack, disrupt, or misuse the website.",
+        "You will not impersonate an agent, homeowner, or another user."
+      ],
+      "outro": "Any misuse may result in restricted access or removal of submitted content."
+    },
+    {
+      "heading": "4. Property listings and accuracy",
+      "intro": "Ulrich Propiedades strives to provide the most accurate and up-to-date information, but:",
+      "items": [
+        "Property details may change without notice",
+        "Prices, availability, and features are not guaranteed",
+        "Images may be representative and not always exact"
+      ],
+      "outro": "We encourage users to verify information independently before making decisions."
+    },
+    {
+      "heading": "5. Agent contact and communication",
+      "intro": "By contacting an agent through the website, you agree that:",
+      "items": [
+        "Ulrich Propiedades may forward your details to the appropriate agent.",
+        "Agents may contact you via email or phone.",
+        "You are requesting property-related assistance voluntarily."
+      ],
+      "outro": "We do not guarantee specific response times or outcomes."
+    },
+    {
+      "heading": "6. Third-party links and resources",
+      "intro": "Ulrich Propiedades may link to outside resources or listing platforms. These external sites:",
+      "items": [
+        "Are not controlled by Ulrich Propiedades",
+        "Have their own privacy and legal policies",
+        "Are used at your own discretion"
+      ],
+      "outro": "We are not responsible for any issues arising from third-party websites."
+    }
+  ],
+  "contact": {
+    "heading": "7. Contact information",
+    "intro": "If you have questions about these Terms and Conditions, you can reach us at:",
+    "orVia": "or via our",
+    "contactUsLink": "Contact Us",
+    "page": "page."
+  },
+  "consultation": {
+    "heading": "Schedule a free consultation",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "eg. Albert Jones",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "albert@email.com",
+    "topicLabel": "Topic",
+    "topicPlaceholder": "Consultation",
+    "messageLabel": "Messages",
+    "messagePlaceholder": "Enter a message",
+    "submitButton": "Book a Free consultation"
+  }
+}

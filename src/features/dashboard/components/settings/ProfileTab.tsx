@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Camera, Save } from "lucide-react";
 
 import { updateProfile } from "@/features/profile/actions";
@@ -21,6 +22,7 @@ type ProfileTabProps = {
 };
 
 export function ProfileTab({ profile }: ProfileTabProps) {
+  const { t } = useTranslation("dashboardSettings");
   const [firstName, setFirstName] = useState(profile.fullName?.split(" ")[0] ?? "");
   const [lastName, setLastName] = useState(profile.fullName?.split(" ").slice(1).join(" ") ?? "");
   const [phone, setPhone] = useState(profile.phone ?? "");
@@ -43,11 +45,11 @@ export function ProfileTab({ profile }: ProfileTabProps) {
     if (!file) return;
 
     if (file.size > MAX_AVATAR_SIZE) {
-      setError("Image must be smaller than 5MB.");
+      setError(t("profile.errors.imageTooLarge"));
       return;
     }
     if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
-      setError("Image must be a PNG, JPEG, WEBP or GIF.");
+      setError(t("profile.errors.imageBadType"));
       return;
     }
 
@@ -62,11 +64,11 @@ export function ProfileTab({ profile }: ProfileTabProps) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!firstName.trim()) {
-      setError("First name is required.");
+      setError(t("profile.errors.firstNameRequired"));
       return;
     }
     if (!lastName.trim()) {
-      setError("Last name is required.");
+      setError(t("profile.errors.lastNameRequired"));
       return;
     }
 
@@ -93,7 +95,7 @@ export function ProfileTab({ profile }: ProfileTabProps) {
       }
       setSuccess(true);
     } catch {
-      setError("Something went wrong while saving. Please try again.");
+      setError(t("profile.errors.generic"));
     } finally {
       setIsSaving(false);
     }
@@ -112,7 +114,7 @@ return (
       className="text-[14px] font-semibold leading-7 text-[#0d2138] sm:text-[16px]"
       style={mont}
     >
-      Profile Settings
+      {t("profile.title")}
     </h1>
 
     {/* Profile information */}
@@ -142,7 +144,7 @@ return (
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          aria-label="Change profile picture"
+          aria-label={t("profile.changePhotoAria")}
           className="absolute -bottom-0.5 -right-0.5 flex size-8 items-center justify-center rounded-full border-[3px] border-white bg-white text-[#1e4f86] shadow-[0_1px_4px_rgba(15,23,42,0.16)] transition-colors hover:bg-[#eff6ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
         >
           <Camera size={14} strokeWidth={2} />
@@ -188,7 +190,7 @@ return (
             className={labelClass}
             style={mont}
           >
-            First Name
+            {t("profile.firstNameLabel")}
           </label>
 
           <input
@@ -198,7 +200,7 @@ return (
             onChange={(event) =>
               setFirstName(event.target.value)
             }
-            placeholder="Enter first name"
+            placeholder={t("profile.firstNamePlaceholder")}
             autoComplete="given-name"
             className={inputClass}
             style={mont}
@@ -211,7 +213,7 @@ return (
             className={labelClass}
             style={mont}
           >
-            Last Name
+            {t("profile.lastNameLabel")}
           </label>
 
           <input
@@ -221,7 +223,7 @@ return (
             onChange={(event) =>
               setLastName(event.target.value)
             }
-            placeholder="Enter last name"
+            placeholder={t("profile.lastNamePlaceholder")}
             autoComplete="family-name"
             className={inputClass}
             style={mont}
@@ -236,7 +238,7 @@ return (
           className={labelClass}
           style={mont}
         >
-          Email
+          {t("profile.emailLabel")}
         </label>
 
         <input
@@ -256,7 +258,7 @@ return (
           className={labelClass}
           style={mont}
         >
-          Phone
+          {t("profile.phoneLabel")}
         </label>
 
         <input
@@ -266,7 +268,7 @@ return (
           onChange={(event) =>
             setPhone(event.target.value)
           }
-          placeholder="+54 11 5555-1234"
+          placeholder={t("profile.phonePlaceholder")}
           autoComplete="tel"
           className={inputClass}
           style={mont}
@@ -280,7 +282,7 @@ return (
           className={labelClass}
           style={mont}
         >
-          Bio
+          {t("profile.bioLabel")}
         </label>
 
         <textarea
@@ -290,7 +292,7 @@ return (
             setBio(event.target.value)
           }
           rows={5}
-          placeholder="Write a short bio..."
+          placeholder={t("profile.bioPlaceholder")}
           className="min-h-[85px] w-full min-w-0 resize-y rounded-[10px] border border-[#ccd4df] bg-white px-3.5 py-3 text-[14px] leading-6 text-[#2b3038] outline-none transition-all placeholder:text-[#8d97a6] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 sm:min-h-[110px]"
           style={mont}
         />
@@ -314,7 +316,7 @@ return (
           className="rounded-[10px] border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-[14px] leading-5 text-[#008236]"
           style={mont}
         >
-          Profile updated successfully.
+          {t("profile.success")}
         </div>
       )}
 
@@ -328,7 +330,7 @@ return (
         >
           <Save size={16} className="shrink-0" />
 
-          {isSaving ? "Saving..." : "Save Changes"}
+          {isSaving ? t("profile.saving") : t("profile.saveChanges")}
         </button>
       </div>
     </form>

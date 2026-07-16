@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { EditProfileModal } from "./EditProfileModal";
@@ -92,6 +93,7 @@ function SavedCard({
   listing: SavedListing;
   onRemove: (id: string) => void;
 }) {
+  const { t } = useTranslation("accountProfile");
   const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -107,7 +109,7 @@ function SavedCard({
   const typeLabel =
     PROPERTY_TYPE_LABELS[listing.type as keyof typeof PROPERTY_TYPE_LABELS] ??
     listing.type;
-  const opLabel = listing.operationType === "RENT" ? "Rent" : "Sale";
+  const opLabel = listing.operationType === "RENT" ? t("card.rent") : t("card.sale");
 
   return (
     <Link
@@ -123,7 +125,7 @@ function SavedCard({
         {/* Remove / unsave button */}
         <button
           onClick={handleRemove}
-          aria-label="Remove from saved"
+          aria-label={t("card.removeSavedAria")}
           className="absolute right-[12px] top-[12px] flex h-[32px] w-[32px] items-center justify-center rounded-full bg-white shadow-sm hover:bg-[#fff0f0] transition-colors sm:right-[16px] sm:top-[16px]"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="#e74c3c">
@@ -212,6 +214,7 @@ function SavedCard({
 
 /* ─── Hero / Profile Card ─── */
 function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; onEditClick: () => void; savedCount: number }) {
+  const { t } = useTranslation("accountProfile");
   const displayName = profile.fullName?.trim() || profile.email;
   const joinedLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(profile.createdAt);
   const locationLabel = [profile.city, profile.country].filter(Boolean).join(", ");
@@ -283,7 +286,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
               style={{ fontFamily: montserrat }}
             >
               <IconUpload />
-              Add Photo
+              {t("hero.addPhoto")}
             </span>
           </button>
         )}
@@ -304,7 +307,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
               className="text-center text-[14px] leading-[22px] tracking-[-0.14px] text-[#6a7282] sm:text-[17px] sm:leading-[26px] lg:text-left lg:text-[18px]"
               style={{ fontFamily: poppins }}
             >
-              Premium Member · Joined {joinedLabel}
+              {t("hero.premiumMemberJoined", { date: joinedLabel })}
             </p>
 
             <div className="mt-2 flex items-center justify-center lg:absolute lg:right-0 lg:top-0 lg:mt-0 lg:justify-start">
@@ -323,7 +326,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
                   className="whitespace-nowrap text-[14px] font-medium leading-[20px] tracking-[-0.14px] text-[#0d2138]"
                   style={{ fontFamily: montserrat }}
                 >
-                  Edit Profile
+                  {t("hero.editProfile")}
                 </span>
               </button>
             </div>
@@ -345,7 +348,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
                   className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282]"
                   style={{ fontFamily: montserrat }}
                 >
-                  Email
+                  {t("hero.emailLabel")}
                 </span>
 
                 <span
@@ -371,7 +374,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
                   className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282]"
                   style={{ fontFamily: montserrat }}
                 >
-                  Phone
+                  {t("hero.phoneLabel")}
                 </span>
 
                 {profile.phone ? (
@@ -388,7 +391,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
                     className="text-left text-[14px] font-medium leading-[24px] text-[#1e4f86] hover:underline"
                     style={{ fontFamily: montserrat }}
                   >
-                    Add phone number
+                    {t("hero.addPhoneNumber")}
                   </button>
                 )}
               </div>
@@ -408,7 +411,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
                   className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282]"
                   style={{ fontFamily: montserrat }}
                 >
-                  Location
+                  {t("hero.locationLabel")}
                 </span>
 
                 {locationLabel ? (
@@ -425,7 +428,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
                     className="text-left text-[14px] font-medium leading-[24px] text-[#1e4f86] hover:underline"
                     style={{ fontFamily: montserrat }}
                   >
-                    Add location
+                    {t("hero.addLocation")}
                   </button>
                 )}
               </div>
@@ -440,7 +443,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
             style={{ fontFamily: poppins }}
           >
             <UserRound size={16} strokeWidth={1.8} />
-            Active Buyer
+            {t("hero.activeBuyer")}
           </span>
 
           <span
@@ -448,7 +451,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
             style={{ fontFamily: montserrat }}
           >
             <BadgeCheck size={16} strokeWidth={1.8} />
-            Verified Account
+            {t("hero.verifiedAccount")}
           </span>
 
           <span
@@ -456,7 +459,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
             style={{ fontFamily: montserrat }}
           >
             <Bookmark size={16} strokeWidth={1.8} />
-            {savedCount} {savedCount === 1 ? "Saved Property" : "Saved Properties"}
+            {t("hero.savedProperty", { count: savedCount })}
           </span>
 
           <span
@@ -464,7 +467,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
             style={{ fontFamily: montserrat }}
           >
             <MessageSquare size={16} strokeWidth={1.8} />
-            2 Active Inquiries
+            {t("hero.activeInquiries", { count: 2 })}
           </span>
         </div>
       </div>
@@ -475,10 +478,18 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
 }
 
 /* ─── Tabs + Saved Properties ─── */
+// Stable English values drive `activeTab` state/comparisons; the rendered
+// label comes from the "accountProfile" i18n namespace via TAB_I18N_KEY.
 const tabs = ["Saved Properties", "My Contracts", "Scheduled tours"] as const;
 type Tab = (typeof tabs)[number];
+const TAB_I18N_KEY: Record<Tab, string> = {
+  "Saved Properties": "tabs.savedProperties",
+  "My Contracts": "tabs.myContracts",
+  "Scheduled tours": "tabs.scheduledTours",
+};
 
 function TourCard({ tour, onCancel }: { tour: MyTourDto; onCancel: (id: string) => void }) {
+  const { t } = useTranslation("accountProfile");
   const badge = TOUR_STATUS_BADGE[tour.status];
   const isTerminal = tour.status === "COMPLETED" || tour.status === "CANCELLED" || tour.status === "NO_SHOW";
   return (
@@ -490,11 +501,11 @@ function TourCard({ tour, onCancel }: { tour: MyTourDto; onCancel: (id: string) 
             {format(new Date(tour.scheduledAt), "MMM d, yyyy")}
           </span>
           <span className="text-[13px] text-[#6b7280]" style={{ fontFamily: montserrat }}>
-            {format(new Date(tour.scheduledAt), "h:mm a")} · {tour.durationMinutes} min
+            {format(new Date(tour.scheduledAt), "h:mm a")} · {t("tours.durationMinutes", { count: tour.durationMinutes })}
           </span>
         </div>
         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.text, fontFamily: montserrat }}>
-          {badge.label}
+          {t(`dashboard:tourStatus.${tour.status}`, { defaultValue: badge.label })}
         </span>
       </div>
       {tour.property && (
@@ -510,11 +521,11 @@ function TourCard({ tour, onCancel }: { tour: MyTourDto; onCancel: (id: string) 
       )}
       {tour.assignedAgent && (
         <p className="text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>
-          Agent: <span className="font-medium text-[#0d2138]">{tour.assignedAgent.fullName ?? tour.assignedAgent.email}</span>
+          {t("tours.agentLabel")} <span className="font-medium text-[#0d2138]">{tour.assignedAgent.fullName ?? tour.assignedAgent.email}</span>
         </p>
       )}
       {tour.cancellationReason && (
-        <p className="text-[12px] text-[#dc2626]" style={{ fontFamily: montserrat }}>Reason: {tour.cancellationReason}</p>
+        <p className="text-[12px] text-[#dc2626]" style={{ fontFamily: montserrat }}>{t("tours.reasonLabel")} {tour.cancellationReason}</p>
       )}
       {!isTerminal && (
         <button
@@ -522,20 +533,15 @@ function TourCard({ tour, onCancel }: { tour: MyTourDto; onCancel: (id: string) 
           className="self-start text-[12px] text-[#dc2626] hover:underline"
           style={{ fontFamily: montserrat }}
         >
-          Cancel tour
+          {t("tours.cancelTour")}
         </button>
       )}
     </div>
   );
 }
 
-const CONTRACT_ROLE_LABEL: Record<NonNullable<MyContractDto["role"]>, string> = {
-  BUYER: "Buyer",
-  SELLER: "Seller",
-  AGENCY: "Agency",
-};
-
 function ContractCard({ contract }: { contract: MyContractDto }) {
+  const { t } = useTranslation("accountProfile");
   const badge = CONTRACT_STATUS_BADGE[contract.status];
   return (
     <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-5 flex flex-col gap-3">
@@ -547,14 +553,14 @@ function ContractCard({ contract }: { contract: MyContractDto }) {
           </span>
         </div>
         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.text, fontFamily: montserrat }}>
-          {badge.label}
+          {t(`dashboard:envelopeStatus.${contract.status}`, { defaultValue: badge.label })}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>
-        <span>Sent {format(new Date(contract.sentAt), "MMM d, yyyy")}</span>
-        {contract.completedAt && <span>Signed {format(new Date(contract.completedAt), "MMM d, yyyy")}</span>}
-        {contract.role && <span>Role: <span className="font-medium text-[#0d2138]">{CONTRACT_ROLE_LABEL[contract.role]}</span></span>}
-        {contract.opportunityNumber && <span>Opportunity: <span className="font-medium text-[#0d2138]">{contract.opportunityNumber}</span></span>}
+        <span>{t("contracts.sent", { date: format(new Date(contract.sentAt), "MMM d, yyyy") })}</span>
+        {contract.completedAt && <span>{t("contracts.signed", { date: format(new Date(contract.completedAt), "MMM d, yyyy") })}</span>}
+        {contract.role && <span>{t("contracts.roleLabel")} <span className="font-medium text-[#0d2138]">{t(`contracts.role.${contract.role}`)}</span></span>}
+        {contract.opportunityNumber && <span>{t("contracts.opportunityLabel")} <span className="font-medium text-[#0d2138]">{contract.opportunityNumber}</span></span>}
       </div>
       {contract.propertyReference && (
         <p className="text-[12px] text-[#6b7280]" style={{ fontFamily: montserrat }}>{contract.propertyReference}</p>
@@ -568,7 +574,7 @@ function ContractCard({ contract }: { contract: MyContractDto }) {
           className="inline-flex w-fit items-center gap-1.5 text-[12px] font-medium text-[#4f46e5] hover:underline"
           style={{ fontFamily: montserrat }}
         >
-          <Download size={13} /> View / Download document
+          <Download size={13} /> {t("contracts.viewDownload")}
         </a>
       )}
     </div>
@@ -586,6 +592,7 @@ function SavedPropertiesSection({
   onRemove: (id: string) => void;
   profileId: string;
 }) {
+  const { t } = useTranslation("accountProfile");
   const [activeTab, setActiveTab] = useState<Tab>("Saved Properties");
   const { data: toursData, isLoading: toursLoading } = useMyToursQuery(profileId);
   const cancelTour = useCancelMyTourMutation(profileId);
@@ -621,7 +628,7 @@ function SavedPropertiesSection({
                   }`}
                   style={{ fontFamily: poppins }}
                 >
-                  {tab}
+                  {t(TAB_I18N_KEY[tab])}
                 </span>
               </button>
             );
@@ -650,9 +657,9 @@ function SavedPropertiesSection({
                   <Heart size={28} className="text-[#d1d5dc]" />
                 </div>
                 <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
-                  No saved properties yet.{" "}
+                  {t("savedProperties.empty")}{" "}
                   <Link href="/listings" className="text-[#1a4878] hover:underline">
-                    Browse listings
+                    {t("savedProperties.browseListings")}
                   </Link>
                 </p>
               </div>
@@ -681,7 +688,7 @@ function SavedPropertiesSection({
                   <FileText size={28} className="text-[#d1d5dc]" />
                 </div>
                 <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
-                  No contracts found.
+                  {t("contracts.empty")}
                 </p>
               </div>
             ) : (
@@ -709,8 +716,8 @@ function SavedPropertiesSection({
                   <Calendar size={28} className="text-[#d1d5dc]" />
                 </div>
                 <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
-                  No scheduled tours yet.{" "}
-                  <a href="/listings" className="text-[#1a4878] hover:underline">Browse listings</a> to book a visit.
+                  {t("tours.empty")}{" "}
+                  <a href="/listings" className="text-[#1a4878] hover:underline">{t("tours.browseListingsToBook")}</a> {t("tours.browseListingsToBookSuffix")}
                 </p>
               </div>
             ) : (

@@ -67,5 +67,42 @@
     "ctaTextAfter": "No commitment needed",
     "scheduleVisit": "Schedule a Visit",
     "sendInquiry": "Send Inquiry"
+  },
+  "tourModal": {
+    "title": "Schedule a Visit",
+    "success": {
+      "heading": "Tour Requested!",
+      "reference": "Reference:",
+      "confirmNote": "Our team will confirm your appointment shortly.",
+      "done": "Done"
+    },
+    "form": {
+      "fullNameLabel": "Full Name *",
+      "fullNamePlaceholder": "Your full name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+54 9...",
+      "preferredDateLabel": "Preferred Date *",
+      "timeLabel": "Time *",
+      "durationLabel": "Duration",
+      "duration30": "30 min",
+      "duration45": "45 min",
+      "duration60": "1 hour",
+      "duration90": "1.5 hours",
+      "duration120": "2 hours",
+      "messageLabel": "Message (optional)",
+      "messagePlaceholder": "Any questions or special requests…",
+      "availableTimesInstead": "Available times instead:",
+      "submitButton": "Request Tour",
+      "disclaimer": "No commitment needed. Our agent will confirm your appointment."
+    },
+    "errors": {
+      "nameRequired": "Your name is required.",
+      "contactRequired": "Please provide at least an email or phone number.",
+      "timeRequired": "Please choose a time.",
+      "futureDateRequired": "Please choose a future date and time.",
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }

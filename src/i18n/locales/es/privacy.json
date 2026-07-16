@@ -1,0 +1,69 @@
+{
+  "hero": {
+    "tag": "Privacidad",
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización: 15 de octubre de 2023"
+  },
+  "intro": {
+    "breadcrumb": "Política de Privacidad",
+    "heading": "Priorizamos tu privacidad y nos aseguramos de que tus datos estén protegidos en cada interacción.",
+    "body1": "Este aviso de privacidad de Ulrich Propiedades (“Ulrich Propiedades”, “la Empresa”, “nosotros” o “nuestro”) describe cómo y por qué podríamos recopilar, almacenar, usar y/o compartir (“procesar”) tu información cuando utilizás nuestros servicios (“Servicios”), por ejemplo cuando:",
+    "visitWebsitePre": "Visitás nuestro sitio web en",
+    "visitWebsitePost": ", o cualquier sitio nuestro que enlace a este aviso de privacidad",
+    "engageOtherWays": "Interactuás con nosotros de otras formas relacionadas, incluyendo ventas, marketing o eventos",
+    "body2Pre": "¿Preguntas o inquietudes? Leer este aviso de privacidad te ayudará a comprender tus derechos y opciones en materia de privacidad. Si no estás de acuerdo con nuestras políticas y prácticas, te pedimos que no utilices nuestros Servicios. Si aun así tenés preguntas o inquietudes, podés contactarnos en",
+    "body2Post": "."
+  },
+  "summary": {
+    "heading": "Resumen de puntos clave",
+    "p1": "Este resumen presenta los puntos clave de nuestro aviso de privacidad, pero podés conocer más detalles sobre cada tema haciendo clic en el enlace que sigue a cada punto, o usando nuestro índice a continuación para encontrar la sección que buscás. También podés hacer clic aquí para ir directamente al índice.",
+    "p2": "¿Qué información personal procesamos? Cuando visitás, usás o navegás nuestros Servicios, podemos procesar información personal según cómo interactúes con Ulrich Propiedades y los Servicios, las decisiones que tomes, y los productos y funciones que uses. Hacé clic aquí para saber más.",
+    "p3": "¿Procesamos información personal sensible? No procesamos información personal sensible.",
+    "p4": "¿Recibimos información de terceros? No recibimos información de terceros.",
+    "p5": "¿Cómo procesamos tu información? Procesamos tu información para brindar, mejorar y administrar nuestros Servicios, comunicarnos con vos, por motivos de seguridad y prevención de fraude, y para cumplir con la ley. También podemos procesar tu información para otros fines con tu consentimiento. Solo procesamos tu información cuando contamos con un motivo legal válido para hacerlo. Hacé clic aquí para saber más.",
+    "p6": "¿En qué situaciones y con qué tipo de terceros compartimos información personal? Podemos compartir información en situaciones específicas y con categorías específicas de terceros. Hacé clic aquí para saber más.",
+    "p7": "¿Cómo mantenemos segura tu información? Contamos con procesos y procedimientos organizacionales y técnicos para proteger tu información personal. Sin embargo, ninguna transmisión electrónica por internet ni tecnología de almacenamiento de información puede garantizarse 100% segura, por lo que no podemos prometer ni garantizar que hackers, ciberdelincuentes u otros terceros no autorizados no logren vulnerar nuestra seguridad y acceder, robar o modificar tu información de forma indebida. Hacé clic aquí para saber más.",
+    "p8Pre": "¿Cuáles son tus derechos? Dependiendo de dónde te encuentres geográficamente, la ley de privacidad aplicable puede otorgarte ciertos derechos sobre tu información personal.",
+    "clickHere": "Hacé clic aquí",
+    "p8Post": "para saber más.",
+    "p9Pre": "¿Cómo ejercés tus derechos? La forma más sencilla de ejercer tus derechos es completando nuestro formulario de solicitud disponible aquí:",
+    "p9Post": ", o contactándonos directamente. Consideraremos y actuaremos sobre cualquier solicitud de acuerdo con las leyes de protección de datos aplicables.",
+    "p10Pre": "¿Querés saber más sobre qué hace Ulrich Propiedades con la información que recopilamos?",
+    "p10Post": "para revisar el aviso completo."
+  },
+  "section1": {
+    "heading": "¿Qué información recopilamos?",
+    "shortNote": "*En resumen: recopilamos información personal que vos mismo nos proporcionás.*",
+    "p1": "Recopilamos información personal que nos proporcionás voluntariamente cuando te registrás en los Servicios, mostrás interés en obtener información sobre nosotros o nuestros productos y Servicios, participás en actividades dentro de los Servicios, o de otro modo cuando nos contactás.",
+    "providedByYouIntro": "Información personal proporcionada por vos. La información personal que recopilamos depende del contexto de tus interacciones con nosotros y los Servicios, las decisiones que tomes, y los productos y funciones que uses. La información personal que recopilamos puede incluir lo siguiente:",
+    "fields": [
+      "nombres",
+      "direcciones de correo electrónico",
+      "números de teléfono",
+      "direcciones de facturación",
+      "datos de contacto o autenticación",
+      "cargos laborales",
+      "nombres de usuario",
+      "contraseñas",
+      "preferencias de contacto",
+      "preferencias de propiedades"
+    ],
+    "sensitiveInfo": "Información sensible. No procesamos información sensible.",
+    "socialLogin": "Datos de inicio de sesión con redes sociales. Podemos ofrecerte la opción de registrarte usando los datos de tu cuenta de redes sociales existente, como Facebook, X (Twitter) u otra cuenta. Si elegís registrarte de esta manera, recopilaremos la información de perfil que pongas a nuestra disposición a través de ese proveedor de redes sociales.",
+    "accuracyNote": "Toda la información personal que nos proporciones debe ser verdadera, completa y precisa, y debés notificarnos sobre cualquier cambio en dicha información.",
+    "contactHeading": "Información de Contacto:",
+    "contactIntro": "Si tenés preguntas o comentarios sobre esta Política de Privacidad, sobre cómo recopilamos y usamos tus Datos Personales, o sobre tus derechos y opciones al respecto, no dudes en contactarnos en:"
+  },
+  "consultation": {
+    "heading": "Agendá una consulta gratuita",
+    "fullNameLabel": "Nombre Completo",
+    "fullNamePlaceholder": "ej. Albert Jones",
+    "emailLabel": "Correo Electrónico",
+    "emailPlaceholder": "albert@email.com",
+    "topicLabel": "Tema",
+    "topicPlaceholder": "Consulta",
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Escribí un mensaje",
+    "submitButton": "Agendar Consulta Gratuita"
+  }
+}

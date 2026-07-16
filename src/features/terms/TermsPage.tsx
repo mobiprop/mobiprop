@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 /* ─── assets ─── */
 const heroBg =
@@ -15,100 +16,20 @@ const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
 /* ─── content data ─── */
-const sections = [
-  {
-    heading: "1. Acceptance of terms",
-    intro:
-      "By accessing Realist's website, submitting property information, contacting our agents, or using any tools (such as home valuations or neighborhood guides), you confirm that:",
-    list: {
-      type: "ol" as const,
-      items: [
-        "You are at least 18 years old.",
-        "You agree to comply with these Terms and Conditions.",
-        "You are using the website for lawful purposes only.",
-      ],
-    },
-    outro: "If you do not meet these conditions, you may not use our services.",
-  },
-  {
-    heading: "2. Services we provide",
-    intro: "Realist offers property-related resources including:",
-    list: {
-      type: "ul" as const,
-      items: [
-        "Residential and commercial property listings",
-        "Home valuation tools",
-        "Neighborhood information",
-        "Agent profiles and contact services",
-        "Property submission features",
-        "Guides, news, and blog content",
-      ],
-    },
-    outro:
-      "We may update, change, or discontinue parts of the platform at any time without prior notice.",
-  },
-  {
-    heading: "3. User responsibilities",
-    intro: "When using our website, you agree that:",
-    list: {
-      type: "ol" as const,
-      items: [
-        "All information you submit is accurate and truthful.",
-        "You will not upload false, misleading, or fraudulent property details.",
-        "You will not attempt to hack, disrupt, or misuse the website.",
-        "You will not impersonate an agent, homeowner, or another user.",
-      ],
-    },
-    outro:
-      "Any misuse may result in restricted access or removal of submitted content.",
-  },
-  {
-    heading: "4. Property listings and accuracy",
-    intro:
-      "Realist strives to provide the most accurate and up-to-date information, but:",
-    list: {
-      type: "ul" as const,
-      items: [
-        "Property details may change without notice",
-        "Prices, availability, and features are not guaranteed",
-        "Images may be representative and not always exact",
-      ],
-    },
-    outro:
-      "We encourage users to verify information independently before making decisions.",
-  },
-  {
-    heading: "5. Agent contact and communication",
-    intro: "By contacting an agent through the website, you agree that:",
-    list: {
-      type: "ol" as const,
-      items: [
-        "Realist may forward your details to the appropriate agent.",
-        "Agents may contact you via email or phone.",
-        "You are requesting property-related assistance voluntarily.",
-      ],
-    },
-    outro: "We do not guarantee specific response times or outcomes.",
-  },
-  {
-    heading: "6. Intellectual property rights",
-    intro:
-      "Realist may link to outside resources or listing platforms. These external sites:",
-    list: {
-      type: "ul" as const,
-      items: [
-        "Are not controlled by Realist",
-        "Have their own privacy and legal policies",
-        "Are used at your own discretion",
-      ],
-    },
-    outro:
-      "We are not responsible for any issues arising from third-party websites.",
-  },
-];
+// Only the list style (ol/ul) is fixed here — the heading/intro/items/outro
+// text comes from the "terms" i18n namespace (`sections`), keyed by index.
+const sectionListTypes: ("ol" | "ul")[] = ["ol", "ul", "ol", "ul", "ol", "ul"];
+
+type TermsSection = {
+  heading: string;
+  intro: string;
+  items: string[];
+  outro: string;
+};
 
 /* ─── 1. Hero ─── */
 function HeroBanner() {
+  const { t } = useTranslation("terms");
   return (
     <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
       <div className="absolute inset-0 overflow-hidden">
@@ -148,13 +69,13 @@ function HeroBanner() {
           className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[44px] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.34px] lg:tracking-[-0.44px] max-w-[340px] sm:max-w-[520px] lg:max-w-[644px]"
           style={{ fontFamily: poppins }}
         >
-          Terms &amp; Conditions
+          {t("hero.title")}
         </h1>
         <p
           className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[20px] sm:leading-[22px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
-          Last updated: October 15, 2023
+          {t("hero.lastUpdated")}
         </p>
       </div>
     </section>
@@ -163,10 +84,13 @@ function HeroBanner() {
 
 /* ─── 2. Content ─── */
 function TermsContent() {
+  const { t } = useTranslation("terms");
+  const sections = t("sections", { returnObjects: true }) as TermsSection[];
+
   return (
     <div className="max-w-[952px] mx-auto px-4 sm:px-6 lg:px-0 py-[48px] sm:py-[64px] lg:py-[80px] flex flex-col gap-[36px] sm:gap-[42px] lg:gap-[48px]">
       {/* numbered sections */}
-      {sections.map((s) => (
+      {sections.map((s, i) => (
         <div
           key={s.heading}
           className="flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]"
@@ -182,15 +106,15 @@ function TermsContent() {
             style={{ fontFamily: montserrat }}
           >
             <p className="mb-3">{s.intro}</p>
-            {s.list.type === "ol" ? (
+            {sectionListTypes[i] === "ol" ? (
               <ol className="list-decimal ml-5 sm:ml-6 flex flex-col gap-1.5 sm:gap-1 mb-3">
-                {s.list.items.map((item) => (
+                {s.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ol>
             ) : (
               <ul className="list-disc ml-5 sm:ml-6 flex flex-col gap-1.5 sm:gap-1 mb-3">
-                {s.list.items.map((item) => (
+                {s.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -200,35 +124,32 @@ function TermsContent() {
         </div>
       ))}
 
-      {/* 12. Contact information */}
+      {/* Contact information */}
       <div className="flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]">
         <h2
           className="text-[22px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
           style={{ fontFamily: poppins }}
         >
-          12. Contact information
+          {t("contact.heading")}
         </h2>
         <div
           className="text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[23px] lg:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.15px] lg:tracking-[-0.16px]"
           style={{ fontFamily: montserrat }}
         >
-          <p className="mb-3">
-            If you have questions about these Terms and Conditions, you can
-            reach us at:
-          </p>
+          <p className="mb-3">{t("contact.intro")}</p>
           <p>
             <span className="font-medium text-[#0d2138]">
               info@ulrichpropiedades.com
             </span>
             <br />
-            or via our{" "}
+            {t("contact.orVia")}{" "}
             <Link
               href="/contact"
               className="font-medium text-[#0d2138] hover:underline"
             >
-              Contact Us
-            </Link>{" "}
-            page.
+              {t("contact.contactUsLink")}
+            </Link>
+            {t("contact.page")}
           </p>
         </div>
       </div>
@@ -238,6 +159,7 @@ function TermsContent() {
 
 /* ─── 3. Consultation Banner ─── */
 function ConsultationBanner() {
+  const { t } = useTranslation("terms");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -260,7 +182,7 @@ function ConsultationBanner() {
             className="text-[25px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[40px] lg:leading-[48px] tracking-[-0.25px] sm:tracking-[-0.3px] lg:tracking-[-0.36px]"
             style={{ fontFamily: poppins }}
           >
-            Schedule a free consultation
+            {t("consultation.heading")}
           </h3>
 
           <div className="flex flex-col gap-[10px] sm:gap-[12px]">
@@ -269,11 +191,11 @@ function ConsultationBanner() {
                 className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
-                Full Name
+                {t("consultation.fullNameLabel")}
               </label>
               <input
                 type="text"
-                placeholder="eg. Albert Jones"
+                placeholder={t("consultation.fullNamePlaceholder")}
                 value={form.name}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, name: e.target.value }))
@@ -287,11 +209,11 @@ function ConsultationBanner() {
                 className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
-                Email address
+                {t("consultation.emailLabel")}
               </label>
               <input
                 type="email"
-                placeholder="albert@email.com"
+                placeholder={t("consultation.emailPlaceholder")}
                 value={form.email}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, email: e.target.value }))
@@ -305,11 +227,11 @@ function ConsultationBanner() {
                 className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
-                Topic
+                {t("consultation.topicLabel")}
               </label>
               <input
                 type="text"
-                placeholder="Consultation"
+                placeholder={t("consultation.topicPlaceholder")}
                 value={form.topic}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, topic: e.target.value }))
@@ -323,10 +245,10 @@ function ConsultationBanner() {
                 className="text-[13px] sm:text-[14px] font-medium text-[#0d2138] leading-[19px] sm:leading-[20px] tracking-[-0.13px] sm:tracking-[-0.14px]"
                 style={{ fontFamily: montserrat }}
               >
-                Messages
+                {t("consultation.messageLabel")}
               </label>
               <textarea
-                placeholder="Enter a message"
+                placeholder={t("consultation.messagePlaceholder")}
                 rows={4}
                 value={form.message}
                 onChange={(e) =>
@@ -346,7 +268,7 @@ function ConsultationBanner() {
               border: "1px solid #0088ff",
             }}
           >
-            Book a Free consultation
+            {t("consultation.submitButton")}
             <svg
               width="20"
               height="20"

@@ -1,0 +1,153 @@
+{
+  "pageTitle": "Configuración",
+  "pageSubtitle": "Gestioná tu cuenta y preferencias",
+  "navAria": "Navegación de configuración",
+  "tabs": {
+    "profile": "Perfil",
+    "security": "Seguridad",
+    "notifications": "Notificaciones",
+    "privacy": "Privacidad",
+    "preferences": "Preferencias"
+  },
+  "profile": {
+    "title": "Configuración de Perfil",
+    "changePhotoAria": "Cambiar foto de perfil",
+    "firstNameLabel": "Nombre",
+    "firstNamePlaceholder": "Ingresá tu nombre",
+    "lastNameLabel": "Apellido",
+    "lastNamePlaceholder": "Ingresá tu apellido",
+    "emailLabel": "Correo Electrónico",
+    "phoneLabel": "Teléfono",
+    "phonePlaceholder": "+54 11 5555-1234",
+    "bioLabel": "Biografía",
+    "bioPlaceholder": "Escribí una breve biografía...",
+    "errors": {
+      "imageTooLarge": "La imagen debe pesar menos de 5MB.",
+      "imageBadType": "La imagen debe ser PNG, JPEG, WEBP o GIF.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio.",
+      "generic": "Algo salió mal al guardar. Por favor, intentá nuevamente."
+    },
+    "success": "Perfil actualizado con éxito.",
+    "saving": "Guardando...",
+    "saveChanges": "Guardar Cambios"
+  },
+  "security": {
+    "title": "Configuración de Seguridad",
+    "changePasswordHeading": "Cambiar Contraseña",
+    "currentPasswordLabel": "Contraseña Actual",
+    "currentPasswordPlaceholder": "Ingresá tu contraseña actual",
+    "newPasswordLabel": "Nueva Contraseña",
+    "newPasswordPlaceholder": "Ingresá tu nueva contraseña",
+    "newPasswordHint": "La contraseña debe tener al menos 8 caracteres.",
+    "confirmPasswordLabel": "Confirmar Nueva Contraseña",
+    "confirmPasswordPlaceholder": "Confirmá tu nueva contraseña",
+    "errors": {
+      "incomplete": "Completá todos los campos de contraseña.",
+      "tooShort": "La nueva contraseña debe tener al menos 8 caracteres.",
+      "mismatch": "La nueva contraseña y su confirmación no coinciden.",
+      "generic": "Algo salió mal al actualizar tu contraseña.",
+      "twoFactorFailed": "No se pudo actualizar la autenticación de dos factores."
+    },
+    "success": "Contraseña actualizada con éxito.",
+    "twoFactorHeading": "Autenticación de Dos Factores",
+    "enable2fa": "Activar 2FA",
+    "enable2faDescription": "Agregá una capa extra de seguridad a tu cuenta.",
+    "updating2fa": "Actualizando autenticación de dos factores...",
+    "updating": "Actualizando...",
+    "updateSecurity": "Actualizar Seguridad"
+  },
+  "notifications": {
+    "heading": "Preferencias de Notificaciones",
+    "saveError": "No se pudieron guardar tus preferencias de notificaciones. Por favor, intentá nuevamente.",
+    "items": {
+      "emailEnabled": { "title": "Notificaciones por Correo", "description": "Recibí actualizaciones por correo sobre tu actividad" },
+      "pushEnabled": { "title": "Notificaciones Push", "description": "Interruptor general para las notificaciones push en tus dispositivos" },
+      "newMessages": { "title": "Nuevos Mensajes", "description": "Recibí un aviso cuando llegue un nuevo mensaje" },
+      "newLeads": { "title": "Nuevos Prospectos", "description": "Aviso cuando se agrega un nuevo prospecto" },
+      "leadAssignments": { "title": "Asignación de Prospectos", "description": "Cuando se te asigna o reasigna un prospecto" },
+      "tourUpdates": { "title": "Actualizaciones de Visitas", "description": "Solicitudes, confirmaciones y cambios de visitas" },
+      "listingUpdates": { "title": "Actualizaciones de Propiedades", "description": "Cuando se te asigna una propiedad o cambia de estado" },
+      "opportunityUpdates": { "title": "Actualizaciones de Oportunidades", "description": "Cambios de etapa y resultado en el pipeline" },
+      "signatureUpdates": { "title": "Actualizaciones de Firmas", "description": "Sobre de DocuSign enviado, firmado, rechazado o por vencer" },
+      "weeklyReports": { "title": "Reportes Semanales", "description": "Recibí reportes semanales de desempeño" },
+      "marketingUpdates": { "title": "Novedades de Marketing", "description": "Novedades sobre funciones y productos nuevos" }
+    },
+    "push": {
+      "title": "Notificaciones Push del Navegador",
+      "description": "Recibí alertas en este dispositivo incluso con el panel cerrado.",
+      "sendTest": "Enviar prueba",
+      "sending": "Enviando…",
+      "disableOnDevice": "Desactivar en este dispositivo",
+      "working": "Procesando…",
+      "reEnable": "Reactivar en este dispositivo",
+      "enable": "Activar notificaciones push",
+      "notConfigured": "La entrega push todavía no está configurada en el servidor. Las notificaciones dentro de la app siguen funcionando.",
+      "blocked": "Las notificaciones están bloqueadas para este sitio. Volvé a habilitarlas en la configuración del sitio de tu navegador y recargá la página.",
+      "iosInstall": "En iPhone/iPad, agregá Ulrich Propiedades a tu pantalla de inicio para activar las notificaciones push.",
+      "unsupported": "Este navegador no admite notificaciones push. Igual vas a recibir notificaciones dentro de la app.",
+      "status": {
+        "unsupported": "No compatible",
+        "disabled": "Desactivado",
+        "blocked": "Bloqueado",
+        "actionNeeded": "Requiere acción",
+        "enabled": "Activado",
+        "error": "Error"
+      },
+      "toasts": {
+        "enabled": "Notificaciones push activadas en este dispositivo.",
+        "permissionBlocked": "Permiso bloqueado. Habilitá las notificaciones en la configuración de tu navegador y volvé a intentar.",
+        "enableFailed": "No se pudieron activar las notificaciones push.",
+        "serverDisabled": "Desactivado en el servidor. Este navegador podría conservar una suscripción hasta la próxima recarga.",
+        "disabled": "Notificaciones push desactivadas en este dispositivo.",
+        "disableFailed": "No se pudieron desactivar las notificaciones push.",
+        "testSent": "Notificación de prueba enviada. Revisá tu dispositivo.",
+        "testSkipped": "Ningún dispositivo activo recibió la prueba. Asegurate de tener el push activado aquí.",
+        "testFailed": "Falló la entrega push{{reason}}. Desactivá y volvé a activar el push en este dispositivo para renovar la suscripción.",
+        "testFailedGeneric": "No se pudo enviar una notificación de prueba."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Configuración de Privacidad",
+    "visibilityOptions": {
+      "everyone": "Todos",
+      "teamOnly": "Solo el Equipo",
+      "private": "Privado"
+    },
+    "profileVisibility": {
+      "title": "Visibilidad del Perfil",
+      "description": "Controlá quién puede ver tu perfil",
+      "selectPlaceholder": "Seleccioná la visibilidad",
+      "ariaLabel": "Visibilidad del perfil"
+    },
+    "dataSharing": {
+      "title": "Compartir Datos",
+      "description": "Compartí datos analíticos para mejorar el servicio",
+      "toggleLabel": "Activar el intercambio de datos"
+    },
+    "activityTracking": {
+      "title": "Seguimiento de Actividad",
+      "description": "Permitir el seguimiento para personalización",
+      "toggleLabel": "Activar el seguimiento de actividad"
+    },
+    "deleteAccount": {
+      "title": "Eliminar Cuenta",
+      "description": "Eliminá permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer.",
+      "button": "Eliminar Cuenta"
+    }
+  },
+  "preferences": {
+    "heading": "Preferencias Generales",
+    "languageLabel": "Idioma",
+    "languagePlaceholder": "Seleccioná el idioma",
+    "timezoneLabel": "Zona Horaria",
+    "timezonePlaceholder": "Seleccioná la zona horaria",
+    "dateFormatLabel": "Formato de Fecha",
+    "dateFormatPlaceholder": "Seleccioná el formato de fecha",
+    "error": "Algo salió mal al guardar tus preferencias.",
+    "success": "Preferencias guardadas con éxito.",
+    "saving": "Guardando...",
+    "savePreferences": "Guardar Preferencias"
+  }
+}

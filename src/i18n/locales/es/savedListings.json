@@ -1,0 +1,18 @@
+{
+  "card": {
+    "removeSavedAria": "Quitar de guardados",
+    "rent": "Alquiler",
+    "sale": "Venta"
+  },
+  "header": {
+    "title": "Propiedades Guardadas",
+    "noneYet": "Todavía no hay propiedades guardadas.",
+    "count_one": "{{count}} propiedad guardada",
+    "count_other": "{{count}} propiedades guardadas"
+  },
+  "empty": {
+    "title": "Todavía no hay propiedades guardadas",
+    "description": "Explorá las propiedades y tocá el ícono de corazón para guardarlas aquí.",
+    "browseListings": "Explorar Propiedades"
+  }
+}

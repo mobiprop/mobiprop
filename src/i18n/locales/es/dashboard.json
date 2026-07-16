@@ -1,0 +1,118 @@
+{
+  "common": {
+    "searchPlaceholder": "Buscar...",
+    "noResultsFound": "No se encontraron resultados.",
+    "loading": "Cargando...",
+    "toggleSetting": "Alternar opción"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "Menú Principal",
+      "management": "Gestión",
+      "preferences": "Preferencias"
+    },
+    "items": {
+      "dashboard": "Panel",
+      "messages": "Mensajes",
+      "agents": "Agentes",
+      "contacts": "Contactos",
+      "listings": "Propiedades",
+      "leads": "Prospectos",
+      "opportunities": "Oportunidades",
+      "docusign": "DocuSign",
+      "sendgrid": "SendGrid",
+      "blog": "Blog",
+      "integrations": "Integraciones",
+      "locations": "Ubicaciones",
+      "settings": "Configuración",
+      "help": "Centro de Ayuda"
+    }
+  },
+  "sidebar": {
+    "openAria": "Abrir menú lateral",
+    "closeAria": "Cerrar menú lateral",
+    "goHomeAria": "Ir al inicio",
+    "logOut": "Cerrar sesión",
+    "staffFallback": "Staff",
+    "roles": {
+      "ADMIN": "Administrador",
+      "MANAGER": "Gerente",
+      "AGENT": "Agente",
+      "USER": "Cliente"
+    }
+  },
+  "topbar": {
+    "openNotificationsAria": "Abrir notificaciones",
+    "openCalendarAria": "Abrir calendario"
+  },
+  "globalSearch": {
+    "placeholder": "Buscar…",
+    "searching": "Buscando…",
+    "noResultsFor": "Sin resultados para",
+    "via": "vía",
+    "assignedListings_one": "{{count}} propiedad",
+    "assignedListings_other": "{{count}} propiedades",
+    "sections": {
+      "listings": "Propiedades",
+      "contacts": "Contactos",
+      "opportunities": "Oportunidades"
+    },
+    "hints": {
+      "navigate": "navegar",
+      "open": "abrir",
+      "close": "cerrar"
+    }
+  },
+  "notificationsPanel": {
+    "title": "Notificaciones",
+    "markAllAsRead": "Marcar todas como leídas",
+    "loading": "Cargando notificaciones...",
+    "empty": "Estás al día — todavía no hay notificaciones.",
+    "dismissAria": "Descartar notificación",
+    "viewAll": "Ver todas las notificaciones",
+    "close": "Cerrar",
+    "relativeTime": {
+      "justNow": "Recién ahora",
+      "minuteAgo_one": "hace {{count}} minuto",
+      "minuteAgo_other": "hace {{count}} minutos",
+      "hourAgo_one": "hace {{count}} hora",
+      "hourAgo_other": "hace {{count}} horas",
+      "yesterday": "Ayer",
+      "daysAgo": "hace {{count}} días"
+    }
+  },
+  "status": {
+    "ACTIVE": "Activo",
+    "PAUSED": "Pausado",
+    "DRAFT": "Borrador",
+    "INACTIVE": "Inactivo",
+    "SOLD": "Vendido",
+    "RENTED": "Alquilado",
+    "OPEN": "Abierto",
+    "CLOSED_WON": "Ganado",
+    "CLOSED_LOST": "Perdido",
+    "PENDING": "Pendiente",
+    "COMPLETED": "Completado",
+    "CANCELLED": "Cancelado",
+    "QUALIFICATION": "Calificación",
+    "VISITATION": "Visita",
+    "OFFER": "Oferta",
+    "NEGOTIATION": "Negociación",
+    "CLOSING": "Cierre"
+  },
+  "tourStatus": {
+    "REQUESTED": "Solicitada",
+    "CONFIRMED": "Confirmada",
+    "RESCHEDULED": "Reprogramada",
+    "COMPLETED": "Completada",
+    "CANCELLED": "Cancelada",
+    "NO_SHOW": "No se presentó"
+  },
+  "envelopeStatus": {
+    "SENT": "Esperando firma",
+    "DELIVERED": "Visto",
+    "COMPLETED": "Firmado",
+    "DECLINED": "Rechazado",
+    "VOIDED": "Anulado"
+  }
+}

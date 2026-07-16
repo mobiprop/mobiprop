@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { PushNotificationSettings } from "@/features/notifications/components/push-notification-settings";
 import { updateDashboardNotificationPreferences } from "@/features/profile/actions";
@@ -13,22 +14,18 @@ import { Toggle } from "./Toggle";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-const NOTIFICATION_ITEMS: {
-  id: keyof DashboardNotificationPreferences;
-  title: string;
-  description: string;
-}[] = [
-  { id: "emailEnabled", title: "Email Notifications", description: "Receive email updates about your activity" },
-  { id: "pushEnabled", title: "Push Notifications", description: "Master switch for browser push on your devices" },
-  { id: "newMessages", title: "New Messages", description: "Get notified when you receive a new message" },
-  { id: "newLeads", title: "New Leads", description: "Alert when a new lead is added" },
-  { id: "leadAssignments", title: "Lead Assignments", description: "When a lead is assigned or reassigned to you" },
-  { id: "tourUpdates", title: "Tour Updates", description: "Tour requests, confirmations, and changes" },
-  { id: "listingUpdates", title: "Listing Updates", description: "When a listing is assigned or changes status" },
-  { id: "opportunityUpdates", title: "Opportunity Updates", description: "Pipeline stage and outcome changes" },
-  { id: "signatureUpdates", title: "Signature Updates", description: "DocuSign envelope sent, signed, declined, or expiring" },
-  { id: "weeklyReports", title: "Weekly Reports", description: "Receive weekly performance reports" },
-  { id: "marketingUpdates", title: "Marketing Updates", description: "Updates about new features and products" },
+const NOTIFICATION_ITEM_IDS: (keyof DashboardNotificationPreferences)[] = [
+  "emailEnabled",
+  "pushEnabled",
+  "newMessages",
+  "newLeads",
+  "leadAssignments",
+  "tourUpdates",
+  "listingUpdates",
+  "opportunityUpdates",
+  "signatureUpdates",
+  "weeklyReports",
+  "marketingUpdates",
 ];
 
 type NotificationsTabProps = {
@@ -36,6 +33,7 @@ type NotificationsTabProps = {
 };
 
 export function NotificationsTab({ profile }: NotificationsTabProps) {
+  const { t } = useTranslation("dashboardSettings");
   const [prefs, setPrefs] = useState(resolvePreferences(profile).dashboardNotifications);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,26 +53,26 @@ export function NotificationsTab({ profile }: NotificationsTabProps) {
       }
     } catch {
       setPrefs(previous);
-      setError("Failed to save your notification preferences. Please try again.");
+      setError(t("notifications.saveError"));
     }
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Notification Preferences</p>
+      <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("notifications.heading")}</p>
 
       {error && <p className="text-[12px] text-[#dc2626]" style={mont}>{error}</p>}
 
       <PushNotificationSettings />
 
       <div className="flex flex-col gap-3">
-        {NOTIFICATION_ITEMS.map((item) => (
-          <div key={item.id} className="border border-[#d1d5dc] rounded-[10px] h-[73px] flex items-center justify-between px-4">
+        {NOTIFICATION_ITEM_IDS.map((id) => (
+          <div key={id} className="border border-[#d1d5dc] rounded-[10px] h-[73px] flex items-center justify-between px-4">
             <div className="flex flex-col">
-              <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>{item.title}</p>
-              <p className="text-[12px] text-[#6a7282]" style={mont}>{item.description}</p>
+              <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>{t(`notifications.items.${id}.title`)}</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t(`notifications.items.${id}.description`)}</p>
             </div>
-            <Toggle checked={prefs[item.id]} onChange={(v) => toggle(item.id, v)} />
+            <Toggle checked={prefs[id]} onChange={(v) => toggle(id, v)} />
           </div>
         ))}
       </div>

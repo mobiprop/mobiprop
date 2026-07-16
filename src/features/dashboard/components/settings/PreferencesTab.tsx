@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Save } from "lucide-react";
 
 import { updateLocalePreferences } from "@/features/profile/actions";
@@ -41,6 +42,7 @@ type PreferencesTabProps = {
 export function PreferencesTab({
   profile,
 }: PreferencesTabProps) {
+  const { t } = useTranslation("dashboardSettings");
   const initialPreferences =
     resolvePreferences(profile).locale;
 
@@ -87,9 +89,7 @@ export function PreferencesTab({
       syncSiteLanguageFromPreference(language);
       setSuccess(true);
     } catch {
-      setError(
-        "Something went wrong while saving your preferences.",
-      );
+      setError(t("preferences.error"));
     } finally {
       setIsSaving(false);
     }
@@ -103,7 +103,7 @@ export function PreferencesTab({
           className="text-[14px] font-semibold leading-7 text-[#0d2138] sm:text-[16px]"
           style={mont}
         >
-          General Preferences
+          {t("preferences.heading")}
         </h2>
 
       </div>
@@ -117,7 +117,7 @@ export function PreferencesTab({
             className={labelClass}
             style={mont}
           >
-            Language
+            {t("preferences.languageLabel")}
           </label>
 
           <SearchableSelect
@@ -130,7 +130,7 @@ export function PreferencesTab({
             }}
             disabled={isSaving}
             options={LANGUAGE_OPTIONS}
-            placeholder="Select language"
+            placeholder={t("preferences.languagePlaceholder")}
           />
         </div>
 
@@ -141,7 +141,7 @@ export function PreferencesTab({
             className={labelClass}
             style={mont}
           >
-            Timezone
+            {t("preferences.timezoneLabel")}
           </label>
 
           <SearchableSelect
@@ -154,7 +154,7 @@ export function PreferencesTab({
             }}
             disabled={isSaving}
             options={TIMEZONE_OPTIONS}
-            placeholder="Select timezone"
+            placeholder={t("preferences.timezonePlaceholder")}
           />
         </div>
 
@@ -165,7 +165,7 @@ export function PreferencesTab({
             className={labelClass}
             style={mont}
           >
-            Date Format
+            {t("preferences.dateFormatLabel")}
           </label>
 
           <SearchableSelect
@@ -178,7 +178,7 @@ export function PreferencesTab({
             }}
             disabled={isSaving}
             options={DATE_FORMAT_OPTIONS}
-            placeholder="Select date format"
+            placeholder={t("preferences.dateFormatPlaceholder")}
           />
         </div>
       </div>
@@ -203,7 +203,7 @@ export function PreferencesTab({
           className="mt-5 max-w-[560px] rounded-[10px] border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-[14px] leading-5 text-[#008236]"
           style={mont}
         >
-          Preferences saved successfully.
+          {t("preferences.success")}
         </div>
       )}
 
@@ -219,8 +219,8 @@ export function PreferencesTab({
           <Save size={16} className="shrink-0" />
 
           {isSaving
-            ? "Saving..."
-            : "Save Preferences"}
+            ? t("preferences.saving")
+            : t("preferences.savePreferences")}
         </button>
       </div>
     </div>

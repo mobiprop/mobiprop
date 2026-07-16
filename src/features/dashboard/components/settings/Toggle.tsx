@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 type ToggleProps = {
   checked: boolean;
   onChange: (checked: boolean) => void | Promise<void>;
@@ -11,14 +13,15 @@ export function Toggle({
   checked,
   onChange,
   disabled = false,
-  label = "Toggle setting",
+  label,
 }: ToggleProps) {
+  const { t } = useTranslation("dashboard");
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
-      aria-label={label}
+      aria-label={label ?? t("common.toggleSetting")}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative h-6 w-12 shrink-0 rounded-full transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${

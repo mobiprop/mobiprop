@@ -46,5 +46,32 @@
   "suggestions": {
     "title": "You might also like",
     "subtitle": "We have over +10 years of experience in the real estate market"
+  },
+  "filtersModal": {
+    "priceRangeTitle": "Price Range",
+    "minPricePlaceholder": "Min Price",
+    "maxPricePlaceholder": "Max Price",
+    "propertyDetailsTitle": "Property Details",
+    "bedroomsLabel": "Bedrooms",
+    "bathroomsLabel": "Bathrooms",
+    "anyOption": "Any",
+    "bedroomsOption": "{{value}} Bedrooms",
+    "bathroomsOption": "{{value}} Bathrooms",
+    "minAreaPlaceholder": "Min Area (m²)",
+    "maxAreaPlaceholder": "Max Area (m²)",
+    "amenitiesTitle": "Amenities",
+    "amenities": {
+      "creditApproved": "Credit Approved",
+      "gas": "Gas",
+      "radiantSlab": "Radiant Slab",
+      "internet": "Internet",
+      "airConditioning": "Air Conditioning",
+      "barbecue": "Barbecue",
+      "laundry": "Laundry",
+      "water": "Water",
+      "tennisCourt": "Tennis Court"
+    },
+    "resetButton": "Reset",
+    "applyButton": "Apply Filters"
   }
 }

@@ -1,0 +1,153 @@
+{
+  "pageTitle": "Settings",
+  "pageSubtitle": "Manage your account and preferences",
+  "navAria": "Settings navigation",
+  "tabs": {
+    "profile": "Profile",
+    "security": "Security",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "preferences": "Preferences"
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "changePhotoAria": "Change profile picture",
+    "firstNameLabel": "First Name",
+    "firstNamePlaceholder": "Enter first name",
+    "lastNameLabel": "Last Name",
+    "lastNamePlaceholder": "Enter last name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "+54 11 5555-1234",
+    "bioLabel": "Bio",
+    "bioPlaceholder": "Write a short bio...",
+    "errors": {
+      "imageTooLarge": "Image must be smaller than 5MB.",
+      "imageBadType": "Image must be a PNG, JPEG, WEBP or GIF.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "generic": "Something went wrong while saving. Please try again."
+    },
+    "success": "Profile updated successfully.",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes"
+  },
+  "security": {
+    "title": "Security Settings",
+    "changePasswordHeading": "Change Password",
+    "currentPasswordLabel": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "newPasswordHint": "Password must contain at least 8 characters.",
+    "confirmPasswordLabel": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "errors": {
+      "incomplete": "Please complete all password fields.",
+      "tooShort": "New password must be at least 8 characters.",
+      "mismatch": "New password and confirmation do not match.",
+      "generic": "Something went wrong while updating your password.",
+      "twoFactorFailed": "Two-factor authentication could not be updated."
+    },
+    "success": "Password updated successfully.",
+    "twoFactorHeading": "Two-Factor Authentication",
+    "enable2fa": "Enable 2FA",
+    "enable2faDescription": "Add extra security to your account.",
+    "updating2fa": "Updating two-factor authentication...",
+    "updating": "Updating...",
+    "updateSecurity": "Update Security"
+  },
+  "notifications": {
+    "heading": "Notification Preferences",
+    "saveError": "Failed to save your notification preferences. Please try again.",
+    "items": {
+      "emailEnabled": { "title": "Email Notifications", "description": "Receive email updates about your activity" },
+      "pushEnabled": { "title": "Push Notifications", "description": "Master switch for browser push on your devices" },
+      "newMessages": { "title": "New Messages", "description": "Get notified when you receive a new message" },
+      "newLeads": { "title": "New Leads", "description": "Alert when a new lead is added" },
+      "leadAssignments": { "title": "Lead Assignments", "description": "When a lead is assigned or reassigned to you" },
+      "tourUpdates": { "title": "Tour Updates", "description": "Tour requests, confirmations, and changes" },
+      "listingUpdates": { "title": "Listing Updates", "description": "When a listing is assigned or changes status" },
+      "opportunityUpdates": { "title": "Opportunity Updates", "description": "Pipeline stage and outcome changes" },
+      "signatureUpdates": { "title": "Signature Updates", "description": "DocuSign envelope sent, signed, declined, or expiring" },
+      "weeklyReports": { "title": "Weekly Reports", "description": "Receive weekly performance reports" },
+      "marketingUpdates": { "title": "Marketing Updates", "description": "Updates about new features and products" }
+    },
+    "push": {
+      "title": "Browser Push Notifications",
+      "description": "Get alerts on this device even when the dashboard is closed.",
+      "sendTest": "Send test",
+      "sending": "Sending…",
+      "disableOnDevice": "Disable on this device",
+      "working": "Working…",
+      "reEnable": "Re-enable on this device",
+      "enable": "Enable push notifications",
+      "notConfigured": "Push delivery isn't configured on the server yet. In-app notifications still work.",
+      "blocked": "Notifications are blocked for this site. Re-allow them in your browser's site settings, then reload.",
+      "iosInstall": "On iPhone/iPad, add Ulrich Propiedades to your Home Screen to enable push notifications.",
+      "unsupported": "This browser doesn't support push notifications. You'll still receive in-app notifications.",
+      "status": {
+        "unsupported": "Not supported",
+        "disabled": "Disabled",
+        "blocked": "Blocked",
+        "actionNeeded": "Action needed",
+        "enabled": "Enabled",
+        "error": "Error"
+      },
+      "toasts": {
+        "enabled": "Push notifications enabled on this device.",
+        "permissionBlocked": "Permission blocked. Allow notifications in your browser settings, then try again.",
+        "enableFailed": "Could not enable push notifications.",
+        "serverDisabled": "Disabled on the server. This browser may still hold a subscription until next reload.",
+        "disabled": "Push notifications disabled on this device.",
+        "disableFailed": "Could not disable push notifications.",
+        "testSent": "Test notification sent. Check your device.",
+        "testSkipped": "No active device received the test. Make sure push is enabled here.",
+        "testFailed": "Push delivery failed{{reason}}. Disable and re-enable push on this device to refresh the subscription.",
+        "testFailedGeneric": "Could not send a test notification."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy Settings",
+    "visibilityOptions": {
+      "everyone": "Everyone",
+      "teamOnly": "Team Only",
+      "private": "Private"
+    },
+    "profileVisibility": {
+      "title": "Profile Visibility",
+      "description": "Control who can see your profile",
+      "selectPlaceholder": "Select visibility",
+      "ariaLabel": "Profile visibility"
+    },
+    "dataSharing": {
+      "title": "Data Sharing",
+      "description": "Share analytics data to improve service",
+      "toggleLabel": "Enable data sharing"
+    },
+    "activityTracking": {
+      "title": "Activity Tracking",
+      "description": "Allow tracking for personalization",
+      "toggleLabel": "Enable activity tracking"
+    },
+    "deleteAccount": {
+      "title": "Delete Account",
+      "description": "Permanently delete your account and all associated data. This action cannot be undone.",
+      "button": "Delete Account"
+    }
+  },
+  "preferences": {
+    "heading": "General Preferences",
+    "languageLabel": "Language",
+    "languagePlaceholder": "Select language",
+    "timezoneLabel": "Timezone",
+    "timezonePlaceholder": "Select timezone",
+    "dateFormatLabel": "Date Format",
+    "dateFormatPlaceholder": "Select date format",
+    "error": "Something went wrong while saving your preferences.",
+    "success": "Preferences saved successfully.",
+    "saving": "Saving...",
+    "savePreferences": "Save Preferences"
+  }
+}

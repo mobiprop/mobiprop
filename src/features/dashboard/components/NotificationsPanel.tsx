@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Users, Bell, AlertTriangle, UserCheck, X } from "lucide-react";
 
 import {
@@ -28,16 +30,16 @@ function typeIcon(type: string) {
   }
 }
 
-function relativeTime(iso: string): string {
+function relativeTime(t: TFunction, iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  if (minutes < 1) return t("notificationsPanel.relativeTime.justNow");
+  if (minutes < 60) return t("notificationsPanel.relativeTime.minuteAgo", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  if (hours < 24) return t("notificationsPanel.relativeTime.hourAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
+  if (days === 1) return t("notificationsPanel.relativeTime.yesterday");
+  if (days < 7) return t("notificationsPanel.relativeTime.daysAgo", { count: days });
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -50,6 +52,7 @@ type NotificationsPanelProps = {
 };
 
 export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
+  const { t } = useTranslation("dashboard");
   const router = useRouter();
   const { data: notifications = [], isLoading } = useNotificationsQuery();
   const markRead = useMarkNotificationReadMutation();
@@ -95,7 +98,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
             className="truncate text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
             style={mont}
           >
-            Notifications
+            {t("notificationsPanel.title")}
           </span>
 
           {unreadCount > 0 && (
@@ -126,7 +129,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
             "
             style={mont}
           >
-            Mark all as read
+            {t("notificationsPanel.markAllAsRead")}
           </button>
         )}
       </div>
@@ -145,14 +148,14 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
             className="px-4 py-8 text-center text-[12px] text-[#666d80] sm:px-6 sm:text-[14px]"
             style={mont}
           >
-            Loading notifications...
+            {t("notificationsPanel.loading")}
           </p>
         ) : notifications.length === 0 ? (
           <p
             className="px-4 py-8 text-center text-[12px] leading-5 text-[#666d80] sm:px-6 sm:text-[14px]"
             style={mont}
           >
-            You&apos;re all caught up — no notifications yet.
+            {t("notificationsPanel.empty")}
           </p>
         ) : (
           notifications.map((notification) => (
@@ -209,7 +212,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
                     )}
                     <button
                       type="button"
-                      aria-label="Dismiss notification"
+                      aria-label={t("notificationsPanel.dismissAria")}
                       onClick={(event) => handleDismiss(event, notification.id)}
                       className="rounded p-0.5 text-[#9aa1ad] opacity-0 transition-opacity hover:text-[#4a5565] group-hover:opacity-100"
                     >
@@ -237,7 +240,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
                   "
                   style={poppins}
                 >
-                  {relativeTime(notification.createdAt)}
+                  {relativeTime(t, notification.createdAt)}
                 </p>
               </div>
             </div>
@@ -253,7 +256,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
           className="text-[12px] font-medium text-[#1b487a] transition-colors hover:text-[#1e4f86] sm:text-[14px]"
           style={mont}
         >
-          View all notifications
+          {t("notificationsPanel.viewAll")}
         </Link>
         <button
           type="button"
@@ -261,7 +264,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
           className="text-[12px] text-[#666d80] transition-colors hover:text-[#0d2138] sm:text-[14px]"
           style={mont}
         >
-          Close
+          {t("notificationsPanel.close")}
         </button>
       </div>
     </div>
