@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 
@@ -44,6 +47,8 @@ function SectionTag({ label, muted = false }: { label: string; muted?: boolean }
 
 /* ─── BlogCard (reused in Continue Reading) ─── */
 function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
+  const { t } = useTranslation("blog");
+
   return (
     <Link href={`/blog/${post.slug}`} className="flex flex-col gap-5 group cursor-pointer">
       <div className="relative h-[296px] rounded-[20px] overflow-hidden shrink-0">
@@ -56,7 +61,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
           className="absolute top-4 left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[14px] text-[#0d2138] tracking-[-0.14px]"
           style={{ fontFamily: montserrat }}
         >
-          {post.category ?? "Uncategorized"}
+          {post.category ?? t("card.uncategorized")}
         </span>
       </div>
       <div className="flex flex-col gap-2">
@@ -81,6 +86,8 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
 
 /* ─── Hero banner ─── */
 function HeroBanner() {
+  const { t } = useTranslation("blog");
+
   return (
     <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
       <div className="absolute inset-0 overflow-hidden">
@@ -105,21 +112,20 @@ function HeroBanner() {
       />
 
       <div className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center">
-        <SectionTag label="Blog Post" />
+        <SectionTag label={t("singleHero.badge")} />
 
         <h1
           className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
           style={{ fontFamily: poppins }}
         >
-          Our Blog Posts
+          {t("singleHero.title")}
         </h1>
 
         <p
           className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
           style={{ fontFamily: montserrat }}
         >
-          Explore our latest blog posts, where we share insights, market trends, and thoughtful
-          perspectives on real estate.
+          {t("singleHero.subtitle")}
         </p>
       </div>
     </section>
@@ -128,6 +134,8 @@ function HeroBanner() {
 
 /* ─── Article body ─── */
 function ArticleContent({ post }: { post: BlogPostDto }) {
+  const { t } = useTranslation("blog");
+
   return (
     <article className="flex flex-col gap-8 sm:gap-10 lg:gap-[48px]">
       {/* header: back + date + category + title */}
@@ -146,7 +154,7 @@ function ArticleContent({ post }: { post: BlogPostDto }) {
               strokeLinejoin="round"
             />
           </svg>
-          Back
+          {t("back")}
         </Link>
 
         <div className="flex flex-col gap-3 sm:gap-[14px]">
@@ -158,7 +166,7 @@ function ArticleContent({ post }: { post: BlogPostDto }) {
             <span className="w-[5px] h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
             <span>{post.author}</span>
             <span className="w-[5px] h-[5px] rounded-full bg-[#2b3038] mx-2 shrink-0" />
-            <span>{post.category ?? "Uncategorized"}</span>
+            <span>{post.category ?? t("card.uncategorized")}</span>
           </div>
 
           <h2
@@ -187,18 +195,20 @@ function ArticleContent({ post }: { post: BlogPostDto }) {
 
 /* ─── Continue Reading ─── */
 function ContinueReading({ posts }: { posts: BlogPostDto[] }) {
+  const { t } = useTranslation("blog");
+
   if (posts.length === 0) return null;
 
   return (
     <section className="flex flex-col gap-8 sm:gap-10 lg:gap-[44px] items-center w-full">
       <div className="flex flex-col gap-2 sm:gap-2.5 items-center">
-        <SectionTag label="More Posts" muted />
+        <SectionTag label={t("continueReading.badge")} muted />
 
         <h2
           className="text-[28px] sm:text-[36px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] sm:leading-[1.22] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.36px] lg:tracking-[-0.44px] text-center"
           style={{ fontFamily: poppins }}
         >
-          Continue Reading
+          {t("continueReading.title")}
         </h2>
       </div>
 

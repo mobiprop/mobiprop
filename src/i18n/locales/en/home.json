@@ -77,11 +77,19 @@
   },
   "agents": {
     "badge": "Agents",
-    "title": "Meet The Experts Who Make It Happen."
+    "title": "Meet The Experts Who Make It Happen.",
+    "team": [
+      { "name": "Rodolfo Ulrich", "role": "Licensed Auctioneer & Responsible Real Estate Broker" },
+      { "name": "Carola Buscaglia", "role": "Real Estate Advisor" },
+      { "name": "Matías Ulrich", "role": "Licensed Auctioneer & Real Estate Broker" }
+    ]
   },
   "testimonial": {
     "badge": "Testimonials",
-    "subtitle": "Here's what clients say about our work. True impressions, built from real projects, real partnerships, and results."
+    "subtitle": "Here's what clients say about our work. True impressions, built from real projects, real partnerships, and results.",
+    "quote": "From the very first contact we felt supported by a team that truly understood our needs. The whole process was clear, agile, and highly professional.",
+    "name": "María y Nicolás",
+    "role": "Buyers"
   },
   "faq": {
     "badge": "FAQ",

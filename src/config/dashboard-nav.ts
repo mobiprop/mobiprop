@@ -12,6 +12,7 @@ import {
   MapPin,
   Settings,
   CircleHelp,
+  SendHorizontal,
   type LucideIcon,
 } from "lucide-react";
 
@@ -88,6 +89,12 @@ export const DASHBOARD_NAV: DashboardNavSection[] = [
         href: "/dashboard/docusign",
         icon: FileSignature,
         permission: "docusign:view",
+      },
+      {
+        label: "SendGrid",
+        href: "/dashboard/sendgrid",
+        icon: SendHorizontal,
+        permission: "sendgrid:view",
       },
       {
         label: "Blog",

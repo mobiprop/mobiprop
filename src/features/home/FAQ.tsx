@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
-
-const faqImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-14.webp";
 
 function PlusIcon({ open }: { open: boolean }) {
   return (
@@ -85,14 +83,6 @@ export function FAQ() {
         </div>
 
         <div className="mt-8 lg:mt-0 flex flex-col gap-3">
-          <div className="w-[120px] h-[86px] rounded-[10px] overflow-hidden">
-            <img
-              src={faqImg}
-              alt="FAQ support"
-              className="w-full h-full object-cover"
-            />
-          </div>
-
           <p
             className="text-[11px] sm:text-[14px] text-[#2b3038] max-w-[236px] leading-[16px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -100,7 +90,8 @@ export function FAQ() {
             {t("faq.blurb", { ns: "home" })}
           </p>
 
-          <button
+          <Link
+            href="/contact"
             className="relative w-fit overflow-hidden rounded-full px-4 py-[7px] text-[14px] font-medium text-white transition-opacity hover:opacity-90"
             style={{
               fontFamily: "Montserrat, sans-serif",
@@ -119,7 +110,7 @@ export function FAQ() {
             />
 
             <span className="relative z-10">{t("getInTouch", { ns: "common" })}</span>
-          </button>
+          </Link>
         </div>
       </Reveal>
 

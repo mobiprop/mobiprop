@@ -387,7 +387,7 @@ export function HeroSection() {
 
         <button
           onClick={handleSearch}
-          className="relative h-[50px] lg:h-[54px] flex-shrink-0 overflow-hidden whitespace-nowrap rounded-[48px] px-8 text-[15px] lg:text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px]"
+          className="relative h-[50px] lg:h-[54px] flex-shrink-0 overflow-hidden whitespace-nowrap rounded-[48px] px-8 text-[15px] lg:text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px] flex items-center justify-center gap-1"
           style={{
             fontFamily: "Poppins, sans-serif",
             background: "linear-gradient(to bottom, #005ea4, #006fc2)",

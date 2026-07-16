@@ -1,0 +1,71 @@
+{
+  "propertyDetails": "Detalles de la propiedad",
+  "gallery": {
+    "openGalleryAria": "Abrir galería de imágenes",
+    "openGalleryAtPhotoAria": "Abrir galería de imágenes en la foto {{number}}",
+    "viewPhotos": "Ver fotos",
+    "moreCount": "+{{count}} más",
+    "photoAlt": "{{title}} vista {{number}}"
+  },
+  "share": {
+    "label": "Compartir:",
+    "facebookAria": "Compartir en Facebook",
+    "xAria": "Compartir en X",
+    "instagramAria": "Abrir Instagram",
+    "linkedinAria": "Compartir en LinkedIn",
+    "whatsappAria": "Compartir en WhatsApp",
+    "copyLink": "Copiar Enlace",
+    "copied": "¡Copiado!"
+  },
+  "save": {
+    "save": "Guardar",
+    "saved": "Guardado",
+    "saveAria": "Guardar propiedad",
+    "removeAria": "Quitar de guardados"
+  },
+  "sections": {
+    "description": "Descripción",
+    "featuresAmenities": "Características y Comodidades",
+    "videoPreview": "Vista Previa del Video",
+    "onTheMap": "En el Mapa"
+  },
+  "stats": {
+    "type": "Tipo",
+    "price": "Precio",
+    "beds": "Dormitorios",
+    "baths": "Baños",
+    "size": "Superficie",
+    "parking": "Cocheras",
+    "lotSize": "Superficie del Lote",
+    "coveredM2": "m² Cubiertos",
+    "semiCoveredM2": "m² Semicubiertos",
+    "lotFrontage": "Frente del Lote",
+    "lotDepth": "Fondo del Lote",
+    "builtIn": "Año de Construcción",
+    "floors": "Pisos",
+    "propertyId": "ID de Propiedad",
+    "oneStory": "1 piso",
+    "storiesCount": "{{count}} pisos",
+    "copyPropertyIdAria": "Copiar ID de propiedad"
+  },
+  "video": {
+    "previewNotAvailable": "Vista Previa No Disponible",
+    "playAria": "Reproducir vista previa del video de {{title}}",
+    "playerTitle": "{{title}} — vista previa del video"
+  },
+  "map": {
+    "reviewsCount": "{{count}} reseñas"
+  },
+  "badges": {
+    "saleAndRent": "En Venta y Alquiler"
+  },
+  "agentCard": {
+    "role": "Agente a Cargo",
+    "ourTeam": "nuestro equipo",
+    "heading": "¿Listo para ver esta propiedad?",
+    "ctaTextBefore": "Reservá una visita privada o enviá un mensaje directamente a",
+    "ctaTextAfter": "Sin compromiso",
+    "scheduleVisit": "Agendar una Visita",
+    "sendInquiry": "Enviar Consulta"
+  }
+}

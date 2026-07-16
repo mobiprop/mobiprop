@@ -4,10 +4,10 @@
   "consultation": {
     "heading": "Schedule a free consultation",
     "fullName": "Full Name",
-    "fullNamePlaceholder": "eg. Albert Jones",
+    "fullNamePlaceholder": "Enter your name",
     "email": "Email address",
-    "emailPlaceholder": "albert@email.com",
-    "topic": "Topic",
+    "emailPlaceholder": "Enter your email",
+    "topic": "Subject",
     "topicPlaceholder": "Consultation",
     "messages": "Messages",
     "messagesPlaceholder": "Enter a message",

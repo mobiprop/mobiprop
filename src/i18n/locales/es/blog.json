@@ -1,0 +1,28 @@
+{
+  "listHero": {
+    "badge": "Página del Blog",
+    "title": "Novedades del Mercado Inmobiliario Actual",
+    "subtitle": "Mantenete al día con análisis de expertos, tendencias del mercado local y guías completas para compradores, vendedores e inversores."
+  },
+  "card": {
+    "uncategorized": "Sin categoría",
+    "readMore": "Leer Más"
+  },
+  "pagination": {
+    "pageOf": "Página {{current}} de {{total}}",
+    "previous": "Página anterior",
+    "next": "Página siguiente",
+    "perPage": "9 / página"
+  },
+  "emptyState": "Todavía no hay publicaciones. Volvé a visitarnos pronto.",
+  "singleHero": {
+    "badge": "Publicación del Blog",
+    "title": "Nuestras Publicaciones",
+    "subtitle": "Explorá nuestras últimas publicaciones, donde compartimos novedades, tendencias del mercado y una mirada reflexiva sobre el mundo inmobiliario."
+  },
+  "back": "Volver",
+  "continueReading": {
+    "badge": "Más Publicaciones",
+    "title": "Seguí Leyendo"
+  }
+}

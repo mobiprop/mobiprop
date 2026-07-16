@@ -1,0 +1,50 @@
+{
+  "hero": {
+    "badge": "Listing",
+    "title": "Featured Luxury Listings",
+    "subtitle": "Discover a wide range of properties, from cozy apartments to luxurious estates, tailored to suit every need and budget."
+  },
+  "searchBar": {
+    "locationLabel": "Location",
+    "locationPlaceholder": "Enter city, area, or address",
+    "locationAriaLabel": "Search by location",
+    "clearLocationAriaLabel": "Clear location",
+    "propertyTypeLabel": "Property Type",
+    "propertyTypePlaceholder": "Select property type",
+    "transactionTypeLabel": "Transaction Type",
+    "transactionTypePlaceholder": "Select transaction",
+    "moreFiltersButton": "More Filters",
+    "searchButton": "Search Properties"
+  },
+  "filterOptions": {
+    "allTypes": "All Types",
+    "buyOrRent": "Buy or Rent",
+    "buy": "Buy",
+    "rent": "Rent"
+  },
+  "results": {
+    "searching": "Searching properties…",
+    "error": "We couldn't load listings right now",
+    "found_one": "{{count}} property found",
+    "found_other": "{{count}} properties found",
+    "mapButton": "Map",
+    "emptyErrorTitle": "Something went wrong",
+    "emptyErrorMessage": "Please refresh the page or try again in a moment.",
+    "emptyNoResultsTitle": "No properties match your search",
+    "emptyNoResultsMessage": "Try adjusting your filters or searching a different location.",
+    "clearFiltersButton": "Clear all filters"
+  },
+  "card": {
+    "removeSavedAriaLabel": "Remove from saved",
+    "saveAriaLabel": "Save property"
+  },
+  "pagination": {
+    "pageOf": "Page {{current}} of {{total}}",
+    "goToPageAriaLabel": "Go to page",
+    "pageOption": "Page {{page}}"
+  },
+  "suggestions": {
+    "title": "You might also like",
+    "subtitle": "We have over +10 years of experience in the real estate market"
+  }
+}

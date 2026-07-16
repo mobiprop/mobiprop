@@ -1,35 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const testimonialPerson =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/jay.webp";
-
-const testimonials = [
-  {
-    quote:
-      "From day one, they understood the vision we had — creating a space that felt modern, functional, and timeless. Their approach reshaped how our building stands in the community.",
-    name: "Jay Prakash",
-    role: "Homeowner, Surrey, UK",
-    image: testimonialPerson,
-  },
-  {
-    quote:
-      "From day one, they understood the vision we had — creating a space that felt modern, functional, and timeless. Their approach reshaped how our building stands in the community.",
-    name: "Amit Sharma",
-    role: "Property Owner, London, UK",
-    image: testimonialPerson,
-  },
-  {
-    quote:
-      "From day one, they understood the vision we had — creating a space that felt modern, functional, and timeless. Their approach reshaped how our building stands in the community.",
-    name: "Sarah Wilson",
-    role: "Homeowner, Manchester, UK",
-    image: testimonialPerson,
-  },
-];
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/testimonial-placeholder.webp";
 
 function QuoteIcon() {
   return (
@@ -48,63 +23,14 @@ function QuoteIcon() {
 
 export function Testimonial() {
   const { t } = useTranslation("home");
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const currentTestimonial = testimonials[activeIndex];
-
-  const handlePrev = () => {
-    setActiveIndex((prev) =>
-      prev === 0 ? testimonials.length - 1 : prev - 1
-    );
+  // Only one real client testimonial exists in the Figma design so far —
+  // shown as a single static quote until more are provided.
+  const testimonial = {
+    quote: t("testimonial.quote"),
+    name: t("testimonial.name"),
+    role: t("testimonial.role"),
+    image: testimonialPerson,
   };
-
-  const handleNext = () => {
-    setActiveIndex((prev) =>
-      prev === testimonials.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const SliderButtons = () => (
-    <div className="flex gap-3">
-      <button
-        type="button"
-        onClick={handlePrev}
-        aria-label="Previous testimonial"
-        className="w-12 h-12 sm:w-14 sm:h-14 rounded-[13px] bg-[#d1d5dc] hover:bg-[#1e4f86] group flex items-center justify-center transition-all duration-300"
-      >
-        <svg
-          width="22"
-          height="18"
-          viewBox="0 0 18.0006 15.0008"
-          fill="none"
-        >
-          <path
-            d={svgPaths.p33185f40}
-            className="fill-[#2B3038] group-hover:fill-white transition-all duration-300"
-          />
-        </svg>
-      </button>
-
-      <button
-        type="button"
-        onClick={handleNext}
-        aria-label="Next testimonial"
-        className="w-12 h-12 sm:w-14 sm:h-14 rounded-[13px] bg-[#d1d5dc] hover:bg-[#1e4f86] group flex items-center justify-center rotate-180 transition-all duration-300"
-      >
-        <svg
-          width="22"
-          height="18"
-          viewBox="0 0 18.0006 15.0008"
-          fill="none"
-        >
-          <path
-            d={svgPaths.p33185f40}
-            className="fill-[#2B3038] group-hover:fill-white transition-all duration-300"
-          />
-        </svg>
-      </button>
-    </div>
-  );
 
   return (
     <section className="bg-white py-16 lg:py-20">
@@ -112,7 +38,7 @@ export function Testimonial() {
         <div className="relative overflow-hidden flex flex-col lg:flex-row gap-8 sm:gap-10 lg:gap-[120px] xl:gap-[200px] justify-between">
           {/* Background Logo Watermark - 3 Images */}
           <div
-            className="home-img pointer-events-none absolute left-[35%] top-[58%] -translate-x-1/2 -translate-y-1/2 
+            className="home-img pointer-events-none absolute left-[35%] top-[58%] -translate-x-1/2 -translate-y-1/2
             w-[469px] h-[317.9668884277344px] opacity-[0.04] rotate-0 z-0 flex flex-col items-center"
           >
             <img
@@ -154,11 +80,6 @@ export function Testimonial() {
                 {t("testimonial.subtitle")}
               </p>
             </div>
-
-            {/* Desktop buttons only */}
-            <div className="hidden lg:block">
-              <SliderButtons />
-            </div>
           </div>
 
           {/* Right side - quote */}
@@ -170,7 +91,7 @@ export function Testimonial() {
                 className="text-[20px] sm:text-[24px] lg:text-[28px] font-medium text-[#232323] leading-[30px] sm:leading-[34px] lg:leading-[36px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
-                {currentTestimonial.quote}
+                {testimonial.quote}
               </blockquote>
             </div>
 
@@ -178,8 +99,8 @@ export function Testimonial() {
             <div className="flex items-center gap-3 sm:gap-4 mt-6 sm:mt-8">
               <div className="w-[64px] h-[58px] sm:w-[80px] sm:h-[70px] rounded-[14px] sm:rounded-[16px] overflow-hidden flex-shrink-0">
                 <img
-                  src={currentTestimonial.image}
-                  alt={currentTestimonial.name}
+                  src={testimonial.image}
+                  alt={testimonial.name}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -189,21 +110,16 @@ export function Testimonial() {
                   className="text-[18px] sm:text-[20px] font-medium text-[#0d2138] leading-[28px] sm:leading-[32px]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
-                  {currentTestimonial.name}
+                  {testimonial.name}
                 </p>
 
                 <p
                   className="text-[13px] sm:text-[14px] text-[#2b3038]"
                   style={{ fontFamily: "Montserrat, sans-serif" }}
                 >
-                  {currentTestimonial.role}
+                  {testimonial.role}
                 </p>
               </div>
-            </div>
-
-            {/* Mobile buttons below quote/author */}
-            <div className="flex lg:hidden mt-6">
-              <SliderButtons />
             </div>
           </div>
         </div>

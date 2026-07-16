@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { queryKeys } from "@/lib/query-keys";
 import { useShallow } from "zustand/react/shallow";
@@ -211,6 +212,7 @@ return (
 }
 /* ─── card component (vertical only) ─── */
 function PropertyCard({ item }: { item: PublicListingDto }) {
+const { t } = useTranslation("listings");
 const [loginOpen, setLoginOpen] = useState(false);
 const { isSaved, toggleSave } = useSavedListings();
 const saved = isSaved(item.listingId);
@@ -248,7 +250,7 @@ return (
       e.stopPropagation();
       toggleSave(item.listingId, () => setLoginOpen(true));
       }}
-      aria-label={saved ? "Remove from saved" : "Save property"}
+      aria-label={saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
       className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"
       >
       <HeartIcon filled={saved} />
@@ -334,6 +336,7 @@ current: number;
 total: number;
 onChange: (p: number) => void;
 }) {
+const { t } = useTranslation("listings");
 const items = getPageItems(current, total);
 return (
 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full mt-8 sm:mt-10">
@@ -341,7 +344,7 @@ return (
     className="text-[14px] sm:text-[16px] text-[#4B4F52] text-center sm:text-left"
     style={{ fontFamily: "Montserrat, sans-serif" }}
   >
-    Page {current} of {total}
+    {t("pagination.pageOf", { current, total })}
   </span>
 
   <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
@@ -401,11 +404,11 @@ return (
       onChange={(e) => onChange(Number(e.target.value))}
       className="appearance-none w-full sm:w-auto bg-white border border-[#e5e7eb] rounded-full pl-4 pr-9 py-2 text-[14px] text-[#2b3038] cursor-pointer hover:bg-[#f8fafc] transition-colors"
       style={{ fontFamily: "Montserrat, sans-serif" }}
-      aria-label="Go to page"
+      aria-label={t("pagination.goToPageAriaLabel")}
     >
       {Array.from({ length: total }, (_, i) => i + 1).map((p) => (
         <option key={p} value={p}>
-          Page {p}
+          {t("pagination.pageOption", { page: p })}
         </option>
       ))}
     </select>
@@ -418,19 +421,28 @@ return (
 );
 }
 /* ─── filter option catalogs ─── */
-const PROPERTY_TYPE_OPTIONS: { value: PropertyTypeFilter; label: string }[] = [
-  { value: "", label: "All Types" },
-  { value: "APARTMENT", label: PROPERTY_TYPE_LABELS.APARTMENT },
-  { value: "HOUSE", label: PROPERTY_TYPE_LABELS.HOUSE },
-  { value: "COMMERCIAL_OFFICE", label: PROPERTY_TYPE_LABELS.COMMERCIAL_OFFICE },
-  { value: "LOT", label: PROPERTY_TYPE_LABELS.LOT },
-  { value: "TOWNHOUSE", label: PROPERTY_TYPE_LABELS.TOWNHOUSE },
-];
-const TRANSACTION_OPTIONS: { value: TransactionTypeFilter; label: string }[] = [
-  { value: "", label: "Buy or Rent" },
-  { value: "SALE", label: "Buy" },
-  { value: "RENT", label: "Rent" },
-];
+// Built inside the component (not module scope) so labels re-render on language change.
+function getPropertyTypeOptions(
+  t: (key: string) => string,
+): { value: PropertyTypeFilter; label: string }[] {
+  return [
+    { value: "", label: t("filterOptions.allTypes") },
+    { value: "APARTMENT", label: PROPERTY_TYPE_LABELS.APARTMENT },
+    { value: "HOUSE", label: PROPERTY_TYPE_LABELS.HOUSE },
+    { value: "COMMERCIAL_OFFICE", label: PROPERTY_TYPE_LABELS.COMMERCIAL_OFFICE },
+    { value: "LOT", label: PROPERTY_TYPE_LABELS.LOT },
+    { value: "TOWNHOUSE", label: PROPERTY_TYPE_LABELS.TOWNHOUSE },
+  ];
+}
+function getTransactionOptions(
+  t: (key: string) => string,
+): { value: TransactionTypeFilter; label: string }[] {
+  return [
+    { value: "", label: t("filterOptions.buyOrRent") },
+    { value: "SALE", label: t("filterOptions.buy") },
+    { value: "RENT", label: t("filterOptions.rent") },
+  ];
+}
 // FiltersModal amenity labels → seeded amenity keys (amenities.key in DB).
 const MODAL_AMENITY_KEYS: Record<string, string> = {
   "Credit Approved": "CREDIT_APPROVED",
@@ -519,6 +531,9 @@ function SearchBarDropdown<T extends string>({
 
 /* ─── main export ─── */
 export function ListingPageContent() {
+const { t } = useTranslation("listings");
+const propertyTypeOptions = useMemo(() => getPropertyTypeOptions(t), [t]);
+const transactionOptions = useMemo(() => getTransactionOptions(t), [t]);
 const heroRef = useRef<HTMLElement>(null);
 const { scrollYProgress } = useScroll({
   target: heroRef,
@@ -623,12 +638,10 @@ const filterKey = JSON.stringify(filters);
 useEffect(() => setPage(1), [filterKey]);
 
 const resultsHeading = isLoading
-  ? "Searching properties…"
+  ? t("results.searching")
   : isError
-    ? "We couldn't load listings right now"
-    : `${filters.location ? `${filters.location}: ` : ""}${total} ${
-        total === 1 ? "property" : "properties"
-      } found`;
+    ? t("results.error")
+    : `${filters.location ? `${filters.location}: ` : ""}${t("results.found", { count: total })}`;
 
 function commitLocation(value: string) {
   setLocationInput(value);
@@ -703,13 +716,13 @@ return (
          className="text-[14px] sm:text-[16px] font-medium text-[#6a7282] tracking-[-0.01em]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         Listing
+         {t("hero.badge")}
          </span>
       </div>
       <div className="flex flex-col gap-3 sm:gap-4 items-center">
          <SplitHeading
            as="h1"
-           text="Featured Luxury Listings"
+           text={t("hero.title")}
            className="text-[28px] sm:text-[38px] lg:text-[44px] font-semibold text-[#0d2138] leading-[38px] sm:leading-[48px] lg:leading-[56px] tracking-[-0.01em]"
            style={{ fontFamily: "Poppins, sans-serif" }}
            amount={0.6}
@@ -718,8 +731,7 @@ return (
          className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.01em] max-w-[560px]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
-         Discover a wide range of properties, from cozy apartments to luxurious
-         estates, tailored to suit every need and budget.
+         {t("hero.subtitle")}
          </p>
       </div>
    </Reveal>
@@ -737,7 +749,7 @@ return (
         className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Location
+        {t("searchBar.locationLabel")}
       </p>
 
       <div ref={locationRef} className="relative w-full">
@@ -777,10 +789,10 @@ return (
               onKeyDown={(e) => {
                 if (e.key === "Enter") commitLocation(locationInput);
               }}
-              placeholder="Enter city, area, or address"
+              placeholder={t("searchBar.locationPlaceholder")}
               className="w-full min-w-0 bg-transparent text-[16px] text-[#0d2138] placeholder:text-[#6a7282] leading-[24px] outline-none max-xl:text-[14px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
-              aria-label="Search by location"
+              aria-label={t("searchBar.locationAriaLabel")}
             />
           </div>
 
@@ -788,7 +800,7 @@ return (
             <button
               type="button"
               onClick={() => commitLocation("")}
-              aria-label="Clear location"
+              aria-label={t("searchBar.clearLocationAriaLabel")}
               className="flex-shrink-0 text-[#6a7282] hover:text-[#0d2138] cursor-pointer text-[18px] leading-none"
             >
               ×
@@ -824,7 +836,7 @@ return (
         className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Property Type
+        {t("searchBar.propertyTypeLabel")}
       </p>
 
       <SearchBarDropdown
@@ -845,8 +857,8 @@ return (
             />
           </svg>
         }
-        placeholder="Select property type"
-        options={PROPERTY_TYPE_OPTIONS}
+        placeholder={t("searchBar.propertyTypePlaceholder")}
+        options={propertyTypeOptions}
         value={filters.propertyType}
         onChange={(value) => store.setPropertyType(value)}
       />
@@ -858,7 +870,7 @@ return (
         className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        Transaction Type
+        {t("searchBar.transactionTypeLabel")}
       </p>
 
       <SearchBarDropdown
@@ -879,8 +891,8 @@ return (
             />
           </svg>
         }
-        placeholder="Select transaction"
-        options={TRANSACTION_OPTIONS}
+        placeholder={t("searchBar.transactionTypePlaceholder")}
+        options={transactionOptions}
         value={filters.transactionType}
         onChange={(value) => store.setTransactionType(value)}
       />
@@ -893,7 +905,7 @@ return (
         className="bg-white border border-[#e5e7eb] rounded-[60px] px-5 py-3 text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        More Filters
+        {t("searchBar.moreFiltersButton")}
       </button>
 
       <button
@@ -914,7 +926,7 @@ return (
           }}
         />
 
-        <span className="relative z-10">Search Properties</span>
+        <span className="relative z-10">{t("searchBar.searchButton")}</span>
       </button>
     </div>
   </div>
@@ -938,7 +950,7 @@ return (
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             <MapIcon />
-            Map
+            {t("results.mapButton")}
          </button>
       </Reveal>
       {/* Card grid */}
@@ -973,15 +985,15 @@ return (
          className="text-[20px] font-medium text-[#0d2138]"
          style={{ fontFamily: "Poppins, sans-serif" }}
          >
-         {isError ? "Something went wrong" : "No properties match your search"}
+         {isError ? t("results.emptyErrorTitle") : t("results.emptyNoResultsTitle")}
          </p>
          <p
          className="text-[15px] text-[#6a7282] max-w-[420px]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
          {isError
-         ? "Please refresh the page or try again in a moment."
-         : "Try adjusting your filters or searching a different location."}
+         ? t("results.emptyErrorMessage")
+         : t("results.emptyNoResultsMessage")}
          </p>
          {!isError ? (
          <button
@@ -992,7 +1004,7 @@ return (
             className="mt-2 rounded-full bg-[#1e4f86] px-6 py-2.5 text-[14px] text-white hover:bg-[#17446f] transition-colors cursor-pointer"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-            Clear all filters
+            {t("results.clearFiltersButton")}
          </button>
          ) : null}
       </div>
@@ -1014,7 +1026,7 @@ return (
          <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
             <SplitHeading
               as="h2"
-              text="You might also like"
+              text={t("suggestions.title")}
               className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-[50px] xl:leading-[56px] tracking-[-0.01em]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             />
@@ -1022,7 +1034,7 @@ return (
             className="text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] text-[#2b3038] tracking-[-0.01em] max-w-[520px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-            We have over +10 years of experience in the real estate market
+            {t("suggestions.subtitle")}
             </p>
          </Reveal>
          {/* 3-card row */}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
@@ -55,6 +56,8 @@ function SectionTag({ label }: { label: string }) {
 
 /* ─── Featured blog card ─── */
 function FeaturedBlog({ post }: { post: BlogPostDto }) {
+  const { t } = useTranslation("blog");
+
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -80,7 +83,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
           className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
           style={{ fontFamily: montserrat }}
         >
-          {post.category ?? "Uncategorized"}
+          {post.category ?? t("card.uncategorized")}
         </span>
 
         {/* bottom row */}
@@ -98,7 +101,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
                 className="text-[14px] sm:text-[16px] font-medium text-white tracking-[-0.16px]"
                 style={{ fontFamily: montserrat }}
               >
-                Read More
+                {t("card.readMore")}
               </span>
               <img src={arrowRightWhite} alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
             </span>
@@ -118,6 +121,8 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
 
 /* ─── Blog card ─── */
 function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
+  const { t } = useTranslation("blog");
+
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -135,7 +140,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
           className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
           style={{ fontFamily: montserrat }}
         >
-          {post.category ?? "Uncategorized"}
+          {post.category ?? t("card.uncategorized")}
         </span>
       </div>
 
@@ -171,6 +176,8 @@ function Pagination({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) {
+  const { t } = useTranslation("blog");
+
   const pages: (number | "...")[] =
     totalPages <= 7
       ? Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -187,7 +194,7 @@ function Pagination({
         className="lg:w-[200px] shrink-0 text-center xl:text-left text-[16px] text-[#2b3038] tracking-[-0.16px] whitespace-nowrap"
         style={{ fontFamily: montserrat }}
       >
-        Page {currentPage} of {totalPages}
+        {t("pagination.pageOf", { current: currentPage, total: totalPages })}
       </span>
 
       {/* center */}
@@ -195,7 +202,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          aria-label="Previous page"
+          aria-label={t("pagination.previous")}
           className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
         >
           <img src={paginationArrowLeft} alt="" className="w-5 h-5" />
@@ -230,7 +237,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          aria-label="Next page"
+          aria-label={t("pagination.next")}
           className="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
         >
           <img src={paginationArrowRight} alt="" className="w-5 h-5" />
@@ -244,7 +251,7 @@ function Pagination({
           style={{ boxShadow: "0px 1px 2px 0px rgba(228,229,231,0.24)" }}
         >
           <span className="text-[16px] text-[#2b3038] tracking-[-0.16px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
-            9 / page
+            {t("pagination.perPage")}
           </span>
           <img src={paginationArrowDown} alt="" className="w-5 h-5" />
         </div>
@@ -263,6 +270,7 @@ type BlogPageContentProps = {
 
 export function BlogPageContent({ posts, featured, currentPage, totalPages }: BlogPageContentProps) {
   const router = useRouter();
+  const { t } = useTranslation("blog");
 
   function goToPage(page: number) {
     router.push(page <= 1 ? "/blog" : `/blog?page=${page}`);
@@ -292,10 +300,10 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
           amount={0.6}
           className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
         >
-          <SectionTag label="Blog Page" />
+          <SectionTag label={t("listHero.badge")} />
           <SplitHeading
             as="h1"
-            text="Insights for the Modern Property Market"
+            text={t("listHero.title")}
             className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
             style={{ fontFamily: poppins }}
             amount={0.6}
@@ -304,7 +312,7 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
             className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
             style={{ fontFamily: montserrat }}
           >
-            Stay ahead of the curve with expert analysis, local market trends, and comprehensive guides for buyers, sellers, and investors.
+            {t("listHero.subtitle")}
           </p>
         </Reveal>
       </section>
@@ -343,7 +351,7 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
             className="py-16 text-[16px] text-[#6a7282] text-center"
             style={{ fontFamily: montserrat }}
           >
-            No blog posts published yet. Check back soon.
+            {t("emptyState")}
           </p>
         )}
       </div>

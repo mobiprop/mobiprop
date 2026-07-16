@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import { ScheduleTourModal } from "./ScheduleTourModal";
@@ -759,22 +761,51 @@ const statCatalog = [
   },
 ];
 
-const OPERATION_LABELS: Record<PublicListingDto["operationType"], string> = {
-  SALE: "For Sale",
-  RENT: "For Rent",
-  SALE_AND_RENT: "For Sale & Rent",
-};
+// The listing operation type only ever takes these three values, so its
+// display text is translated through a small switch rather than a plain
+// record — this keeps the translation function (which needs a hook) out of
+// module scope while still covering SALE / RENT / SALE_AND_RENT.
+function operationTypeLabel(t: TFunction, operationType: PublicListingDto["operationType"]): string {
+  switch (operationType) {
+    case "SALE":
+      return t("home:featuredListings.filterSale");
+    case "RENT":
+      return t("home:featuredListings.filterRent");
+    case "SALE_AND_RENT":
+      return t("listingDetail:badges.saleAndRent");
+  }
+}
 
 function statIcon(label: string): React.ReactNode {
   return statCatalog.find((s) => s.label === label)?.icon ?? null;
 }
 
-function buildStats(listing: PublicListingDto) {
+// stat.label doubles as the internal key used to look up its icon above, so
+// it's kept in English as a stable identifier; this maps it to the
+// translated text actually shown to the user.
+const STAT_LABEL_KEYS: Record<string, string> = {
+  Type: "listingDetail:stats.type",
+  Price: "listingDetail:stats.price",
+  Beds: "listingDetail:stats.beds",
+  Baths: "listingDetail:stats.baths",
+  Size: "listingDetail:stats.size",
+  Parking: "listingDetail:stats.parking",
+  "Lot Size": "listingDetail:stats.lotSize",
+  "Covered m²": "listingDetail:stats.coveredM2",
+  "Semi-covered m²": "listingDetail:stats.semiCoveredM2",
+  "Lot Frontage": "listingDetail:stats.lotFrontage",
+  "Lot Depth": "listingDetail:stats.lotDepth",
+  "Built in": "listingDetail:stats.builtIn",
+  Floors: "listingDetail:stats.floors",
+  "Property ID": "listingDetail:stats.propertyId",
+};
+
+function buildStats(listing: PublicListingDto, t: TFunction) {
   const stats: { label: string; value: string; copy?: boolean; icon: React.ReactNode }[] = [];
   const push = (label: string, value: string, copy = false) =>
     stats.push({ label, value, copy, icon: statIcon(label) });
 
-  push("Type", OPERATION_LABELS[listing.operationType]);
+  push("Type", operationTypeLabel(t, listing.operationType));
   if (listing.salePrice !== null) push("Price", formatSalePrice(listing.salePrice));
   else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice));
   if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
@@ -796,7 +827,12 @@ function buildStats(listing: PublicListingDto) {
   }
   if (listing.yearBuilt !== null) push("Built in", String(listing.yearBuilt));
   if (listing.floors !== null)
-    push("Floors", listing.floors === 1 ? "1 story" : `${listing.floors} stories`);
+    push(
+      "Floors",
+      listing.floors === 1
+        ? t("listingDetail:stats.oneStory")
+        : t("listingDetail:stats.storiesCount", { count: listing.floors }),
+    );
   push("Property ID", listing.listingId, true);
   return stats;
 }
@@ -837,6 +873,7 @@ function getYouTubeId(url: string): string | null {
 }
 
 function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; title: string }) {
+  const { t } = useTranslation("listingDetail");
   const [isPlaying, setIsPlaying] = useState(false);
   const youtubeId = videoUrl ? getYouTubeId(videoUrl) : null;
   const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null;
@@ -851,7 +888,7 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
           letterSpacing: "-0.24px",
         }}
       >
-        Video Preview
+        {t("sections.videoPreview")}
       </h2>
 
       <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px] bg-[#0d2138]">
@@ -869,14 +906,14 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
               <path d="M21 8l-4 3v2l4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <p style={{ fontFamily: "Montserrat, sans-serif" }} className="text-[14px] sm:text-[16px]">
-              Preview Not Available
+              {t("video.previewNotAvailable")}
             </p>
           </div>
         ) : isPlaying ? (
           youtubeId ? (
             <iframe
               src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
-              title={`${title} — video preview`}
+              title={t("video.playerTitle", { title })}
               className="absolute inset-0 h-full w-full"
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
@@ -893,7 +930,7 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
           <button
             type="button"
             onClick={() => setIsPlaying(true)}
-            aria-label={`Play video preview for ${title}`}
+            aria-label={t("video.playAria", { title })}
             className="group absolute inset-0 h-full w-full cursor-pointer"
           >
             {thumbnailUrl ? (
@@ -924,6 +961,7 @@ export function SingleListingPageContent({
   listing: PublicListingDto;
   agent: PublicListingAgent | null;
 }) {
+  const { t } = useTranslation(["listingDetail", "home"]);
   const [copied, setCopied] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [tourModalOpen, setTourModalOpen] = useState(false);
@@ -957,7 +995,7 @@ export function SingleListingPageContent({
   const sideImages = images.slice(1, 4);
   const hiddenCount = images.length - 4;
 
-  const stats = buildStats(listing);
+  const stats = buildStats(listing, t);
   const listingAmenities = listing.amenities.map((key) => ({
     key,
     label: AMENITY_OPTIONS.find((opt) => opt.key === key)?.label ?? key,
@@ -965,7 +1003,7 @@ export function SingleListingPageContent({
   }));
 
   const badges = [
-    OPERATION_LABELS[listing.operationType],
+    operationTypeLabel(t, listing.operationType),
     PROPERTY_TYPE_LABELS[listing.type],
     ...(listing.yearBuilt !== null ? [String(listing.yearBuilt)] : []),
   ];
@@ -985,7 +1023,7 @@ export function SingleListingPageContent({
             lineHeight: "28px",
           }}
         >
-          Property details
+          {t("propertyDetails")}
         </p>
       </div>
 
@@ -998,7 +1036,7 @@ export function SingleListingPageContent({
               type="button"
               onClick={() => mainImage && setLightboxIndex(0)}
               disabled={!mainImage}
-              aria-label="Open image gallery"
+              aria-label={t("gallery.openGalleryAria")}
               className="group absolute inset-0 h-full w-full cursor-zoom-in disabled:cursor-default"
             >
               {mainImage && isHeroUnsafe(mainImage) ? (
@@ -1029,7 +1067,7 @@ export function SingleListingPageContent({
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  View photos
+                  {t("gallery.viewPhotos")}
                 </span>
               ) : null}
             </button>
@@ -1056,12 +1094,12 @@ export function SingleListingPageContent({
                   key={img.id}
                   type="button"
                   onClick={() => setLightboxIndex(i + 1)}
-                  aria-label={`Open image gallery at photo ${i + 2}`}
+                  aria-label={t("gallery.openGalleryAtPhotoAria", { number: i + 2 })}
                   className="group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
                 >
                   <img
                     src={img.url}
-                    alt={img.altText ?? `${listing.title} view ${i + 1}`}
+                    alt={img.altText ?? t("gallery.photoAlt", { title: listing.title, number: i + 1 })}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                   />
 
@@ -1079,7 +1117,7 @@ export function SingleListingPageContent({
                         className="text-[14px] sm:text-[18px] lg:text-[20px] whitespace-nowrap"
                         style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
                       >
-                        +{hiddenCount} more
+                        {t("gallery.moreCount", { count: hiddenCount })}
                       </span>
                     </span>
                   ) : null}
@@ -1158,7 +1196,7 @@ export function SingleListingPageContent({
                       fontWeight: 600,
                     }}
                   >
-                    Sale
+                    {t("home:hero.tabBuy")}
                   </span>
                 </div>
 
@@ -1186,7 +1224,7 @@ export function SingleListingPageContent({
                       fontWeight: 600,
                     }}
                   >
-                    Rent
+                    {t("home:hero.tabRent")}
                   </span>
                 </div>
 
@@ -1210,7 +1248,7 @@ export function SingleListingPageContent({
             className="text-[#2b3038] text-[14px] sm:text-[16px]"
             style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}
           >
-            Share:
+            {t("share.label")}
           </span>
 
           {/* Social Icons */}
@@ -1222,7 +1260,7 @@ export function SingleListingPageContent({
                   `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
                 )
               }
-              aria-label="Share on Facebook"
+              aria-label={t("share.facebookAria")}
               className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden shrink-0"
             >
               <svg
@@ -1244,7 +1282,7 @@ export function SingleListingPageContent({
                   `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
                 )
               }
-              aria-label="Share on X"
+              aria-label={t("share.xAria")}
               className="w-6 h-6 overflow-clip relative cursor-pointer shrink-0"
             >
               <svg viewBox="0 0 20 18" className="w-6 h-6">
@@ -1255,7 +1293,7 @@ export function SingleListingPageContent({
             {/* Instagram */}
             <button
               onClick={() => openShare("https://www.instagram.com/")}
-              aria-label="Open Instagram"
+              aria-label={t("share.instagramAria")}
               className="w-6 h-6 rounded-[6px] flex items-center justify-center overflow-hidden cursor-pointer shrink-0"
               style={{
                 background:
@@ -1294,7 +1332,7 @@ export function SingleListingPageContent({
                   `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
                 )
               }
-              aria-label="Share on LinkedIn"
+              aria-label={t("share.linkedinAria")}
               className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px] shrink-0"
             >
               <svg
@@ -1331,7 +1369,7 @@ export function SingleListingPageContent({
                   `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`,
                 )
               }
-              aria-label="Share on WhatsApp"
+              aria-label={t("share.whatsappAria")}
               className="w-8 h-8 relative cursor-pointer shrink-0"
             >
               <svg
@@ -1398,7 +1436,7 @@ export function SingleListingPageContent({
                 strokeLinejoin="round"
               />
             </svg>
-            {copied ? "Copied!" : "Copy Link"}
+            {copied ? t("share.copied") : t("share.copyLink")}
           </button>
 
           {/* Save button */}
@@ -1409,7 +1447,7 @@ export function SingleListingPageContent({
               : "border-[#d1d5dc] text-[#2b3038] hover:bg-gray-50"
               }`}
             style={{ fontFamily: "Montserrat, sans-serif" }}
-            aria-label={saved ? "Remove from saved" : "Save property"}
+            aria-label={saved ? t("save.removeAria") : t("save.saveAria")}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill={saved ? "#e74c3c" : "none"}>
               <path
@@ -1419,7 +1457,7 @@ export function SingleListingPageContent({
                 strokeLinejoin="round"
               />
             </svg>
-            {saved ? "Saved" : "Save"}
+            {saved ? t("save.saved") : t("save.save")}
           </button>
         </div>
       </div>
@@ -1435,7 +1473,7 @@ export function SingleListingPageContent({
             letterSpacing: "-0.24px",
           }}
         >
-          Description
+          {t("sections.description")}
         </h2>
 
         <p
@@ -1459,7 +1497,7 @@ export function SingleListingPageContent({
             letterSpacing: "-0.24px",
           }}
         >
-          Property details
+          {t("propertyDetails")}
         </h2>
       </div>
       {/* Property Details Stats */}
@@ -1502,7 +1540,7 @@ export function SingleListingPageContent({
                           letterSpacing: "-3%",
                         }}
                       >
-                        {stat.label}
+                        {t(STAT_LABEL_KEYS[stat.label] ?? stat.label)}
                       </p>
 
                       <p
@@ -1521,7 +1559,7 @@ export function SingleListingPageContent({
                               navigator.clipboard.writeText(stat.value)
                             }
                             className="inline-flex h-[12px] w-[12px] items-center justify-center text-[#0D2138]"
-                            aria-label="Copy property ID"
+                            aria-label={t("stats.copyPropertyIdAria")}
                           >
                             <svg
                               width="12"
@@ -1568,7 +1606,7 @@ export function SingleListingPageContent({
               letterSpacing: "-0.24px",
             }}
           >
-            Features & Amenities
+            {t("sections.featuresAmenities")}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -1612,7 +1650,7 @@ export function SingleListingPageContent({
               letterSpacing: "-0.24px",
             }}
           >
-            On the Map
+            {t("sections.onTheMap")}
           </h2>
 
           <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px]">
@@ -1667,7 +1705,7 @@ export function SingleListingPageContent({
                   className="text-[14px] text-[#369BCB]"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                 >
-                  {(6546).toLocaleString()} reviews
+                  {t("map.reviewsCount", { count: (6546).toLocaleString() })}
                 </span>
               </div>
             </div>
@@ -1716,7 +1754,7 @@ export function SingleListingPageContent({
                       className="text-white text-[14px] sm:text-[16px] opacity-80"
                       style={{ fontFamily: "Montserrat, sans-serif" }}
                     >
-                      Listing Agent
+                      {t("agentCard.role")}
                     </p>
                   </div>
                 </div>
@@ -1739,7 +1777,7 @@ export function SingleListingPageContent({
                   letterSpacing: "-0.36px",
                 }}
               >
-                Ready to see this property
+                {t("agentCard.heading")}
               </h2>
 
               <p
@@ -1749,10 +1787,10 @@ export function SingleListingPageContent({
                   letterSpacing: "-0.16px",
                 }}
               >
-                Book a private tour or send a message directly to{" "}
-                {agent ? agent.name.split(" ")[0] : "our team"}.
+                {t("agentCard.ctaTextBefore")}{" "}
+                {agent ? agent.name.split(" ")[0] : t("agentCard.ourTeam")}.
                 <br className="hidden sm:block" />
-                No commitment needed
+                {t("agentCard.ctaTextAfter")}
               </p>
             </div>
 
@@ -1767,14 +1805,14 @@ export function SingleListingPageContent({
                   border: "1px solid #0088ff",
                 }}
               >
-                Schedule a Visit
+                {t("agentCard.scheduleVisit")}
               </button>
 
               <button
                 className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] border border-[#b9c8d9] hover:bg-white/10 transition-colors"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
-                Send Inquiry
+                {t("agentCard.sendInquiry")}
               </button>
             </div>
           </div>

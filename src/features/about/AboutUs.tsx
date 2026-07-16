@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
 
@@ -36,6 +39,8 @@ const galleryRows = [
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
+const STAT_VALUES = ["$150M+", "500+", "20+"];
+
 /* ─── section tag (dot + label) ─── */
 function SectionTag({ label }: { label: string }) {
   return (
@@ -63,40 +68,21 @@ function CardIcon() {
   );
 }
 
-const expertiseCards = [
-  {
-    title: "Property Sales & Consultation",
-    desc: "Expert guidance through every step — from first inquiry to final handover, ensuring a smooth and confident buying experience.",
-  },
-  {
-    title: "Premium Listing Curation",
-    desc: "Each property is carefully selected for its design, quality, and comfort reflecting Ulrich commitment to modern minimalist.",
-  },
-  {
-    title: "After-Sales Support",
-    desc: "Our commitment doesn't end with a sale — we're here to ensure every client feels supported, understood, and valued.",
-  },
-];
-
-const stats = [
-  {
-    value: "$150M+",
-    label: "Properties sold",
-    desc: "Over $150M in sales, helping clients find homes and investments with ease and confidence.",
-  },
-  {
-    value: "500+",
-    label: "Happy Clients",
-    desc: "More than 500 satisfied clients trust us to make their real estate journey smooth and successful.",
-  },
-  {
-    value: "20+",
-    label: "Years of Expertise",
-    desc: "Over 20 years of experience guiding clients with market insight and professional advice.",
-  },
-];
-
 export function AboutUsContent() {
+  const { t } = useTranslation("about");
+
+  const expertiseCards = t("expertise.cards", { returnObjects: true }) as {
+    title: string;
+    desc: string;
+  }[];
+
+  const stats = (
+    t("aboutSection.stats", { returnObjects: true }) as {
+      label: string;
+      desc: string;
+    }[]
+  ).map((s, i) => ({ ...s, value: STAT_VALUES[i] }));
+
   return (
     <>
       {/* ── Hero ── */}
@@ -134,11 +120,11 @@ export function AboutUsContent() {
           amount={0.6}
           className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
         >
-          <SectionTag label="About Us" />
+          <SectionTag label={t("hero.badge")} />
 
           <SplitHeading
             as="h1"
-            text="Where Global Property Meets Local Expertise"
+            text={t("hero.title")}
             className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
             style={{ fontFamily: poppins }}
             amount={0.6}
@@ -148,8 +134,7 @@ export function AboutUsContent() {
             className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
             style={{ fontFamily: montserrat }}
           >
-            Discover a wide range of properties, from cozy apartments to
-            luxurious estates, tailored to suit every need and budget.
+            {t("hero.subtitle")}
           </p>
         </Reveal>
       </section>
@@ -158,11 +143,11 @@ export function AboutUsContent() {
       <section className="bg-white">
         <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
           <Reveal className="flex flex-col items-center gap-2 text-center" amount={0.5}>
-            <SectionTag label="Our Story" />
+            <SectionTag label={t("ourStory.badge")} />
 
             <SplitHeading
               as="h2"
-              text="Finding a Property Should be Exciting, not Overwhelming."
+              text={t("ourStory.title")}
               className="text-[23px] sm:text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.2] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[629px]"
               style={{ fontFamily: poppins }}
             />
@@ -187,11 +172,11 @@ export function AboutUsContent() {
       <section className="bg-white">
         <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
           <Reveal className="flex flex-col gap-2 max-w-[631px]" amount={0.5}>
-            <SectionTag label="Our Gallery" />
+            <SectionTag label={t("gallery.badge")} />
 
             <SplitHeading
               as="h2"
-              text="Property Moments Captured Beautifully"
+              text={t("gallery.title")}
               className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px]"
               style={{ fontFamily: poppins }}
             />
@@ -200,8 +185,7 @@ export function AboutUsContent() {
               className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px] max-w-[501px]"
               style={{ fontFamily: montserrat }}
             >
-              Explore high quality images reflecting comfort design, location,
-              &amp; everyday living experience.
+              {t("gallery.subtitle")}
             </p>
           </Reveal>
 
@@ -244,11 +228,11 @@ export function AboutUsContent() {
           {/* Left: heading + subtext + image */}
           <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 lg:w-1/2">
             <Reveal className="flex flex-col gap-2" amount={0.5}>
-              <SectionTag label="Our Expertise" />
+              <SectionTag label={t("expertise.badge")} />
 
               <SplitHeading
                 as="h2"
-                text="Driven by Experience, All About Excellence"
+                text={t("expertise.title")}
                 className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px] max-w-[540px]"
                 style={{ fontFamily: poppins }}
               />
@@ -257,9 +241,7 @@ export function AboutUsContent() {
                 className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[25.6px] max-w-[597px]"
                 style={{ fontFamily: montserrat }}
               >
-                Ulrich brings clarity and confidence to every step of your
-                home-buying journey — combining market insight, design
-                sensibility, and trusted service.
+                {t("expertise.subtitle")}
               </p>
             </Reveal>
 
@@ -314,12 +296,12 @@ export function AboutUsContent() {
         <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
           {/* Text block */}
           <Reveal className="flex flex-col gap-3 sm:gap-4 max-w-[1196px]" amount={0.4}>
-            <SectionTag label="About Us" />
+            <SectionTag label={t("aboutSection.badge")} />
 
             <div className="flex flex-col gap-5 sm:gap-6">
               <SplitHeading
                 as="h2"
-                text="At Ulrich, every home begins with a promise — a place where modern design meets lasting comfort."
+                text={t("aboutSection.heading")}
                 className="text-[26px] sm:text-[30px] lg:text-[36px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[48px] tracking-[-0.3px] lg:tracking-[-0.36px] max-w-[761px]"
                 style={{ fontFamily: poppins }}
               />
@@ -329,24 +311,14 @@ export function AboutUsContent() {
                   className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
                   style={{ fontFamily: montserrat }}
                 >
-                  Built on trust and guided by integrity, Ulrich was founded to
-                  redefine how people experience real estate. We believe that a
-                  home should be more than just a property — it should reflect a
-                  lifestyle of quality, simplicity, and peace of mind. Through a
-                  thoughtful and transparent approach, our team ensures that
-                  every client finds a home that truly fits their needs and
-                  aspirations.
+                  {t("aboutSection.paragraph1")}
                 </p>
 
                 <p
                   className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
                   style={{ fontFamily: montserrat }}
                 >
-                  Our commitment goes beyond transactions. We focus on
-                  craftsmanship, design, and service that stand the test of time
-                  — values that shape every decision we make. At Ulrich, we
-                  don't just sell homes; we create experiences built on trust,
-                  guided by professionalism, and inspired by modern living.
+                  {t("aboutSection.paragraph2")}
                 </p>
               </div>
             </div>

@@ -1,0 +1,55 @@
+{
+  "hero": {
+    "badge": "Sobre Nosotros",
+    "title": "Donde el Alcance Global se Encuentra con la Experiencia Local",
+    "subtitle": "Descubrí una amplia variedad de propiedades, desde departamentos acogedores hasta residencias de lujo, adaptadas a cada necesidad y presupuesto."
+  },
+  "ourStory": {
+    "badge": "Nuestra Historia",
+    "title": "Encontrar una Propiedad Debería ser Emocionante, no Abrumador."
+  },
+  "gallery": {
+    "badge": "Nuestra Galería",
+    "title": "Momentos Inmobiliarios Capturados con Estilo",
+    "subtitle": "Explorá imágenes de alta calidad que reflejan el diseño, la ubicación y la experiencia de vida de cada propiedad."
+  },
+  "expertise": {
+    "badge": "Nuestra Experiencia",
+    "title": "Impulsados por la Experiencia, Enfocados en la Excelencia",
+    "subtitle": "En Ulrich acompañamos con claridad y confianza cada etapa del proceso de compra de tu propiedad, combinando conocimiento del mercado, sensibilidad de diseño y un servicio de confianza.",
+    "cards": [
+      {
+        "title": "Venta y Asesoramiento de Propiedades",
+        "desc": "Acompañamiento experto en cada etapa — desde la primera consulta hasta la entrega final, garantizando una experiencia de compra fluida y segura."
+      },
+      {
+        "title": "Curaduría de Propiedades Premium",
+        "desc": "Cada propiedad es seleccionada cuidadosamente por su diseño, calidad y confort, reflejando el compromiso de Ulrich con el estilo minimalista moderno."
+      },
+      {
+        "title": "Acompañamiento Post-Venta",
+        "desc": "Nuestro compromiso no termina con la venta — estamos para que cada cliente se sienta acompañado, comprendido y valorado."
+      }
+    ]
+  },
+  "aboutSection": {
+    "badge": "Sobre Nosotros",
+    "heading": "En Ulrich, cada hogar comienza con una promesa — un lugar donde el diseño moderno se encuentra con el confort duradero.",
+    "paragraph1": "Construida sobre la confianza y guiada por la integridad, Ulrich nació para redefinir la forma en que las personas viven la experiencia inmobiliaria. Creemos que un hogar debe ser mucho más que una propiedad — debe reflejar un estilo de vida de calidad, simplicidad y tranquilidad. Con un enfoque transparente y cercano, nuestro equipo se asegura de que cada cliente encuentre el hogar que realmente se ajusta a sus necesidades y aspiraciones.",
+    "paragraph2": "Nuestro compromiso va más allá de cada operación. Nos enfocamos en la calidad, el diseño y un servicio que perdura en el tiempo — valores que guían cada decisión que tomamos. En Ulrich no solo vendemos propiedades; creamos experiencias basadas en la confianza, guiadas por el profesionalismo e inspiradas en el estilo de vida moderno.",
+    "stats": [
+      {
+        "label": "Propiedades vendidas",
+        "desc": "Más de $150M en ventas, ayudando a nuestros clientes a encontrar hogares e inversiones con facilidad y confianza."
+      },
+      {
+        "label": "Clientes Satisfechos",
+        "desc": "Más de 500 clientes satisfechos confían en nosotros para que su experiencia inmobiliaria sea simple y exitosa."
+      },
+      {
+        "label": "Años de Experiencia",
+        "desc": "Más de 20 años de experiencia acompañando a nuestros clientes con conocimiento del mercado y asesoramiento profesional."
+      }
+    ]
+  }
+}

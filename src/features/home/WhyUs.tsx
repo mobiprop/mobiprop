@@ -125,13 +125,6 @@ export function WhyUs() {
                 className="text-[22px] sm:text-[24px] lg:text-[28px] font-medium text-[#0d2138] leading-[30px] sm:leading-[34px] lg:leading-[36px]"
                 style={{ fontFamily: "Poppins, sans-serif" }}
               >
-                {stat.value}
-              </p>
-
-              <p
-                className="text-[22px] sm:text-[24px] lg:text-[28px] font-medium text-[#0d2138] leading-[30px] sm:leading-[34px] lg:leading-[36px]"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
                 {stat.label}
               </p>
             </div>
