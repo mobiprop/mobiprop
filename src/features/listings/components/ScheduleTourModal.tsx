@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Calendar, Clock, Loader2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 import { useRequestTourMutation, TourConflictError } from "@/hooks/mutations/useTourMutations";
 import { CalendarPanel } from "@/features/dashboard/components/CalendarPanel";
@@ -52,6 +53,7 @@ type Props = {
 };
 
 export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props) {
+  const { t } = useTranslation("listingDetail");
   const mutation = useRequestTourMutation();
 
   const [name, setName] = useState("");
@@ -105,7 +107,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
       if (err instanceof TourConflictError) {
         setSuggestedSlots(err.suggestedSlots);
       }
-      setError((err as Error).message || "Something went wrong. Please try again.");
+      setError((err as Error).message || t("tourModal.errors.generic"));
     }
   }
 
@@ -120,11 +122,11 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
     e.preventDefault();
     setError("");
 
-    if (!name.trim()) { setError("Your name is required."); return; }
-    if (!email.trim() && !phone.trim()) { setError("Please provide at least an email or phone number."); return; }
-    if (!scheduledTime) { setError("Please choose a time."); return; }
+    if (!name.trim()) { setError(t("tourModal.errors.nameRequired")); return; }
+    if (!email.trim() && !phone.trim()) { setError(t("tourModal.errors.contactRequired")); return; }
+    if (!scheduledTime) { setError(t("tourModal.errors.timeRequired")); return; }
     const scheduledAt = buildScheduledAt();
-    if (scheduledAt <= new Date()) { setError("Please choose a future date and time."); return; }
+    if (scheduledAt <= new Date()) { setError(t("tourModal.errors.futureDateRequired")); return; }
 
     await submitTour(scheduledAt);
   };
@@ -140,7 +142,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[18px] font-bold text-white" style={mont}>Schedule a Visit</h2>
+              <h2 className="text-[18px] font-bold text-white" style={mont}>{t("tourModal.title")}</h2>
               {propertyTitle && (
                 <p className="text-[12px] text-[#93c5fd] mt-0.5 truncate max-w-[300px]" style={mont}>{propertyTitle}</p>
               )}
@@ -157,34 +159,34 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
             <div className="flex flex-col items-center gap-4 py-4 text-center">
               <CheckCircle2 size={48} color="#059669" />
               <div>
-                <p className="text-[16px] font-bold text-[#0d2138]" style={mont}>Tour Requested!</p>
+                <p className="text-[16px] font-bold text-[#0d2138]" style={mont}>{t("tourModal.success.heading")}</p>
                 <p className="text-[13px] text-[#6b7280] mt-1" style={mont}>
-                  Reference: <span className="font-semibold text-[#0d2138]">{success.tourNumber}</span>
+                  {t("tourModal.success.reference")} <span className="font-semibold text-[#0d2138]">{success.tourNumber}</span>
                 </p>
                 <p className="text-[13px] text-[#6b7280] mt-0.5" style={mont}>
                   {format(new Date(success.scheduledAt), "EEEE, MMMM d, yyyy 'at' h:mm a")}
                 </p>
               </div>
               <p className="text-[12px] text-[#9ca3af]" style={mont}>
-                Our team will confirm your appointment shortly.
+                {t("tourModal.success.confirmNote")}
               </p>
               <button
                 onClick={onClose}
                 className="mt-2 px-6 py-2.5 bg-[#0d2138] text-white rounded-[10px] text-[13px] font-semibold hover:bg-[#1a3a5c] transition-colors"
                 style={mont}
               >
-                Done
+                {t("tourModal.success.done")}
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               {/* Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Full Name *</label>
+                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.fullNameLabel")}</label>
                 <input
                   className={inputCls}
                   style={mont}
-                  placeholder="Your full name"
+                  placeholder={t("tourModal.form.fullNamePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -194,22 +196,22 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
               {/* Email + Phone */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Email</label>
+                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.emailLabel")}</label>
                   <input
                     className={inputCls}
                     style={mont}
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t("tourModal.form.emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Phone</label>
+                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.phoneLabel")}</label>
                   <input
                     className={inputCls}
                     style={mont}
-                    placeholder="+54 9..."
+                    placeholder={t("tourModal.form.phonePlaceholder")}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -219,7 +221,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
               {/* Preferred date + time */}
               <div ref={calRef} className="grid grid-cols-2 gap-3">
                 <div className="relative flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Preferred Date *</label>
+                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.preferredDateLabel")}</label>
                   <button
                     type="button"
                     onClick={() => setOpenPanel((p) => (p === "date" ? null : "date"))}
@@ -240,7 +242,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                   )}
                 </div>
                 <div className="relative flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Time *</label>
+                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.timeLabel")}</label>
                   <button
                     type="button"
                     onClick={() => setOpenPanel((p) => (p === "time" ? null : "time"))}
@@ -263,28 +265,28 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
 
               {/* Duration */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Duration</label>
+                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.durationLabel")}</label>
                 <select
                   className="h-11 px-3 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
                   style={mont}
                   value={duration}
                   onChange={(e) => setDuration(Number(e.target.value))}
                 >
-                  <option value={30}>30 min</option>
-                  <option value={45}>45 min</option>
-                  <option value={60}>1 hour</option>
-                  <option value={90}>1.5 hours</option>
-                  <option value={120}>2 hours</option>
+                  <option value={30}>{t("tourModal.form.duration30")}</option>
+                  <option value={45}>{t("tourModal.form.duration45")}</option>
+                  <option value={60}>{t("tourModal.form.duration60")}</option>
+                  <option value={90}>{t("tourModal.form.duration90")}</option>
+                  <option value={120}>{t("tourModal.form.duration120")}</option>
                 </select>
               </div>
 
               {/* Message */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>Message (optional)</label>
+                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.messageLabel")}</label>
                 <textarea
                   className="px-4 py-2.5 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] placeholder:text-[#9ca3af] outline-none focus:border-[#1e4f86] resize-none"
                   style={mont}
-                  placeholder="Any questions or special requests…"
+                  placeholder={t("tourModal.form.messagePlaceholder")}
                   rows={2}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
@@ -298,7 +300,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
               {suggestedSlots.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <p className="text-[12px] font-semibold text-[#374151]" style={mont}>
-                    Available times instead:
+                    {t("tourModal.form.availableTimesInstead")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {suggestedSlots.map((iso) => (
@@ -328,11 +330,11 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                 }}
               >
                 {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Calendar size={16} />}
-                Request Tour
+                {t("tourModal.form.submitButton")}
               </button>
 
               <p className="text-[11px] text-[#9ca3af] text-center" style={mont}>
-                No commitment needed. Our agent will confirm your appointment.
+                {t("tourModal.form.disclaimer")}
               </p>
             </form>
           )}

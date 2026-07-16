@@ -1,0 +1,118 @@
+{
+  "common": {
+    "searchPlaceholder": "Search...",
+    "noResultsFound": "No results found.",
+    "loading": "Loading...",
+    "toggleSetting": "Toggle setting"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "Main Menu",
+      "management": "Management",
+      "preferences": "Preferences"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "messages": "Messages",
+      "agents": "Agents",
+      "contacts": "Contacts",
+      "listings": "Listings",
+      "leads": "Leads",
+      "opportunities": "Opportunities",
+      "docusign": "DocuSign",
+      "sendgrid": "SendGrid",
+      "blog": "Blog",
+      "integrations": "Integrations",
+      "locations": "Locations",
+      "settings": "Settings",
+      "help": "Help Center"
+    }
+  },
+  "sidebar": {
+    "openAria": "Open sidebar",
+    "closeAria": "Close sidebar",
+    "goHomeAria": "Go to home",
+    "logOut": "Log out",
+    "staffFallback": "Staff",
+    "roles": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "AGENT": "Agent",
+      "USER": "Client"
+    }
+  },
+  "topbar": {
+    "openNotificationsAria": "Open notifications",
+    "openCalendarAria": "Open calendar"
+  },
+  "globalSearch": {
+    "placeholder": "Search…",
+    "searching": "Searching…",
+    "noResultsFor": "No results for",
+    "via": "via",
+    "assignedListings_one": "{{count}} listing",
+    "assignedListings_other": "{{count}} listings",
+    "sections": {
+      "listings": "Listings",
+      "contacts": "Contacts",
+      "opportunities": "Opportunities"
+    },
+    "hints": {
+      "navigate": "navigate",
+      "open": "open",
+      "close": "close"
+    }
+  },
+  "notificationsPanel": {
+    "title": "Notifications",
+    "markAllAsRead": "Mark all as read",
+    "loading": "Loading notifications...",
+    "empty": "You're all caught up — no notifications yet.",
+    "dismissAria": "Dismiss notification",
+    "viewAll": "View all notifications",
+    "close": "Close",
+    "relativeTime": {
+      "justNow": "Just now",
+      "minuteAgo_one": "{{count}} minute ago",
+      "minuteAgo_other": "{{count}} minutes ago",
+      "hourAgo_one": "{{count}} hour ago",
+      "hourAgo_other": "{{count}} hours ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} days ago"
+    }
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "PAUSED": "Paused",
+    "DRAFT": "Draft",
+    "INACTIVE": "Inactive",
+    "SOLD": "Sold",
+    "RENTED": "Rented",
+    "OPEN": "Open",
+    "CLOSED_WON": "Won",
+    "CLOSED_LOST": "Lost",
+    "PENDING": "Pending",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "QUALIFICATION": "Qualification",
+    "VISITATION": "Visitation",
+    "OFFER": "Offer",
+    "NEGOTIATION": "Negotiation",
+    "CLOSING": "Closing"
+  },
+  "tourStatus": {
+    "REQUESTED": "Requested",
+    "CONFIRMED": "Confirmed",
+    "RESCHEDULED": "Rescheduled",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "NO_SHOW": "No-show"
+  },
+  "envelopeStatus": {
+    "SENT": "Awaiting signature",
+    "DELIVERED": "Viewed",
+    "COMPLETED": "Signed",
+    "DECLINED": "Declined",
+    "VOIDED": "Voided"
+  }
+}

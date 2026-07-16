@@ -13,6 +13,13 @@ import enListingDetail from "./locales/en/listingDetail.json";
 import enBlog from "./locales/en/blog.json";
 import enAbout from "./locales/en/about.json";
 import enContact from "./locales/en/contact.json";
+import enTerms from "./locales/en/terms.json";
+import enPrivacy from "./locales/en/privacy.json";
+import enDashboard from "./locales/en/dashboard.json";
+import enDashboardSettings from "./locales/en/dashboardSettings.json";
+import enAccountProfile from "./locales/en/accountProfile.json";
+import enSavedListings from "./locales/en/savedListings.json";
+import enAccountSettings from "./locales/en/accountSettings.json";
 
 import esCommon from "./locales/es/common.json";
 import esNavigation from "./locales/es/navigation.json";
@@ -24,6 +31,13 @@ import esListingDetail from "./locales/es/listingDetail.json";
 import esBlog from "./locales/es/blog.json";
 import esAbout from "./locales/es/about.json";
 import esContact from "./locales/es/contact.json";
+import esTerms from "./locales/es/terms.json";
+import esPrivacy from "./locales/es/privacy.json";
+import esDashboard from "./locales/es/dashboard.json";
+import esDashboardSettings from "./locales/es/dashboardSettings.json";
+import esAccountProfile from "./locales/es/accountProfile.json";
+import esSavedListings from "./locales/es/savedListings.json";
+import esAccountSettings from "./locales/es/accountSettings.json";
 
 const resources = {
   en: {
@@ -37,6 +51,13 @@ const resources = {
     blog: enBlog,
     about: enAbout,
     contact: enContact,
+    terms: enTerms,
+    privacy: enPrivacy,
+    dashboard: enDashboard,
+    dashboardSettings: enDashboardSettings,
+    accountProfile: enAccountProfile,
+    savedListings: enSavedListings,
+    accountSettings: enAccountSettings,
   },
   es: {
     common: esCommon,
@@ -49,6 +70,13 @@ const resources = {
     blog: esBlog,
     about: esAbout,
     contact: esContact,
+    terms: esTerms,
+    privacy: esPrivacy,
+    dashboard: esDashboard,
+    dashboardSettings: esDashboardSettings,
+    accountProfile: esAccountProfile,
+    savedListings: esSavedListings,
+    accountSettings: esAccountSettings,
   },
 };
 
@@ -57,7 +85,7 @@ if (!i18next.isInitialized) {
     resources,
     lng: DEFAULT_LANGUAGE,
     fallbackLng: "es",
-    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact"],
+    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     returnEmptyString: false,

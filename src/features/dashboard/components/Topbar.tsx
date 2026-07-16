@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Bell, Calendar } from "lucide-react";
 
 import { NotificationsPanel } from "./NotificationsPanel";
@@ -11,6 +12,7 @@ import { useUnreadCountQuery } from "@/features/notifications/queries/use-notifi
 type Panel = "notifications" | "calendar" | null;
 
 export function Topbar() {
+  const { t } = useTranslation("dashboard");
   const [open, setOpen] = useState<Panel>(null);
   const bellRef = useRef<HTMLDivElement>(null);
   const calRef = useRef<HTMLDivElement>(null);
@@ -44,7 +46,7 @@ export function Topbar() {
           <button
             type="button"
             onClick={() => toggle("notifications")}
-            aria-label="Open notifications"
+            aria-label={t("topbar.openNotificationsAria")}
             aria-expanded={open === "notifications"}
             className={`relative flex size-9 items-center justify-center overflow-visible rounded-[9px] transition-colors ${open === "notifications"
                 ? "bg-[#eff6ff] text-[#1e4f86]"

@@ -67,5 +67,42 @@
     "ctaTextAfter": "Sin compromiso",
     "scheduleVisit": "Agendar una Visita",
     "sendInquiry": "Enviar Consulta"
+  },
+  "tourModal": {
+    "title": "Agendar una Visita",
+    "success": {
+      "heading": "¡Visita Solicitada!",
+      "reference": "Referencia:",
+      "confirmNote": "Nuestro equipo confirmará tu cita en breve.",
+      "done": "Listo"
+    },
+    "form": {
+      "fullNameLabel": "Nombre Completo *",
+      "fullNamePlaceholder": "Tu nombre completo",
+      "emailLabel": "Correo Electrónico",
+      "emailPlaceholder": "tu@correo.com",
+      "phoneLabel": "Teléfono",
+      "phonePlaceholder": "+54 9...",
+      "preferredDateLabel": "Fecha Preferida *",
+      "timeLabel": "Hora *",
+      "durationLabel": "Duración",
+      "duration30": "30 min",
+      "duration45": "45 min",
+      "duration60": "1 hora",
+      "duration90": "1.5 horas",
+      "duration120": "2 horas",
+      "messageLabel": "Mensaje (opcional)",
+      "messagePlaceholder": "Preguntas o pedidos especiales…",
+      "availableTimesInstead": "Horarios disponibles alternativos:",
+      "submitButton": "Solicitar Visita",
+      "disclaimer": "Sin compromiso. Nuestro agente confirmará tu cita."
+    },
+    "errors": {
+      "nameRequired": "Tu nombre es obligatorio.",
+      "contactRequired": "Proporcioná al menos un correo electrónico o teléfono.",
+      "timeRequired": "Elegí un horario.",
+      "futureDateRequired": "Elegí una fecha y hora futuras.",
+      "generic": "Algo salió mal. Por favor, intentá nuevamente."
+    }
   }
 }

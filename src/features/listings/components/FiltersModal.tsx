@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
@@ -145,20 +146,25 @@ function IconTennis({ active }: { active: boolean }) {
 }
 
 /* ─── Types ─── */
+// `label` is the stable key sent to the parent (ListingPage maps it to a DB
+// amenity key via MODAL_AMENITY_KEYS) — it must stay in English. `i18nKey`
+// is only used to look up the translated display text.
 type Amenity = "Credit Approved" | "Gas" | "Radiant Slab" | "Internet" | "Air Conditioning" | "Barbecue" | "Laundry" | "Water" | "Tennis Court";
 
-const amenityList: { label: Amenity; icon: (active: boolean) => React.ReactNode }[] = [
-  { label: "Credit Approved",  icon: (a) => <IconCreditCard active={a} /> },
-  { label: "Gas",              icon: (a) => <IconFlame active={a} /> },
-  { label: "Radiant Slab",     icon: (a) => <IconRadiant active={a} /> },
-  { label: "Internet",         icon: (a) => <IconWifi active={a} /> },
-  { label: "Air Conditioning", icon: (a) => <IconAC active={a} /> },
-  { label: "Barbecue",         icon: (a) => <IconGrill active={a} /> },
-  { label: "Laundry",          icon: (a) => <IconWasher active={a} /> },
-  { label: "Water",            icon: (a) => <IconWater active={a} /> },
-  { label: "Tennis Court",     icon: (a) => <IconTennis active={a} /> },
+const amenityList: { label: Amenity; i18nKey: string; icon: (active: boolean) => React.ReactNode }[] = [
+  { label: "Credit Approved",  i18nKey: "filtersModal.amenities.creditApproved",  icon: (a) => <IconCreditCard active={a} /> },
+  { label: "Gas",              i18nKey: "filtersModal.amenities.gas",             icon: (a) => <IconFlame active={a} /> },
+  { label: "Radiant Slab",     i18nKey: "filtersModal.amenities.radiantSlab",     icon: (a) => <IconRadiant active={a} /> },
+  { label: "Internet",         i18nKey: "filtersModal.amenities.internet",        icon: (a) => <IconWifi active={a} /> },
+  { label: "Air Conditioning", i18nKey: "filtersModal.amenities.airConditioning", icon: (a) => <IconAC active={a} /> },
+  { label: "Barbecue",         i18nKey: "filtersModal.amenities.barbecue",        icon: (a) => <IconGrill active={a} /> },
+  { label: "Laundry",          i18nKey: "filtersModal.amenities.laundry",         icon: (a) => <IconWasher active={a} /> },
+  { label: "Water",            i18nKey: "filtersModal.amenities.water",           icon: (a) => <IconWater active={a} /> },
+  { label: "Tennis Court",     i18nKey: "filtersModal.amenities.tennisCourt",     icon: (a) => <IconTennis active={a} /> },
 ];
 
+// Stable values ("Any", "1+", …) consumed by ListingPage's `applyModalFilters` —
+// must stay in English; only the rendered text is translated.
 const bedroomOptions = ["Any", "1+", "2+", "3+", "4+", "5+"];
 const bathroomOptions = ["Any", "1+", "2+", "3+", "4+"];
 
@@ -167,6 +173,7 @@ export function FiltersModal({ onClose, onApply }: {
   onClose: () => void;
   onApply?: (filters: FiltersState) => void;
 }) {
+  const { t } = useTranslation("listings");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [bedrooms, setBedrooms] = useState("Any");
@@ -207,6 +214,14 @@ export function FiltersModal({ onClose, onApply }: {
     onClose();
   }
 
+  function bedroomOptionLabel(opt: string) {
+    return opt === "Any" ? t("filtersModal.anyOption") : t("filtersModal.bedroomsOption", { value: opt });
+  }
+
+  function bathroomOptionLabel(opt: string) {
+    return opt === "Any" ? t("filtersModal.anyOption") : t("filtersModal.bathroomsOption", { value: opt });
+  }
+
   return (
     <div
       ref={overlayRef}
@@ -222,7 +237,7 @@ export function FiltersModal({ onClose, onApply }: {
           {/* ── Price Range ── */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <p className="whitespace-nowrap text-[17px] font-medium leading-7 tracking-[-0.2px] text-[#0d2138] sm:text-[19px] lg:text-[20px] lg:leading-8" style={{ fontFamily: poppins }}>
-              Price Range
+              {t("filtersModal.priceRangeTitle")}
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div className="relative h-12 sm:h-[52px]">
@@ -231,7 +246,7 @@ export function FiltersModal({ onClose, onApply }: {
                 </div>
                 <input
                   type="number"
-                  placeholder="Min Price"
+                  placeholder={t("filtersModal.minPricePlaceholder")}
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -244,7 +259,7 @@ export function FiltersModal({ onClose, onApply }: {
                 </div>
                 <input
                   type="number"
-                  placeholder="Max Price"
+                  placeholder={t("filtersModal.maxPricePlaceholder")}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -257,7 +272,7 @@ export function FiltersModal({ onClose, onApply }: {
           {/* ── Property Details ── */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <p className="whitespace-nowrap text-[17px] font-medium leading-7 tracking-[-0.2px] text-[#0d2138] sm:text-[19px] lg:text-[20px] lg:leading-8" style={{ fontFamily: poppins }}>
-              Property Details
+              {t("filtersModal.propertyDetailsTitle")}
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 
@@ -271,7 +286,7 @@ export function FiltersModal({ onClose, onApply }: {
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] pl-11 pr-4 text-left flex items-center justify-between sm:rounded-[14px] sm:pl-12"
                 >
                   <span className="text-[14px] leading-6 tracking-[-0.16px] text-[#6a7282] sm:text-[16px]" style={{ fontFamily: montserrat }}>
-                    {bedrooms === "Any" ? "Bedrooms" : `${bedrooms} Bedrooms`}
+                    {bedrooms === "Any" ? t("filtersModal.bedroomsLabel") : bedroomOptionLabel(bedrooms)}
                   </span>
                   <IconChevron />
                 </button>
@@ -284,7 +299,7 @@ export function FiltersModal({ onClose, onApply }: {
                         className={`w-full px-4 py-2 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors ${bedrooms === opt ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"}`}
                         style={{ fontFamily: montserrat }}
                       >
-                        {opt === "Any" ? "Any" : `${opt} Bedrooms`}
+                        {bedroomOptionLabel(opt)}
                       </button>
                     ))}
                   </div>
@@ -301,7 +316,7 @@ export function FiltersModal({ onClose, onApply }: {
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] pl-11 pr-4 text-left flex items-center justify-between sm:rounded-[14px] sm:pl-12"
                 >
                   <span className="text-[14px] leading-6 tracking-[-0.16px] text-[#6a7282] sm:text-[16px]" style={{ fontFamily: montserrat }}>
-                    {bathrooms === "Any" ? "Bathrooms" : `${bathrooms} Bathrooms`}
+                    {bathrooms === "Any" ? t("filtersModal.bathroomsLabel") : bathroomOptionLabel(bathrooms)}
                   </span>
                   <IconChevron />
                 </button>
@@ -314,7 +329,7 @@ export function FiltersModal({ onClose, onApply }: {
                         className={`w-full px-4 py-2 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors ${bathrooms === opt ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"}`}
                         style={{ fontFamily: montserrat }}
                       >
-                        {opt === "Any" ? "Any" : `${opt} Bathrooms`}
+                        {bathroomOptionLabel(opt)}
                       </button>
                     ))}
                   </div>
@@ -328,7 +343,7 @@ export function FiltersModal({ onClose, onApply }: {
                 </div>
                 <input
                   type="number"
-                  placeholder="Min Area (m²)"
+                  placeholder={t("filtersModal.minAreaPlaceholder")}
                   value={minArea}
                   onChange={(e) => setMinArea(e.target.value)}
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -343,7 +358,7 @@ export function FiltersModal({ onClose, onApply }: {
                 </div>
                 <input
                   type="number"
-                  placeholder="Max Area (m²)"
+                  placeholder={t("filtersModal.maxAreaPlaceholder")}
                   value={maxArea}
                   onChange={(e) => setMaxArea(e.target.value)}
                   className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#d7dce3] bg-[#f8f9fb] py-3 pl-11 pr-4 text-[14px] sm:rounded-[14px] sm:pl-12 sm:text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] outline-none focus:ring-2 focus:ring-[#6889ae] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -356,10 +371,10 @@ export function FiltersModal({ onClose, onApply }: {
           {/* ── Amenities ── */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <p className="whitespace-nowrap text-[17px] font-medium leading-7 tracking-[-0.2px] text-[#0d2138] sm:text-[19px] lg:text-[20px] lg:leading-8" style={{ fontFamily: poppins }}>
-              Amenities
+              {t("filtersModal.amenitiesTitle")}
             </p>
             <div className="flex flex-wrap gap-2">
-              {amenityList.map(({ label, icon }) => {
+              {amenityList.map(({ label, i18nKey, icon }) => {
                 const isActive = amenities.has(label);
                 return (
                   <button
@@ -373,7 +388,7 @@ export function FiltersModal({ onClose, onApply }: {
                   >
                     <span className="shrink-0">{icon(isActive)}</span>
                     <span className="text-[13px] font-medium leading-5 sm:text-[14px] tracking-[-0.14px] whitespace-nowrap" style={{ fontFamily: montserrat }}>
-                      {label}
+                      {t(i18nKey)}
                     </span>
                   </button>
                 );
@@ -388,14 +403,14 @@ export function FiltersModal({ onClose, onApply }: {
               className="h-11 w-full rounded-[12px] bg-[#e5e7eb] px-5 text-[14px] font-medium leading-6 tracking-[-0.16px] text-[#2b3038] sm:h-12 sm:w-auto sm:rounded-[14px] sm:px-6 sm:text-[16px]"
               style={{ fontFamily: montserrat }}
             >
-              Reset
+              {t("filtersModal.resetButton")}
             </button>
             <button
               onClick={handleApply}
               className="h-11 w-full rounded-[12px] bg-[#1e4f86] px-5 text-[14px] leading-5 tracking-[-0.14px] text-white sm:h-12 sm:w-auto sm:px-6"
               style={{ fontFamily: montserrat }}
             >
-              Apply Filters
+              {t("filtersModal.applyButton")}
             </button>
           </div>
         </div>

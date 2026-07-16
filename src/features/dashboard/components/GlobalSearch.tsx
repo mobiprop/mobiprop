@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
   Search, Building2, Users, Briefcase, Loader2,
@@ -50,10 +51,11 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function StatusChip({ status }: { status: string }) {
+  const { t } = useTranslation("dashboard");
   const c = STATUS_COLOURS[status] ?? { bg: "#f3f4f6", text: "#6b7280" };
   return (
     <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide" style={{ backgroundColor: c.bg, color: c.text, ...mont }}>
-      {STATUS_LABEL[status] ?? status}
+      {t(`status.${status}`, { defaultValue: STATUS_LABEL[status] ?? status })}
     </span>
   );
 }
@@ -86,6 +88,7 @@ function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }
 // ── Row components ────────────────────────────────────────────────────────────
 
 function ListingRow({ l, focused, onClick }: { l: SearchListingResult; focused: boolean; onClick: () => void }) {
+  const { t } = useTranslation("dashboard");
   return (
     <button type="button" onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${focused ? "bg-[#f0f5ff]" : "hover:bg-[#f8fafc]"}`}>
       <div className="size-9 rounded-[8px] bg-[#e5e7eb] shrink-0 overflow-hidden">
@@ -98,7 +101,7 @@ function ListingRow({ l, focused, onClick }: { l: SearchListingResult; focused: 
         <p className="text-[11px] text-[#6a7282] truncate" style={mont}>
           {l.listingId} · {l.location}
           {l.matchedVia === "contact" && l.matchedContactName && (
-            <span className="text-[#1e4f86]"> · via {l.matchedContactName}</span>
+            <span className="text-[#1e4f86]"> · {t("globalSearch.via")} {l.matchedContactName}</span>
           )}
         </p>
       </div>
@@ -108,6 +111,7 @@ function ListingRow({ l, focused, onClick }: { l: SearchListingResult; focused: 
 }
 
 function ContactRow({ c, focused, onClick }: { c: SearchContactResult; focused: boolean; onClick: () => void }) {
+  const { t } = useTranslation("dashboard");
   return (
     <button type="button" onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${focused ? "bg-[#f0f5ff]" : "hover:bg-[#f8fafc]"}`}>
       <div className="size-9 rounded-full bg-[#1e4f86] text-white flex items-center justify-center text-[11px] font-semibold shrink-0" style={mont}>
@@ -116,7 +120,7 @@ function ContactRow({ c, focused, onClick }: { c: SearchContactResult; focused: 
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-semibold text-[#0d2138] truncate" style={mont}>{c.fullName}</p>
         <p className="text-[11px] text-[#6a7282] truncate" style={mont}>
-          {c.contactId} · {c.email ?? c.phone ?? "—"} · {c.assignedListings} listing{c.assignedListings !== 1 ? "s" : ""}
+          {c.contactId} · {c.email ?? c.phone ?? "—"} · {t("globalSearch.assignedListings", { count: c.assignedListings })}
         </p>
       </div>
       <StatusChip status={c.type} />
@@ -153,6 +157,7 @@ type NavItem =
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function GlobalSearch() {
+  const { t } = useTranslation("dashboard");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -252,7 +257,7 @@ export function GlobalSearch() {
           onChange={(e) => { setQuery(e.target.value); if (!open) setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search…"
+          placeholder={t("globalSearch.placeholder")}
           className="flex-1 min-w-0 text-[13px] text-[#2b3038] placeholder:text-[rgba(10,10,10,0.5)] bg-transparent outline-none"
           style={mont}
         />
@@ -266,12 +271,12 @@ export function GlobalSearch() {
           {isFetching && !hasResults ? (
             <div className="flex items-center justify-center py-8 gap-2 text-[#6a7282]">
               <Loader2 size={16} className="animate-spin" />
-              <span className="text-[13px]" style={mont}>Searching…</span>
+              <span className="text-[13px]" style={mont}>{t("globalSearch.searching")}</span>
             </div>
           ) : !hasResults ? (
             <div className="px-4 py-8 text-center">
               <p className="text-[13px] text-[#6a7282]" style={mont}>
-                No results for <strong className="text-[#0d2138]">&ldquo;{query}&rdquo;</strong>
+                {t("globalSearch.noResultsFor")} <strong className="text-[#0d2138]">&ldquo;{query}&rdquo;</strong>
               </p>
             </div>
           ) : (
@@ -279,7 +284,7 @@ export function GlobalSearch() {
               {/* Listings */}
               {listings.length > 0 && (
                 <div>
-                  <SectionHeader icon={<Building2 size={12} />} label="Listings" />
+                  <SectionHeader icon={<Building2 size={12} />} label={t("globalSearch.sections.listings")} />
                   {listings.map((l) => {
                     const idx = cursor++;
                     return <ListingRow key={l.id} l={l} focused={focusedIdx === idx} onClick={() => navigate({ kind: "listing", item: l })} />;
@@ -290,7 +295,7 @@ export function GlobalSearch() {
               {/* Contacts */}
               {contacts.length > 0 && (
                 <div className={listings.length > 0 ? "border-t border-[#f3f4f6] mt-1 pt-0" : ""}>
-                  <SectionHeader icon={<Users size={12} />} label="Contacts" />
+                  <SectionHeader icon={<Users size={12} />} label={t("globalSearch.sections.contacts")} />
                   {contacts.map((c) => {
                     const idx = cursor++;
                     return <ContactRow key={c.id} c={c} focused={focusedIdx === idx} onClick={() => navigate({ kind: "contact", item: c })} />;
@@ -301,7 +306,7 @@ export function GlobalSearch() {
               {/* Opportunities */}
               {opportunities.length > 0 && (
                 <div className={(listings.length + contacts.length) > 0 ? "border-t border-[#f3f4f6] mt-1 pt-0" : ""}>
-                  <SectionHeader icon={<Briefcase size={12} />} label="Opportunities" />
+                  <SectionHeader icon={<Briefcase size={12} />} label={t("globalSearch.sections.opportunities")} />
                   {opportunities.map((o) => {
                     const idx = cursor++;
                     return <OpportunityRow key={o.id} o={o} focused={focusedIdx === idx} onClick={() => navigate({ kind: "opportunity", item: o })} />;
@@ -311,9 +316,9 @@ export function GlobalSearch() {
 
               {/* Footer */}
               <div className="border-t border-[#f3f4f6] px-4 py-2.5 flex items-center gap-4 mt-1">
-                <span className="text-[11px] text-[#9ca3af]" style={mont}><kbd className="bg-[#f3f4f6] rounded px-1 mr-0.5">↑↓</kbd>navigate</span>
-                <span className="text-[11px] text-[#9ca3af]" style={mont}><kbd className="bg-[#f3f4f6] rounded px-1 mr-0.5">↵</kbd>open</span>
-                <span className="text-[11px] text-[#9ca3af]" style={mont}><kbd className="bg-[#f3f4f6] rounded px-1 mr-0.5">Esc</kbd>close</span>
+                <span className="text-[11px] text-[#9ca3af]" style={mont}><kbd className="bg-[#f3f4f6] rounded px-1 mr-0.5">↑↓</kbd>{t("globalSearch.hints.navigate")}</span>
+                <span className="text-[11px] text-[#9ca3af]" style={mont}><kbd className="bg-[#f3f4f6] rounded px-1 mr-0.5">↵</kbd>{t("globalSearch.hints.open")}</span>
+                <span className="text-[11px] text-[#9ca3af]" style={mont}><kbd className="bg-[#f3f4f6] rounded px-1 mr-0.5">Esc</kbd>{t("globalSearch.hints.close")}</span>
               </div>
             </div>
           )}

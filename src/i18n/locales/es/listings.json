@@ -46,5 +46,32 @@
   "suggestions": {
     "title": "También te podría interesar",
     "subtitle": "Contamos con más de 10 años de experiencia en el mercado inmobiliario"
+  },
+  "filtersModal": {
+    "priceRangeTitle": "Rango de Precio",
+    "minPricePlaceholder": "Precio Mínimo",
+    "maxPricePlaceholder": "Precio Máximo",
+    "propertyDetailsTitle": "Detalles de la Propiedad",
+    "bedroomsLabel": "Dormitorios",
+    "bathroomsLabel": "Baños",
+    "anyOption": "Cualquiera",
+    "bedroomsOption": "{{value}} Dormitorios",
+    "bathroomsOption": "{{value}} Baños",
+    "minAreaPlaceholder": "Superficie Mínima (m²)",
+    "maxAreaPlaceholder": "Superficie Máxima (m²)",
+    "amenitiesTitle": "Comodidades",
+    "amenities": {
+      "creditApproved": "Crédito Aprobado",
+      "gas": "Gas",
+      "radiantSlab": "Losa Radiante",
+      "internet": "Internet",
+      "airConditioning": "Aire Acondicionado",
+      "barbecue": "Parrilla",
+      "laundry": "Lavadero",
+      "water": "Agua",
+      "tennisCourt": "Cancha de Tenis"
+    },
+    "resetButton": "Restablecer",
+    "applyButton": "Aplicar Filtros"
   }
 }

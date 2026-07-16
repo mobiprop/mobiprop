@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Toggle } from "./Toggle";
 import { SearchableSelect } from "../SearchableSelect";
@@ -18,7 +19,14 @@ const VISIBILITY_OPTIONS = [
 type VisibilityOption =
   (typeof VISIBILITY_OPTIONS)[number];
 
+const VISIBILITY_I18N_KEY: Record<VisibilityOption, string> = {
+  Everyone: "everyone",
+  "Team Only": "teamOnly",
+  Private: "private",
+};
+
 export function PrivacyTab() {
+  const { t } = useTranslation("dashboardSettings");
   const [visibility, setVisibility] =
     useState<VisibilityOption>("Everyone");
 
@@ -36,7 +44,7 @@ export function PrivacyTab() {
           className="text-[14px] font-semibold leading-7 text-[#0d2138] sm:text-[16px]"
           style={mont}
         >
-          Privacy Settings
+          {t("privacy.title")}
         </h2>
 
       </div>
@@ -50,14 +58,14 @@ export function PrivacyTab() {
               className="text-[14px] font-semibold leading-5 text-[#0d2138]"
               style={mont}
             >
-              Profile Visibility
+              {t("privacy.profileVisibility.title")}
             </h3>
 
             <p
               className="mt-1 text-[14px] leading-5 text-[#6a7282]"
               style={mont}
             >
-              Control who can see your profile
+              {t("privacy.profileVisibility.description")}
             </p>
           </div>
 
@@ -66,9 +74,12 @@ export function PrivacyTab() {
             searchable={false}
             value={visibility}
             onChange={(next) => setVisibility(next as VisibilityOption)}
-            options={VISIBILITY_OPTIONS.map((option) => ({ value: option, label: option }))}
-            placeholder="Select visibility"
-            ariaLabel="Profile visibility"
+            options={VISIBILITY_OPTIONS.map((option) => ({
+              value: option,
+              label: t(`privacy.visibilityOptions.${VISIBILITY_I18N_KEY[option]}`),
+            }))}
+            placeholder={t("privacy.profileVisibility.selectPlaceholder")}
+            ariaLabel={t("privacy.profileVisibility.ariaLabel")}
             className="shrink-0 sm:w-[150px]"
           />
         </section>
@@ -80,21 +91,21 @@ export function PrivacyTab() {
               className="text-[14px] font-semibold leading-5 text-[#0d2138]"
               style={mont}
             >
-              Data Sharing
+              {t("privacy.dataSharing.title")}
             </h3>
 
             <p
               className="mt-1 text-[14px] leading-5 text-[#6a7282]"
               style={mont}
             >
-              Share analytics data to improve service
+              {t("privacy.dataSharing.description")}
             </p>
           </div>
 
           <Toggle
             checked={dataSharing}
             onChange={setDataSharing}
-            label="Enable data sharing"
+            label={t("privacy.dataSharing.toggleLabel")}
           />
         </section>
 
@@ -105,21 +116,21 @@ export function PrivacyTab() {
               className="text-[14px] font-semibold leading-5 text-[#0d2138]"
               style={mont}
             >
-              Activity Tracking
+              {t("privacy.activityTracking.title")}
             </h3>
 
             <p
               className="mt-1 text-[14px] leading-5 text-[#6a7282]"
               style={mont}
             >
-              Allow tracking for personalization
+              {t("privacy.activityTracking.description")}
             </p>
           </div>
 
           <Toggle
             checked={activityTracking}
             onChange={setActivityTracking}
-            label="Enable activity tracking"
+            label={t("privacy.activityTracking.toggleLabel")}
           />
         </section>
       </div>
@@ -131,15 +142,14 @@ export function PrivacyTab() {
             className="text-[14px] font-semibold leading-5 text-[#9f0712]"
             style={mont}
           >
-            Delete Account
+            {t("privacy.deleteAccount.title")}
           </h3>
 
           <p
             className="mt-2 max-w-[760px] text-[14px] leading-6 text-[#9f0712]"
             style={mont}
           >
-            Permanently delete your account and all
-            associated data. This action cannot be undone.
+            {t("privacy.deleteAccount.description")}
           </p>
         </div>
 
@@ -148,7 +158,7 @@ export function PrivacyTab() {
           className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-[10px] bg-[#e7000b] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#c5000a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e7000b]/30 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           style={mont}
         >
-          Delete Account
+          {t("privacy.deleteAccount.button")}
         </button>
       </section>
     </div>

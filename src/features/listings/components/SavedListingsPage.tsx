@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { queryKeys } from "@/lib/query-keys";
 import Link from "next/link";
 import {
@@ -83,6 +84,7 @@ function SavedCard({
   listing: SavedListing;
   onRemove: (id: string) => void;
 }) {
+  const { t } = useTranslation("savedListings");
   const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -114,7 +116,7 @@ function SavedCard({
             className="bg-white/90 px-2.5 py-0.5 rounded-full text-[12px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {listing.operationType === "RENT" ? "Rent" : "Sale"}
+            {listing.operationType === "RENT" ? t("card.rent") : t("card.sale")}
           </span>
           <span
             className="bg-white/90 px-2.5 py-0.5 rounded-full text-[12px] text-[#0d2138]"
@@ -127,7 +129,7 @@ function SavedCard({
         {/* Remove button */}
         <button
           onClick={handleRemove}
-          aria-label="Remove from saved"
+          aria-label={t("card.removeSavedAria")}
           className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-[#fff0f0] transition-colors disabled:opacity-50"
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="#e74c3c">
@@ -201,6 +203,7 @@ function SavedCard({
 }
 
 export function SavedListingsPageContent({ initialListings }: { initialListings: SavedListing[] }) {
+  const { t } = useTranslation("savedListings");
   const queryClient = useQueryClient();
   const queryKey = queryKeys.savedListingsPage();
 
@@ -244,12 +247,12 @@ export function SavedListingsPageContent({ initialListings }: { initialListings:
           className="text-[26px] sm:text-[32px] font-semibold text-[#0d2138] leading-tight"
           style={{ fontFamily: "Poppins, sans-serif" }}
         >
-          Saved Properties
+          {t("header.title")}
         </h1>
         <p className="mt-1 text-[14px] text-[#6a7282]">
           {listings.length === 0
-            ? "No saved properties yet."
-            : `${listings.length} saved ${listings.length === 1 ? "property" : "properties"}`}
+            ? t("header.noneYet")
+            : t("header.count", { count: listings.length })}
         </p>
       </div>
 
@@ -268,17 +271,17 @@ export function SavedListingsPageContent({ initialListings }: { initialListings:
           </div>
           <div className="text-center">
             <p className="text-[16px] font-medium text-[#0d2138]" style={{ fontFamily: "Poppins, sans-serif" }}>
-              No saved properties yet
+              {t("empty.title")}
             </p>
             <p className="mt-1 text-[14px] text-[#6a7282]">
-              Browse listings and tap the heart icon to save properties here.
+              {t("empty.description")}
             </p>
           </div>
           <Link
             href="/listings"
             className="mt-2 inline-block rounded-xl bg-[#1a4878] px-6 py-3 text-[14px] font-medium text-white hover:opacity-90 transition-opacity"
           >
-            Browse Listings
+            {t("empty.browseListings")}
           </Link>
         </div>
       ) : (

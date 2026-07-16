@@ -1,0 +1,18 @@
+{
+  "card": {
+    "removeSavedAria": "Remove from saved",
+    "rent": "Rent",
+    "sale": "Sale"
+  },
+  "header": {
+    "title": "Saved Properties",
+    "noneYet": "No saved properties yet.",
+    "count_one": "{{count}} saved property",
+    "count_other": "{{count}} saved properties"
+  },
+  "empty": {
+    "title": "No saved properties yet",
+    "description": "Browse listings and tap the heart icon to save properties here.",
+    "browseListings": "Browse Listings"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "modal": {
+    "ariaLabel": "Editar Perfil",
+    "title": "Editar Perfil",
+    "subtitle": "Actualizá tu información de perfil y preferencias",
+    "closeAria": "Cerrar",
+    "settingsMenu": "Menú de Configuración"
+  },
+  "tabs": {
+    "Account": "Cuenta",
+    "Notifications": "Notificaciones",
+    "Security": "Seguridad",
+    "Language": "Idioma"
+  },
+  "footer": {
+    "cancel": "Cancelar",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando…"
+  },
+  "account": {
+    "heading": "Cuenta",
+    "subheading": "Información y actividad en tiempo real de tu propiedad.",
+    "uploadNewPhoto": "Subir Nueva Foto",
+    "removePhoto": "Quitar Foto",
+    "photoHint": "Recomendado: imagen cuadrada, mínimo 400x400px",
+    "firstNameLabel": "Nombre*",
+    "firstNamePlaceholder": "Ingresá tu nombre",
+    "lastNameLabel": "Apellido*",
+    "lastNamePlaceholder": "Ingresá tu apellido",
+    "emailLabel": "Correo Electrónico",
+    "emailPlaceholder": "Ingresá tu correo electrónico",
+    "contactNumberLabel": "Número de Contacto",
+    "contactNumberPlaceholder": "Ingresá tu número",
+    "countryLabel": "País",
+    "countryPlaceholder": "Seleccioná un país",
+    "cityLabel": "Ciudad",
+    "cityPlaceholder": "Ingresá tu ciudad",
+    "timezoneLabel": "Zona Horaria",
+    "timezonePlaceholder": "Asia/Jakarta (GMT+7)",
+    "addressLabel": "Dirección",
+    "addressPlaceholder": "Ingresá tu dirección",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Escribiendo.....",
+    "errors": {
+      "imageTooLarge": "La imagen debe pesar menos de 5MB.",
+      "imageBadType": "La imagen debe ser PNG, JPEG, WEBP o GIF.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio.",
+      "generic": "Algo salió mal al guardar. Por favor, intentá nuevamente."
+    }
+  },
+  "notifications": {
+    "heading": "Notificaciones",
+    "subheading": "Gestioná cómo recibís notificaciones y novedades.",
+    "emailSection": "Notificaciones por Correo",
+    "pushSection": "Notificaciones Push",
+    "email": {
+      "emailNewListings": { "title": "Nuevas Propiedades", "description": "Recibí un aviso cuando nuevas propiedades coincidan con tus preferencias" },
+      "emailPriceChanges": { "title": "Cambios de Precio", "description": "Alertas cuando cambia el precio de propiedades guardadas" },
+      "emailMessages": { "title": "Mensajes y Consultas", "description": "Recibí correos por nuevos mensajes de agentes" },
+      "emailNewsletter": { "title": "Boletín y Novedades", "description": "Resumen semanal de tendencias del mercado y consejos" }
+    },
+    "push": {
+      "pushNewListings": { "title": "Nuevas Propiedades", "description": "Alertas instantáneas de nuevas coincidencias de propiedades" },
+      "pushMessages": { "title": "Mensajes", "description": "Recibí un aviso inmediato cuando llegan mensajes" },
+      "pushPriceAlerts": { "title": "Alertas de Precio", "description": "Notificaciones de bajas de precio en tiempo real" }
+    },
+    "saved": "Preferencias de notificaciones guardadas.",
+    "error": "Algo salió mal al guardar. Por favor, intentá nuevamente."
+  },
+  "security": {
+    "heading": "Seguridad",
+    "subheading": "Gestioná la seguridad y privacidad de tu cuenta.",
+    "passwordSection": "Contraseña",
+    "currentPasswordLabel": "Contraseña Actual",
+    "currentPasswordPlaceholder": "Ingresá tu contraseña actual",
+    "newPasswordLabel": "Nueva Contraseña",
+    "newPasswordPlaceholder": "Ingresá tu nueva contraseña",
+    "confirmPasswordLabel": "Confirmar Nueva Contraseña",
+    "confirmPasswordPlaceholder": "Confirmá tu nueva contraseña",
+    "requirementsHeading": "Requisitos de la Contraseña:",
+    "requirements": [
+      "Al menos 8 caracteres",
+      "Contiene mayúsculas y minúsculas",
+      "Incluye al menos un número",
+      "Contiene al menos un carácter especial"
+    ],
+    "updating": "Actualizando…",
+    "updatePassword": "Actualizar Contraseña",
+    "passwordUpdated": "Tu contraseña fue actualizada.",
+    "passwordError": "Algo salió mal al actualizar tu contraseña. Por favor, intentá nuevamente.",
+    "twoFactorSection": "Autenticación de Dos Factores",
+    "enable2fa": "Activar 2FA",
+    "enable2faDescription": "Agregá una capa extra de seguridad a tu cuenta",
+    "loginAlertsSection": "Alertas de Inicio de Sesión",
+    "notifyNewLogins": "Notificarme de nuevos inicios de sesión",
+    "notifyNewLoginsDescription": "Recibí alertas cuando se accede a tu cuenta desde un nuevo dispositivo",
+    "prefsSaveError": "No se pudo guardar tu configuración de seguridad. Por favor, intentá nuevamente.",
+    "activeSessionsSection": "Sesiones Activas",
+    "thisDevice": "Este dispositivo",
+    "activeNow": "Activo ahora",
+    "current": "Actual",
+    "loggingOut": "Cerrando sesión…",
+    "logOutOtherSessions": "Cerrar Todas las Demás Sesiones",
+    "sessionsLoggedOut": "Se cerraron todas las demás sesiones.",
+    "sessionsError": "No se pudieron cerrar las demás sesiones. Por favor, intentá nuevamente."
+  },
+  "language": {
+    "heading": "Idioma y Región",
+    "subheading": "Personalizá tu idioma, zona horaria y preferencias regionales.",
+    "displayLanguageSection": "Idioma de Visualización",
+    "selectLanguage": "Seleccioná el Idioma",
+    "languageHint": "Esto cambiará el idioma utilizado en toda la aplicación",
+    "timezoneSection": "Zona Horaria",
+    "selectTimezone": "Seleccioná la Zona Horaria",
+    "timezoneHint": "Se usa para mostrar fechas y horarios",
+    "autoDetectTimezone": "Detectar Zona Horaria Automáticamente",
+    "autoDetectTimezoneDescription": "Se actualiza automáticamente según tu ubicación",
+    "dateTimeFormatSection": "Formato de Fecha y Hora",
+    "dateFormatLabel": "Formato de Fecha",
+    "timeFormatLabel": "Formato de Hora",
+    "saved": "Preferencias de idioma y región guardadas.",
+    "error": "Algo salió mal al guardar. Por favor, intentá nuevamente.",
+    "resetToDefault": "Restablecer Valores Predeterminados",
+    "savePreference": "Guardar Preferencia"
+  },
+  "countries": {
+    "Argentina": "Argentina",
+    "Brazil": "Brasil",
+    "Canada": "Canadá",
+    "Chile": "Chile",
+    "Mexico": "México",
+    "Paraguay": "Paraguay",
+    "Spain": "España",
+    "United Kingdom": "Reino Unido",
+    "United States": "Estados Unidos",
+    "Uruguay": "Uruguay"
+  },
+  "timezones": {
+    "America/Los_Angeles": "Hora del Pacífico (PST) - UTC-8",
+    "America/Denver": "Hora de la Montaña (MT) - UTC-7",
+    "America/Chicago": "Hora Central (CT) - UTC-6",
+    "America/New_York": "Hora del Este (ET) - UTC-5",
+    "America/Argentina/Buenos_Aires": "Hora de Argentina (ART) - UTC-3",
+    "America/Montevideo": "Hora de Uruguay (UYT) - UTC-3",
+    "Europe/London": "Hora del Meridiano de Greenwich (GMT) - UTC+0",
+    "Europe/Madrid": "Hora Central Europea (CET) - UTC+1",
+    "Asia/Jakarta": "Asia/Yakarta (GMT+7)"
+  },
+  "dateFormats": {
+    "MM/DD/YYYY": "MM/DD/AAAA (05/27/2026)",
+    "DD/MM/YYYY": "DD/MM/AAAA (27/05/2026)",
+    "YYYY-MM-DD": "AAAA-MM-DD (2026-05-27)"
+  },
+  "timeFormats": {
+    "12h": "12 horas (2:30 PM)",
+    "24h": "24 horas (14:30)"
+  }
+}

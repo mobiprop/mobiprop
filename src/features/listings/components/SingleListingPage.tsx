@@ -1031,7 +1031,7 @@ export function SingleListingPageContent({
       <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
           {/* Main Image */}
-          <div className="relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
+          <div className="hover-shine relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
             <button
               type="button"
               onClick={() => mainImage && setLightboxIndex(0)}
@@ -1095,7 +1095,7 @@ export function SingleListingPageContent({
                   type="button"
                   onClick={() => setLightboxIndex(i + 1)}
                   aria-label={t("gallery.openGalleryAtPhotoAria", { number: i + 2 })}
-                  className="group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
+                  className="hover-shine group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
                 >
                   <img
                     src={img.url}

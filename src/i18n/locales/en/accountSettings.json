@@ -1,0 +1,159 @@
+{
+  "modal": {
+    "ariaLabel": "Edit Profile",
+    "title": "Edit Profile",
+    "subtitle": "Update your profile information and preferences",
+    "closeAria": "Close",
+    "settingsMenu": "Settings Menu"
+  },
+  "tabs": {
+    "Account": "Account",
+    "Notifications": "Notifications",
+    "Security": "Security",
+    "Language": "Language"
+  },
+  "footer": {
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "saving": "Saving…"
+  },
+  "account": {
+    "heading": "Account",
+    "subheading": "Real-time information and activities of your property.",
+    "uploadNewPhoto": "Upload New Photo",
+    "removePhoto": "Remove Photo",
+    "photoHint": "Recommended: Square image, at least 400x400px",
+    "firstNameLabel": "First Name*",
+    "firstNamePlaceholder": "Enter your first name",
+    "lastNameLabel": "Last Name*",
+    "lastNamePlaceholder": "Enter your last name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "contactNumberLabel": "Contact Number",
+    "contactNumberPlaceholder": "Enter your number",
+    "countryLabel": "Country Name",
+    "countryPlaceholder": "Select Country",
+    "cityLabel": "City",
+    "cityPlaceholder": "Enter your city name",
+    "timezoneLabel": "Time Zone",
+    "timezonePlaceholder": "Asia/Jakarta (GMT+7)",
+    "addressLabel": "Address",
+    "addressPlaceholder": "Enter your address",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Typing.....",
+    "errors": {
+      "imageTooLarge": "Image must be smaller than 5MB.",
+      "imageBadType": "Image must be a PNG, JPEG, WEBP or GIF.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "generic": "Something went wrong while saving. Please try again."
+    }
+  },
+  "notifications": {
+    "heading": "Notifications",
+    "subheading": "Manage how you receive notifications and updates.",
+    "emailSection": "Email Notifications",
+    "pushSection": "Push Notifications",
+    "email": {
+      "emailNewListings": { "title": "New Property Listings", "description": "Get notified when new properties match your preferences" },
+      "emailPriceChanges": { "title": "Price Changes", "description": "Alerts when saved properties change in price" },
+      "emailMessages": { "title": "Messages & Inquiries", "description": "Receive emails for new messages from agents" },
+      "emailNewsletter": { "title": "Newsletter & Updates", "description": "Weekly digest of market trends and tips" }
+    },
+    "push": {
+      "pushNewListings": { "title": "New Listings", "description": "Instant alerts for new property matches" },
+      "pushMessages": { "title": "Messages", "description": "Get notified immediately when you receive messages" },
+      "pushPriceAlerts": { "title": "Price Alerts", "description": "Real-time price drop notifications" }
+    },
+    "saved": "Notification preferences saved.",
+    "error": "Something went wrong while saving. Please try again."
+  },
+  "security": {
+    "heading": "Security",
+    "subheading": "Manage your account security and privacy settings.",
+    "passwordSection": "Password",
+    "currentPasswordLabel": "Current Password",
+    "currentPasswordPlaceholder": "Enter current password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "requirementsHeading": "Password Requirements:",
+    "requirements": [
+      "At least 8 characters long",
+      "Contains uppercase and lowercase letters",
+      "Includes at least one number",
+      "Contains at least one special character"
+    ],
+    "updating": "Updating…",
+    "updatePassword": "Update Password",
+    "passwordUpdated": "Your password has been updated.",
+    "passwordError": "Something went wrong while updating your password. Please try again.",
+    "twoFactorSection": "Two-Factor Authentication",
+    "enable2fa": "Enable 2FA",
+    "enable2faDescription": "Add an extra layer of security to your account",
+    "loginAlertsSection": "Login Alerts",
+    "notifyNewLogins": "Notify me of new logins",
+    "notifyNewLoginsDescription": "Get alerts when your account is accessed from a new device",
+    "prefsSaveError": "Failed to save your security settings. Please try again.",
+    "activeSessionsSection": "Active Sessions",
+    "thisDevice": "This device",
+    "activeNow": "Active now",
+    "current": "Current",
+    "loggingOut": "Logging out…",
+    "logOutOtherSessions": "Log Out All Other Sessions",
+    "sessionsLoggedOut": "All other sessions have been logged out.",
+    "sessionsError": "Failed to log out other sessions. Please try again."
+  },
+  "language": {
+    "heading": "Language & Region",
+    "subheading": "Customize your language, timezone, and regional preferences.",
+    "displayLanguageSection": "Display Language",
+    "selectLanguage": "Select Language",
+    "languageHint": "This will change the language used throughout the app",
+    "timezoneSection": "Timezone",
+    "selectTimezone": "Select Timezone",
+    "timezoneHint": "Used for displaying dates and times",
+    "autoDetectTimezone": "Auto-detect Timezone",
+    "autoDetectTimezoneDescription": "Automatically update based on your location",
+    "dateTimeFormatSection": "Date & Time Format",
+    "dateFormatLabel": "Date Format",
+    "timeFormatLabel": "Time Format",
+    "saved": "Language & region preferences saved.",
+    "error": "Something went wrong while saving. Please try again.",
+    "resetToDefault": "Reset to Default",
+    "savePreference": "Save Preference"
+  },
+  "countries": {
+    "Argentina": "Argentina",
+    "Brazil": "Brazil",
+    "Canada": "Canada",
+    "Chile": "Chile",
+    "Mexico": "Mexico",
+    "Paraguay": "Paraguay",
+    "Spain": "Spain",
+    "United Kingdom": "United Kingdom",
+    "United States": "United States",
+    "Uruguay": "Uruguay"
+  },
+  "timezones": {
+    "America/Los_Angeles": "Pacific Standard Time (PST) - UTC-8",
+    "America/Denver": "Mountain Time (MT) - UTC-7",
+    "America/Chicago": "Central Time (CT) - UTC-6",
+    "America/New_York": "Eastern Time (ET) - UTC-5",
+    "America/Argentina/Buenos_Aires": "Argentina Time (ART) - UTC-3",
+    "America/Montevideo": "Uruguay Time (UYT) - UTC-3",
+    "Europe/London": "Greenwich Mean Time (GMT) - UTC+0",
+    "Europe/Madrid": "Central European Time (CET) - UTC+1",
+    "Asia/Jakarta": "Asia/Jakarta (GMT+7)"
+  },
+  "dateFormats": {
+    "MM/DD/YYYY": "MM/DD/YYYY (05/27/2026)",
+    "DD/MM/YYYY": "DD/MM/YYYY (27/05/2026)",
+    "YYYY-MM-DD": "YYYY-MM-DD (2026-05-27)"
+  },
+  "timeFormats": {
+    "12h": "12-hour (2:30 PM)",
+    "24h": "24-hour (14:30)"
+  }
+}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { LogOut, Menu, X } from "lucide-react";
 
 import { signOut } from "@/features/auth/actions";
@@ -14,13 +15,6 @@ import { useUnreadMessageCountQuery } from "@/hooks/queries/useMessagesQuery";
 
 const mont = {
   fontFamily: "'Montserrat', sans-serif",
-};
-
-const ROLE_LABELS: Record<Role, string> = {
-  ADMIN: "Admin",
-  MANAGER: "Manager",
-  AGENT: "Agent",
-  USER: "Client",
 };
 
 type SidebarProps = {
@@ -38,6 +32,7 @@ function isActive(pathname: string, href: string) {
 }
 
 export function Sidebar({ role, fullName, email }: SidebarProps) {
+  const { t } = useTranslation("dashboard");
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: unreadMessageCount = 0 } = useUnreadMessageCountQuery();
@@ -98,7 +93,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
-        aria-label="Open sidebar"
+        aria-label={t("sidebar.openAria")}
         aria-expanded={sidebarOpen}
         aria-controls="dashboard-sidebar"
         className="
@@ -120,7 +115,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
       <button
         type="button"
         onClick={() => setSidebarOpen(false)}
-        aria-label="Close sidebar"
+        aria-label={t("sidebar.closeAria")}
         tabIndex={sidebarOpen ? 0 : -1}
         className={`
           fixed inset-0 z-40
@@ -156,7 +151,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] px-4 sm:px-5">
           <Link
             href="/"
-            aria-label="Go to home"
+            aria-label={t("sidebar.goHomeAria")}
             className="flex min-w-0 items-center"
           >
             <img
@@ -170,7 +165,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
+            aria-label={t("sidebar.closeAria")}
             className="
               flex size-9 shrink-0 items-center justify-center
               rounded-[9px]
@@ -204,7 +199,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                     className="mb-1 px-2 text-[12px] text-[#8490a3]"
                     style={mont}
                   >
-                    {section.title}
+                    {t(`nav.sections.${section.key}`, { defaultValue: section.title })}
                   </p>
                 )}
 
@@ -238,7 +233,9 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
                           }`}
                       />
 
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                      <span className="min-w-0 flex-1 truncate">
+                        {t(`nav.items.${item.key}`, { defaultValue: item.label })}
+                      </span>
 
                       {item.href === "/dashboard/messages" && unreadMessageCount > 0 && (
                         <span
@@ -275,19 +272,19 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
               className="truncate text-[14px] font-medium text-[#0d2138]"
               style={mont}
             >
-              {fullName || "Staff"}
+              {fullName || t("sidebar.staffFallback")}
             </p>
 
             <p className="truncate text-[12px] text-[#6a7282]" style={mont}>
-              {ROLE_LABELS[role]}
+              {t(`sidebar.roles.${role}`)}
             </p>
           </div>
 
           <button
             type="button"
             onClick={handleLogout}
-            title="Log out"
-            aria-label="Log out"
+            title={t("sidebar.logOut")}
+            aria-label={t("sidebar.logOut")}
             className="
               flex size-9 shrink-0 items-center justify-center
               rounded-[9px]

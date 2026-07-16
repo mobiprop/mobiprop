@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   Clock,
@@ -44,6 +45,9 @@ const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const MAX_DESCRIPTION_LENGTH = 250;
 
+// Stable canonical values (persisted as-is on the Profile record, or used as
+// lookup keys) — the translated display label is resolved via the
+// "accountSettings" i18n namespace at each call site, keyed by these values.
 const COUNTRIES = [
   "Argentina",
   "Brazil",
@@ -57,16 +61,16 @@ const COUNTRIES = [
   "Uruguay",
 ];
 
-const TIMEZONES: { value: string; label: string }[] = [
-  { value: "America/Los_Angeles", label: "Pacific Standard Time (PST) - UTC-8" },
-  { value: "America/Denver", label: "Mountain Time (MT) - UTC-7" },
-  { value: "America/Chicago", label: "Central Time (CT) - UTC-6" },
-  { value: "America/New_York", label: "Eastern Time (ET) - UTC-5" },
-  { value: "America/Argentina/Buenos_Aires", label: "Argentina Time (ART) - UTC-3" },
-  { value: "America/Montevideo", label: "Uruguay Time (UYT) - UTC-3" },
-  { value: "Europe/London", label: "Greenwich Mean Time (GMT) - UTC+0" },
-  { value: "Europe/Madrid", label: "Central European Time (CET) - UTC+1" },
-  { value: "Asia/Jakarta", label: "Asia/Jakarta (GMT+7)" },
+const TIMEZONE_VALUES = [
+  "America/Los_Angeles",
+  "America/Denver",
+  "America/Chicago",
+  "America/New_York",
+  "America/Argentina/Buenos_Aires",
+  "America/Montevideo",
+  "Europe/London",
+  "Europe/Madrid",
+  "Asia/Jakarta",
 ];
 
 const LANGUAGES = [
@@ -74,16 +78,9 @@ const LANGUAGES = [
   { value: "es", label: "Español" },
 ];
 
-const DATE_FORMATS = [
-  { value: "MM/DD/YYYY", label: "MM/DD/YYYY (05/27/2026)" },
-  { value: "DD/MM/YYYY", label: "DD/MM/YYYY (27/05/2026)" },
-  { value: "YYYY-MM-DD", label: "YYYY-MM-DD (2026-05-27)" },
-];
+const DATE_FORMAT_VALUES = ["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"];
 
-const TIME_FORMATS = [
-  { value: "12h", label: "12-hour (2:30 PM)" },
-  { value: "24h", label: "24-hour (14:30)" },
-];
+const TIME_FORMAT_VALUES = ["12h", "24h"];
 
 function initialsOf(name: string) {
   return name
@@ -163,8 +160,8 @@ function FooterButtons({
   onCancel,
   onSave,
   saving,
-  cancelLabel = "Cancel",
-  saveLabel = "Save Changes",
+  cancelLabel,
+  saveLabel,
 }: {
   onCancel: () => void;
   onSave: () => void;
@@ -172,6 +169,9 @@ function FooterButtons({
   cancelLabel?: string;
   saveLabel?: string;
 }) {
+  const { t } = useTranslation("accountSettings");
+  const effectiveCancelLabel = cancelLabel ?? t("footer.cancel");
+  const effectiveSaveLabel = saveLabel ?? t("footer.saveChanges");
   return (
    <div className="flex items-center justify-end gap-[6px] pt-[4px] md:gap-[8px]">
   <button
@@ -184,7 +184,7 @@ function FooterButtons({
       className="text-[13px] leading-[18px] tracking-[-0.13px] text-[#5f5f5f] md:text-[14px] md:leading-[20px] md:tracking-[-0.14px]"
       style={{ fontFamily: montserrat }}
     >
-      {cancelLabel}
+      {effectiveCancelLabel}
     </span>
   </button>
 
@@ -202,7 +202,7 @@ function FooterButtons({
       className="whitespace-nowrap text-[13px] font-medium leading-[18px] tracking-[-0.13px] text-white md:text-[14px] md:leading-[20px] md:tracking-[-0.14px]"
       style={{ fontFamily: montserrat }}
     >
-      {saving ? "Saving…" : saveLabel}
+      {saving ? t("footer.saving") : effectiveSaveLabel}
     </span>
   </button>
 </div>
@@ -335,6 +335,7 @@ function AccountTab({
   onClose: () => void;
   onSaved: (profile: Profile) => void;
 }) {
+  const { t } = useTranslation("accountSettings");
   const initialName = splitFullName(profile.fullName);
   const [firstName, setFirstName] = useState(initialName.firstName);
   const [lastName, setLastName] = useState(initialName.lastName);
@@ -363,11 +364,11 @@ function AccountTab({
     if (!file) return;
 
     if (file.size > MAX_AVATAR_SIZE) {
-      setError("Image must be smaller than 5MB.");
+      setError(t("account.errors.imageTooLarge"));
       return;
     }
     if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
-      setError("Image must be a PNG, JPEG, WEBP or GIF.");
+      setError(t("account.errors.imageBadType"));
       return;
     }
 
@@ -392,11 +393,11 @@ function AccountTab({
 
   const handleSave = async () => {
     if (!firstName.trim()) {
-      setError("First name is required.");
+      setError(t("account.errors.firstNameRequired"));
       return;
     }
     if (!lastName.trim()) {
-      setError("Last name is required.");
+      setError(t("account.errors.lastNameRequired"));
       return;
     }
 
@@ -424,7 +425,7 @@ function AccountTab({
       onSaved(result.profile);
       onClose();
     } catch {
-      setError("Something went wrong while saving. Please try again.");
+      setError(t("account.errors.generic"));
     } finally {
       setIsSaving(false);
     }
@@ -432,7 +433,7 @@ function AccountTab({
 
   return (
     <div className="flex flex-col gap-[16px]">
-      <TabHeading title="Account" subtitle="Real-time information and activities of your property." />
+      <TabHeading title={t("account.heading")} subtitle={t("account.subheading")} />
 
       {/* avatar upload */}
       <div className="flex flex-col gap-[12px]">
@@ -461,56 +462,62 @@ function AccountTab({
             >
               <Upload size={16} className="text-[#0d2138]" />
               <span className="text-[14px] text-[#0d2138] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                Upload New Photo
+                {t("account.uploadNewPhoto")}
               </span>
             </button>
             {avatarPreview && (
               <button type="button" onClick={handleRemovePhoto} className="flex items-center justify-center h-[28px] px-[12px] rounded-[8px]">
                 <span className="text-[14px] text-[#e7000b] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                  Remove Photo
+                  {t("account.removePhoto")}
                 </span>
               </button>
             )}
           </div>
         </div>
         <p className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-          Recommended: Square image, at least 400x400px
+          {t("account.photoHint")}
         </p>
       </div>
 
       {/* form fields */}
       <div className="flex flex-col gap-[16px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
-          <TextField label="First Name*" placeholder="Enter your first name" value={firstName} onChange={setFirstName} />
-          <TextField label="Last Name*" placeholder="Enter your last name" value={lastName} onChange={setLastName} />
+          <TextField label={t("account.firstNameLabel")} placeholder={t("account.firstNamePlaceholder")} value={firstName} onChange={setFirstName} />
+          <TextField label={t("account.lastNameLabel")} placeholder={t("account.lastNamePlaceholder")} value={lastName} onChange={setLastName} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
-          <TextField label="Email" placeholder="Enter your email" value={profile.email} onChange={() => {}} disabled />
-          <TextField label="Contact Number" placeholder="Enter your number" value={phone} onChange={setPhone} />
+          <TextField label={t("account.emailLabel")} placeholder={t("account.emailPlaceholder")} value={profile.email} onChange={() => {}} disabled />
+          <TextField label={t("account.contactNumberLabel")} placeholder={t("account.contactNumberPlaceholder")} value={phone} onChange={setPhone} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
           <SelectField
-            label="Country Name"
+            label={t("account.countryLabel")}
             value={country}
             onChange={setCountry}
-            placeholder="Select Country"
-            options={COUNTRIES.map((c) => ({ value: c, label: c }))}
+            placeholder={t("account.countryPlaceholder")}
+            options={COUNTRIES.map((c) => ({ value: c, label: t(`countries.${c}`) }))}
           />
-          <TextField label="City" placeholder="Enter your city name" value={city} onChange={setCity} />
+          <TextField label={t("account.cityLabel")} placeholder={t("account.cityPlaceholder")} value={city} onChange={setCity} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
-          <SelectField label="Time Zone" value={timezone} onChange={setTimezone} placeholder="Asia/Jakarta (GMT+7)" options={TIMEZONES} />
-          <TextField label="Address" placeholder="Enter your address" value={address} onChange={setAddress} />
+          <SelectField
+            label={t("account.timezoneLabel")}
+            value={timezone}
+            onChange={setTimezone}
+            placeholder={t("account.timezonePlaceholder")}
+            options={TIMEZONE_VALUES.map((v) => ({ value: v, label: t(`timezones.${v}`) }))}
+          />
+          <TextField label={t("account.addressLabel")} placeholder={t("account.addressPlaceholder")} value={address} onChange={setAddress} />
         </div>
 
         {/* description */}
         <div className="flex flex-col gap-[4px]">
-          <FieldLabel>Description</FieldLabel>
+          <FieldLabel>{t("account.descriptionLabel")}</FieldLabel>
           <div className="relative">
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, MAX_DESCRIPTION_LENGTH))}
-              placeholder="Typing....."
+              placeholder={t("account.descriptionPlaceholder")}
               className="w-full h-[180px] bg-white border border-[#e5e7eb] rounded-[10px] pl-[12px] pr-[8px] pt-[10px] pb-[28px] text-[14px] text-[#0d2138] placeholder:text-[#6a7282] leading-[20px] tracking-[-0.14px] outline-none focus:border-[#4896b6] transition-colors resize-none"
               style={{ fontFamily: montserrat }}
             />
@@ -529,17 +536,20 @@ function AccountTab({
 
 /* ─── Notifications tab ─── */
 
-const EMAIL_NOTIFICATION_ROWS: { key: keyof NotificationPreferences; title: string; description: string }[] = [
-  { key: "emailNewListings", title: "New Property Listings", description: "Get notified when new properties match your preferences" },
-  { key: "emailPriceChanges", title: "Price Changes", description: "Alerts when saved properties change in price" },
-  { key: "emailMessages", title: "Messages & Inquiries", description: "Receive emails for new messages from agents" },
-  { key: "emailNewsletter", title: "Newsletter & Updates", description: "Weekly digest of market trends and tips" },
+// Titles/descriptions come from the "accountSettings" i18n namespace at
+// `notifications.email.${key}` / `notifications.push.${key}`, keyed by these
+// stable preference keys.
+const EMAIL_NOTIFICATION_KEYS: (keyof NotificationPreferences)[] = [
+  "emailNewListings",
+  "emailPriceChanges",
+  "emailMessages",
+  "emailNewsletter",
 ];
 
-const PUSH_NOTIFICATION_ROWS: { key: keyof NotificationPreferences; title: string; description: string }[] = [
-  { key: "pushNewListings", title: "New Listings", description: "Instant alerts for new property matches" },
-  { key: "pushMessages", title: "Messages", description: "Get notified immediately when you receive messages" },
-  { key: "pushPriceAlerts", title: "Price Alerts", description: "Real-time price drop notifications" },
+const PUSH_NOTIFICATION_KEYS: (keyof NotificationPreferences)[] = [
+  "pushNewListings",
+  "pushMessages",
+  "pushPriceAlerts",
 ];
 
 function NotificationsTab({
@@ -551,6 +561,7 @@ function NotificationsTab({
   onClose: () => void;
   onSaved: (profile: Profile) => void;
 }) {
+  const { t } = useTranslation("accountSettings");
   const [prefs, setPrefs] = useState(initial);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -572,9 +583,9 @@ function NotificationsTab({
         return;
       }
       onSaved(result.profile);
-      setSuccess("Notification preferences saved.");
+      setSuccess(t("notifications.saved"));
     } catch {
-      setError("Something went wrong while saving. Please try again.");
+      setError(t("notifications.error"));
     } finally {
       setIsSaving(false);
     }
@@ -582,30 +593,30 @@ function NotificationsTab({
 
   return (
     <div className="flex flex-col gap-[20px]">
-      <TabHeading title="Notifications" subtitle="Manage how you receive notifications and updates." />
+      <TabHeading title={t("notifications.heading")} subtitle={t("notifications.subheading")} />
 
       <div className="flex flex-col gap-[16px]">
-        <SectionHeader icon={<Mail size={18} />} title="Email Notifications" />
-        {EMAIL_NOTIFICATION_ROWS.map((row) => (
+        <SectionHeader icon={<Mail size={18} />} title={t("notifications.emailSection")} />
+        {EMAIL_NOTIFICATION_KEYS.map((key) => (
           <ToggleRow
-            key={row.key}
-            title={row.title}
-            description={row.description}
-            checked={prefs[row.key]}
-            onChange={(v) => setPref(row.key, v)}
+            key={key}
+            title={t(`notifications.email.${key}.title`)}
+            description={t(`notifications.email.${key}.description`)}
+            checked={prefs[key]}
+            onChange={(v) => setPref(key, v)}
           />
         ))}
       </div>
 
       <div className="flex flex-col gap-[16px] pt-[8px]">
-        <SectionHeader icon={<Bell size={18} />} title="Push Notifications" />
-        {PUSH_NOTIFICATION_ROWS.map((row) => (
+        <SectionHeader icon={<Bell size={18} />} title={t("notifications.pushSection")} />
+        {PUSH_NOTIFICATION_KEYS.map((key) => (
           <ToggleRow
-            key={row.key}
-            title={row.title}
-            description={row.description}
-            checked={prefs[row.key]}
-            onChange={(v) => setPref(row.key, v)}
+            key={key}
+            title={t(`notifications.push.${key}.title`)}
+            description={t(`notifications.push.${key}.description`)}
+            checked={prefs[key]}
+            onChange={(v) => setPref(key, v)}
           />
         ))}
       </div>
@@ -618,13 +629,6 @@ function NotificationsTab({
 
 /* ─── Security tab ─── */
 
-const PASSWORD_REQUIREMENTS = [
-  "At least 8 characters long",
-  "Contains uppercase and lowercase letters",
-  "Includes at least one number",
-  "Contains at least one special character",
-];
-
 function SecurityTab({
   initial,
   onSaved,
@@ -632,6 +636,8 @@ function SecurityTab({
   initial: SecurityPreferences;
   onSaved: (profile: Profile) => void;
 }) {
+  const { t } = useTranslation("accountSettings");
+  const PASSWORD_REQUIREMENTS = t("security.requirements", { returnObjects: true }) as string[];
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -686,12 +692,12 @@ function SecurityTab({
         setPasswordError(result.error);
         return;
       }
-      setPasswordSuccess("Your password has been updated.");
+      setPasswordSuccess(t("security.passwordUpdated"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch {
-      setPasswordError("Something went wrong while updating your password. Please try again.");
+      setPasswordError(t("security.passwordError"));
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -713,7 +719,7 @@ function SecurityTab({
       onSaved(result.profile);
     } catch {
       setPrefs(previous);
-      setPrefsError("Failed to save your security settings. Please try again.");
+      setPrefsError(t("security.prefsSaveError"));
     }
   };
 
@@ -726,9 +732,9 @@ function SecurityTab({
         setSessionsMessage({ error: result.error });
         return;
       }
-      setSessionsMessage({ success: "All other sessions have been logged out." });
+      setSessionsMessage({ success: t("security.sessionsLoggedOut") });
     } catch {
-      setSessionsMessage({ error: "Failed to log out other sessions. Please try again." });
+      setSessionsMessage({ error: t("security.sessionsError") });
     } finally {
       setIsLoggingOut(false);
     }
@@ -750,18 +756,18 @@ function SecurityTab({
 
   return (
     <div className="flex flex-col gap-[20px]">
-      <TabHeading title="Security" subtitle="Manage your account security and privacy settings." />
+      <TabHeading title={t("security.heading")} subtitle={t("security.subheading")} />
 
       {/* Password */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<KeyRound size={18} />} title="Password" />
-        {passwordInput("Current Password", "Enter current password", currentPassword, setCurrentPassword)}
-        {passwordInput("New Password", "Enter new password", newPassword, setNewPassword)}
-        {passwordInput("Confirm New Password", "Confirm new password", confirmPassword, setConfirmPassword)}
+        <SectionHeader icon={<KeyRound size={18} />} title={t("security.passwordSection")} />
+        {passwordInput(t("security.currentPasswordLabel"), t("security.currentPasswordPlaceholder"), currentPassword, setCurrentPassword)}
+        {passwordInput(t("security.newPasswordLabel"), t("security.newPasswordPlaceholder"), newPassword, setNewPassword)}
+        {passwordInput(t("security.confirmPasswordLabel"), t("security.confirmPasswordPlaceholder"), confirmPassword, setConfirmPassword)}
 
         <div className="bg-[#eff6ff] border border-[#bedbff] rounded-[10px] px-[16px] py-[12px] flex flex-col gap-[6px]">
           <p className="text-[12px] font-semibold text-[#0d2138] leading-[18px]" style={{ fontFamily: poppins }}>
-            Password Requirements:
+            {t("security.requirementsHeading")}
           </p>
           {PASSWORD_REQUIREMENTS.map((req) => (
             <p key={req} className="text-[12px] text-[#364153] leading-[16px] tracking-[-0.12px]" style={{ fontFamily: montserrat }}>
@@ -779,7 +785,7 @@ function SecurityTab({
           className="self-start flex items-center justify-center h-[38px] px-[16px] bg-[#15385f] hover:bg-[#0d2138] rounded-[8px] disabled:opacity-60 transition-colors"
         >
           <span className="text-[14px] font-medium text-white leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-            {isUpdatingPassword ? "Updating…" : "Update Password"}
+            {isUpdatingPassword ? t("security.updating") : t("security.updatePassword")}
           </span>
         </button>
       </div>
@@ -788,11 +794,11 @@ function SecurityTab({
 
       {/* Two-Factor Authentication */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<ShieldCheck size={18} />} title="Two-Factor Authentication" />
+        <SectionHeader icon={<ShieldCheck size={18} />} title={t("security.twoFactorSection")} />
         <ToggleRow
           card
-          title="Enable 2FA"
-          description="Add an extra layer of security to your account"
+          title={t("security.enable2fa")}
+          description={t("security.enable2faDescription")}
           checked={prefs.twoFactorEnabled}
           onChange={(v) => handleTogglePref("twoFactorEnabled", v)}
         />
@@ -800,11 +806,11 @@ function SecurityTab({
 
       {/* Login Alerts */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<Bell size={18} />} title="Login Alerts" />
+        <SectionHeader icon={<Bell size={18} />} title={t("security.loginAlertsSection")} />
         <ToggleRow
           card
-          title="Notify me of new logins"
-          description="Get alerts when your account is accessed from a new device"
+          title={t("security.notifyNewLogins")}
+          description={t("security.notifyNewLoginsDescription")}
           checked={prefs.loginAlerts}
           onChange={(v) => handleTogglePref("loginAlerts", v)}
         />
@@ -814,7 +820,7 @@ function SecurityTab({
 
       {/* Active Sessions */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<Smartphone size={18} />} title="Active Sessions" />
+        <SectionHeader icon={<Smartphone size={18} />} title={t("security.activeSessionsSection")} />
 
        <div className="flex flex-col gap-3 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 py-3 min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between">
   <div className="flex min-w-0 items-start gap-3">
@@ -841,7 +847,7 @@ function SecurityTab({
           style={{ fontFamily: montserrat }}
         >
           <MapPin size={12} className="shrink-0" />
-          This device
+          {t("security.thisDevice")}
         </span>
 
         <span
@@ -849,7 +855,7 @@ function SecurityTab({
           style={{ fontFamily: montserrat }}
         >
           <Clock size={12} className="shrink-0" />
-          Active now
+          {t("security.activeNow")}
         </span>
       </div>
     </div>
@@ -859,7 +865,7 @@ function SecurityTab({
     className="w-fit shrink-0 self-end rounded-md bg-[#dcfce7] px-2.5 py-0.5 text-xs leading-[18px] text-[#00a63e] min-[400px]:self-auto"
     style={{ fontFamily: montserrat }}
   >
-    Current
+    {t("security.current")}
   </span>
 </div>
 
@@ -872,7 +878,7 @@ function SecurityTab({
           className="flex items-center justify-center h-[40px] w-full bg-white border border-[#e5e7eb] rounded-[8px] hover:bg-[#f8fafc] disabled:opacity-60 transition-colors"
         >
           <span className="text-[14px] font-medium text-[#0d2138] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-            {isLoggingOut ? "Logging out…" : "Log Out All Other Sessions"}
+            {isLoggingOut ? t("security.loggingOut") : t("security.logOutOtherSessions")}
           </span>
         </button>
       </div>
@@ -889,6 +895,7 @@ function LanguageTab({
   initial: LocalePreferences;
   onSaved: (profile: Profile) => void;
 }) {
+  const { t } = useTranslation("accountSettings");
   const [locale, setLocale] = useState(initial);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -903,7 +910,7 @@ function LanguageTab({
     const patch: Partial<LocalePreferences> = { autoDetectTimezone: enabled };
     if (enabled) {
       const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (TIMEZONES.some((tz) => tz.value === detected)) patch.timezone = detected;
+      if (TIMEZONE_VALUES.includes(detected)) patch.timezone = detected;
     }
     update(patch);
   };
@@ -920,9 +927,9 @@ function LanguageTab({
       }
       onSaved(result.profile);
       syncSiteLanguageFromPreference(locale.language);
-      setSuccess("Language & region preferences saved.");
+      setSuccess(t("language.saved"));
     } catch {
-      setError("Something went wrong while saving. Please try again.");
+      setError(t("language.error"));
     } finally {
       setIsSaving(false);
     }
@@ -930,18 +937,18 @@ function LanguageTab({
 
   return (
     <div className="flex flex-col gap-[20px]">
-      <TabHeading title="Language & Region" subtitle="Customize your language, timezone, and regional preferences." />
+      <TabHeading title={t("language.heading")} subtitle={t("language.subheading")} />
 
       {/* Display Language */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<Globe size={18} />} title="Display Language" />
+        <SectionHeader icon={<Globe size={18} />} title={t("language.displayLanguageSection")} />
         <SelectField
-          label="Select Language"
+          label={t("language.selectLanguage")}
           value={locale.language}
           onChange={(v) => update({ language: v })}
           options={LANGUAGES}
           variant="gray"
-          hint="This will change the language used throughout the app"
+          hint={t("language.languageHint")}
         />
       </div>
 
@@ -949,19 +956,19 @@ function LanguageTab({
 
       {/* Timezone */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<Clock size={18} />} title="Timezone" />
+        <SectionHeader icon={<Clock size={18} />} title={t("language.timezoneSection")} />
         <SelectField
-          label="Select Timezone"
+          label={t("language.selectTimezone")}
           value={locale.timezone}
           onChange={(v) => update({ timezone: v })}
-          options={TIMEZONES}
+          options={TIMEZONE_VALUES.map((v) => ({ value: v, label: t(`timezones.${v}`) }))}
           variant="gray"
-          hint="Used for displaying dates and times"
+          hint={t("language.timezoneHint")}
         />
         <ToggleRow
           card
-          title="Auto-detect Timezone"
-          description="Automatically update based on your location"
+          title={t("language.autoDetectTimezone")}
+          description={t("language.autoDetectTimezoneDescription")}
           checked={locale.autoDetectTimezone}
           onChange={handleAutoDetect}
         />
@@ -971,9 +978,21 @@ function LanguageTab({
 
       {/* Date & Time Format */}
       <div className="flex flex-col gap-[12px]">
-        <SectionHeader icon={<Clock size={18} />} title="Date & Time Format" />
-        <SelectField label="Date Format" value={locale.dateFormat} onChange={(v) => update({ dateFormat: v })} options={DATE_FORMATS} variant="gray" />
-        <SelectField label="Time Format" value={locale.timeFormat} onChange={(v) => update({ timeFormat: v })} options={TIME_FORMATS} variant="gray" />
+        <SectionHeader icon={<Clock size={18} />} title={t("language.dateTimeFormatSection")} />
+        <SelectField
+          label={t("language.dateFormatLabel")}
+          value={locale.dateFormat}
+          onChange={(v) => update({ dateFormat: v })}
+          options={DATE_FORMAT_VALUES.map((v) => ({ value: v, label: t(`dateFormats.${v}`) }))}
+          variant="gray"
+        />
+        <SelectField
+          label={t("language.timeFormatLabel")}
+          value={locale.timeFormat}
+          onChange={(v) => update({ timeFormat: v })}
+          options={TIME_FORMAT_VALUES.map((v) => ({ value: v, label: t(`timeFormats.${v}`) }))}
+          variant="gray"
+        />
       </div>
 
       <Feedback error={error} success={success} />
@@ -985,8 +1004,8 @@ function LanguageTab({
         }}
         onSave={handleSave}
         saving={isSaving}
-        cancelLabel="Reset to Default"
-        saveLabel="Save Preference"
+        cancelLabel={t("language.resetToDefault")}
+        saveLabel={t("language.savePreference")}
       />
     </div>
   );
@@ -1005,6 +1024,7 @@ export function EditProfileModal({
   onClose: () => void;
   onSaved: (profile: Profile) => void;
 }) {
+  const { t } = useTranslation("accountSettings");
   const [activeTab, setActiveTab] = useState<SettingsTab>("Account");
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -1041,7 +1061,7 @@ export function EditProfileModal({
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Edit Profile"
+      aria-label={t("modal.ariaLabel")}
     >
       <div className="bg-white border border-[#e5e7eb] rounded-[20px] w-full max-w-[1196px] max-h-[92vh] overflow-hidden shadow-2xl">
         <div className="flex flex-col gap-[24px] p-[20px] sm:p-[31px] max-h-[92vh] overflow-y-auto">
@@ -1049,13 +1069,13 @@ export function EditProfileModal({
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-[8px]">
               <p className="text-[20px] md:text-[24px]  font-semibold text-[#0d2138] leading-[28px] tracking-[-0.24px]" style={{ fontFamily: poppins }}>
-                Edit Profile
+                {t("modal.title")}
               </p>
               <p className="text-[16px] text-[#2b3038] leading-[24px] tracking-[-0.16px]" style={{ fontFamily: montserrat }}>
-                Update your profile information and preferences
+                {t("modal.subtitle")}
               </p>
             </div>
-            <button onClick={onClose} className="shrink-0 mt-1 hover:opacity-60 transition-opacity" aria-label="Close">
+            <button onClick={onClose} className="shrink-0 mt-1 hover:opacity-60 transition-opacity" aria-label={t("modal.closeAria")}>
               <X size={24} className="text-[#0d2138]" strokeWidth={1.5} />
             </button>
           </div>
@@ -1066,7 +1086,7 @@ export function EditProfileModal({
             <div className="shrink-0 w-full md:w-[244px] bg-white border border-[#e5e7eb] rounded-[12px] p-[14px] flex flex-col gap-[8px]">
               <div className="px-[8px] pb-[4px] pt-[6px]">
                 <p className="text-[14px] text-[#6a7282] leading-[20px] tracking-[-0.14px]" style={{ fontFamily: montserrat }}>
-                  Settings Menu
+                  {t("modal.settingsMenu")}
                 </p>
               </div>
               {sidebarItems.map(({ label, icon: Icon }) => {
@@ -1084,7 +1104,7 @@ export function EditProfileModal({
                       className={`text-[14px] leading-[20px] tracking-[-0.14px] ${isActive ? "font-medium text-[#0d2138]" : "text-[#6a7282]"}`}
                       style={{ fontFamily: montserrat }}
                     >
-                      {label}
+                      {t(`tabs.${label}`)}
                     </span>
                   </button>
                 );

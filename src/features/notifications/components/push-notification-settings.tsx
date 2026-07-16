@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { EnablePushButton } from "@/features/notifications/components/enable-push-button";
 import { PushStatusBadge } from "@/features/notifications/components/push-status-badge";
@@ -47,6 +48,7 @@ function computeStatus(
 }
 
 export function PushNotificationSettings() {
+  const { t } = useTranslation("dashboardSettings");
   const { data, isLoading } = usePushStatusQuery();
   const enableMutation = useEnablePushMutation();
   const disableMutation = useDisablePushMutation();
@@ -64,13 +66,13 @@ export function PushNotificationSettings() {
   async function handleEnable() {
     try {
       await enableMutation.mutateAsync();
-      toast.success("Push notifications enabled on this device.");
+      toast.success(t("notifications.push.toasts.enabled"));
     } catch (error) {
       if (error instanceof PushEnableError && error.code === "permission-denied") {
-        toast.error("Permission blocked. Allow notifications in your browser settings, then try again.");
+        toast.error(t("notifications.push.toasts.permissionBlocked"));
         return;
       }
-      toast.error(error instanceof Error ? error.message : "Could not enable push notifications.");
+      toast.error(error instanceof Error ? error.message : t("notifications.push.toasts.enableFailed"));
     }
   }
 
@@ -78,12 +80,12 @@ export function PushNotificationSettings() {
     try {
       const result = await disableMutation.mutateAsync();
       if (!result.browserUnsubscribed) {
-        toast.warning("Disabled on the server. This browser may still hold a subscription until next reload.");
+        toast.warning(t("notifications.push.toasts.serverDisabled"));
       } else {
-        toast.success("Push notifications disabled on this device.");
+        toast.success(t("notifications.push.toasts.disabled"));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not disable push notifications.");
+      toast.error(error instanceof Error ? error.message : t("notifications.push.toasts.disableFailed"));
     }
   }
 
@@ -91,15 +93,15 @@ export function PushNotificationSettings() {
     try {
       const result = await testMutation.mutateAsync();
       if (result.sent > 0) {
-        toast.success("Test notification sent. Check your device.");
+        toast.success(t("notifications.push.toasts.testSent"));
       } else if (result.skipped > 0) {
-        toast.warning("No active device received the test. Make sure push is enabled here.");
+        toast.warning(t("notifications.push.toasts.testSkipped"));
       } else {
         const reason = result.lastError ? `: ${result.lastError}` : "";
-        toast.error(`Push delivery failed${reason}. Disable and re-enable push on this device to refresh the subscription.`);
+        toast.error(t("notifications.push.toasts.testFailed", { reason }));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not send a test notification.");
+      toast.error(error instanceof Error ? error.message : t("notifications.push.toasts.testFailedGeneric"));
     }
   }
 
@@ -109,12 +111,12 @@ export function PushNotificationSettings() {
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>
-              Browser Push Notifications
+              {t("notifications.push.title")}
             </p>
             <PushStatusBadge status={status} />
           </div>
           <p className="mt-0.5 text-[12px] text-[#6a7282]" style={mont}>
-            Get alerts on this device even when the dashboard is closed.
+            {t("notifications.push.description")}
           </p>
         </div>
 
@@ -128,7 +130,7 @@ export function PushNotificationSettings() {
                 className="inline-flex h-9 items-center justify-center rounded-[9px] border border-[#d1d5dc] px-4 text-[13px] font-semibold text-[#0d2138] transition-colors hover:bg-[#f3f4f6] disabled:opacity-50"
                 style={mont}
               >
-                {testMutation.isPending ? "Sending…" : "Send test"}
+                {testMutation.isPending ? t("notifications.push.sending") : t("notifications.push.sendTest")}
               </button>
               <button
                 type="button"
@@ -137,7 +139,7 @@ export function PushNotificationSettings() {
                 className="inline-flex h-9 items-center justify-center rounded-[9px] border border-[#fecaca] px-4 text-[13px] font-semibold text-[#dc2626] transition-colors hover:bg-[#fef2f2] disabled:opacity-50"
                 style={mont}
               >
-                {disableMutation.isPending ? "Working…" : "Disable on this device"}
+                {disableMutation.isPending ? t("notifications.push.working") : t("notifications.push.disableOnDevice")}
               </button>
             </>
           ) : (
@@ -147,8 +149,8 @@ export function PushNotificationSettings() {
               disabled={!supported || !serverConfigured || isLoading || status === "permission-denied"}
               label={
                 status === "permission-granted-no-subscription"
-                  ? "Re-enable on this device"
-                  : "Enable push notifications"
+                  ? t("notifications.push.reEnable")
+                  : t("notifications.push.enable")
               }
             />
           )}
@@ -158,22 +160,22 @@ export function PushNotificationSettings() {
       {/* Contextual guidance */}
       {!isLoading && !serverConfigured && supported && (
         <p className="mt-3 text-[12px] text-[#b45309]" style={mont}>
-          Push delivery isn&apos;t configured on the server yet. In-app notifications still work.
+          {t("notifications.push.notConfigured")}
         </p>
       )}
       {status === "permission-denied" && (
         <p className="mt-3 text-[12px] text-[#dc2626]" style={mont}>
-          Notifications are blocked for this site. Re-allow them in your browser&apos;s site settings, then reload.
+          {t("notifications.push.blocked")}
         </p>
       )}
       {iosNeedsInstall && (
         <p className="mt-3 text-[12px] text-[#6a7282]" style={mont}>
-          On iPhone/iPad, add Ulrich Propiedades to your Home Screen to enable push notifications.
+          {t("notifications.push.iosInstall")}
         </p>
       )}
       {status === "unsupported" && !iosNeedsInstall && (
         <p className="mt-3 text-[12px] text-[#6a7282]" style={mont}>
-          This browser doesn&apos;t support push notifications. You&apos;ll still receive in-app notifications.
+          {t("notifications.push.unsupported")}
         </p>
       )}
     </div>
