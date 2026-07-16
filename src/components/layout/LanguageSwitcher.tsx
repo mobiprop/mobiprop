@@ -18,7 +18,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
 
   return (
     <div
-      className={`flex items-center rounded-full border border-[#e5e7eb] bg-white p-0.5 text-[13px] font-medium ${className}`}
+      className={`inline-flex items-center rounded-full border border-[#e5e7eb] bg-white p-0.5 text-[13px] font-medium ${className}`}
       style={{ fontFamily: "Poppins, sans-serif" }}
       role="group"
       aria-label="Language selector"

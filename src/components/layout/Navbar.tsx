@@ -165,19 +165,19 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
   return (
     <header className="sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]">
   <motion.div
-    className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between"
+    className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
     variants={headerContainer}
     initial="hidden"
     animate="visible"
   >
     {/* Logo */}
-    <motion.div className="flex-shrink-0" variants={headerItem}>
+    <motion.div className="flex-shrink-0 justify-self-start" variants={headerItem}>
       <Logo />
     </motion.div>
 
     {/* Desktop Menu */}
     <motion.nav
-      className="hidden md:flex items-center gap-8 bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
+      className="hidden lg:flex items-center gap-8 justify-self-center bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
       variants={headerItem}
     >
       {navLinks.map((link) => (
@@ -197,7 +197,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
     </motion.nav>
 
     {/* Desktop Buttons */}
-    <motion.div className="hidden md:flex items-center gap-3" variants={headerItem}>
+    <motion.div className="hidden lg:flex items-center gap-3 justify-self-end" variants={headerItem}>
       <LanguageSwitcher />
       {user ? (
         <ProfileMenu user={user} />
@@ -224,7 +224,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
     {/* Mobile Hamburger */}
     <motion.button
-      className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+      className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
       onClick={() => setMenuOpen(!menuOpen)}
       aria-label="Toggle menu"
       variants={headerItem}
@@ -255,7 +255,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   {/* Mobile Menu Dropdown */}
   {menuOpen && (
-    <div className="md:hidden bg-white border-t border-[#e5e7eb] px-4 sm:px-6 py-5 shadow-lg">
+    <div className="lg:hidden bg-white border-t border-[#e5e7eb] px-4 sm:px-6 py-5 shadow-lg">
       <nav className="flex flex-col gap-2">
         {navLinks.map((link) => (
           <Link

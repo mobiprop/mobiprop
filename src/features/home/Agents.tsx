@@ -6,12 +6,9 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const agent1 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-15.webp";
-const agent2 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-16.webp";
-const agent3 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-17.webp";
+// Placeholder silhouette used for every team member until real photos are provided.
+const agentPlaceholder =
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/team-placeholder.webp";
 
 function InstagramIcon() {
   return (
@@ -37,40 +34,9 @@ function XIcon() {
   );
 }
 
-const agents = [
-  {
-    name: "Albert Flores",
-    role: "Property Consultant Orlando, Tampa",
-    photo: agent1,
-  },
-  {
-    name: "Marvin McKinney",
-    role: "Property Consultant Orlando, Tampa",
-    photo: agent2,
-  },
-  {
-    name: "Theresa Webb",
-    role: "Property Consultant Orlando, Tampa",
-    photo: agent3,
-  },
-  {
-    name: "Albert Flores",
-    role: "Property Consultant Orlando, Tampa",
-    photo: agent1,
-  },
-  {
-    name: "Marvin McKinney",
-    role: "Property Consultant Orlando, Tampa",
-    photo: agent2,
-  },
-  {
-    name: "Theresa Webb",
-    role: "Property Consultant Orlando, Tampa",
-    photo: agent3,
-  },
-];
+type Agent = { name: string; role: string; photo: string };
 
-function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
+function AgentCard({ agent }: { agent: Agent }) {
   return (
     <div className="flex w-full min-w-0 flex-col gap-4">
       {/* Photo */}
@@ -122,6 +88,9 @@ function AgentCard({ agent }: { agent: (typeof agents)[0] }) {
 
 export function Agents() {
   const { t } = useTranslation("home");
+  const agents: Agent[] = (
+    t("agents.team", { returnObjects: true }) as { name: string; role: string }[]
+  ).map((member) => ({ ...member, photo: agentPlaceholder }));
   const settings = {
     dots: true,
     arrows: false,

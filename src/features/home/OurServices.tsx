@@ -2,9 +2,9 @@
 
 import { useTranslation } from "react-i18next";
 
-const saleImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/whatweoffer1.webp";
-const rentImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/rentals.webp";
-const valuationImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/Valuation.webp";
+const saleImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/services-ventas.webp";
+const rentImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/services-alquileres.webp";
+const valuationImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/services-tasaciones.webp";
 
 const SERVICE_IMAGES = [saleImg, rentImg, valuationImg];
 
