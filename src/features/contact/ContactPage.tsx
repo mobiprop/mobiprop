@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FAQ } from "@/features/home/FAQ";
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
@@ -105,6 +105,81 @@ function HeroBanner() {
   );
 }
 
+/* ─── custom dropdown (matches the contact form's input styling) ─── */
+function ServiceDropdown({
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  options: { value: string; label: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={rootRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full h-[58px] bg-[#f8fafc] border border-[#e5e7eb] rounded-[14px] px-5 flex items-center justify-between gap-3 outline-none focus:border-[#1e4f86] transition-colors cursor-pointer"
+        style={{ fontFamily: poppins }}
+      >
+        <span className={`truncate text-[16px] ${selected ? "text-[#101828]" : "text-[#6a7282]"}`}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <svg
+          className="shrink-0 text-[#6a7282] transition-transform"
+          style={{ transform: open ? "rotate(180deg)" : undefined }}
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open ? (
+        <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 max-h-[280px] overflow-y-auto overscroll-contain">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
+              className={`w-full px-4 py-2.5 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
+                value === opt.value ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"
+              }`}
+              style={{ fontFamily: poppins }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /* ─── 2. Contact Card ─── */
 function ContactCard() {
   const { t } = useTranslation("contact");
@@ -118,7 +193,7 @@ function ContactCard() {
   const [agreed, setAgreed] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
@@ -243,39 +318,17 @@ function ContactCard() {
             style={{ fontFamily: poppins }}
           />
 
-          <div className="relative">
-            <select
-              name="service"
-              value={form.service}
-              onChange={handleChange}
-              className={`${inputCls} appearance-none pr-12 cursor-pointer`}
-              style={{ fontFamily: poppins }}
-            >
-              <option value="" disabled>
-                {t("card.form.serviceDefault")}
-              </option>
-              <option value="buying">{t("card.form.serviceOptions.buying")}</option>
-              <option value="selling">{t("card.form.serviceOptions.selling")}</option>
-              <option value="consultation">{t("card.form.serviceOptions.consultation")}</option>
-              <option value="other">{t("card.form.serviceOptions.other")}</option>
-            </select>
-
-            <svg
-              className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[#6a7282]"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </div>
+          <ServiceDropdown
+            value={form.service}
+            onChange={(value) => setForm((f) => ({ ...f, service: value }))}
+            placeholder={t("card.form.serviceDefault")}
+            options={[
+              { value: "buying", label: t("card.form.serviceOptions.buying") },
+              { value: "selling", label: t("card.form.serviceOptions.selling") },
+              { value: "consultation", label: t("card.form.serviceOptions.consultation") },
+              { value: "other", label: t("card.form.serviceOptions.other") },
+            ]}
+          />
 
           <textarea
             name="message"

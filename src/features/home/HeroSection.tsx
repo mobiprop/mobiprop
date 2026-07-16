@@ -324,7 +324,7 @@ export function HeroSection() {
                     if (e.key === "Enter") handleSearch();
                   }}
                   placeholder={t("hero.locationPlaceholder")}
-                  className="w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] placeholder:text-[#4a5565] outline-none"
+                  className="w-full min-w-0 bg-transparent text-[16px] sm:text-[14px] text-[#0d2138] placeholder:text-[#4a5565] outline-none"
                   style={{ fontFamily: "Poppins, sans-serif" }}
                   aria-label={t("hero.locationLabel")}
                 />

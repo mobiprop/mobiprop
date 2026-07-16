@@ -37,7 +37,7 @@ async function upsertProfileForUser(user: {
   const upsert = () =>
     prisma.profile.upsert({
       where: { id: user.id },
-      create: { id: user.id, email, fullName },
+      create: { id: user.id, email, fullName, country: "Argentina", timezone: "America/Argentina/Buenos_Aires" },
       update: { email, ...(fullName ? { fullName } : {}) },
     });
 

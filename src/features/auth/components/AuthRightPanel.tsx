@@ -1,9 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-const copy = {
-  cta: "Read our privacy policy →",
-  href: "/privacy-policy",
-};
+import { useTranslation } from "react-i18next";
 
 function IconArrow({ left = false }: { left?: boolean }) {
   return (
@@ -17,21 +14,13 @@ type AuthRightPanelProps = {
   variant?: "client" | "staff";
 };
 
-const PANEL_COPY = {
-  client: {
-    title: "Your Data, Your Control",
-    body: "We store only what's needed to run your account. No tracking pixels. No behavioral analytics. No selling your data.",
-    cta: "Read our privacy policy →",
-  },
-  staff: {
-    title: "Effortlessly manage and track your properties with precision.",
-    body: "Listings, leads, opportunities and contracts — your whole operation in one fast, modern dashboard.",
-    cta: "Welcome back to your workspace →",
-  },
-} as const;
-
 export function AuthRightPanel({ variant = "client" }: AuthRightPanelProps) {
-  const copy = PANEL_COPY[variant];
+  const { t } = useTranslation("auth");
+  const copy = {
+    title: t(`rightPanel.${variant}.title`),
+    body: t(`rightPanel.${variant}.body`),
+    cta: t(`rightPanel.${variant}.cta`),
+  };
   return (
     <div
       className="hidden lg:flex shrink-0 w-[735px] m-[16px] rounded-[12px] overflow-hidden relative bg-[#f4f4f4] border border-[#e6e6e6] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.05)]"

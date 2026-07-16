@@ -12,11 +12,11 @@ import { SplitHeading } from "@/components/common/SplitHeading";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
 import {
-  PROPERTY_TYPE_LABELS,
   formatArea,
   formatBaths,
   formatBeds,
   listingDisplayPrice,
+  propertyTypeLabel,
 } from "@/features/listings/utils/format";
 
 const fallbackImg =
@@ -189,7 +189,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
             className="bg-white/90 px-3 py-1 rounded-[36px] text-[12px] sm:text-[14px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {PROPERTY_TYPE_LABELS[property.type]}
+            {propertyTypeLabel(property.type, t)}
           </span>
         </div>
 
@@ -246,7 +246,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
             className="text-[17px] sm:text-[18px] font-semibold text-[#2b3038] sm:text-right whitespace-nowrap"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
-            {listingDisplayPrice(property)}
+            {listingDisplayPrice(property, t)}
           </span>
         </div>
 
@@ -268,7 +268,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
               className="text-[13px] text-[#2b3038]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              {formatBeds(property.bedrooms)}
+              {formatBeds(property.bedrooms, t)}
             </span>
           </div>
 
@@ -278,7 +278,7 @@ function PropertyCard({ property }: { property: PublicListingDto }) {
               className="text-[13px] text-[#2b3038]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              {formatBaths(property.bathrooms)}
+              {formatBaths(property.bathrooms, t)}
             </span>
           </div>
         </div>

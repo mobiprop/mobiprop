@@ -1,6 +1,12 @@
 {
   "getInTouch": "Contactanos",
   "search": "Buscar",
+  "notFound": {
+    "eyebrow": "¡UPS! PÁGINA NO ENCONTRADA",
+    "title": "No podemos encontrar la página que estás buscando.",
+    "backHome": "Volver al inicio",
+    "contactSupport": "Contactar Soporte"
+  },
   "consultation": {
     "heading": "Agendá una consulta gratuita",
     "fullName": "Nombre completo",

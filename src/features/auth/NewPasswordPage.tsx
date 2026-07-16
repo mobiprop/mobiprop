@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthBanner } from "./components/AuthBanner";
 import { AuthLogo } from "./components/AuthLogo";
@@ -71,6 +72,7 @@ function PasswordInput({
 
 export function NewPasswordPageContent() {
   const router = useRouter();
+  const { t } = useTranslation("auth");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -92,7 +94,7 @@ export function NewPasswordPageContent() {
     setIsSubmitting(false);
 
     if (result.error) {
-      flashBanner({ type: "error", title: "Couldn't update password", message: result.error });
+      flashBanner({ type: "error", title: t("newPassword.couldntUpdatePasswordTitle"), message: result.error });
       return;
     }
 
@@ -111,7 +113,7 @@ export function NewPasswordPageContent() {
             <div className="flex flex-col gap-4 mb-[52px]">
               <Link href="/reset-password" className="flex items-center gap-[6px] w-fit hover:opacity-70 transition-opacity">
                 <IconArrowLeft />
-                <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>Back</span>
+                <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>{t("footer.back")}</span>
               </Link>
               <div>
                 <h1 className=" mb-[2px]
@@ -125,18 +127,18 @@ export function NewPasswordPageContent() {
   max-sm:text-[26px]
   max-sm:leading-[34px]
   max-sm:tracking-[-0.26px]" style={{ ...poppins, fontWeight: 600 }}>
-                  Create New Password
+                  {t("newPassword.title")}
                 </h1>
                 <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#6a7282]" style={{ ...mont, fontWeight: 400 }}>
-                  Enter your new password.
+                  {t("newPassword.subtitle")}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-5">
-                <PasswordInput label="Password" value={password} onChange={setPassword} visible={showPw} onToggle={() => setShowPw(!showPw)} />
-                <PasswordInput label="Confirm New Password" value={confirm} onChange={setConfirm} visible={showCf} onToggle={() => setShowCf(!showCf)} />
+                <PasswordInput label={t("newPassword.passwordLabel")} value={password} onChange={setPassword} visible={showPw} onToggle={() => setShowPw(!showPw)} />
+                <PasswordInput label={t("newPassword.confirmPasswordLabel")} value={confirm} onChange={setConfirm} visible={showCf} onToggle={() => setShowCf(!showCf)} />
               </div>
               <button
                 type="button"
@@ -145,7 +147,7 @@ export function NewPasswordPageContent() {
                 className="w-full bg-[#1e4f86] border border-[#1b487a] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] px-2 py-[14px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:opacity-60"
                 style={mont}
               >
-                {isSubmitting ? "Resetting…" : "Reset Password"}
+                {isSubmitting ? t("newPassword.resetting") : t("newPassword.submitButton")}
               </button>
             </div>
           </div>
@@ -156,7 +158,7 @@ export function NewPasswordPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:w-full max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    © 2026 Ulrich Propiedades
+    {t("footer.copyright")}
   </span>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />
@@ -166,7 +168,7 @@ export function NewPasswordPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Privacy
+    {t("footer.privacy")}
   </Link>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
@@ -176,7 +178,7 @@ export function NewPasswordPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Terms
+    {t("footer.terms")}
   </Link>
 </div>
       </div>

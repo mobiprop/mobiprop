@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthBanner } from "./components/AuthBanner";
 import { AuthLogo } from "./components/AuthLogo";
@@ -169,30 +170,31 @@ function FacebookLogo() {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-// Flags set by server-side flows (auth callback, layout guards) that land the
-// user back here with context about why.
-const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
-  account_not_active: {
-    title: "Account not active",
-    message: "Your account is inactive or suspended. Please contact support.",
-  },
-  auth_callback_error: {
-    title: "Sign-in link problem",
-    message: "That sign-in link is invalid or has expired. Please try again.",
-  },
-  staff_use_dashboard: {
-    title: "Wrong login page",
-    message: "Staff accounts must sign in at the dashboard login page.",
-  },
-  profile_missing: {
-    title: "Account not set up",
-    message: "Your account isn't fully set up yet. Please contact an administrator.",
-  },
-};
-
 export function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation("auth");
+
+  // Flags set by server-side flows (auth callback, layout guards) that land
+  // the user back here with context about why.
+  const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
+    account_not_active: {
+      title: t("urlErrors.accountNotActiveTitle"),
+      message: t("urlErrors.accountNotActiveMessage"),
+    },
+    auth_callback_error: {
+      title: t("urlErrors.authCallbackErrorTitle"),
+      message: t("urlErrors.authCallbackErrorMessage"),
+    },
+    staff_use_dashboard: {
+      title: t("urlErrors.staffUseDashboardTitle"),
+      message: t("urlErrors.staffUseDashboardMessage"),
+    },
+    profile_missing: {
+      title: t("urlErrors.profileMissingTitle"),
+      message: t("urlErrors.profileMissingMessage"),
+    },
+  };
   const urlError = URL_ERROR_BANNERS[searchParams.get("error") ?? ""];
 
   const [mode, setMode] = useState<"password" | "magic-link">("password");
@@ -201,7 +203,7 @@ export function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [hasError, setHasError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("Incorrect email or password");
+  const [errorMessage, setErrorMessage] = useState(t("login.defaultErrorMessage"));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOAuthSubmitting, setIsOAuthSubmitting] = useState(false);
   const [banner, setBanner] = useState<{
@@ -225,7 +227,7 @@ export function LoginPageContent() {
     const result = await signInWithOAuth(provider);
     if (result.error) {
       setIsOAuthSubmitting(false);
-      flashBanner({ type: "error", title: "Sign-in failed", message: result.error });
+      flashBanner({ type: "error", title: t("login.signInFailedTitle"), message: result.error });
     }
     // On success the SDK redirects the browser — no further action needed.
   };
@@ -237,8 +239,8 @@ export function LoginPageContent() {
       if (!email) {
         flashBanner({
           type: "error",
-          title: "Email required",
-          message: "Enter your email address to continue.",
+          title: t("login.emailRequiredTitle"),
+          message: t("login.emailRequiredMessage"),
         });
         return;
       }
@@ -250,7 +252,7 @@ export function LoginPageContent() {
       if (result.error) {
         flashBanner({
           type: "error",
-          title: "Couldn't send magic link",
+          title: t("login.couldntSendMagicLinkTitle"),
           message: result.error,
         });
         return;
@@ -264,11 +266,11 @@ export function LoginPageContent() {
 
     if (!email || !password) {
       setHasError(true);
-      setErrorMessage("Enter your email and password to continue.");
+      setErrorMessage(t("login.missingDetailsMessage"));
       flashBanner({
         type: "error",
-        title: "Missing details",
-        message: "Enter your email and password to continue.",
+        title: t("login.missingDetailsTitle"),
+        message: t("login.missingDetailsMessage"),
       });
       return;
     }
@@ -282,7 +284,7 @@ export function LoginPageContent() {
       setErrorMessage(result.error);
       flashBanner({
         type: "error",
-        title: "Couldn't sign you in",
+        title: t("login.couldntSignInTitle"),
         message: result.error,
       });
       return;
@@ -329,15 +331,15 @@ export function LoginPageContent() {
   max-sm:tracking-[-0.26px]"
                 style={{ ...poppins, fontWeight: 600 }}
               >
-                Welcome back
+                {t("login.title")}
               </h1>
               <p
                 className="text-[18px] leading-[26px] tracking-[-0.18px] text-[#6a7282]"
                 style={{ ...poppins, fontWeight: 400 }}
               >
                 {mode === "password"
-                  ? "Sign in to continue to your dashboard"
-                  : "We'll email you a one-time code to sign in"}
+                  ? t("login.subtitlePassword")
+                  : t("login.subtitleMagicLink")}
               </p>
             </div>
 
@@ -349,7 +351,7 @@ export function LoginPageContent() {
                     className="flex items-center gap-px text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#2b3038]"
                     style={mont}
                   >
-                    Email Address
+                    {t("login.emailLabel")}
                     <span
                       className="text-[#8b5cf6]"
                       style={{ fontFamily: "'Inter', sans-serif" }}
@@ -368,7 +370,7 @@ export function LoginPageContent() {
                         setEmail(e.target.value);
                         setHasError(false);
                       }}
-                      placeholder="Enter your email address"
+                      placeholder={t("login.emailPlaceholder")}
                       className="flex-1 min-w-0 text-[16px] leading-[24px] tracking-[-0.16px] text-[#868c98] placeholder:text-[#868c98] bg-transparent outline-none"
                       style={{ ...mont, fontWeight: 400 }}
                     />
@@ -382,7 +384,7 @@ export function LoginPageContent() {
                       className="flex items-center gap-px text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#2b3038]"
                       style={mont}
                     >
-                      Password
+                      {t("login.passwordLabel")}
                       <span
                         className="text-[#8b5cf6]"
                         style={{ fontFamily: "'Inter', sans-serif" }}
@@ -441,10 +443,10 @@ export function LoginPageContent() {
                   style={mont}
                 >
                   {isSubmitting
-                    ? "Please wait…"
+                    ? t("login.pleaseWait")
                     : mode === "password"
-                      ? "Login"
-                      : "Send magic link"}
+                      ? t("login.loginButton")
+                      : t("login.sendMagicLinkButton")}
                 </button>
                 <div className="flex items-center justify-between gap-3">
                   {mode === "password" ? (
@@ -477,7 +479,7 @@ export function LoginPageContent() {
                         className="text-[16px] leading-[24px] tracking-[-0.16px] font-medium text-[#4b4f52] whitespace-nowrap"
                         style={mont}
                       >
-                        Keep me logged in
+                        {t("login.keepLoggedIn")}
                       </span>
                     </label>
                   ) : (
@@ -489,7 +491,7 @@ export function LoginPageContent() {
                       className="text-[16px] leading-[24px] tracking-[-0.16px] font-medium text-[#4b4f52] whitespace-nowrap hover:text-[#1e4f86] transition-colors"
                       style={mont}
                     >
-                      Forgot password?
+                      {t("login.forgotPassword")}
                     </Link>
                   )}
                 </div>
@@ -504,8 +506,8 @@ export function LoginPageContent() {
                   style={mont}
                 >
                   {mode === "password"
-                    ? "Sign in with a magic link instead"
-                    : "Sign in with email and password instead"}
+                    ? t("login.useMagicLink")
+                    : t("login.usePassword")}
                 </button>
               </div>
 
@@ -517,7 +519,7 @@ export function LoginPageContent() {
                     className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#808284]"
                     style={mont}
                   >
-                    OR
+                    {t("login.or")}
                   </span>
                   <div className="flex-1 h-px bg-[#e6e6e6]" />
                 </div>
@@ -560,13 +562,13 @@ export function LoginPageContent() {
                 className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#00010f] text-center"
                 style={{ ...mont, fontWeight: 500 }}
               >
-                Don&apos;t have an account?{" "}
+                {t("login.noAccount")}{" "}
                 <Link
                   href="/register"
                   className="text-[16px] tracking-[-0.16px] font-medium text-[#1e4f86] hover:underline self-center"
                   style={mont}
                 >
-                  Create one
+                  {t("login.createOne")}
                 </Link>
               </p>
             </div>
@@ -579,7 +581,7 @@ export function LoginPageContent() {
             className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:w-full"
             style={{ ...mont, fontWeight: 400 }}
           >
-            © 2026 Ulrich Propiedades
+            {t("footer.copyright")}
           </span>
 
           <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />
@@ -589,7 +591,7 @@ export function LoginPageContent() {
             className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138]"
             style={{ ...mont, fontWeight: 400 }}
           >
-            Privacy
+            {t("footer.privacy")}
           </Link>
 
           <div className="w-px h-[14px] bg-[#d1d5dc]" />
@@ -599,7 +601,7 @@ export function LoginPageContent() {
             className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138]"
             style={{ ...mont, fontWeight: 400 }}
           >
-            Terms
+            {t("footer.terms")}
           </Link>
         </div>
       </div>

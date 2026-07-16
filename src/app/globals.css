@@ -86,6 +86,11 @@ body {
 }
 .agents-slider .slick-slide {
   transition: all 0.4s ease-in-out;
+  flex-shrink: 0;
+}
+
+.agents-slider .slick-slide > div {
+  height: 100%;
 }
 
 .agents-slider .slick-list {

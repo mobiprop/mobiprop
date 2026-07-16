@@ -4,12 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { queryKeys } from "@/lib/query-keys";
 import Link from "next/link";
+import type { PropertyType } from "@/generated/prisma/enums";
 import {
-  PROPERTY_TYPE_LABELS,
   formatArea,
   formatBaths,
   formatBeds,
   listingDisplayPrice,
+  propertyTypeLabel,
 } from "../utils/format";
 
 type SavedListing = {
@@ -91,11 +92,14 @@ function SavedCard({
     onRemove(listing.id);
   };
 
-  const displayPrice = listingDisplayPrice({
-    salePrice: listing.salePrice,
-    rentPrice: listing.rentPrice,
-    operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
-  } as Parameters<typeof listingDisplayPrice>[0]);
+  const displayPrice = listingDisplayPrice(
+    {
+      salePrice: listing.salePrice,
+      rentPrice: listing.rentPrice,
+      operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
+    } as Parameters<typeof listingDisplayPrice>[0],
+    t,
+  );
 
   return (
     <Link
@@ -122,7 +126,7 @@ function SavedCard({
             className="bg-white/90 px-2.5 py-0.5 rounded-full text-[12px] text-[#0d2138]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
-            {PROPERTY_TYPE_LABELS[listing.type as keyof typeof PROPERTY_TYPE_LABELS] ?? listing.type}
+            {propertyTypeLabel(listing.type as PropertyType, t)}
           </span>
         </div>
 
@@ -184,7 +188,7 @@ function SavedCard({
             <div className="flex items-center gap-1.5">
               <BedIcon />
               <span className="text-[12px] text-[#6a7282]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                {formatBeds(listing.bedrooms)}
+                {formatBeds(listing.bedrooms, t)}
               </span>
             </div>
           )}
@@ -192,7 +196,7 @@ function SavedCard({
             <div className="flex items-center gap-1.5">
               <BathIcon />
               <span className="text-[12px] text-[#6a7282]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                {formatBaths(listing.bathrooms)}
+                {formatBaths(listing.bathrooms, t)}
               </span>
             </div>
           )}
