@@ -251,11 +251,14 @@ export async function sendCampaignBatches(
           up_campaign_recipient_id: t.campaignRecipientId,
           up_batch_id: batchId,
         },
+        headers: {
+          // Per-recipient token so the one-click POST lands on the same
+          // unsubscribe as the footer link. RFC 8058 List-Unsubscribe-Post
+          // is required alongside it for Gmail/Yahoo to trust it as one-click.
+          "List-Unsubscribe": `<${unsubscribeUrlFor(t.unsubscribeToken)}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
       })),
-      headers: {
-        // One-click unsubscribe for Gmail/Yahoo bulk-sender compliance.
-        "List-Unsubscribe": `<${APP_URL}/api/marketing/unsubscribe>`,
-      },
       tracking_settings: {
         click_tracking: { enable: message.clickTracking },
         open_tracking: { enable: message.openTracking },
