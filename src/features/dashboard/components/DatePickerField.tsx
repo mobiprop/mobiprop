@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { CalendarPanel } from "./CalendarPanel";
@@ -54,10 +55,11 @@ export function DatePickerField({
   value,
   onChange,
   minDate,
-  placeholder = "Select date",
+  placeholder,
   required = false,
   className = "",
 }: DatePickerFieldProps) {
+  const { t } = useTranslation("dashboard");
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState<PanelPosition | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -117,7 +119,7 @@ export function DatePickerField({
         style={mont}
       >
         <span className={`truncate ${selectedDate ? "text-[#0d2138]" : "text-[#6a7282]"}`}>
-          {selectedDate ? DATE_FMT.format(selectedDate) : placeholder}
+          {selectedDate ? DATE_FMT.format(selectedDate) : (placeholder ?? t("common.selectDate"))}
         </span>
 
         <CalendarIcon size={15} className="shrink-0 text-[#6a7282]" />

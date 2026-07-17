@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, X } from "lucide-react";
 
 const mont = {
@@ -16,15 +17,37 @@ export type ListingFilterValues = {
   statuses: string[];
 };
 
+// Displayed labels are translated via the *_I18N_KEY maps below; these
+// values stay in stable English because they're compared against directly
+// in component state.
 const OPERATION_TYPES = ["Sale", "Rent", "Both"];
+const OPERATION_TYPE_I18N_KEY: Record<string, string> = {
+  Sale: "filterModal.operation.sale",
+  Rent: "filterModal.operation.rent",
+  Both: "filterModal.operation.both",
+};
+
 const PROPERTY_TYPES = [
   "Apartment",
   "House",
   "Commercial",
   "Land",
 ];
+const PROPERTY_TYPE_I18N_KEY: Record<string, string> = {
+  Apartment: "filterModal.propertyTypeOptions.apartment",
+  House: "filterModal.propertyTypeOptions.house",
+  Commercial: "filterModal.propertyTypeOptions.commercial",
+  Land: "filterModal.propertyTypeOptions.land",
+};
+
 const BEDROOM_OPTIONS = ["Any", "1", "2", "3", "4+"];
 const STATUSES = ["Active", "Paused", "Rented", "Sold"];
+const STATUS_I18N_KEY: Record<string, string> = {
+  Active: "filterModal.statusOptions.active",
+  Paused: "filterModal.statusOptions.paused",
+  Rented: "filterModal.statusOptions.rented",
+  Sold: "filterModal.statusOptions.sold",
+};
 
 type ListingFilterModalProps = {
   resultCount: number;
@@ -80,6 +103,7 @@ export function ListingFilterModal({
   onApply,
   onClose,
 }: ListingFilterModalProps) {
+  const { t } = useTranslation("dashboardListings");
   const [operationTypes, setOperationTypes] = useState<string[]>([
     "Sale",
   ]);
@@ -144,7 +168,7 @@ export function ListingFilterModal({
             className="text-[17px] font-semibold text-[#202020]"
             style={mont}
           >
-            Filter Listings
+            {t("filterModal.title")}
           </h2>
 
           <div className="flex items-center gap-4 sm:gap-6">
@@ -154,13 +178,13 @@ export function ListingFilterModal({
               className="text-[13px] font-semibold text-[#1265b3] transition-colors hover:text-[#0d4f8e]"
               style={mont}
             >
-              Clear all
+              {t("filterModal.clearAll")}
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close filters"
+              aria-label={t("filterModal.closeAria")}
               className="flex size-8 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-[#f3f4f6] hover:text-[#111]"
             >
               <X size={20} strokeWidth={1.8} />
@@ -176,14 +200,14 @@ export function ListingFilterModal({
               className="text-[14px] text-[#707b90]"
               style={mont}
             >
-              Operation Type
+              {t("filterModal.operationType")}
             </p>
 
             <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 sm:gap-x-10">
               {OPERATION_TYPES.map((type) => (
                 <CheckboxRow
                   key={type}
-                  label={type}
+                  label={t(OPERATION_TYPE_I18N_KEY[type])}
                   checked={operationTypes.includes(type)}
                   onToggle={() =>
                     toggle(
@@ -203,14 +227,14 @@ export function ListingFilterModal({
     className="text-[14px] text-[#707b90]"
     style={mont}
   >
-    Property Type
+    {t("filterModal.propertyType")}
   </p>
 
   <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:flex sm:items-center sm:justify-between">
     {PROPERTY_TYPES.map((type) => (
       <CheckboxRow
         key={type}
-        label={type}
+        label={t(PROPERTY_TYPE_I18N_KEY[type])}
         checked={propertyTypes.includes(type)}
         onToggle={() =>
           toggle(
@@ -230,7 +254,7 @@ export function ListingFilterModal({
               className="text-[14px] text-[#707b90]"
               style={mont}
             >
-              Price Range
+              {t("filterModal.priceRange")}
             </p>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2.5 sm:gap-3">
@@ -240,7 +264,7 @@ export function ListingFilterModal({
                 onChange={(event) =>
                   setMinPrice(event.target.value)
                 }
-                placeholder="Min $"
+                placeholder={t("filterModal.minPricePlaceholder")}
                 inputMode="numeric"
                 className="h-12 min-w-0 w-full rounded-[12px] border border-[#d8d4ce] bg-white px-4 text-[14px] text-[#292929] outline-none transition-colors placeholder:text-[#707b90] focus:border-[#235b96]"
                 style={mont}
@@ -256,7 +280,7 @@ export function ListingFilterModal({
                 onChange={(event) =>
                   setMaxPrice(event.target.value)
                 }
-                placeholder="Max $"
+                placeholder={t("filterModal.maxPricePlaceholder")}
                 inputMode="numeric"
                 className="h-12 min-w-0 w-full rounded-[12px] border border-[#d8d4ce] bg-white px-4 text-[14px] text-[#292929] outline-none transition-colors placeholder:text-[#707b90] focus:border-[#235b96]"
                 style={mont}
@@ -270,7 +294,7 @@ export function ListingFilterModal({
               className="text-[14px] text-[#707b90]"
               style={mont}
             >
-              Bedrooms
+              {t("filterModal.bedrooms")}
             </p>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -286,7 +310,7 @@ export function ListingFilterModal({
                   }`}
                   style={mont}
                 >
-                  {bedroom}
+                  {bedroom === "Any" ? t("filterModal.bedroomOptions.any") : bedroom}
                 </button>
               ))}
             </div>
@@ -298,14 +322,14 @@ export function ListingFilterModal({
               className="text-[14px] text-[#707b90]"
               style={mont}
             >
-              Status
+              {t("filterModal.status")}
             </p>
 
             <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-4 sm:gap-x-4">
               {STATUSES.map((status) => (
                 <CheckboxRow
                   key={status}
-                  label={status}
+                  label={t(STATUS_I18N_KEY[status])}
                   checked={statuses.includes(status)}
                   onToggle={() =>
                     toggle(statuses, status, setStatuses)
@@ -323,7 +347,7 @@ export function ListingFilterModal({
               className="text-center text-[14px] text-[#707b90] sm:text-left"
               style={mont}
             >
-              {resultCount} results
+              {t("filterModal.resultsCount", { count: resultCount })}
             </span>
 
             <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
@@ -333,7 +357,7 @@ export function ListingFilterModal({
                 className="h-12 rounded-[12px] border border-[#d8d4ce] bg-white px-6 text-[14px] font-medium text-[#707b90] transition-colors hover:bg-[#f5f5f5]"
                 style={mont}
               >
-                Reset
+                {t("filterModal.reset")}
               </button>
 
               <button
@@ -342,7 +366,7 @@ export function ListingFilterModal({
                 className="h-12 rounded-[12px] bg-[#235b96] px-7 text-[14px] font-semibold text-white transition-colors hover:bg-[#1c4c80]"
                 style={mont}
               >
-                Apply filters
+                {t("filterModal.applyFilters")}
               </button>
             </div>
           </div>

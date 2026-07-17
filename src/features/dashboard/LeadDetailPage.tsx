@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   Archive,
@@ -265,13 +266,14 @@ function formatDateValue(
 }
 
 function ActivityFeed({ leadId }: { leadId: string }) {
+  const { t } = useTranslation("leads");
   const { data: activities, isLoading } =
     useLeadActivitiesQuery(leadId);
 
   if (isLoading) {
     return (
       <p className="py-2 text-[14px] text-[#6a7282]" style={mont}>
-        Loading activity…
+        {t("detail.activityFeed.loading")}
       </p>
     );
   }
@@ -279,7 +281,7 @@ function ActivityFeed({ leadId }: { leadId: string }) {
   if (!activities || activities.length === 0) {
     return (
       <p className="py-2 text-[14px] text-[#6a7282]" style={mont}>
-        No activity recorded yet.
+        {t("detail.activityFeed.empty")}
       </p>
     );
   }
@@ -297,11 +299,10 @@ function ActivityFeed({ leadId }: { leadId: string }) {
               className="break-words text-[14px] text-[#0d2138]"
               style={mont}
             >
-              {ACTIVITY_LABELS[activity.type] ?? activity.type}
+              {t(`activity.${activity.type}`, { defaultValue: ACTIVITY_LABELS[activity.type] ?? activity.type })}
               {activity.actorName && (
                 <span className="text-[#6a7282]">
-                  {" "}
-                  by {activity.actorName}
+                  {t("detail.activityFeed.by", { name: activity.actorName })}
                 </span>
               )}
             </p>
@@ -327,6 +328,7 @@ function NotesSection({
   role: Role;
   isArchived: boolean;
 }) {
+  const { t } = useTranslation("leads");
   const { data: notes, isLoading } = useLeadNotesQuery(leadId);
   const addNote = useAddLeadNoteMutation(leadId);
   const [content, setContent] = useState("");
@@ -347,7 +349,7 @@ function NotesSection({
     <div className="flex flex-col gap-3">
       {isLoading && (
         <p className="text-[14px] text-[#6a7282]" style={mont}>
-          Loading notes…
+          {t("detail.notesSection.loading")}
         </p>
       )}
 
@@ -360,7 +362,7 @@ function NotesSection({
             {note.content}
           </p>
           <p className="mt-1.5 text-[11px] text-[#99a1af]" style={mont}>
-            {note.authorName ?? "Unknown"} ·{" "}
+            {note.authorName ?? t("detail.notesSection.unknownAuthor")} ·{" "}
             {format(
               new Date(note.createdAt),
               "MMM d, yyyy 'at' h:mm a",
@@ -371,7 +373,7 @@ function NotesSection({
 
       {!notes?.length && !isLoading && (
         <p className="text-[14px] text-[#6a7282]" style={mont}>
-          No notes yet.
+          {t("detail.notesSection.empty")}
         </p>
       )}
 
@@ -381,7 +383,7 @@ function NotesSection({
             <textarea
               value={content}
               onChange={(event) => setContent(event.target.value)}
-              placeholder="Write a note…"
+              placeholder={t("detail.notesSection.placeholder")}
               rows={3}
               maxLength={5000}
               className="w-full resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2.5 text-[14px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
@@ -398,7 +400,7 @@ function NotesSection({
                 className="h-9 rounded-[8px] border border-[#e5e7eb] px-4 text-[14px] text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
                 style={mont}
               >
-                Cancel
+                {t("detail.notesSection.cancel")}
               </button>
 
               <button
@@ -411,7 +413,7 @@ function NotesSection({
                 {addNote.isPending && (
                   <Loader2 size={12} className="animate-spin" />
                 )}
-                Save Note
+                {t("detail.notesSection.saveNote")}
               </button>
             </div>
           </div>
@@ -423,7 +425,7 @@ function NotesSection({
             style={mont}
           >
             <Plus size={13} />
-            Add Note
+            {t("detail.notesSection.addNote")}
           </button>
         ))}
     </div>
@@ -439,7 +441,8 @@ function ConvertModal({
   leadName: string;
   onClose: () => void;
 }) {
-  const [title, setTitle] = useState(`Opportunity from ${leadName}`);
+  const { t } = useTranslation("leads");
+  const [title, setTitle] = useState(t("detail.convertModal.defaultTitle", { name: leadName }));
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const convert = useConvertLeadMutation(leadId);
@@ -457,7 +460,7 @@ function ConvertModal({
       setError(
         errorValue instanceof Error
           ? errorValue.message
-          : "Failed to convert",
+          : t("detail.convertModal.convertError"),
       );
     }
   }
@@ -482,7 +485,7 @@ function ConvertModal({
             className="text-[16px] font-semibold text-[#0d2138]"
             style={mont}
           >
-            Convert to Opportunity
+            {t("detail.convertModal.title")}
           </p>
         </div>
 
@@ -492,7 +495,7 @@ function ConvertModal({
               className="text-[14px] font-medium text-[#1f2937]"
               style={mont}
             >
-              Opportunity Title
+              {t("detail.convertModal.opportunityTitle")}
             </label>
             <input
               value={title}
@@ -507,7 +510,7 @@ function ConvertModal({
               className="text-[14px] font-medium text-[#1f2937]"
               style={mont}
             >
-              Notes
+              {t("detail.convertModal.notes")}
             </label>
             <textarea
               value={notes}
@@ -531,7 +534,7 @@ function ConvertModal({
               className="h-10 rounded-[10px] border border-[#e5e7eb] text-[14px] text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
               style={mont}
             >
-              Cancel
+              {t("detail.convertModal.cancel")}
             </button>
 
             <button
@@ -544,7 +547,7 @@ function ConvertModal({
               {convert.isPending && (
                 <Loader2 size={13} className="animate-spin" />
               )}
-              Convert
+              {t("detail.convertModal.convert")}
             </button>
           </div>
         </div>
@@ -562,6 +565,7 @@ export function LeadDetailPage({
   leadId,
   role,
 }: LeadDetailPageProps) {
+  const { t } = useTranslation("leads");
   const router = useRouter();
   const { data: leadData, isLoading, isError } =
     useLeadDetailQuery(leadId);
@@ -577,7 +581,7 @@ export function LeadDetailPage({
         style={mont}
       >
         <Loader2 size={18} className="animate-spin" />
-        Loading lead…
+        {t("detail.loading")}
       </div>
     );
   }
@@ -586,7 +590,7 @@ export function LeadDetailPage({
     return (
       <div className="px-4 py-12 text-center sm:px-6">
         <p className="text-[14px] text-[#dc2626]" style={mont}>
-          Lead not found or access denied.
+          {t("detail.notFound")}
         </p>
         <button
           type="button"
@@ -594,7 +598,7 @@ export function LeadDetailPage({
           className="mt-3 text-[14px] text-[#1e4f86] hover:underline"
           style={mont}
         >
-          Go back
+          {t("detail.goBack")}
         </button>
       </div>
     );
@@ -603,6 +607,8 @@ export function LeadDetailPage({
   const lead = leadData as LeadDetailView;
   const temperature = TEMP_BADGE[lead.temperature];
   const lifecycle = LIFECYCLE_BADGE[lead.lifecycleStatus];
+  const temperatureLabel = t(`temperature.${lead.temperature}`, { defaultValue: temperature.label });
+  const lifecycleLabel = t(`lifecycleStatus.${lead.lifecycleStatus}`, { defaultValue: lifecycle.label });
   const score = Math.max(0, Math.min(100, lead.score ?? 0));
   const listing = lead.primaryListing;
   const contactName =
@@ -652,7 +658,7 @@ export function LeadDetailPage({
         style={mont}
       >
         <ArrowLeft size={16} />
-        Back to leads
+        {t("detail.backToLeads")}
       </button>
 
       {/* Header */}
@@ -668,7 +674,7 @@ export function LeadDetailPage({
                 className="min-w-0 break-words text-[20px] font-semibold leading-7 text-[#0d2138] sm:text-[22px]"
                 style={poppins}
               >
-                {lead.submittedName || contactName || "Unnamed Lead"}
+                {lead.submittedName || contactName || t("detail.unnamedLead")}
               </h1>
 
               {lead.isArchived && (
@@ -676,7 +682,7 @@ export function LeadDetailPage({
                   className="rounded-[6px] bg-[#f3f4f6] px-2 py-1 text-[11px] font-medium text-[#6b7280]"
                   style={mont}
                 >
-                  Archived
+                  {t("detail.archived")}
                 </span>
               )}
             </div>
@@ -689,21 +695,21 @@ export function LeadDetailPage({
                 {lead.leadNumber}
               </span>
               <span className="text-[14px] text-[#6a7282]" style={mont}>
-                {SOURCE_LABELS[lead.source] ?? lead.source}
+                {t(`source.${lead.source}`, { defaultValue: SOURCE_LABELS[lead.source] ?? lead.source })}
               </span>
               <span className="text-[14px] text-[#6a7282]" style={mont}>
-                Created {formatDateValue(lead.createdAt)}
+                {t("detail.createdOn", { date: formatDateValue(lead.createdAt) })}
               </span>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Badge
-                label={temperature.label}
+                label={temperatureLabel}
                 background={temperature.bg}
                 color={temperature.text}
               />
               <Badge
-                label={lifecycle.label}
+                label={lifecycleLabel}
                 background={lifecycle.bg}
                 color={lifecycle.text}
               />
@@ -720,7 +726,7 @@ export function LeadDetailPage({
               style={mont}
             >
               <ExternalLink size={15} />
-              Convert
+              {t("detail.convert")}
             </button>
           )}
 
@@ -739,7 +745,7 @@ export function LeadDetailPage({
               ) : (
                 <Archive size={15} />
               )}
-              {lead.isArchived ? "Restore" : "Archive"}
+              {lead.isArchived ? t("detail.restore") : t("detail.archive")}
             </button>
           )}
         </div>
@@ -751,7 +757,7 @@ export function LeadDetailPage({
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[14px] text-[#6a7282]" style={mont}>
-                Lead Score
+                {t("detail.summary.leadScore")}
               </p>
               <p
                 className="mt-2 text-[22px] font-semibold text-[#0d2138]"
@@ -779,7 +785,7 @@ export function LeadDetailPage({
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[14px] text-[#6a7282]" style={mont}>
-                Budget
+                {t("detail.summary.budget")}
               </p>
               <p
                 className="mt-2 truncate text-[16px] font-semibold text-[#0d2138]"
@@ -798,13 +804,13 @@ export function LeadDetailPage({
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[14px] text-[#6a7282]" style={mont}>
-                Temperature
+                {t("detail.summary.temperature")}
               </p>
               <p
                 className="mt-2 text-[16px] font-semibold"
                 style={{ color: temperature.text, ...mont }}
               >
-                {temperature.label}
+                {temperatureLabel}
               </p>
             </div>
             <div
@@ -820,7 +826,7 @@ export function LeadDetailPage({
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[14px] text-[#6a7282]" style={mont}>
-                Follow-up
+                {t("detail.summary.followUp")}
               </p>
               <p
                 className="mt-2 truncate text-[16px] font-semibold text-[#0d2138]"
@@ -840,27 +846,27 @@ export function LeadDetailPage({
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-5">
         <div className="flex min-w-0 flex-col gap-4">
           <Section
-            title="Contact Information"
+            title={t("detail.sections.contactInformation")}
             icon={<User size={16} className="text-[#1e4f86]" />}
           >
             <InfoRow
-              label="Full Name"
+              label={t("detail.fields.fullName")}
               value={lead.submittedName || contactName}
             />
             <InfoRow
-              label="Email"
+              label={t("detail.fields.email")}
               value={
                 lead.submittedEmail ?? lead.contact?.email ?? "—"
               }
             />
             <InfoRow
-              label="Phone"
+              label={t("detail.fields.phone")}
               value={
                 lead.submittedPhone ?? lead.contact?.phone ?? "—"
               }
             />
             <InfoRow
-              label="Location"
+              label={t("detail.fields.location")}
               value={
                 lead.submittedLocation ??
                 lead.contact?.location ??
@@ -868,42 +874,42 @@ export function LeadDetailPage({
               }
             />
             <InfoRow
-              label="Linked Contact"
+              label={t("detail.fields.linkedContact")}
               value={
                 lead.contact?.contactId ??
                 lead.contact?.id ??
-                "Not linked"
+                t("detail.fields.notLinked")
               }
             />
           </Section>
 
           <Section
-            title="Lead Details"
+            title={t("detail.sections.leadDetails")}
             icon={<Building2 size={16} className="text-[#1e4f86]" />}
           >
             <InfoRow
-              label="Source"
-              value={SOURCE_LABELS[lead.source] ?? lead.source}
+              label={t("detail.fields.source")}
+              value={t(`source.${lead.source}`, { defaultValue: SOURCE_LABELS[lead.source] ?? lead.source })}
             />
-            <InfoRow label="Source Detail" value={lead.sourceDetail} />
-            <InfoRow label="Budget" value={formatBudget(lead)} />
+            <InfoRow label={t("detail.fields.sourceDetail")} value={lead.sourceDetail} />
+            <InfoRow label={t("detail.fields.budget")} value={formatBudget(lead)} />
             <InfoRow
-              label="Assigned Agent"
+              label={t("detail.fields.assignedAgent")}
               value={
                 lead.assignedAgent?.fullName ??
                 lead.assignedAgent?.email ??
-                "Unassigned"
+                t("detail.fields.unassigned")
               }
             />
             <InfoRow
-              label="Created"
+              label={t("detail.fields.created")}
               value={formatDateValue(
                 lead.createdAt,
                 "MMM d, yyyy 'at' h:mm a",
               )}
             />
             <InfoRow
-              label="Last Updated"
+              label={t("detail.fields.lastUpdated")}
               value={formatDateValue(
                 lead.updatedAt,
                 "MMM d, yyyy 'at' h:mm a",
@@ -913,7 +919,7 @@ export function LeadDetailPage({
 
           {listing && (
             <Section
-              title="Interested Property"
+              title={t("detail.sections.interestedProperty")}
               icon={<Building2 size={16} className="text-[#1e4f86]" />}
             >
               <div className="flex flex-col gap-3 rounded-[10px] bg-[#f9fafb] p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -922,7 +928,7 @@ export function LeadDetailPage({
                     className="text-[14px] font-semibold text-[#0d2138]"
                     style={mont}
                   >
-                    {listing.title ?? "Property"}
+                    {listing.title ?? t("detail.propertyFallback")}
                   </p>
                   <p
                     className="mt-1 text-[14px] text-[#1e4f86]"
@@ -950,7 +956,7 @@ export function LeadDetailPage({
                     className="flex h-9 items-center justify-center gap-2 rounded-[9px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f3f4f6]"
                     style={mont}
                   >
-                    View Listing
+                    {t("detail.viewListing")}
                     <ExternalLink size={14} />
                   </button>
                 )}
@@ -959,14 +965,14 @@ export function LeadDetailPage({
           )}
 
           <Section
-            title="Scheduled Tour"
+            title={t("detail.sections.scheduledTour")}
             icon={<Calendar size={16} className="text-[#1e4f86]" />}
           >
             <LeadTourSection lead={lead} role={role} />
           </Section>
 
           <Section
-            title="Notes"
+            title={t("detail.sections.notes")}
             icon={<MessageSquare size={16} className="text-[#1e4f86]" />}
           >
             <NotesSection
@@ -979,7 +985,7 @@ export function LeadDetailPage({
 
         <aside className="flex min-w-0 flex-col gap-4">
           <Section
-            title="Status & Assignment"
+            title={t("detail.sections.statusAndAssignment")}
             icon={<Target size={16} className="text-[#1e4f86]" />}
           >
             <div className="flex flex-col gap-4">
@@ -988,7 +994,7 @@ export function LeadDetailPage({
                   className="text-[14px] font-medium text-[#6a7282]"
                   style={mont}
                 >
-                  Temperature
+                  {t("detail.temperatureLabel")}
                 </label>
                 <SearchableSelect
                   searchable={false}
@@ -997,10 +1003,10 @@ export function LeadDetailPage({
                   onChange={(next) => updateTemperature(next as LeadTemperature)}
                   options={Object.values(LeadTemperature).map((value) => ({
                     value,
-                    label: TEMP_BADGE[value].label,
+                    label: t(`temperature.${value}`, { defaultValue: TEMP_BADGE[value].label }),
                   }))}
-                  placeholder="Select temperature"
-                  ariaLabel="Lead temperature"
+                  placeholder={t("detail.selectTemperature")}
+                  ariaLabel={t("detail.temperatureLabel")}
                 />
               </div>
 
@@ -1009,7 +1015,7 @@ export function LeadDetailPage({
                   className="text-[14px] font-medium text-[#6a7282]"
                   style={mont}
                 >
-                  Lifecycle Status
+                  {t("detail.lifecycleStatusLabel")}
                 </label>
                 <SearchableSelect
                   searchable={false}
@@ -1018,10 +1024,10 @@ export function LeadDetailPage({
                   onChange={(next) => updateLifecycle(next as LeadLifecycleStatus)}
                   options={Object.values(LeadLifecycleStatus).map((value) => ({
                     value,
-                    label: LIFECYCLE_BADGE[value].label,
+                    label: t(`lifecycleStatus.${value}`, { defaultValue: LIFECYCLE_BADGE[value].label }),
                   }))}
-                  placeholder="Select status"
-                  ariaLabel="Lead lifecycle status"
+                  placeholder={t("detail.selectStatus")}
+                  ariaLabel={t("detail.lifecycleStatusLabel")}
                 />
               </div>
 
@@ -1031,14 +1037,14 @@ export function LeadDetailPage({
                   style={mont}
                 >
                   <Loader2 size={12} className="animate-spin" />
-                  Saving changes…
+                  {t("detail.savingChanges")}
                 </p>
               )}
             </div>
           </Section>
 
           <Section
-            title="Quick Contact"
+            title={t("detail.sections.quickContact")}
             icon={<Phone size={16} className="text-[#1e4f86]" />}
           >
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
@@ -1051,7 +1057,7 @@ export function LeadDetailPage({
                   style={mont}
                 >
                   <Mail size={15} />
-                  Email Lead
+                  {t("detail.emailLead")}
                 </a>
               )}
 
@@ -1062,14 +1068,14 @@ export function LeadDetailPage({
                   style={mont}
                 >
                   <Phone size={15} />
-                  Call Lead
+                  {t("detail.callLead")}
                 </a>
               )}
             </div>
           </Section>
 
           <Section
-            title="Timeline"
+            title={t("detail.sections.timeline")}
             icon={<Clock size={16} className="text-[#1e4f86]" />}
           >
             <ActivityFeed leadId={lead.id} />

@@ -21,6 +21,13 @@ import enAccountProfile from "./locales/en/accountProfile.json";
 import enSavedListings from "./locales/en/savedListings.json";
 import enAccountSettings from "./locales/en/accountSettings.json";
 import enAuth from "./locales/en/auth.json";
+import enAgents from "./locales/en/agents.json";
+import enContacts from "./locales/en/contacts.json";
+import enDashboardListings from "./locales/en/dashboardListings.json";
+import enLeads from "./locales/en/leads.json";
+import enOpportunities from "./locales/en/opportunities.json";
+import enDocusign from "./locales/en/docusign.json";
+import enSendgrid from "./locales/en/sendgrid.json";
 
 import esCommon from "./locales/es/common.json";
 import esNavigation from "./locales/es/navigation.json";
@@ -40,6 +47,13 @@ import esAccountProfile from "./locales/es/accountProfile.json";
 import esSavedListings from "./locales/es/savedListings.json";
 import esAccountSettings from "./locales/es/accountSettings.json";
 import esAuth from "./locales/es/auth.json";
+import esAgents from "./locales/es/agents.json";
+import esContacts from "./locales/es/contacts.json";
+import esDashboardListings from "./locales/es/dashboardListings.json";
+import esLeads from "./locales/es/leads.json";
+import esOpportunities from "./locales/es/opportunities.json";
+import esDocusign from "./locales/es/docusign.json";
+import esSendgrid from "./locales/es/sendgrid.json";
 
 const resources = {
   en: {
@@ -61,6 +75,13 @@ const resources = {
     savedListings: enSavedListings,
     accountSettings: enAccountSettings,
     auth: enAuth,
+    agents: enAgents,
+    contacts: enContacts,
+    dashboardListings: enDashboardListings,
+    leads: enLeads,
+    opportunities: enOpportunities,
+    docusign: enDocusign,
+    sendgrid: enSendgrid,
   },
   es: {
     common: esCommon,
@@ -81,6 +102,13 @@ const resources = {
     savedListings: esSavedListings,
     accountSettings: esAccountSettings,
     auth: esAuth,
+    agents: esAgents,
+    contacts: esContacts,
+    dashboardListings: esDashboardListings,
+    leads: esLeads,
+    opportunities: esOpportunities,
+    docusign: esDocusign,
+    sendgrid: esSendgrid,
   },
 };
 
@@ -89,7 +117,7 @@ if (!i18next.isInitialized) {
     resources,
     lng: DEFAULT_LANGUAGE,
     fallbackLng: "es",
-    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth"],
+    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth", "agents", "contacts", "dashboardListings", "leads", "opportunities", "docusign", "sendgrid"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     returnEmptyString: false,

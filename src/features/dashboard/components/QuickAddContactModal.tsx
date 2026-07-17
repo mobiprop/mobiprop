@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { ContactType } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
@@ -22,6 +23,7 @@ const inputClass =
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
 export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModalProps) {
+  const { t } = useTranslation("contacts");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,10 +42,10 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
         phone: phone.trim(),
         type,
       });
-      toast.success("Contact created");
+      toast.success(t("toasts.contactCreated"));
       onCreate?.(contact);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create contact");
+      toast.error(err instanceof Error ? err.message : t("toasts.createFailed"));
     }
   }
 
@@ -56,7 +58,7 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#e5e7eb]">
-          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Add New Contact</p>
+          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("quickAddModal.title")}</p>
           <button type="button" onClick={onClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
             <X size={18} />
           </button>
@@ -66,52 +68,52 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
           {/* First / Last */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>First Name *</label>
-              <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" className={inputClass} style={mont} />
+              <label className={labelClass} style={mont}>{t("quickAddModal.firstName")}</label>
+              <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t("quickAddModal.firstNamePlaceholder")} className={inputClass} style={mont} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Last Name *</label>
-              <input required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" className={inputClass} style={mont} />
+              <label className={labelClass} style={mont}>{t("quickAddModal.lastName")}</label>
+              <input required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t("quickAddModal.lastNamePlaceholder")} className={inputClass} style={mont} />
             </div>
           </div>
 
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john.doe@example.com" className={inputClass} style={mont} />
+            <label className={labelClass} style={mont}>{t("quickAddModal.email")}</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("quickAddModal.emailPlaceholder")} className={inputClass} style={mont} />
           </div>
 
           {/* Phone */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Phone</label>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" className={inputClass} style={mont} />
+            <label className={labelClass} style={mont}>{t("quickAddModal.phone")}</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("quickAddModal.phonePlaceholder")} className={inputClass} style={mont} />
           </div>
           {!email.trim() && !phone.trim() && (
-            <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+            <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>{t("quickAddModal.provideEmailOrPhone")}</p>
           )}
 
           {/* Type */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Type</label>
+            <label className={labelClass} style={mont}>{t("quickAddModal.type")}</label>
             <SearchableSelect
               size="sm"
               searchable={false}
               value={type}
               onChange={(next) => setType(next as ContactType)}
               options={[
-                { value: ContactType.BUYER, label: "Buyer" },
-                { value: ContactType.SELLER, label: "Seller" },
-                { value: ContactType.BOTH, label: "Both" },
+                { value: ContactType.BUYER, label: t("type.buyer") },
+                { value: ContactType.SELLER, label: t("type.seller") },
+                { value: ContactType.BOTH, label: t("type.both") },
               ]}
-              placeholder="Select type"
-              ariaLabel="Contact type"
+              placeholder={t("quickAddModal.selectType")}
+              ariaLabel={t("quickAddModal.typeAria")}
             />
           </div>
 
           {/* Actions */}
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>
-              Cancel
+              {t("quickAddModal.cancel")}
             </button>
             <button
               type="submit"
@@ -119,7 +121,7 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
               className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >
-              {createMutation.isPending ? "Saving…" : "Add Contact"}
+              {createMutation.isPending ? t("quickAddModal.saving") : t("quickAddModal.addContact")}
             </button>
           </div>
         </form>

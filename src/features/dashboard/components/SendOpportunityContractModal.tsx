@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { useSendForSignatureMutation } from "@/hooks/mutations/useDocusignMutations";
 import { uploadDocusignDocument } from "@/lib/client-upload";
@@ -45,6 +46,7 @@ export function SendOpportunityContractModal({
   onClose,
   onSent,
 }: SendOpportunityContractModalProps) {
+  const { t } = useTranslation("opportunities");
   const [selection, setSelection] = useState<ContractSelection | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -76,11 +78,11 @@ export function SendOpportunityContractModal({
           opportunityId,
         });
       }
-      toast.success("Envelope sent successfully");
+      toast.success(t("sendContractModal.toasts.sent"));
       onSent();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send envelope");
+      toast.error(err instanceof Error ? err.message : t("sendContractModal.toasts.sendFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -95,7 +97,7 @@ export function SendOpportunityContractModal({
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-[#e5e7eb] px-6 py-5">
-          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Add Contract / Send for Signature</p>
+          <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("sendContractModal.title")}</p>
           <button type="button" onClick={onClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
             <X size={18} />
           </button>
@@ -107,7 +109,7 @@ export function SendOpportunityContractModal({
             <div className="flex items-start gap-2.5 rounded-[10px] border border-[#fde68a] bg-[#fffbeb] px-4 py-3">
               <AlertTriangle size={15} className="mt-0.5 shrink-0 text-[#b45309]" />
               <p className="text-[12px] leading-5 text-[#92400e]" style={mont}>
-                Another document on this opportunity is still awaiting signature. You can still send a new one — both will be tracked separately.
+                {t("sendContractModal.activeEnvelopeWarning")}
               </p>
             </div>
           )}
@@ -121,7 +123,7 @@ export function SendOpportunityContractModal({
 
           {selection && (
             <div className="flex items-start justify-between gap-4 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 py-2.5">
-              <span className="shrink-0 text-[12px] text-[#6a7282]" style={mont}>Opportunity</span>
+              <span className="shrink-0 text-[12px] text-[#6a7282]" style={mont}>{t("sendContractModal.opportunityLabel")}</span>
               <span className="min-w-0 text-right text-[12px] font-semibold text-[#0d2138]" style={mont}>{opportunityLabel}</span>
             </div>
           )}
@@ -136,7 +138,7 @@ export function SendOpportunityContractModal({
             className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
             style={mont}
           >
-            Cancel
+            {t("sendContractModal.cancel")}
           </button>
           <div className="flex-1" />
           <button
@@ -146,7 +148,7 @@ export function SendOpportunityContractModal({
             className="h-10 px-5 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
             style={mont}
           >
-            {submitting ? "Sending…" : "Send for Signature"}
+            {submitting ? t("sendContractModal.sending") : t("sendContractModal.send")}
           </button>
         </div>
       </div>

@@ -1,15 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import { Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
   TYPE_BADGE,
   STATUS_BADGE,
-  TYPE_LABELS,
-  STATUS_LABELS,
-  OPERATION_LABELS,
   FALLBACK_LISTING_IMAGE,
   formatListingPrice,
 } from "../listings-data";
@@ -84,6 +82,8 @@ type ListingListViewProps = {
 };
 
 export function ListingListView({ listings, actions, selection }: ListingListViewProps) {
+  const { t } = useTranslation("dashboardListings");
+  const { t: td } = useTranslation("dashboard");
   const selectedCount = listings.filter((listing) => selection.selectedIds.has(listing.id)).length;
   const allSelected = listings.length > 0 && selectedCount === listings.length;
   const someSelected = selectedCount > 0 && !allSelected;
@@ -95,7 +95,7 @@ return (
         className="text-[16px] font-semibold text-[#0d2138]"
         style={mont}
       >
-        All Listings
+        {t("list.title")}
       </h2>
     </div>
 
@@ -109,18 +109,18 @@ return (
                 checked={allSelected}
                 indeterminate={someSelected}
                 onToggle={selection.onToggleAll}
-                label={allSelected ? "Deselect all listings" : "Select all listings"}
+                label={allSelected ? t("list.deselectAllAria") : t("list.selectAllAria")}
               />
             </th>
 
             {[
-              "Listing ID",
-              "Property",
-              "Type",
-              "Price",
-              "Bedrooms",
-              "Operation Type",
-              "Status",
+              t("list.columns.listingId"),
+              t("list.columns.property"),
+              t("list.columns.type"),
+              t("list.columns.price"),
+              t("list.columns.bedrooms"),
+              t("list.columns.operationType"),
+              t("list.columns.status"),
             ].map((heading) => (
               <th
                 key={heading}
@@ -147,7 +147,7 @@ return (
                 <RowCheckbox
                   checked={selection.selectedIds.has(listing.id)}
                   onToggle={() => selection.onToggleOne(listing.id)}
-                  label={`Select ${listing.title}`}
+                  label={t("list.selectRowAria", { title: listing.title })}
                 />
               </td>
 
@@ -206,7 +206,7 @@ return (
               {/* Type */}
               <td className="px-5 py-4">
                 <Badge
-                  label={TYPE_LABELS[listing.type]}
+                  label={td(`propertyType.${listing.type}`)}
                   style={TYPE_BADGE[listing.type]}
                 />
               </td>
@@ -237,14 +237,14 @@ return (
                   className="whitespace-nowrap text-[14px] text-[#1E4F86]"
                   style={mont}
                 >
-                  {OPERATION_LABELS[listing.operationType]}
+                  {td(`operationType.${listing.operationType}`)}
                 </span>
               </td>
 
               {/* Status */}
               <td className="px-5 py-4">
                 <Badge
-                  label={STATUS_LABELS[listing.status]}
+                  label={td(`status.${listing.status}`)}
                   style={STATUS_BADGE[listing.status]}
                 />
               </td>
@@ -255,7 +255,7 @@ return (
                   {actions.canUpdate && (
                     <button
                       type="button"
-                      title="Edit"
+                      title={t("list.editTitle")}
                       onClick={() => actions.onEdit(listing)}
                       className="transition-colors hover:text-[#1e4f86]"
                     >
@@ -268,8 +268,8 @@ return (
                       type="button"
                       title={
                         listing.status === "ACTIVE"
-                          ? "Pause listing"
-                          : "Activate listing"
+                          ? t("list.pauseTitle")
+                          : t("list.activateTitle")
                       }
                       onClick={() =>
                         actions.onToggleStatus(listing)
@@ -289,8 +289,8 @@ return (
                       type="button"
                       title={
                         listing.isFeatured
-                          ? "Remove from featured"
-                          : "Mark as featured"
+                          ? t("list.removeFromFeaturedTitle")
+                          : t("list.markAsFeaturedTitle")
                       }
                       onClick={() =>
                         actions.onToggleFeatured(listing)
@@ -311,7 +311,7 @@ return (
                   {actions.canDelete && (
                     <button
                       type="button"
-                      title="Delete"
+                      title={t("list.deleteTitle")}
                       onClick={() => actions.onDelete(listing)}
                       className="transition-colors hover:text-[#e7000b]"
                     >
@@ -330,7 +330,7 @@ return (
                 className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
                 style={mont}
               >
-                No listings found.
+                {t("list.noListingsFound")}
               </td>
             </tr>
           )}
@@ -354,7 +354,7 @@ return (
                 <RowCheckbox
                   checked={selection.selectedIds.has(listing.id)}
                   onToggle={() => selection.onToggleOne(listing.id)}
-                  label={`Select ${listing.title}`}
+                  label={t("list.selectRowAria", { title: listing.title })}
                 />
               </div>
 
@@ -399,7 +399,7 @@ return (
                   </div>
 
                   <Badge
-                    label={STATUS_LABELS[listing.status]}
+                    label={td(`status.${listing.status}`)}
                     style={STATUS_BADGE[listing.status]}
                   />
                 </div>
@@ -431,12 +431,12 @@ return (
                   className="text-[11px] text-[#99a1af]"
                   style={mont}
                 >
-                  Type
+                  {t("list.typeLabel")}
                 </p>
 
                 <div className="mt-1">
                   <Badge
-                    label={TYPE_LABELS[listing.type]}
+                    label={td(`propertyType.${listing.type}`)}
                     style={TYPE_BADGE[listing.type]}
                   />
                 </div>
@@ -447,7 +447,7 @@ return (
                   className="text-[11px] text-[#99a1af]"
                   style={mont}
                 >
-                  Bedrooms
+                  {t("list.bedroomsLabel")}
                 </p>
 
                 <p
@@ -463,14 +463,14 @@ return (
                   className="text-[11px] text-[#99a1af]"
                   style={mont}
                 >
-                  Operation Type
+                  {t("list.operationTypeLabel")}
                 </p>
 
                 <p
                   className="mt-1 text-[13px] font-medium text-[#0d2138]"
                   style={mont}
                 >
-                  {OPERATION_LABELS[listing.operationType]}
+                  {td(`operationType.${listing.operationType}`)}
                 </p>
               </div>
             </div>
@@ -480,7 +480,7 @@ return (
               {actions.canUpdate && (
                 <button
                   type="button"
-                  title="Edit"
+                  title={t("list.editTitle")}
                   onClick={() => actions.onEdit(listing)}
                   className="flex size-9 items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#99a1af] transition-colors hover:bg-[#f8fafc] hover:text-[#1e4f86]"
                 >
@@ -493,8 +493,8 @@ return (
                   type="button"
                   title={
                     listing.status === "ACTIVE"
-                      ? "Pause listing"
-                      : "Activate listing"
+                      ? t("list.pauseTitle")
+                      : t("list.activateTitle")
                   }
                   onClick={() =>
                     actions.onToggleStatus(listing)
@@ -514,8 +514,8 @@ return (
                   type="button"
                   title={
                     listing.isFeatured
-                      ? "Remove from featured"
-                      : "Mark as featured"
+                      ? t("list.removeFromFeaturedTitle")
+                      : t("list.markAsFeaturedTitle")
                   }
                   onClick={() =>
                     actions.onToggleFeatured(listing)
@@ -536,7 +536,7 @@ return (
               {actions.canDelete && (
                 <button
                   type="button"
-                  title="Delete"
+                  title={t("list.deleteTitle")}
                   onClick={() => actions.onDelete(listing)}
                   className="flex size-9 items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#99a1af] transition-colors hover:bg-[#f8fafc] hover:text-[#e7000b]"
                 >
@@ -553,7 +553,7 @@ return (
           className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
           style={mont}
         >
-          No listings found.
+          {t("list.noListingsFound")}
         </div>
       )}
     </div>

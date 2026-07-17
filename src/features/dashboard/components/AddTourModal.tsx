@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Search, Loader2, Calendar as CalendarIcon, Clock } from "lucide-react";
 
 import type { Role } from "@/lib/permissions";
@@ -60,6 +61,7 @@ function formatTimeLabel(time: string) {
 }
 
 export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Props) {
+  const { t } = useTranslation("leads");
   const create = useCreateTourMutation();
 
   const [name, setName] = useState(initialValues?.name ?? "");
@@ -99,13 +101,13 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
   // Search listings
   useEffect(() => {
     if (!listingSearch.trim()) { setListings([]); return; }
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       fetch(`/api/dashboard/listings?search=${encodeURIComponent(listingSearch)}&limit=6`)
         .then((r) => r.json())
         .then((j) => setListings(j.listings ?? []))
         .catch(() => {});
     }, 300);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [listingSearch]);
 
   // Close the date/time popover on outside click
@@ -129,10 +131,10 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!name.trim()) { setError("Name is required"); return; }
-    if (!scheduledTime) { setError("Please select a time"); return; }
+    if (!name.trim()) { setError(t("addTourModal.errors.nameRequired")); return; }
+    if (!scheduledTime) { setError(t("addTourModal.errors.timeRequired")); return; }
     const scheduledAt = buildScheduledAt();
-    if (scheduledAt <= new Date()) { setError("Please choose a future date and time"); return; }
+    if (scheduledAt <= new Date()) { setError(t("addTourModal.errors.futureDateRequired")); return; }
 
     try {
       const result = await create.mutateAsync({
@@ -149,7 +151,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
       });
       onCreated(result.id);
     } catch (err) {
-      setError((err as Error).message ?? "Failed to create tour");
+      setError((err as Error).message ?? t("addTourModal.errors.createFailed"));
     }
   };
 
@@ -159,7 +161,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
       <div className="relative bg-white rounded-[16px] shadow-xl w-full max-w-lg mx-4 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#f3f4f6]">
-          <h2 className="text-[16px] font-bold text-[#0d2138]" style={mont}>New Tour</h2>
+          <h2 className="text-[16px] font-bold text-[#0d2138]" style={mont}>{t("addTourModal.title")}</h2>
           <button onClick={onClose} className="p-1.5 rounded-[6px] hover:bg-[#f3f4f6] transition-colors">
             <X size={16} color="#6b7280" />
           </button>
@@ -169,17 +171,17 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
         <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
           {/* Visitor info */}
           <div className="flex flex-col gap-1">
-            <label className={labelCls} style={mont}>Full Name *</label>
-            <input className={inputCls} style={mont} placeholder="Visitor name" value={name} onChange={(e) => setName(e.target.value)} required />
+            <label className={labelCls} style={mont}>{t("addTourModal.fullName")}</label>
+            <input className={inputCls} style={mont} placeholder={t("addTourModal.fullNamePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className={labelCls} style={mont}>Email</label>
-              <input className={inputCls} style={mont} type="email" placeholder="visitor@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <label className={labelCls} style={mont}>{t("addTourModal.email")}</label>
+              <input className={inputCls} style={mont} type="email" placeholder={t("addTourModal.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className={labelCls} style={mont}>Phone</label>
-              <input className={inputCls} style={mont} placeholder="+54 9..." value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <label className={labelCls} style={mont}>{t("addTourModal.phone")}</label>
+              <input className={inputCls} style={mont} placeholder={t("addTourModal.phonePlaceholder")} value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
 
@@ -187,7 +189,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
           <div ref={calRef}>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
-                <label className={labelCls} style={mont}>Date *</label>
+                <label className={labelCls} style={mont}>{t("addTourModal.date")}</label>
                 <button
                   type="button"
                   onClick={() => setOpenPanel((p) => (p === "date" ? null : "date"))}
@@ -199,7 +201,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
                 </button>
               </div>
               <div className="flex flex-col gap-1">
-                <label className={labelCls} style={mont}>Time *</label>
+                <label className={labelCls} style={mont}>{t("addTourModal.time")}</label>
                 <button
                   type="button"
                   onClick={() => setOpenPanel((p) => (p === "time" ? null : "time"))}
@@ -232,21 +234,21 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
 
           {/* Duration */}
           <div className="flex flex-col gap-1">
-            <label className={labelCls} style={mont}>Duration (min)</label>
+            <label className={labelCls} style={mont}>{t("addTourModal.duration")}</label>
             <SearchableSelect
               size="sm"
               searchable={false}
               value={String(duration)}
               onChange={(next) => setDuration(Number(next))}
-              options={[30, 45, 60, 90, 120].map((m) => ({ value: String(m), label: `${m} min` }))}
-              placeholder="Select duration"
-              ariaLabel="Tour duration"
+              options={[30, 45, 60, 90, 120].map((m) => ({ value: String(m), label: t("addTourModal.minutesLabel", { count: m }) }))}
+              placeholder={t("addTourModal.selectDuration")}
+              ariaLabel={t("addTourModal.duration")}
             />
           </div>
 
           {/* Listing search */}
           <div className="flex flex-col gap-1">
-            <label className={labelCls} style={mont}>Property (optional)</label>
+            <label className={labelCls} style={mont}>{t("addTourModal.property")}</label>
             {selectedListing ? (
               <div className="flex items-center gap-2 border border-[#e5e7eb] rounded-[10px] px-3 h-10">
                 <p className="flex-1 text-[12px] text-[#0d2138]" style={mont}>{selectedListing.title} · {selectedListing.listingId}</p>
@@ -260,7 +262,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
                   <Search size={13} color="#9ca3af" />
                   <input
                     type="text"
-                    placeholder="Search listing…"
+                    placeholder={t("addTourModal.listingSearchPlaceholder")}
                     className="flex-1 outline-none text-[12px] text-[#0d2138] bg-transparent placeholder:text-[#9ca3af]"
                     style={mont}
                     value={listingSearch}
@@ -289,26 +291,26 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
 
           {/* Agent */}
           <div className="flex flex-col gap-1">
-            <label className={labelCls} style={mont}>Assign Agent (optional)</label>
+            <label className={labelCls} style={mont}>{t("addTourModal.assignAgent")}</label>
             <SearchableSelect
               size="sm"
               value={agentId}
               onChange={setAgentId}
               options={agents.map((a) => ({ value: a.id, label: a.fullName ?? a.email }))}
-              placeholder="No agent"
-              searchPlaceholder="Search agents..."
-              emptyLabel="No agents found."
-              ariaLabel="Assign agent"
+              placeholder={t("addTourModal.noAgent")}
+              searchPlaceholder={t("addTourModal.searchAgentsPlaceholder")}
+              emptyLabel={t("addTourModal.noAgentsFound")}
+              ariaLabel={t("addTourModal.assignAgent")}
             />
           </div>
 
           {/* Message */}
           <div className="flex flex-col gap-1">
-            <label className={labelCls} style={mont}>Visitor Message (optional)</label>
+            <label className={labelCls} style={mont}>{t("addTourModal.visitorMessage")}</label>
             <textarea
               className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] resize-none"
               style={mont}
-              placeholder="Any notes from the visitor…"
+              placeholder={t("addTourModal.visitorMessagePlaceholder")}
               rows={2}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -324,7 +326,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
               className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] text-[13px] text-[#374151] hover:bg-[#f3f4f6] transition-colors"
               style={mont}
             >
-              Cancel
+              {t("addTourModal.cancel")}
             </button>
             <button
               type="submit"
@@ -333,7 +335,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
               style={mont}
             >
               {create.isPending && <Loader2 size={13} className="animate-spin" />}
-              Create Tour
+              {t("addTourModal.submit")}
             </button>
           </div>
         </form>

@@ -3,6 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { LocationDto } from "@/features/locations/types/location-dto";
 import { PlaceAutocompleteInput } from "@/components/maps/PlaceAutocompleteInput";
@@ -44,6 +45,7 @@ export function EditLocationModal({
   onSubmit,
   isSubmitting = false,
 }: EditLocationModalProps) {
+  const { t } = useTranslation("dashboard");
   const [name, setName] = useState(location?.name ?? "");
   const [region, setRegion] = useState(location?.region ?? "");
   const [address, setAddress] = useState(location?.address ?? "");
@@ -93,8 +95,8 @@ export function EditLocationModal({
                 style={mont}
               >
                 {isEdit
-                  ? "Edit Location"
-                  : "Add New Location"}
+                  ? t("locationModal.editTitle")
+                  : t("locationModal.addTitle")}
               </p>
 
               <p
@@ -102,15 +104,15 @@ export function EditLocationModal({
                 style={mont}
               >
                 {isEdit
-                  ? "Update this location's details"
-                  : "Add a new property location"}
+                  ? t("locationModal.editSubtitle")
+                  : t("locationModal.addSubtitle")}
               </p>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label={t("locationModal.closeAria")}
               className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
             >
               <X size={18} />
@@ -133,7 +135,7 @@ export function EditLocationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Location Name *
+                  {t("locationModal.name")}
                 </label>
 
                 <input
@@ -143,7 +145,7 @@ export function EditLocationModal({
                   onChange={(event) =>
                     setName(event.target.value)
                   }
-                  placeholder="e.g., Buenos Aires"
+                  placeholder={t("locationModal.namePlaceholder")}
                   className={inputClass}
                   style={mont}
                 />
@@ -156,7 +158,7 @@ export function EditLocationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Address *
+                  {t("locationModal.address")}
                 </label>
 
                 <PlaceAutocompleteInput
@@ -171,7 +173,7 @@ export function EditLocationModal({
                     if (postal) setPostalCode(postal);
                   }}
                   fields={["formattedAddress", "addressComponents"]}
-                  placeholder="Start typing an address..."
+                  placeholder={t("locationModal.addressPlaceholder")}
                   required
                   className={inputClass}
                   style={mont}
@@ -185,7 +187,7 @@ export function EditLocationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Region / Province *
+                  {t("locationModal.region")}
                 </label>
 
                 <input
@@ -195,7 +197,7 @@ export function EditLocationModal({
                   onChange={(event) =>
                     setRegion(event.target.value)
                   }
-                  placeholder="e.g., Buenos Aires"
+                  placeholder={t("locationModal.regionPlaceholder")}
                   className={inputClass}
                   style={mont}
                 />
@@ -208,7 +210,7 @@ export function EditLocationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Postal Code *
+                  {t("locationModal.postalCode")}
                 </label>
 
                 <input
@@ -218,7 +220,7 @@ export function EditLocationModal({
                   onChange={(event) =>
                     setPostalCode(event.target.value)
                   }
-                  placeholder="e.g., C1043"
+                  placeholder={t("locationModal.postalCodePlaceholder")}
                   className={inputClass}
                   style={mont}
                 />
@@ -236,7 +238,7 @@ export function EditLocationModal({
                 className="min-h-10 w-full flex-1 rounded-[10px] border border-[#e5e7eb] bg-white px-5 text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/20 disabled:cursor-not-allowed disabled:opacity-60"
                 style={mont}
               >
-                Cancel
+                {t("locationModal.cancel")}
               </button>
 
               <button
@@ -246,10 +248,10 @@ export function EditLocationModal({
                 style={mont}
               >
                 {isSubmitting
-                  ? "Saving..."
+                  ? t("locationModal.saving")
                   : isEdit
-                    ? "Save Changes"
-                    : "Add Location"}
+                    ? t("locationModal.saveChanges")
+                    : t("locationModal.addLocation")}
               </button>
             </div>
           </div>

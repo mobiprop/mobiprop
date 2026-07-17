@@ -1,0 +1,215 @@
+{
+  "page": {
+    "title": "DocuSign",
+    "subtitle": "Electronic signature & contract management",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "sendForSignature": "Send for Signature",
+    "stats": {
+      "totalSent": "Total Sent",
+      "totalSentSub": "All time",
+      "awaitingSignature": "Awaiting Signature",
+      "awaitingSignatureSub": "Pending action",
+      "completed": "Completed",
+      "completedSub": "Signed & filed",
+      "declinedVoided": "Declined / Voided",
+      "declinedVoidedSub": "Require action"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "envelopes": "Envelopes",
+      "templates": "Templates",
+      "settings": "Settings"
+    },
+    "overview": {
+      "recentActivity": "Recent Activity",
+      "loading": "Loading…",
+      "empty": "No envelopes sent yet.",
+      "quickActions": "Quick Actions",
+      "viewEnvelopes": "View Envelopes",
+      "manageTemplates": "Manage Templates"
+    },
+    "envelopes": {
+      "searchPlaceholder": "Search envelopes...",
+      "filterByStatusAria": "Filter by status",
+      "allStatuses": "All statuses",
+      "statusOptions": {
+        "SENT": "Sent",
+        "DELIVERED": "Delivered",
+        "COMPLETED": "Completed",
+        "DECLINED": "Declined",
+        "VOIDED": "Voided"
+      },
+      "loading": "Loading envelopes…",
+      "loadError": "Failed to load envelopes.",
+      "columns": {
+        "document": "Document",
+        "recipient": "Recipient",
+        "sentBy": "Sent By",
+        "sent": "Sent",
+        "expires": "Expires",
+        "status": "Status"
+      },
+      "emptyNone": "No envelopes sent yet.",
+      "emptyFiltered": "No envelopes match your search.",
+      "customDocumentBadge": "Custom Document",
+      "moreRecipients": "+{{count}} more",
+      "resendReminder": "Resend reminder",
+      "voidEnvelope": "Void envelope",
+      "voidReasonPrompt": "Reason for voiding this envelope?",
+      "toasts": {
+        "voided": "Envelope voided",
+        "voidFailed": "Failed to void envelope",
+        "reminderSent": "Reminder sent",
+        "resendFailed": "Failed to resend"
+      }
+    },
+    "templates": {
+      "notice": "Templates are managed in your DocuSign account — this list is live from the DocuSign API.",
+      "loading": "Loading templates…",
+      "notConfigured": "DocuSign is not configured yet — templates will appear here once credentials are set.",
+      "empty": "No templates found in your DocuSign account.",
+      "useTemplate": "Use template",
+      "descriptionFallback": "DocuSign template",
+      "usedCount": "Used {{count}}x",
+      "newTemplate": "New template",
+      "createInConsole": "Create in DocuSign console"
+    },
+    "statusBadge": {
+      "SENT": "Awaiting",
+      "DELIVERED": "Viewed",
+      "COMPLETED": "Completed",
+      "DECLINED": "Declined",
+      "VOIDED": "Voided"
+    },
+    "preview": {
+      "signHere": "Sign here",
+      "partyA": "Party A",
+      "partyB": "Party B"
+    },
+    "settings": {
+      "savedMessage": "Settings saved successfully.",
+      "saveFailed": "Failed to save settings",
+      "apiCredentials": {
+        "title": "API Credentials",
+        "subtitle": "Configured via environment variables — not editable here.",
+        "integrationKey": "Integration Key",
+        "userId": "User ID",
+        "accountId": "Account ID",
+        "privateKey": "Private Key",
+        "configured": "Configured",
+        "notConfigured": "Not configured"
+      },
+      "webhook": {
+        "title": "Webhook Configuration",
+        "subtitle": "Paste this URL into DocuSign Connect (Admin → Connect) with HMAC signing enabled.",
+        "copyAria": "Copy webhook URL",
+        "eventsNote": "Events: envelope-completed, envelope-declined, envelope-voided, recipient-viewed",
+        "urlCopied": "Webhook URL copied"
+      },
+      "defaults": {
+        "title": "Signature Defaults",
+        "autoSendReminders": "Auto-send reminders",
+        "autoSendRemindersHint": "Automatically remind recipients before expiry",
+        "emailNotifications": "Email notifications",
+        "emailNotificationsHint": "Notify agents on signature events via email",
+        "smsNotifications": "SMS notifications",
+        "smsNotificationsHint": "Coming soon — no SMS provider configured yet",
+        "smsNotificationsAria": "SMS notifications (coming soon)"
+      }
+    }
+  },
+  "sendModal": {
+    "title": "Send for Signature",
+    "stepOf": "Step {{step}} of {{total}} — {{label}}",
+    "stepLabels": {
+      "custom": ["Choose Method", "Upload Document", "Recipients", "Message & Expiry", "Review & Send"],
+      "template": ["Choose Method", "Select Template", "Recipient Details", "Review & Send"]
+    },
+    "chooseMethod": {
+      "prompt": "How would you like to send this for signature?",
+      "templateTitle": "Use a DocuSign Template",
+      "templateDescription": "Send a reusable contract format already set up in DocuSign.",
+      "uploadTitle": "Upload Custom Contract",
+      "uploadDescription": "Upload a one-off PDF, DOC, or DOCX and add signers manually."
+    },
+    "templateFlow": {
+      "chooseTemplate": "Choose a template to send for signature",
+      "noTemplates": "No templates found. Create templates in your DocuSign account first.",
+      "enterDetails": "Enter the recipient and property details",
+      "recipientName": "Recipient Full Name *",
+      "recipientNamePlaceholder": "e.g. Carlos Martinez",
+      "recipientEmail": "Recipient Email *",
+      "recipientEmailPlaceholder": "recipient@email.com",
+      "selectTemplateRequired": "Select a template to continue.",
+      "recipientRequired": "Recipient name and email are required."
+    },
+    "uploadFlow": {
+      "uploadPrompt": "Upload the contract to send for signature",
+      "removeAria": "Remove",
+      "dragDrop": "Click to upload or drag and drop",
+      "uploadHint": "PDF, DOC, DOCX up to 10MB — uploaded when you send",
+      "addSigners": "Add each person who needs to sign, and their role",
+      "optionalMessageAndExpiry": "Optional message and expiry",
+      "fromOpportunity": "From this Opportunity",
+      "recipientLabel": "Recipient {{index}}",
+      "removeRecipientAria": "Remove",
+      "namePlaceholder": "Full name",
+      "emailPlaceholder": "Email address",
+      "rolePlaceholder": "Role",
+      "roleLabelPlaceholder": "e.g. Notary",
+      "addRecipient": "Add Recipient",
+      "documentRequired": "Choose a document to continue.",
+      "recipientDetailsRequired": "Every recipient needs a name and email.",
+      "roleLabelRequired": "Enter a role label for recipients marked \"Other\".",
+      "roleLabels": {
+        "AGENCY": "Agency",
+        "BUYER": "Buyer",
+        "SELLER": "Seller"
+      },
+      "otherFallback": "Other"
+    },
+    "roleOptions": {
+      "BUYER": "Buyer",
+      "SELLER": "Seller",
+      "AGENT": "Agent",
+      "THIRD_PARTY": "Third-Party Company",
+      "OTHER": "Other"
+    },
+    "expiryOptions": {
+      "7": "7 days from today",
+      "14": "14 days from today",
+      "30": "30 days from today"
+    },
+    "propertyAndExpiry": {
+      "propertyReference": "Property Reference",
+      "propertySearchPlaceholder": "Search a listing…",
+      "expiryPeriod": "Expiry Period",
+      "personalMessage": "Personal Message (optional)",
+      "messagePlaceholder": "Please review and sign the attached document at your earliest convenience…"
+    },
+    "review": {
+      "prompt": "Review the details before sending",
+      "template": "Template",
+      "recipient": "Recipient",
+      "email": "Email",
+      "property": "Property",
+      "expiresIn": "Expires in",
+      "expiresInDays": "{{count}} days",
+      "document": "Document",
+      "recipients": "Recipients"
+    },
+    "disclosure": "This document will be sent via DocuSign. Recipients will receive a secure signing link. You will be notified once all parties have signed.",
+    "back": "Back",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "sending": "Sending…",
+    "send": "Send for Signature",
+    "toasts": {
+      "fileTypeError": "Only PDF, DOC, and DOCX files are supported.",
+      "fileSizeError": "File must be 10MB or smaller.",
+      "sent": "Envelope sent successfully",
+      "sendFailed": "Failed to send envelope"
+    }
+  }
+}

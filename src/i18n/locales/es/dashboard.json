@@ -3,7 +3,45 @@
     "searchPlaceholder": "Buscar...",
     "noResultsFound": "No se encontraron resultados.",
     "loading": "Cargando...",
-    "toggleSetting": "Alternar opción"
+    "toggleSetting": "Alternar opción",
+    "selectDate": "Seleccionar fecha"
+  },
+  "calendarPanel": {
+    "days": {
+      "su": "Do",
+      "mo": "Lu",
+      "tu": "Ma",
+      "we": "Mi",
+      "th": "Ju",
+      "fr": "Vi",
+      "sa": "Sá"
+    },
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "monthPlaceholder": "Mes",
+    "yearPlaceholder": "Año",
+    "selectMonthAria": "Seleccionar mes",
+    "selectYearAria": "Seleccionar año"
+  },
+  "timePanel": {
+    "selectTime": "Seleccionar hora",
+    "done": "Listo",
+    "period": {
+      "am": "AM",
+      "pm": "PM"
+    }
   },
   "nav": {
     "sections": {
@@ -114,5 +152,77 @@
     "COMPLETED": "Firmado",
     "DECLINED": "Rechazado",
     "VOIDED": "Anulado"
+  },
+  "propertyType": {
+    "APARTMENT": "Departamento",
+    "HOUSE": "Casa",
+    "COMMERCIAL_OFFICE": "Oficina Comercial",
+    "LOT": "Lote",
+    "TOWNHOUSE": "Casa Adosada"
+  },
+  "operationType": {
+    "SALE": "Venta",
+    "RENT": "Alquiler",
+    "SALE_AND_RENT": "Ambos"
+  },
+  "amenities": {
+    "PARKING": "Estacionamiento",
+    "GARDEN": "Jardín",
+    "POOL": "Piscina",
+    "GYM": "Gimnasio",
+    "BALCONY": "Balcón",
+    "ELEVATOR": "Ascensor",
+    "SECURITY": "Seguridad",
+    "FURNISHED": "Amueblado",
+    "PET_FRIENDLY": "Admite Mascotas",
+    "CREDIT_APPROVED": "Crédito Aprobado",
+    "INTERNET": "Internet",
+    "GAS": "Gas",
+    "RADIANT_FLOORS": "Pisos Radiantes",
+    "AIR_CONDITIONING": "Aire Acondicionado",
+    "BARBECUE": "Parrilla",
+    "LAUNDRY": "Lavandería",
+    "WATER": "Agua",
+    "TENNIS_COURT": "Cancha de Tenis"
+  },
+  "agentSelect": {
+    "placeholder": "Seleccionar agente…",
+    "searchPlaceholder": "Buscar agentes...",
+    "emptyLabel": "No se encontraron agentes.",
+    "assignedToYouAria": "Agente asignado: {{name}} (tú)",
+    "youSuffix": "(tú)"
+  },
+  "contactPicker": {
+    "placeholder": "Buscar contactos…",
+    "searchPlaceholder": "Buscar contactos por nombre...",
+    "clearSelection": "— Limpiar selección —",
+    "loading": "Cargando...",
+    "emptyLabel": "No se encontraron contactos."
+  },
+  "listingPicker": {
+    "placeholder": "Seleccionar una propiedad…",
+    "searchPlaceholder": "Buscar propiedades...",
+    "clearSelection": "— Limpiar selección —",
+    "loading": "Cargando...",
+    "emptyLabel": "No se encontraron propiedades."
+  },
+  "locationModal": {
+    "editTitle": "Editar Ubicación",
+    "addTitle": "Agregar Nueva Ubicación",
+    "editSubtitle": "Actualiza los detalles de esta ubicación",
+    "addSubtitle": "Agrega una nueva ubicación de propiedad",
+    "closeAria": "Cerrar modal",
+    "name": "Nombre de Ubicación *",
+    "namePlaceholder": "ej., Buenos Aires",
+    "address": "Dirección *",
+    "addressPlaceholder": "Empieza a escribir una dirección...",
+    "region": "Región / Provincia *",
+    "regionPlaceholder": "ej., Buenos Aires",
+    "postalCode": "Código Postal *",
+    "postalCodePlaceholder": "ej., C1043",
+    "cancel": "Cancelar",
+    "saving": "Guardando...",
+    "saveChanges": "Guardar Cambios",
+    "addLocation": "Agregar Ubicación"
   }
 }

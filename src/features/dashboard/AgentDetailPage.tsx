@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Building2,
@@ -31,14 +32,16 @@ import type { PropertyType, PropertyStatus } from "@/generated/prisma/enums";
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
-const PERIOD_LABELS: Record<AgentDetailPeriod, string> = {
-  current_month: "Current Month",
-  last_month: "Last Month",
-  this_quarter: "This Quarter",
-  this_year: "This Year",
+// Displayed labels are translated via i18n (see PERIOD_I18N_KEY below); these
+// values stay in stable English because they're compared against directly.
+const PERIOD_I18N_KEY: Record<AgentDetailPeriod, string> = {
+  current_month: "detail.period.currentMonth",
+  last_month: "detail.period.lastMonth",
+  this_quarter: "detail.period.thisQuarter",
+  this_year: "detail.period.thisYear",
 };
 
-const PERIOD_OPTIONS = Object.keys(PERIOD_LABELS) as AgentDetailPeriod[];
+const PERIOD_OPTIONS = Object.keys(PERIOD_I18N_KEY) as AgentDetailPeriod[];
 
 const priceFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
@@ -49,15 +52,17 @@ function formatPrice(salePrice: number | null, rentPrice: number | null): string
   return sale ?? rent ?? "—";
 }
 
-function mapRole(role: "ADMIN" | "MANAGER" | "AGENT"): string {
-  if (role === "ADMIN") return "Administrator";
-  if (role === "MANAGER") return "Manager";
-  return "Property Specialist";
+function mapRole(role: "ADMIN" | "MANAGER" | "AGENT", t: (key: string) => string): string {
+  if (role === "ADMIN") return t("role.administrator");
+  if (role === "MANAGER") return t("role.manager");
+  return t("role.propertySpecialist");
 }
 
 // ── Badge components ──────────────────────────────────────────────────────────
+// Labels come from the shared "dashboard" namespace (propertyType / status
+// enums) so they stay consistent with the Listings module's own badges.
 
-function TypeBadge({ type }: { type: string }) {
+function TypeBadge({ type, t }: { type: string; t: (key: string) => string }) {
   const badgeStyle = TYPE_BADGE[type as PropertyType];
 
   return (
@@ -69,12 +74,12 @@ function TypeBadge({ type }: { type: string }) {
         ...mont,
       }}
     >
-      {TYPE_LABELS[type as PropertyType]}
+      {t(`propertyType.${type}`)}
     </span>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: (key: string) => string }) {
   const badgeStyle = STATUS_BADGE[status as PropertyStatus];
 
   return (
@@ -86,7 +91,7 @@ function StatusBadge({ status }: { status: string }) {
         ...mont,
       }}
     >
-      {STATUS_LABELS[status as PropertyStatus]}
+      {t(`status.${status}`)}
     </span>
   );
 }
@@ -136,6 +141,8 @@ type AgentDetailPageProps = {
 };
 
 export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
+  const { t } = useTranslation("agents");
+  const { t: td } = useTranslation("dashboard");
   const [period, setPeriod] = useState<AgentDetailPeriod>("current_month");
   const { data: agent, isLoading, isFetching, isError } = useAgentDetailQuery(agentId, period);
   const [propertySearch, setPropertySearch] = useState("");
@@ -177,7 +184,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         style={mont}
       >
         <Loader2 size={18} className="animate-spin" />
-        Loading agent…
+        {t("detail.loadingAgent")}
       </div>
     );
   }
@@ -186,7 +193,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
     return (
       <div className="px-6 py-10 text-center">
         <p className="text-[14px] text-[#dc2626]" style={mont}>
-          Agent not found or access denied.
+          {t("detail.notFound")}
         </p>
 
         <Link
@@ -194,7 +201,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
           className="mt-3 inline-block text-[13px] text-[#1e4f86] hover:underline"
           style={mont}
         >
-          Back to Agents
+          {t("detail.backToAgents")}
         </Link>
       </div>
     );
@@ -220,7 +227,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
           style={mont}
         >
           <ArrowLeft size={16} className="shrink-0" />
-          <span>Back to Agents</span>
+          <span>{t("detail.backToAgents")}</span>
         </Link>
 
         {/* Agent header */}
@@ -268,7 +275,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                       }`}
                     />
 
-                    {isAgentActive ? "Active" : "Inactive"}
+                    {td(isAgentActive ? "status.ACTIVE" : "status.INACTIVE")}
                   </span>
                 </div>
 
@@ -276,7 +283,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                   className="mt-1 text-[14px] text-[#6a7282]"
                   style={mont}
                 >
-                  {mapRole(agent.role)}
+                  {mapRole(agent.role, t)}
                 </p>
 
                 {/* Contact information */}
@@ -324,14 +331,14 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
             <div ref={periodMenuRef} className="relative w-full shrink-0 lg:w-auto">
               <button
                 type="button"
-                aria-label="Select reporting period"
+                aria-label={t("detail.selectPeriodAria")}
                 aria-haspopup="listbox"
                 aria-expanded={isPeriodOpen}
                 onClick={() => setIsPeriodOpen((open) => !open)}
                 className="flex h-11 w-full items-center justify-between gap-2 rounded-[9px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#183f6b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 lg:h-10 lg:w-auto lg:justify-center"
                 style={mont}
               >
-                <span>{PERIOD_LABELS[period]}</span>
+                <span>{t(PERIOD_I18N_KEY[period])}</span>
 
                 {isFetching ? (
                   <Loader2 size={16} className="shrink-0 animate-spin" />
@@ -358,7 +365,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                       className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-[14px] text-[#0d2138] transition-colors hover:bg-[#f3f4f6]"
                       style={mont}
                     >
-                      {PERIOD_LABELS[option]}
+                      {t(PERIOD_I18N_KEY[option])}
                       {option === period && <Check size={15} className="shrink-0 text-[#1e4f86]" />}
                     </button>
                   ))}
@@ -380,7 +387,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               />
             }
             value={agent.totalListings}
-            label="Total Listings"
+            label={t("detail.stats.totalListings")}
           />
 
           <StatCard
@@ -393,7 +400,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               />
             }
             value={`$${priceFormat.format(agent.totalRevenue)}`}
-            label="Total Revenue"
+            label={t("detail.stats.totalRevenue")}
           />
 
           <StatCard
@@ -406,7 +413,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               />
             }
             value={agent.totalDeals}
-            label="Total Deals"
+            label={t("detail.stats.totalDeals")}
           />
 
           <StatCard
@@ -419,7 +426,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               />
             }
             value={agent.openDeals}
-            label="Open Deals"
+            label={t("detail.stats.openDeals")}
           />
 
           <StatCard
@@ -432,7 +439,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               />
             }
             value={`$${priceFormat.format(agent.totalEarnings)}`}
-            label="Total Earnings"
+            label={t("detail.stats.totalEarnings")}
           />
         </section>
 
@@ -445,14 +452,14 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                 className="text-[16px] font-semibold leading-6 text-[#0d2138]"
                 style={mont}
               >
-                Properties Assigned
+                {t("detail.propertiesAssigned")}
               </h2>
 
               <p
                 className="mt-0.5 text-[14px] text-[#6a7282]"
                 style={mont}
               >
-                {agent.properties.length} total properties
+                {t("detail.totalProperties", { count: agent.properties.length })}
               </p>
             </div>
 
@@ -467,8 +474,8 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                 type="search"
                 value={propertySearch}
                 onChange={(event) => setPropertySearch(event.target.value)}
-                placeholder="Search properties..."
-                aria-label="Search assigned properties"
+                placeholder={t("detail.searchPropertiesPlaceholder")}
+                aria-label={t("detail.searchAssignedPropertiesAria")}
                 className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af]"
                 style={mont}
               />
@@ -481,12 +488,12 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               <thead>
                 <tr className="bg-[#fafbfc]">
                   {[
-                    "LISTING ID",
-                    "PROPERTY NAME",
-                    "TYPE",
-                    "LOCATION",
-                    "PRICE",
-                    "STATUS",
+                    t("detail.columns.listingId"),
+                    t("detail.columns.propertyName"),
+                    t("detail.columns.type"),
+                    t("detail.columns.location"),
+                    t("detail.columns.price"),
+                    t("detail.columns.status"),
                     "",
                   ].map((heading, index) => (
                     <th
@@ -525,7 +532,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                     </td>
 
                     <td className="px-4 py-3.5">
-                      <TypeBadge type={property.type} />
+                      <TypeBadge type={property.type} t={td} />
                     </td>
 
                     <td className="px-4 py-3.5">
@@ -552,7 +559,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                     </td>
 
                     <td className="px-4 py-3.5">
-                      <StatusBadge status={property.status} />
+                      <StatusBadge status={property.status} t={td} />
                     </td>
 
                     <td className="px-4 py-3.5 text-right">
@@ -560,8 +567,8 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         href={`/listings/${property.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="View public listing"
-                        aria-label={`View ${property.title}`}
+                        title={t("detail.viewPublicListingTitle")}
+                        aria-label={t("detail.viewListingAria", { title: property.title })}
                         className="inline-flex size-9 items-center justify-center rounded-[8px] text-[#99a1af] transition-colors hover:bg-[#f3f4f6] hover:text-[#1e4f86]"
                       >
                         <Eye size={16} />
@@ -577,7 +584,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                       className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
                       style={mont}
                     >
-                      No properties found.
+                      {t("detail.noPropertiesFound")}
                     </td>
                   </tr>
                 )}
@@ -612,7 +619,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                     </div>
 
                     <div className="shrink-0">
-                      <StatusBadge status={property.status} />
+                      <StatusBadge status={property.status} t={td} />
                     </div>
                   </div>
 
@@ -623,11 +630,11 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="text-[14px] text-[#99a1af]"
                         style={mont}
                       >
-                        Type
+                        {t("detail.mobileLabels.type")}
                       </p>
 
                       <div className="mt-2">
-                        <TypeBadge type={property.type} />
+                        <TypeBadge type={property.type} t={td} />
                       </div>
                     </div>
 
@@ -636,7 +643,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="text-[14px] text-[#99a1af]"
                         style={mont}
                       >
-                        Price
+                        {t("detail.mobileLabels.price")}
                       </p>
 
                       <p
@@ -660,7 +667,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="text-[14px] text-[#99a1af]"
                         style={mont}
                       >
-                        Location
+                        {t("detail.mobileLabels.location")}
                       </p>
 
                       <p
@@ -685,7 +692,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                       className="shrink-0"
                     />
 
-                    View Property
+                    {t("detail.viewProperty")}
                   </a>
                 </article>
               ))

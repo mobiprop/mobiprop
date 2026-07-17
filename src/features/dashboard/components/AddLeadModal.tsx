@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Search, Loader2 } from "lucide-react";
 
 import { LeadSource, LeadTemperature, LeadLifecycleStatus } from "@/generated/prisma/enums";
@@ -20,31 +21,31 @@ const inputCls =
   "h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelCls = "text-[12px] font-medium text-[#1f2937]";
 
-const SOURCE_OPTIONS: { value: LeadSource; label: string }[] = [
-  { value: LeadSource.MANUAL,                   label: "Manual Entry" },
-  { value: LeadSource.WEBSITE_LISTING_INQUIRY,  label: "Listing Inquiry" },
-  { value: LeadSource.WEBSITE_CONTACT_FORM,     label: "Contact Form" },
-  { value: LeadSource.SCHEDULED_TOUR,           label: "Scheduled Tour" },
-  { value: LeadSource.PHONE,                    label: "Phone" },
-  { value: LeadSource.EMAIL,                    label: "Email" },
-  { value: LeadSource.WHATSAPP,                 label: "WhatsApp" },
-  { value: LeadSource.REFERRAL,                 label: "Referral" },
-  { value: LeadSource.SOCIAL_MEDIA,             label: "Social Media" },
-  { value: LeadSource.OTHER,                    label: "Other" },
+const SOURCE_VALUES: LeadSource[] = [
+  LeadSource.MANUAL,
+  LeadSource.WEBSITE_LISTING_INQUIRY,
+  LeadSource.WEBSITE_CONTACT_FORM,
+  LeadSource.SCHEDULED_TOUR,
+  LeadSource.PHONE,
+  LeadSource.EMAIL,
+  LeadSource.WHATSAPP,
+  LeadSource.REFERRAL,
+  LeadSource.SOCIAL_MEDIA,
+  LeadSource.OTHER,
 ];
 
-const TEMP_OPTIONS: { value: LeadTemperature; label: string }[] = [
-  { value: LeadTemperature.COLD, label: "Cold" },
-  { value: LeadTemperature.WARM, label: "Warm" },
-  { value: LeadTemperature.HOT,  label: "Hot"  },
+const TEMP_VALUES: LeadTemperature[] = [
+  LeadTemperature.COLD,
+  LeadTemperature.WARM,
+  LeadTemperature.HOT,
 ];
 
-const STATUS_OPTIONS: { value: LeadLifecycleStatus; label: string }[] = [
-  { value: LeadLifecycleStatus.NEW,         label: "New"         },
-  { value: LeadLifecycleStatus.CONTACTED,   label: "Contacted"   },
-  { value: LeadLifecycleStatus.FOLLOW_UP,   label: "Follow Up"   },
-  { value: LeadLifecycleStatus.QUALIFIED,   label: "Qualified"   },
-  { value: LeadLifecycleStatus.UNQUALIFIED, label: "Unqualified" },
+const STATUS_VALUES: LeadLifecycleStatus[] = [
+  LeadLifecycleStatus.NEW,
+  LeadLifecycleStatus.CONTACTED,
+  LeadLifecycleStatus.FOLLOW_UP,
+  LeadLifecycleStatus.QUALIFIED,
+  LeadLifecycleStatus.UNQUALIFIED,
 ];
 
 type Agent = { id: string; fullName: string | null; email: string };
@@ -56,6 +57,7 @@ type AddLeadModalProps = {
 };
 
 export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
+  const { t } = useTranslation("leads");
   const create = useCreateLeadMutation();
 
   // Contact section
@@ -164,8 +166,8 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
     e.preventDefault();
     setError("");
 
-    if (!name.trim()) { setError("Name is required"); return; }
-    if (!email && !phone) { setError("Provide at least an email or phone number"); return; }
+    if (!name.trim()) { setError(t("addModal.errors.nameRequired")); return; }
+    if (!email && !phone) { setError(t("addModal.errors.emailOrPhoneRequired")); return; }
 
     try {
       await create.mutateAsync({
@@ -189,7 +191,7 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
       onCreated?.();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create lead");
+      setError(err instanceof Error ? err.message : t("addModal.errors.createFailed"));
     }
   }
 
@@ -216,13 +218,13 @@ return (
           className="text-[16px] font-semibold text-[#0d2138]"
           style={mont}
         >
-          Add New Lead
+          {t("addModal.title")}
         </p>
 
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close add lead modal"
+          aria-label={t("addModal.closeAria")}
           className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
         >
           <X size={18} />
@@ -240,13 +242,13 @@ return (
             className="text-[13px] font-semibold uppercase tracking-wide text-[#1e4f86]"
             style={mont}
           >
-            Contact
+            {t("addModal.sectionContact")}
           </p>
 
           {/* Contact search */}
           <div className="relative flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Search Existing Contact
+              {t("addModal.searchExistingContact")}
             </label>
 
             <div className="relative">
@@ -264,7 +266,7 @@ return (
                   contacts.length > 0 &&
                   setShowContactDropdown(true)
                 }
-                placeholder="Name, email or phone…"
+                placeholder={t("addModal.contactSearchPlaceholder")}
                 className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                 style={mont}
               />
@@ -304,7 +306,7 @@ return (
                 className="text-[11px] text-[#059669]"
                 style={mont}
               >
-                Linked to existing contact:{" "}
+                {t("addModal.linkedToExistingContact")}{" "}
                 {selectedContact.contactId}
               </p>
             )}
@@ -313,14 +315,14 @@ return (
           {/* Full name */}
           <div className="flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Full Name *
+              {t("addModal.fullName")}
             </label>
 
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter full name"
+              placeholder={t("addModal.fullNamePlaceholder")}
               className={inputCls}
               style={mont}
             />
@@ -330,7 +332,7 @@ return (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
-                Email
+                {t("addModal.email")}
               </label>
 
               <input
@@ -345,7 +347,7 @@ return (
 
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
-                Phone
+                {t("addModal.phone")}
               </label>
 
               <input
@@ -362,13 +364,13 @@ return (
           {/* Location */}
           <div className="flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Location
+              {t("addModal.location")}
             </label>
 
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="City or region"
+              placeholder={t("addModal.locationPlaceholder")}
               className={inputCls}
               style={mont}
             />
@@ -379,14 +381,14 @@ return (
             className="mt-1 text-[13px] font-semibold uppercase tracking-wide text-[#1e4f86]"
             style={mont}
           >
-            Lead Details
+            {t("addModal.sectionLeadDetails")}
           </p>
 
           {/* Source / Source detail */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
-                Lead Source *
+                {t("addModal.leadSource")}
               </label>
 
               <SearchableSelect
@@ -394,15 +396,15 @@ return (
                 searchable={false}
                 value={source}
                 onChange={(next) => setSource(next as LeadSource)}
-                options={SOURCE_OPTIONS}
-                placeholder="Select source"
-                ariaLabel="Lead source"
+                options={SOURCE_VALUES.map((value) => ({ value, label: t(`addModal.sourceOptions.${value}`) }))}
+                placeholder={t("addModal.selectSource")}
+                ariaLabel={t("addModal.leadSource")}
               />
             </div>
 
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
-                Source Detail
+                {t("addModal.sourceDetail")}
               </label>
 
               <input
@@ -410,7 +412,7 @@ return (
                 onChange={(e) =>
                   setSourceDetail(e.target.value)
                 }
-                placeholder="e.g. Zonaprop, Instagram…"
+                placeholder={t("addModal.sourceDetailPlaceholder")}
                 className={inputCls}
                 style={mont}
               />
@@ -420,7 +422,7 @@ return (
           {/* Interested property */}
           <div className="relative flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Interested Property
+              {t("addModal.interestedProperty")}
             </label>
 
             <div className="relative">
@@ -438,7 +440,7 @@ return (
                   listings.length > 0 &&
                   setShowListingDropdown(true)
                 }
-                placeholder="Search by listing ID or title…"
+                placeholder={t("addModal.listingSearchPlaceholder")}
                 className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                 style={mont}
               />
@@ -475,7 +477,7 @@ return (
           {/* Budget */}
           <div className="flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Budget Range
+              {t("addModal.budgetRange")}
             </label>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_120px]">
@@ -484,7 +486,7 @@ return (
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]"
                   style={mont}
                 >
-                  Min
+                  {t("addModal.budgetMin")}
                 </span>
 
                 <input
@@ -504,7 +506,7 @@ return (
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]"
                   style={mont}
                 >
-                  Max
+                  {t("addModal.budgetMax")}
                 </span>
 
                 <input
@@ -529,8 +531,8 @@ return (
                   { value: "USD", label: "USD" },
                   { value: "EUR", label: "EUR" },
                 ]}
-                placeholder="Currency"
-                ariaLabel="Budget currency"
+                placeholder={t("addModal.currency")}
+                ariaLabel={t("addModal.currency")}
               />
             </div>
           </div>
@@ -539,7 +541,7 @@ return (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className={labelCls} style={mont}>
-                Lead Score
+                {t("addModal.leadScore")}
               </label>
 
               <span
@@ -568,9 +570,9 @@ return (
               className="grid grid-cols-3 text-[10px] text-[#6a7282] sm:text-[11px]"
               style={mont}
             >
-              <span className="text-left">Cold (0)</span>
-              <span className="text-center">Warm (40)</span>
-              <span className="text-right">Hot (70+)</span>
+              <span className="text-left">{t("addModal.scoreCold")}</span>
+              <span className="text-center">{t("addModal.scoreWarm")}</span>
+              <span className="text-right">{t("addModal.scoreHot")}</span>
             </div>
           </div>
 
@@ -578,7 +580,7 @@ return (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
-                Temperature
+                {t("addModal.temperature")}
               </label>
 
               <SearchableSelect
@@ -586,9 +588,9 @@ return (
                 searchable={false}
                 value={temperature}
                 onChange={(next) => handleTemperatureChange(next as LeadTemperature)}
-                options={TEMP_OPTIONS}
-                placeholder="Select temperature"
-                ariaLabel="Lead temperature"
+                options={TEMP_VALUES.map((value) => ({ value, label: t(`temperature.${value}`) }))}
+                placeholder={t("addModal.selectTemperature")}
+                ariaLabel={t("addModal.temperature")}
               />
 
               {!tempManual && (
@@ -596,14 +598,14 @@ return (
                   className="text-[11px] text-[#6a7282]"
                   style={mont}
                 >
-                  Suggested from score
+                  {t("addModal.suggestedFromScore")}
                 </p>
               )}
             </div>
 
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
-                Lifecycle Status
+                {t("addModal.lifecycleStatus")}
               </label>
 
               <SearchableSelect
@@ -611,9 +613,9 @@ return (
                 searchable={false}
                 value={lifecycleStatus}
                 onChange={(next) => setLifecycle(next as LeadLifecycleStatus)}
-                options={STATUS_OPTIONS}
-                placeholder="Select status"
-                ariaLabel="Lifecycle status"
+                options={STATUS_VALUES.map((value) => ({ value, label: t(`lifecycleStatus.${value}`) }))}
+                placeholder={t("addModal.selectStatus")}
+                ariaLabel={t("addModal.lifecycleStatus")}
               />
             </div>
           </div>
@@ -621,7 +623,7 @@ return (
           {/* Assigned Agent */}
           <div className="flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Assigned Agent
+              {t("addModal.assignedAgent")}
             </label>
 
             <SearchableSelect
@@ -632,23 +634,23 @@ return (
                 value: agent.id,
                 label: agent.fullName ?? agent.email,
               }))}
-              placeholder="— Unassigned —"
-              searchPlaceholder="Search agents..."
-              emptyLabel="No agents found."
-              ariaLabel="Assigned agent"
+              placeholder={t("addModal.unassignedPlaceholder")}
+              searchPlaceholder={t("addModal.searchAgentsPlaceholder")}
+              emptyLabel={t("addModal.noAgentsFound")}
+              ariaLabel={t("addModal.assignedAgent")}
             />
           </div>
 
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
-              Notes
+              {t("addModal.notes")}
             </label>
 
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Initial notes about this lead…"
+              placeholder={t("addModal.notesPlaceholder")}
               rows={3}
               maxLength={5000}
               className="resize-none rounded-[10px] border border-[#e5e7eb] px-3.5 py-2.5 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
@@ -674,7 +676,7 @@ return (
             className="h-[41.5px] rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
             style={mont}
           >
-            Cancel
+            {t("addModal.cancel")}
           </button>
 
           <button
@@ -687,7 +689,7 @@ return (
               <Loader2 size={14} className="animate-spin" />
             )}
 
-            {create.isPending ? "Creating…" : "Add Lead"}
+            {create.isPending ? t("addModal.creating") : t("addModal.submit")}
           </button>
         </div>
       </form>

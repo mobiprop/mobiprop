@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   Plus,
@@ -113,18 +114,24 @@ const TYPE_STYLE: Record<string, { bg: string; text: string }> = {
   BOTH:   { bg: "#fef3c7", text: "#b45309" },
 };
 
+// English labels kept for CSV export (see handleExport) — exported file
+// content stays untranslated regardless of UI language.
 const TYPE_LABEL: Record<string, string> = {
   BUYER: "Buyer", SELLER: "Seller", BOTH: "Both",
 };
 
-function TypeBadge({ type }: { type: ContactType }) {
+const TYPE_I18N_KEY: Record<string, string> = {
+  BUYER: "type.buyer", SELLER: "type.seller", BOTH: "type.both",
+};
+
+function TypeBadge({ type, t }: { type: ContactType; t: (key: string) => string }) {
   const s = TYPE_STYLE[type] ?? TYPE_STYLE.BUYER;
   return (
     <span
       className="inline-flex items-center justify-center w-[76px] px-3 py-1 rounded-[6px] text-[14px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
-      {TYPE_LABEL[type] ?? type}
+      {TYPE_I18N_KEY[type] ? t(TYPE_I18N_KEY[type]) : type}
     </span>
   );
 }
@@ -137,6 +144,7 @@ type RowMenuProps = {
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  t: (key: string, opts?: Record<string, unknown>) => string;
 };
 
 function RowMenu({
@@ -145,6 +153,7 @@ function RowMenu({
   canDelete,
   onEdit,
   onDelete,
+  t,
 }: RowMenuProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -237,8 +246,8 @@ function RowMenu({
       <button
         ref={buttonRef}
         type="button"
-        title="Actions"
-        aria-label={`Open actions for ${contact.fullName}`}
+        title={t("rowMenu.actionsTitle")}
+        aria-label={t("rowMenu.openActionsAria", { name: contact.fullName })}
         aria-expanded={open}
         onClick={(event) => {
           event.stopPropagation();
@@ -277,7 +286,7 @@ function RowMenu({
                 style={mont}
               >
                 <Pencil size={14} className="text-[#1e4f86]" />
-                Edit
+                {t("rowMenu.edit")}
               </button>
             )}
 
@@ -293,7 +302,7 @@ function RowMenu({
                 style={mont}
               >
                 <Trash2 size={14} />
-                Delete
+                {t("rowMenu.delete")}
               </button>
             )}
           </div>,
@@ -310,9 +319,10 @@ type DeleteConfirmProps = {
   isDeleting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  t: (key: string, opts?: Record<string, unknown>) => string;
 };
 
-function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm }: DeleteConfirmProps) {
+function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm, t }: DeleteConfirmProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
       <div className="absolute inset-0 bg-black/40" />
@@ -325,10 +335,20 @@ function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm }: Delete
             <AlertTriangle size={22} className="text-[#fb2c36]" />
           </span>
           <div className="flex flex-col gap-1.5">
-            <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Delete Contact</p>
+            <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("deleteModal.title")}</p>
             <p className="text-[13px] text-[#6a7282] leading-5" style={mont}>
-              <span className="font-semibold text-[#0d2138]">{contact.fullName}</span> will be marked as deleted
-              and removed from all lists. This can be restored by an administrator.
+              {(() => {
+                const body = t("deleteModal.body", { name: contact.fullName });
+                const idx = body.indexOf(contact.fullName);
+                if (idx === -1) return body;
+                return (
+                  <>
+                    {body.slice(0, idx)}
+                    <span className="font-semibold text-[#0d2138]">{contact.fullName}</span>
+                    {body.slice(idx + contact.fullName.length)}
+                  </>
+                );
+              })()}
             </p>
           </div>
           <div className="flex gap-3 w-full pt-1">
@@ -338,7 +358,7 @@ function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm }: Delete
               className="flex-1 h-10 border border-[#e5e7eb] rounded-[10px] text-[13px] font-medium text-[#6b7280] bg-[#f8fafc] hover:bg-[#f3f4f6] transition-colors"
               style={mont}
             >
-              Cancel
+              {t("deleteModal.cancel")}
             </button>
             <button
               type="button"
@@ -347,7 +367,7 @@ function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm }: Delete
               className="flex-1 h-10 bg-[#fb2c36] rounded-[10px] text-[13px] font-medium text-white hover:bg-[#e0262f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >
-              {isDeleting ? "Deleting…" : "Delete"}
+              {isDeleting ? t("deleteModal.deleting") : t("deleteModal.delete")}
             </button>
           </div>
         </div>
@@ -365,6 +385,7 @@ type ContactsPageProps = {
 type ConflictState = { message: string; existingContactId: string };
 
 export function ContactsPage({ role }: ContactsPageProps) {
+  const { t } = useTranslation("contacts");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactDto | null>(null);
   const [deletingContact, setDeletingContact] = useState<ContactDto | null>(null);
@@ -432,24 +453,24 @@ export function ContactsPage({ role }: ContactsPageProps) {
         notes: input.notes,
         propertyIds: input.propertyIds,
       });
-      toast.success("Contact created");
+      toast.success(t("toasts.contactCreated"));
       setShowAddModal(false);
     } catch (err) {
       if (err instanceof ContactConflictError) {
         setConflict({ message: err.message, existingContactId: err.existingContact.id });
         return;
       }
-      toast.error(err instanceof Error ? err.message : "Failed to create contact");
+      toast.error(err instanceof Error ? err.message : t("toasts.createFailed"));
     }
   }
 
   async function handleUpdate(id: string, input: EditContactInput) {
     try {
       await updateMutation.mutateAsync({ id, body: input });
-      toast.success("Contact updated");
+      toast.success(t("toasts.contactUpdated"));
       setEditingContact(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update contact");
+      toast.error(err instanceof Error ? err.message : t("toasts.updateFailed"));
     }
   }
 
@@ -457,10 +478,10 @@ export function ContactsPage({ role }: ContactsPageProps) {
     if (!deletingContact) return;
     try {
       await deleteMutation.mutateAsync(deletingContact.id);
-      toast.success("Contact deleted");
+      toast.success(t("toasts.contactDeleted"));
       setDeletingContact(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete contact");
+      toast.error(err instanceof Error ? err.message : t("toasts.deleteFailed"));
     }
   }
 
@@ -514,7 +535,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
       const text = await file.text();
       const records = csvRowsToObjects(parseCsv(text));
       if (records.length === 0) {
-        toast.error("That file has no data rows to import");
+        toast.error(t("toasts.importNoDataRows"));
         return;
       }
 
@@ -530,19 +551,19 @@ export function ContactsPage({ role }: ContactsPageProps) {
 
       const result = await importMutation.mutateAsync(rows);
       if (result.created > 0) {
-        toast.success(`Imported ${result.created} contact${result.created === 1 ? "" : "s"}`);
+        toast.success(t("toasts.importedCount", { count: result.created }));
       }
       if (result.skipped > 0) {
         const preview = result.errors.slice(0, 3).map((e) => `Row ${e.row}: ${e.message}`).join(" · ");
-        toast.warning(`Skipped ${result.skipped} row${result.skipped === 1 ? "" : "s"}`, {
+        toast.warning(t("toasts.skippedCount", { count: result.skipped }), {
           description: preview + (result.errors.length > 3 ? " …" : ""),
         });
       }
       if (result.created === 0 && result.skipped === 0) {
-        toast.error("Nothing to import — check the file has First Name/Last Name columns");
+        toast.error(t("toasts.importNothing"));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to import contacts");
+      toast.error(err instanceof Error ? err.message : t("toasts.importFailed"));
     }
   }
 
@@ -551,8 +572,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>Contacts</h1>
-          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage your clients and prospects database</p>
+          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>{t("page.title")}</h1>
+          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>{t("page.subtitle")}</p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           <input
@@ -575,7 +596,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
               ) : (
                 <Upload size={16} className="shrink-0" />
               )}
-              <span className="truncate">Import</span>
+              <span className="truncate">{t("actions.import")}</span>
             </button>
           )}
           {canExport && (
@@ -587,7 +608,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
               style={mont}
             >
               <Share2 size={16} className="shrink-0" />
-              <span className="truncate">Export</span>
+              <span className="truncate">{t("actions.export")}</span>
             </button>
           )}
           {canCreate && (
@@ -598,7 +619,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
               style={mont}
             >
               <Plus size={16} className="shrink-0" />
-              <span className="truncate">Add Contact</span>
+              <span className="truncate">{t("actions.addContact")}</span>
             </button>
           )}
         </div>
@@ -607,12 +628,12 @@ export function ContactsPage({ role }: ContactsPageProps) {
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total Contacts"
+          label={t("stats.totalContacts")}
           value={isLoading ? "—" : String(data?.metrics.total ?? 0)}
           note={data ? [
-            data.metrics.buyers > 0 && `${data.metrics.buyers} buyers`,
-            data.metrics.sellers > 0 && `${data.metrics.sellers} sellers`,
-            data.metrics.both > 0 && `${data.metrics.both} both`,
+            data.metrics.buyers > 0 && t("stats.buyersCount", { count: data.metrics.buyers }),
+            data.metrics.sellers > 0 && t("stats.sellersCount", { count: data.metrics.sellers }),
+            data.metrics.both > 0 && t("stats.bothCount", { count: data.metrics.both }),
           ].filter(Boolean).join(" · ") : undefined}
           iconBg="#e8ebff"
           icon={
@@ -625,9 +646,9 @@ export function ContactsPage({ role }: ContactsPageProps) {
         />
 
         <StatCard
-          label="Active Deals"
+          label={t("stats.activeDeals")}
           value={opportunitiesQuery.isLoading ? "—" : String(activeDealsCount ?? 0)}
-          note="Open opportunities"
+          note={t("stats.openOpportunities")}
           iconBg="#d9faec"
           icon={
             <TrendingUp
@@ -639,13 +660,13 @@ export function ContactsPage({ role }: ContactsPageProps) {
         />
 
         <StatCard
-          label="Contacts vs Leads"
+          label={t("stats.contactsVsLeads")}
           value={
             isLoading || leadMetricsQuery.isLoading
               ? "—"
               : `${data?.metrics.total ?? 0} / ${leadMetricsQuery.data?.total ?? 0}`
           }
-          note="Contacts on file vs. active leads"
+          note={t("stats.contactsVsLeadsNote")}
           iconBg="#fff1c8"
           icon={
             <Users
@@ -657,9 +678,9 @@ export function ContactsPage({ role }: ContactsPageProps) {
         />
 
         <StatCard
-          label="Contacts in Opportunities"
+          label={t("stats.contactsInOpportunities")}
           value={contactsInOpportunitiesPct ?? "—"}
-          note={data ? `${data.metrics.withOpportunities} of ${data.metrics.total} contacts` : undefined}
+          note={data ? t("stats.contactsInOpportunitiesNote", { withOpportunities: data.metrics.withOpportunities, total: data.metrics.total }) : undefined}
           iconBg="#fee2e2"
           icon={
             <TrendingDown
@@ -679,7 +700,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
       className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
       style={mont}
     >
-      All Contacts
+      {t("table.title")}
     </h2>
 
     <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:w-auto lg:items-center lg:gap-3">
@@ -689,7 +710,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search contacts..."
+          placeholder={t("table.searchPlaceholder")}
           className="min-w-0 w-full bg-transparent text-[13px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[14px]"
           style={mont}
         />
@@ -701,12 +722,12 @@ export function ContactsPage({ role }: ContactsPageProps) {
         value={sortBy}
         onChange={(next) => setSortBy(next as typeof sortBy)}
         options={[
-          { value: "default", label: "Sort By" },
-          { value: "name", label: "Name (A–Z)" },
-          { value: "listings", label: "Assigned Listings" },
+          { value: "default", label: t("table.sort.default") },
+          { value: "name", label: t("table.sort.name") },
+          { value: "listings", label: t("table.sort.listings") },
         ]}
-        placeholder="Sort By"
-        ariaLabel="Sort contacts"
+        placeholder={t("table.sort.default")}
+        ariaLabel={t("table.sortAria")}
         className="min-w-0 lg:min-w-[112px]"
       />
 
@@ -716,13 +737,13 @@ export function ContactsPage({ role }: ContactsPageProps) {
         value={typeFilter}
         onChange={(next) => setTypeFilter(next as ContactType | "All")}
         options={[
-          { value: "All", label: "Contact Type" },
-          { value: ContactType.BUYER, label: "Buyer" },
-          { value: ContactType.SELLER, label: "Seller" },
-          { value: ContactType.BOTH, label: "Both" },
+          { value: "All", label: t("table.typeFilterAll") },
+          { value: ContactType.BUYER, label: t("type.buyer") },
+          { value: ContactType.SELLER, label: t("type.seller") },
+          { value: ContactType.BOTH, label: t("type.both") },
         ]}
-        placeholder="Contact Type"
-        ariaLabel="Filter by contact type"
+        placeholder={t("table.typeFilterAll")}
+        ariaLabel={t("table.typeFilterAria")}
         className="min-w-0 lg:min-w-[138px]"
       />
     </div>
@@ -734,7 +755,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
       <Loader2 size={18} className="animate-spin" />
 
       <span className="text-[14px]" style={mont}>
-        Loading contacts…
+        {t("table.loadingContacts")}
       </span>
     </div>
   ) : isError ? (
@@ -742,7 +763,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
       className="py-10 text-center text-[14px] text-red-500"
       style={mont}
     >
-      Failed to load contacts.
+      {t("table.failedToLoad")}
     </div>
   ) : (
     <>
@@ -755,42 +776,42 @@ export function ContactsPage({ role }: ContactsPageProps) {
                 className="w-[240px] px-6 py-[10px] text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
-                Contact Name
+                {t("table.columns.contactName")}
               </th>
 
               <th
                 className="w-[224px] px-4 py-[10px] text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
-                Contact Information
+                {t("table.columns.contactInformation")}
               </th>
 
               <th
                 className="w-[200px] px-4 py-[10px] text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
-                Location
+                {t("table.columns.location")}
               </th>
 
               <th
                 className="w-[156px] px-4 py-[10px] text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
-                Assigned Listings
+                {t("table.columns.assignedListings")}
               </th>
 
               <th
                 className="w-[160px] px-4 py-[10px] text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
-                Contact ID
+                {t("table.columns.contactId")}
               </th>
 
               <th
                 className="w-[120px] px-4 py-[10px] text-center text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
-                Contact Type
+                {t("table.columns.contactType")}
               </th>
 
               <th className="w-[55px]" />
@@ -872,7 +893,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                 </td>
 
                 <td className="w-[120px] px-4 py-4 text-center">
-                  <TypeBadge type={contact.type} />
+                  <TypeBadge type={contact.type} t={t} />
                 </td>
 
                 <td className="w-[55px] px-4 py-4 text-center">
@@ -882,6 +903,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                     canDelete={canDelete}
                     onEdit={() => setEditingContact(contact)}
                     onDelete={() => setDeletingContact(contact)}
+                    t={t}
                   />
                 </td>
               </tr>
@@ -895,8 +917,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   style={mont}
                 >
                   {contacts.length === 0
-                    ? "No contacts yet — add your first contact."
-                    : "No contacts match your search."}
+                    ? t("table.noContactsYet")
+                    : t("table.noContactsMatch")}
                 </td>
               </tr>
             )}
@@ -949,6 +971,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   canDelete={canDelete}
                   onEdit={() => setEditingContact(contact)}
                   onDelete={() => setDeletingContact(contact)}
+                  t={t}
                 />
               </div>
             </div>
@@ -959,7 +982,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   className="text-[14px] font-medium text-[#99a1af]"
                   style={mont}
                 >
-                  Phone
+                  {t("table.mobileLabels.phone")}
                 </p>
 
                 <p
@@ -975,7 +998,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   className="text-[14px] font-medium text-[#99a1af]"
                   style={mont}
                 >
-                  Location
+                  {t("table.mobileLabels.location")}
                 </p>
 
                 <p
@@ -991,7 +1014,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   className="text-[14px] font-medium text-[#99a1af]"
                   style={mont}
                 >
-                  Assigned Listings
+                  {t("table.mobileLabels.assignedListings")}
                 </p>
 
                 <p
@@ -1007,10 +1030,10 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   className="mb-1.5 text-[14px] font-medium text-[#99a1af]"
                   style={mont}
                 >
-                  Contact Type
+                  {t("table.mobileLabels.contactType")}
                 </p>
 
-                <TypeBadge type={contact.type} />
+                <TypeBadge type={contact.type} t={t} />
               </div>
 
               <div className="col-span-2 min-w-0 rounded-[10px] bg-[#f8fafc] px-3 py-2.5">
@@ -1018,7 +1041,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   className="text-[14px] font-medium text-[#99a1af]"
                   style={mont}
                 >
-                  Contact ID
+                  {t("table.mobileLabels.contactId")}
                 </p>
 
                 <p
@@ -1038,8 +1061,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
             style={mont}
           >
             {contacts.length === 0
-              ? "No contacts yet — add your first contact."
-              : "No contacts match your search."}
+              ? t("table.noContactsYet")
+              : t("table.noContactsMatch")}
           </div>
         )}
       </div>
@@ -1051,7 +1074,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
       className="text-[12px] font-medium text-[#6a7282]"
       style={mont}
     >
-      Showing {filtered.length} of {contacts.length} contacts
+      {t("table.showingCount", { filtered: filtered.length, total: contacts.length })}
     </span>
   </div>
 </div>
@@ -1074,7 +1097,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                     setShowAddModal(false);
                     setConflict(null);
                     if (existing) setEditingContact(existing);
-                    else toast.error("Could not open the existing contact.");
+                    else toast.error(t("toasts.couldNotOpenExisting"));
                   },
                 }
               : null
@@ -1095,6 +1118,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
           isDeleting={deleteMutation.isPending}
           onCancel={() => setDeletingContact(null)}
           onConfirm={handleDelete}
+          t={t}
         />
       )}
     </div>

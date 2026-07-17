@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { X, Check, Mail, Loader2, Send, Eye, Code, ShieldCheck, AlertTriangle, Home } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import type { EmailCampaignDto, EmailListDto } from "@/features/integrations/sendgrid-actions";
 import {
@@ -91,6 +92,7 @@ const inputCls =
   "w-full min-h-[42px] rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 text-[13px] text-[#0d2138] placeholder:text-[#9ca3af] focus:border-[#1e4f86] focus:outline-none";
 
 export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onClose }: CampaignWizardModalProps) {
+  const { t } = useTranslation("sendgrid");
   const isEdit = Boolean(campaign);
   // "Use Template" entry point: the template's content must be applied
   // immediately, not only when the card is re-clicked in step 1.
@@ -204,18 +206,18 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   }
 
   function validateConfigure(): string | null {
-    if (!name.trim()) return "Campaign name is required.";
-    if (!subject.trim()) return "Subject line is required.";
-    if (!listId) return "Select an audience list.";
-    if (!htmlBody.trim()) return "Email content is empty.";
+    if (!name.trim()) return t("wizard.validation.nameRequired");
+    if (!subject.trim()) return t("wizard.validation.subjectRequired");
+    if (!listId) return t("wizard.validation.selectAudience");
+    if (!htmlBody.trim()) return t("wizard.validation.contentEmpty");
     if (hasPropertiesBlock && (parsePropertiesBlockIds(htmlBody)?.length ?? 0) === 0) {
-      return "Select at least one property to feature, or remove the properties section from the HTML.";
+      return t("wizard.validation.selectProperty");
     }
-    if (selectedList && subscribedCount <= 0) return "The selected audience has no subscribed recipients.";
+    if (selectedList && subscribedCount <= 0) return t("wizard.validation.noSubscribedRecipients");
     if (scheduleMode === "later") {
-      if (!scheduleDate || !scheduleTime) return "Pick a date and time to schedule the send.";
+      if (!scheduleDate || !scheduleTime) return t("wizard.validation.pickDateTime");
       if (new Date(`${scheduleDate}T${scheduleTime}`).getTime() < Date.now() + 60_000) {
-        return "Schedule time must be in the future.";
+        return t("wizard.validation.scheduleInFuture");
       }
     }
     return null;
@@ -224,7 +226,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   /** Creates or updates the draft and returns its id. */
   async function saveDraft(): Promise<string | null> {
     if (!name.trim()) {
-      setValidationError("Campaign name is required.");
+      setValidationError(t("wizard.validation.nameRequired"));
       return null;
     }
     const input = {
@@ -245,7 +247,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
       setSavedId(created.campaign.id);
       return created.campaign.id;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save campaign");
+      toast.error(err instanceof Error ? err.message : t("wizard.toasts.saveFailed"));
       return null;
     }
   }
@@ -253,7 +255,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   async function handleSaveDraft() {
     const id = await saveDraft();
     if (id) {
-      toast.success("Draft saved");
+      toast.success(t("wizard.toasts.draftSaved"));
       onClose();
     }
   }
@@ -271,16 +273,16 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   async function handleSendTest() {
     const emails = testEmails.split(/[\s,;]+/).filter(Boolean);
     if (emails.length === 0) {
-      toast.error("Enter at least one test email address");
+      toast.error(t("wizard.toasts.enterTestEmail"));
       return;
     }
     const id = await saveDraft();
     if (!id) return;
     try {
       const result = await testMutation.mutateAsync({ id, emails });
-      toast.success(`Test email sent to ${result.sentTo.join(", ")}`);
+      toast.success(t("wizard.toasts.testSent", { emails: result.sentTo.join(", ") }));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Test send failed");
+      toast.error(err instanceof Error ? err.message : t("wizard.toasts.testSendFailed"));
     }
   }
 
@@ -299,14 +301,14 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
     try {
       const res = await fetch(`/api/dashboard/sendgrid/campaigns/${id}/precheck`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not verify campaign");
+      if (!res.ok) throw new Error(data.error ?? t("wizard.toasts.verifyFailed"));
       if (!data.ready) {
-        setValidationError(data.reason ?? "Campaign is not ready to send.");
+        setValidationError(data.reason ?? t("wizard.validation.notReady"));
         return;
       }
       setConfirm({ recipientCount: data.recipientCount, listName: data.listName ?? selectedList?.name ?? "—" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not verify campaign");
+      toast.error(err instanceof Error ? err.message : t("wizard.toasts.verifyFailed"));
     }
   }
 
@@ -318,17 +320,17 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
       const result = await sendMutation.mutateAsync({ id: savedId, scheduleAt });
       toast.success(
         result.status === "SCHEDULED"
-          ? `Campaign scheduled for ${new Date(`${scheduleDate}T${scheduleTime}`).toLocaleString()}`
-          : `Campaign sent to ${result.totalRecipients} recipient${result.totalRecipients === 1 ? "" : "s"}`,
+          ? t("wizard.toasts.scheduledFor", { date: new Date(`${scheduleDate}T${scheduleTime}`).toLocaleString() })
+          : t("wizard.toasts.sentTo", { count: result.totalRecipients }),
       );
       onClose();
     } catch (err) {
       setConfirm(null);
-      setValidationError(err instanceof Error ? err.message : "Send failed");
+      setValidationError(err instanceof Error ? err.message : t("wizard.toasts.sendFailed"));
     }
   }
 
-  const stepTitle = step === 1 ? "Select Template" : step === 2 ? "Configure Campaign" : "Review & Send";
+  const stepTitle = step === 1 ? t("wizard.stepLabels.selectTemplate") : step === 2 ? t("wizard.stepLabels.configure") : t("wizard.stepLabels.reviewSend");
 
   return (
     <div
@@ -347,16 +349,16 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-0.5">
               <p className="text-[17px] font-semibold text-[#0d2138]" style={poppins}>
-                {isEdit ? "Edit Campaign" : "New Campaign"}
+                {isEdit ? t("wizard.editTitle") : t("wizard.newTitle")}
               </p>
               <p className="text-[12px] text-[#6a7282]" style={mont}>
-                Step {step} of 3 — {stepTitle}
+                {t("wizard.stepOf", { step, label: stepTitle })}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t("wizard.closeAria")}
               className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
             >
               <X size={18} />
@@ -366,11 +368,11 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 border-b border-[#f3f4f6] px-5 py-4">
-          <StepIndicator step={1} current={step} label="Select Template" />
+          <StepIndicator step={1} current={step} label={t("wizard.stepLabels.selectTemplate")} />
           <span className="h-px flex-1 bg-[#e5e7eb]" />
-          <StepIndicator step={2} current={step} label="Configure" />
+          <StepIndicator step={2} current={step} label={t("wizard.stepLabels.configure")} />
           <span className="h-px flex-1 bg-[#e5e7eb]" />
-          <StepIndicator step={3} current={step} label="Review & Send" />
+          <StepIndicator step={3} current={step} label={t("wizard.stepLabels.reviewSend")} />
         </div>
 
         {/* Body */}
@@ -378,7 +380,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
           {step === 1 && (
             <div className="flex flex-col gap-3">
               <p className="text-[13px] text-[#6a7282]" style={mont}>
-                Choose an email template for this campaign
+                {t("wizard.step1.prompt")}
               </p>
               {MARKETING_TEMPLATES.map((template) => {
                 const selected = templateKey === template.key;
@@ -399,11 +401,11 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                         {template.name}
                       </span>
                       <span className="truncate text-[12px] text-[#6a7282]" style={mont}>
-                        {template.subject || "Start from an empty layout"}
+                        {template.subject || t("wizard.step1.emptyLayout")}
                       </span>
                     </span>
                     <span className="shrink-0 rounded-full bg-[#eff6ff] px-3 py-1 text-[11px] font-semibold text-[#1e4f86]" style={mont}>
-                      Marketing
+                      {t("wizard.step1.marketingBadge")}
                     </span>
                     {selected && <Check size={18} className="shrink-0 text-[#1e4f86]" />}
                   </button>
@@ -415,56 +417,56 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
           {step === 2 && (
             <div className="flex flex-col gap-4">
               <p className="text-[13px] text-[#6a7282]" style={mont}>
-                Configure your campaign settings and schedule
+                {t("wizard.step2.prompt")}
               </p>
 
-              <Field label="Campaign Name" required>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. April New Listings Newsletter" className={inputCls} style={mont} />
+              <Field label={t("wizard.step2.campaignName")} required>
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("wizard.step2.campaignNamePlaceholder")} className={inputCls} style={mont} />
               </Field>
 
-              <Field label="Subject Line" required>
-                <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="New Property Available" className={inputCls} style={mont} />
+              <Field label={t("wizard.step2.subjectLine")} required>
+                <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={t("wizard.step2.subjectLinePlaceholder")} className={inputCls} style={mont} />
               </Field>
 
-              <Field label="Preview Text">
+              <Field label={t("wizard.step2.previewText")}>
                 <input
                   value={previewText}
                   onChange={(e) => setPreviewText(e.target.value)}
-                  placeholder="Short text shown after the subject in the inbox"
+                  placeholder={t("wizard.step2.previewTextPlaceholder")}
                   className={inputCls}
                   style={mont}
                 />
               </Field>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="From Name">
+                <Field label={t("wizard.step2.fromName")}>
                   <input value={fromName} onChange={(e) => setFromName(e.target.value)} className={inputCls} style={mont} />
                 </Field>
-                <Field label="From Email">
+                <Field label={t("wizard.step2.fromEmail")}>
                   <input
                     value={NEWSLETTER_SENDER}
                     disabled
                     className={`${inputCls} cursor-not-allowed opacity-70`}
                     style={mont}
-                    title="Campaigns always send from the dedicated marketing address"
+                    title={t("wizard.step2.fromEmailTitle")}
                   />
                 </Field>
               </div>
 
-              <Field label="Audience List" required>
+              <Field label={t("wizard.step2.audienceList")} required>
                 <SearchableSelect
                   searchable={false}
                   value={listId}
                   onChange={setListId}
-                  placeholder="Select an audience…"
+                  placeholder={t("wizard.step2.audiencePlaceholder")}
                   options={lists.map((list) => ({
                     value: list.id,
-                    label: `${list.name} (${list.memberCount - list.unsubscribedCount - list.bouncedCount} subscribed)`,
+                    label: `${list.name} (${list.memberCount - list.unsubscribedCount - list.bouncedCount} ${t("wizard.step2.audienceOptionSubscribed")})`,
                   }))}
                 />
               </Field>
 
-              <Field label="Email Content" required>
+              <Field label={t("wizard.step2.emailContent")} required>
                 <div className="overflow-hidden rounded-[10px] border border-[#e5e7eb]">
                   <div className="flex items-center justify-between border-b border-[#e5e7eb] bg-[#fafbfc] px-3 py-2">
                     {hasSimpleFields && !showPreview ? (
@@ -479,13 +481,13 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                             }`}
                             style={mont}
                           >
-                            {mode === "simple" ? "Simple" : "HTML"}
+                            {mode === "simple" ? t("wizard.step2.simple") : t("wizard.step2.html")}
                           </button>
                         ))}
                       </div>
                     ) : (
                       <span className="text-[11px] text-[#6a7282]" style={mont}>
-                        HTML — %first_name% is replaced per recipient; the unsubscribe footer is added automatically
+                        {t("wizard.step2.htmlNote")}
                       </span>
                     )}
                     <button
@@ -495,40 +497,40 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                       style={mont}
                     >
                       {showPreview ? <Code size={12} /> : <Eye size={12} />}
-                      {showPreview ? (editorMode === "simple" && hasSimpleFields ? "Edit Content" : "Edit HTML") : "Preview"}
+                      {showPreview ? (editorMode === "simple" && hasSimpleFields ? t("wizard.step2.editContent") : t("wizard.step2.editHtml")) : t("wizard.step2.preview")}
                     </button>
                   </div>
                   {showPreview ? (
                     <iframe
-                      title="Email preview"
+                      title={t("wizard.step2.emailPreviewTitle")}
                       sandbox=""
                       srcDoc={htmlBody.replace(/%first_name%/g, "María").replace(/%unsubscribe_url%/g, "#")}
                       className="h-[420px] w-full bg-white"
                     />
                   ) : hasSimpleFields && editorMode === "simple" ? (
                     <div className="flex flex-col gap-4 bg-white p-3.5">
-                      <Field label="Message">
+                      <Field label={t("wizard.step2.messageLabel")}>
                         <textarea
                           value={messageText ?? ""}
                           onChange={(e) => updateMessage(e.target.value)}
                           rows={4}
                           className="w-full resize-y rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-3 text-[13px] leading-5 text-[#0d2138] focus:border-[#1e4f86] focus:outline-none"
                           style={mont}
-                          placeholder="Write the message shown after the greeting…"
+                          placeholder={t("wizard.step2.messagePlaceholder")}
                         />
                       </Field>
-                      <Field label="Banner Image Link (optional)">
+                      <Field label={t("wizard.step2.bannerImageLabel")}>
                         <input
                           value={imageUrl ?? ""}
                           onChange={(e) => updateImageUrl(e.target.value)}
-                          placeholder="https://…  (paste an image link — no file uploads)"
+                          placeholder={t("wizard.step2.bannerImagePlaceholder")}
                           className={inputCls}
                           style={mont}
                         />
                       </Field>
                       {cta && (
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          <Field label="Button Text">
+                          <Field label={t("wizard.step2.buttonText")}>
                             <input
                               value={cta.label}
                               onChange={(e) => updateCtaLabel(e.target.value)}
@@ -536,11 +538,11 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                               style={mont}
                             />
                           </Field>
-                          <Field label="Button Link">
+                          <Field label={t("wizard.step2.buttonLink")}>
                             <input
                               value={cta.url}
                               onChange={(e) => updateCtaUrl(e.target.value)}
-                              placeholder="https://…"
+                              placeholder={t("wizard.step2.buttonLinkPlaceholder")}
                               className={inputCls}
                               style={mont}
                             />
@@ -562,24 +564,23 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               </Field>
 
               {hasPropertiesBlock && (
-                <Field label="Featured Properties">
+                <Field label={t("wizard.step2.featuredProperties")}>
                   <div className="flex flex-col gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] p-3.5">
                     <p className="text-[11px] text-[#6a7282]" style={mont}>
-                      Pick the real listings to show in this email — they are inserted as property cards with
-                      photo, price and a link to the listing page.
+                      {t("wizard.step2.featuredPropertiesHint")}
                     </p>
                     <ListingPicker
                       value=""
                       label=""
                       tone="neutral"
-                      placeholder="Search listings to feature…"
+                      placeholder={t("wizard.step2.featuredSearchPlaceholder")}
                       excludeIds={featured.map((c) => c.id)}
                       disabled={featuredLoading || featured.length >= 12}
                       onSelect={(id) => void updateFeatured([...featured.map((c) => c.id), id])}
                     />
                     {featuredLoading && (
                       <span className="flex items-center gap-1.5 text-[11px] text-[#6a7282]" style={mont}>
-                        <Loader2 size={11} className="animate-spin" /> Updating properties…
+                        <Loader2 size={11} className="animate-spin" /> {t("wizard.step2.updatingProperties")}
                       </span>
                     )}
                     {featured.length > 0 ? (
@@ -593,7 +594,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                             <span className="shrink-0 text-[11px] text-[#6a7282]" style={mont}>{card.priceLabel}</span>
                             <button
                               type="button"
-                              aria-label={`Remove ${card.title}`}
+                              aria-label={t("wizard.step2.removeAria", { title: card.title })}
                               onClick={() => void updateFeatured(featured.filter((c) => c.id !== card.id).map((c) => c.id))}
                               className="flex size-6 shrink-0 items-center justify-center rounded-[6px] text-[#9ca3af] hover:bg-[#fff1f2] hover:text-[#dc2626]"
                             >
@@ -605,7 +606,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                     ) : (
                       !featuredLoading && (
                         <span className="text-[11px] text-[#9ca3af]" style={mont}>
-                          No properties selected yet — the email shows an empty placeholder until you add some.
+                          {t("wizard.step2.noPropertiesSelected")}
                         </span>
                       )
                     )}
@@ -613,7 +614,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                 </Field>
               )}
 
-              <Field label="Send Schedule">
+              <Field label={t("wizard.step2.sendSchedule")}>
                 <div className="grid grid-cols-2 gap-3">
                   {(["now", "later"] as const).map((mode) => (
                     <button
@@ -625,7 +626,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                       }`}
                       style={mont}
                     >
-                      {mode === "now" ? "Send now" : "Schedule for later"}
+                      {mode === "now" ? t("wizard.step2.sendNow") : t("wizard.step2.scheduleForLater")}
                     </button>
                   ))}
                 </div>
@@ -633,10 +634,10 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
 
               {scheduleMode === "later" && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Field label="Date" required>
+                  <Field label={t("wizard.step2.date")} required>
                     <input type="date" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} className={inputCls} style={mont} />
                   </Field>
-                  <Field label="Time" required>
+                  <Field label={t("wizard.step2.time")} required>
                     <input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className={inputCls} style={mont} />
                   </Field>
                 </div>
@@ -647,23 +648,23 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
           {step === 3 && (
             <div className="flex flex-col gap-4">
               <p className="text-[13px] text-[#6a7282]" style={mont}>
-                Review the details before sending
+                {t("wizard.step3.prompt")}
               </p>
 
               <div className="overflow-hidden rounded-[12px] border border-[#e5e7eb]">
                 {[
-                  ["Campaign", name],
-                  ["Template", MARKETING_TEMPLATES.find((t) => t.key === templateKey)?.name ?? "Custom"],
-                  ["Subject", subject],
-                  ["From", `${fromName} <${NEWSLETTER_SENDER}>`],
-                  ["Audience", selectedList ? `${selectedList.name} (${subscribedCount} subscribed)` : "—"],
+                  [t("wizard.step3.campaign"), name],
+                  [t("wizard.step3.template"), MARKETING_TEMPLATES.find((tpl) => tpl.key === templateKey)?.name ?? t("wizard.step3.templateCustom")],
+                  [t("wizard.step3.subject"), subject],
+                  [t("wizard.step3.from"), `${fromName} <${NEWSLETTER_SENDER}>`],
+                  [t("wizard.step3.audience"), selectedList ? `${selectedList.name} (${subscribedCount} ${t("wizard.step2.audienceOptionSubscribed")})` : "—"],
                   ...(hasPropertiesBlock
-                    ? [["Properties", featured.length > 0 ? featured.map((c) => c.listingId).join(", ") : "None selected"] as [string, string]]
+                    ? [[t("wizard.step3.properties"), featured.length > 0 ? featured.map((c) => c.listingId).join(", ") : t("wizard.step3.noneSelected")] as [string, string]]
                     : []),
                   [
-                    "Schedule",
+                    t("wizard.step3.schedule"),
                     scheduleMode === "now"
-                      ? "Send immediately"
+                      ? t("wizard.step3.sendImmediately")
                       : scheduleDate && scheduleTime
                         ? `${scheduleDate} at ${scheduleTime}`
                         : "—",
@@ -679,20 +680,18 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               <div className="flex items-start gap-3 rounded-[12px] border border-[#dbeafe] bg-[#eff6ff] p-4">
                 <ShieldCheck size={18} className="mt-0.5 shrink-0 text-[#1e4f86]" />
                 <p className="text-[12px] leading-5 text-[#1e4f86]" style={mont}>
-                  This campaign will be sent via SendGrid from {NEWSLETTER_SENDER}. Every recipient gets an
-                  unsubscribe link automatically, and unsubscribed or bounced contacts are excluded. A campaign
-                  can only be sent once — duplicate it to send again.
+                  {t("wizard.step3.disclosure", { sender: NEWSLETTER_SENDER })}
                 </p>
               </div>
 
               {/* Test send */}
               <div className="flex flex-col gap-2 rounded-[12px] border border-[#e5e7eb] p-4">
-                <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>Send a test first</span>
+                <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>{t("wizard.step3.sendTestFirst")}</span>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     value={testEmails}
                     onChange={(e) => setTestEmails(e.target.value)}
-                    placeholder="you@example.com, colleague@example.com"
+                    placeholder={t("wizard.step3.testEmailsPlaceholder")}
                     className={`${inputCls} flex-1`}
                     style={mont}
                   />
@@ -704,11 +703,11 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                     style={mont}
                   >
                     {testMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                    Send Test
+                    {t("wizard.step3.sendTest")}
                   </button>
                 </div>
                 <p className="text-[11px] text-[#9ca3af]" style={mont}>
-                  Test emails are marked [Test], don&apos;t count toward metrics and don&apos;t mark the campaign as sent. Max 5 addresses.
+                  {t("wizard.step3.testNote")}
                 </p>
               </div>
             </div>
@@ -732,7 +731,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               className="min-h-[42px] rounded-[10px] border border-[#e5e7eb] px-5 text-[13px] font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
               style={mont}
             >
-              Back
+              {t("wizard.back")}
             </button>
           )}
           <button
@@ -742,7 +741,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
             className="min-h-[42px] rounded-[10px] border border-[#e5e7eb] px-5 text-[13px] font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
             style={mont}
           >
-            Cancel
+            {t("wizard.cancel")}
           </button>
           <div className="flex-1" />
           {step >= 2 && (
@@ -753,7 +752,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               className="min-h-[42px] rounded-[10px] border border-[#1e4f86] px-5 text-[13px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] disabled:opacity-50"
               style={mont}
             >
-              {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save Draft"}
+              {createMutation.isPending || updateMutation.isPending ? t("wizard.saving") : t("wizard.saveDraft")}
             </button>
           )}
           {step === 1 && (
@@ -761,7 +760,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               type="button"
               onClick={() => {
                 if (!templateKey) {
-                  setValidationError("Select a template to continue.");
+                  setValidationError(t("wizard.validation.selectTemplate"));
                   return;
                 }
                 setValidationError(null);
@@ -770,7 +769,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               className="min-h-[42px] rounded-[10px] bg-[#1e4f86] px-8 text-[13px] font-medium text-white hover:bg-[#1b487a]"
               style={mont}
             >
-              Continue
+              {t("wizard.continue")}
             </button>
           )}
           {step === 2 && (
@@ -781,7 +780,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               className="min-h-[42px] rounded-[10px] bg-[#1e4f86] px-8 text-[13px] font-medium text-white hover:bg-[#1b487a] disabled:opacity-50"
               style={mont}
             >
-              Continue
+              {t("wizard.continue")}
             </button>
           )}
           {step === 3 && canSend && (
@@ -793,7 +792,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               style={mont}
             >
               {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              {scheduleMode === "later" ? "Schedule Campaign" : "Send Campaign"}
+              {scheduleMode === "later" ? t("wizard.scheduleCampaign") : t("wizard.sendCampaign")}
             </button>
           )}
         </div>
@@ -808,15 +807,15 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
           <div className="absolute inset-0 bg-black/50" onClick={() => !sendMutation.isPending && setConfirm(null)} />
           <div className="relative z-10 flex w-full max-w-[440px] flex-col gap-4 rounded-[14px] bg-white p-6 shadow-xl">
             <p className="text-[16px] font-semibold text-[#0d2138]" style={poppins}>
-              {scheduleMode === "later" ? "Schedule this campaign?" : "Send this campaign now?"}
+              {scheduleMode === "later" ? t("wizard.confirm.scheduleTitle") : t("wizard.confirm.sendTitle")}
             </p>
             <div className="flex flex-col gap-2 rounded-[10px] bg-[#f8fafc] p-4">
               {[
-                ["Audience", confirm.listName],
-                ["Recipients", `${confirm.recipientCount} subscribed contact${confirm.recipientCount === 1 ? "" : "s"}`],
-                ["Sender", `${fromName} <${NEWSLETTER_SENDER}>`],
-                ["Subject", subject],
-                ...(scheduleMode === "later" ? [["Scheduled for", `${scheduleDate} at ${scheduleTime}`] as [string, string]] : []),
+                [t("wizard.confirm.audience"), confirm.listName],
+                [t("campaigns.columns.recipients"), t("wizard.confirm.recipients", { count: confirm.recipientCount })],
+                [t("wizard.confirm.sender"), `${fromName} <${NEWSLETTER_SENDER}>`],
+                [t("wizard.confirm.subject"), subject],
+                ...(scheduleMode === "later" ? [[t("wizard.confirm.scheduledFor"), `${scheduleDate} at ${scheduleTime}`] as [string, string]] : []),
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-3">
                   <span className="text-[12px] text-[#6a7282]" style={mont}>{label}</span>
@@ -825,8 +824,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               ))}
             </div>
             <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-              This action cannot be undone{scheduleMode === "later" ? " once the scheduled time arrives" : ""} — the
-              campaign can only be sent once.
+              {t("wizard.confirm.undoNote", { suffix: scheduleMode === "later" ? t("wizard.confirm.undoNoteScheduled") : "" })}
             </p>
             <div className="flex justify-end gap-2.5">
               <button
@@ -836,7 +834,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                 className="min-h-[40px] rounded-[10px] border border-[#e5e7eb] px-4 text-[13px] font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
                 style={mont}
               >
-                Cancel
+                {t("wizard.confirm.cancel")}
               </button>
               <button
                 type="button"
@@ -846,7 +844,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                 style={mont}
               >
                 {sendMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                {sendMutation.isPending ? "Sending…" : scheduleMode === "later" ? "Confirm Schedule" : "Confirm & Send"}
+                {sendMutation.isPending ? t("wizard.confirm.sending") : scheduleMode === "later" ? t("wizard.confirm.confirmSchedule") : t("wizard.confirm.confirmSend")}
               </button>
             </div>
           </div>

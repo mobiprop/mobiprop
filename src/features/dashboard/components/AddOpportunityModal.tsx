@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, FileSignature, Send, Link2Off, RefreshCw, XCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { ContactType, OpportunityStage, OpportunityStatus, EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
 import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
@@ -92,31 +93,23 @@ const inputClass =
   "h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
-const DEAL_TYPE_OPTIONS = ["Rent", "Sale"].map((v) => ({ value: v, label: v }));
 const COMMISSION_UNIT_OPTIONS = [
   { value: "%", label: "%" },
   { value: "$", label: "$" },
 ];
-const STAGE_OPTIONS: { value: OpportunityStage; label: string }[] = [
-  { value: OpportunityStage.QUALIFICATION, label: "Qualification" },
-  { value: OpportunityStage.VISITATION, label: "Visitation" },
-  { value: OpportunityStage.OFFER, label: "Offer" },
-  { value: OpportunityStage.NEGOTIATION, label: "Negotiation" },
-  { value: OpportunityStage.CLOSING, label: "Closing" },
+const STAGE_VALUES: OpportunityStage[] = [
+  OpportunityStage.QUALIFICATION,
+  OpportunityStage.VISITATION,
+  OpportunityStage.OFFER,
+  OpportunityStage.NEGOTIATION,
+  OpportunityStage.CLOSING,
 ];
-const STATUS_OPTIONS: { value: OpportunityStatus; label: string }[] = [
-  { value: OpportunityStatus.OPEN, label: "Open" },
-  { value: OpportunityStatus.CLOSED_WON, label: "Closed Won" },
-  { value: OpportunityStatus.CLOSED_LOST, label: "Closed Lost" },
+const STATUS_VALUES: OpportunityStatus[] = [
+  OpportunityStatus.OPEN,
+  OpportunityStatus.CLOSED_WON,
+  OpportunityStatus.CLOSED_LOST,
 ];
-
-const ROLE_LABELS: Record<OpportunityParticipantRole, string> = {
-  BUYER: "Buyer",
-  SELLER: "Seller",
-  AGENCY: "Real Estate Company",
-};
-const ROLE_OPTIONS = (["BUYER", "SELLER", "AGENCY"] as const).map((role) => ({ value: role, label: ROLE_LABELS[role] }));
-const CONTACT_ROLE_OPTIONS = ROLE_OPTIONS.filter((o) => o.value !== "AGENCY");
+const ROLE_VALUES = ["BUYER", "SELLER", "AGENCY"] as const;
 
 let rowKeySeq = 0;
 function newRowKey() {
@@ -174,6 +167,21 @@ function fmtPreview(amount: number | null) {
 }
 
 export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving, lockedAgent, role }: AddOpportunityModalProps) {
+  const { t } = useTranslation("opportunities");
+  const ROLE_LABELS: Record<OpportunityParticipantRole, string> = {
+    BUYER: t("addModal.participantsSection.roles.BUYER"),
+    SELLER: t("addModal.participantsSection.roles.SELLER"),
+    AGENCY: t("addModal.participantsSection.roles.AGENCY"),
+  };
+  const ROLE_OPTIONS = ROLE_VALUES.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
+  const CONTACT_ROLE_OPTIONS = ROLE_OPTIONS.filter((o) => o.value !== "AGENCY");
+  const DEAL_TYPE_OPTIONS: { value: "Rent" | "Sale"; label: string }[] = [
+    { value: "Rent", label: t("addModal.dealTypeOptions.RENT") },
+    { value: "Sale", label: t("addModal.dealTypeOptions.SALE") },
+  ];
+  const STAGE_OPTIONS = STAGE_VALUES.map((value) => ({ value, label: t(`dashboard:status.${value}`) }));
+  const STATUS_OPTIONS = STATUS_VALUES.map((value) => ({ value, label: t(`dashboard:status.${value}`) }));
+
   const [title, setTitle] = useState(initial?.title ?? "");
   const [participants, setParticipants] = useState<ParticipantFormRow[]>(() => participantsFromInitial(initial));
   const [participantsError, setParticipantsError] = useState<string | null>(null);
@@ -251,9 +259,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     try {
       await attachMutation.mutateAsync({ opportunityId: initial.id, envelopeId: selectedEnvelopeId });
       setSelectedEnvelopeId("");
-      toast.success("Envelope attached");
+      toast.success(t("addModal.contractsSection.toasts.attached"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to attach envelope");
+      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.attachFailed"));
     }
   }
 
@@ -261,29 +269,29 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     if (!initial) return;
     try {
       await detachMutation.mutateAsync({ opportunityId: initial.id, envelopeId });
-      toast.success("Envelope detached");
+      toast.success(t("addModal.contractsSection.toasts.detached"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to detach envelope");
+      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.detachFailed"));
     }
   }
 
   async function voidLinkedEnvelope(envelopeId: string) {
-    const reason = window.prompt("Reason for voiding this envelope?");
+    const reason = window.prompt(t("addModal.contractsSection.voidReasonPrompt"));
     if (!reason) return;
     try {
       await voidMutation.mutateAsync({ id: envelopeId, reason });
-      toast.success("Envelope voided");
+      toast.success(t("addModal.contractsSection.toasts.voided"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to void envelope");
+      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.voidFailed"));
     }
   }
 
   async function resendLinkedEnvelope(envelopeId: string) {
     try {
       await resendMutation.mutateAsync(envelopeId);
-      toast.success("Reminder sent");
+      toast.success(t("addModal.contractsSection.toasts.reminderSent"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to resend");
+      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.resendFailed"));
     }
   }
 
@@ -376,7 +384,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   function addExistingParticipant() {
     if (existingRole === "AGENCY") {
       if (!existingCompanyName.trim()) {
-        toast.error("Enter a company name.");
+        toast.error(t("addModal.participantsSection.companyNameRequired"));
         return;
       }
       setParticipants((rows) => [...rows, {
@@ -385,7 +393,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       }]);
     } else {
       if (!existingContactId) {
-        toast.error("Select a contact.");
+        toast.error(t("addModal.participantsSection.selectContactRequired"));
         return;
       }
       setParticipants((rows) => [...rows, {
@@ -399,11 +407,11 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
 
   async function createAndAddContact() {
     if (!ncFirstName.trim() || !ncLastName.trim()) {
-      toast.error("First and last name are required.");
+      toast.error(t("addModal.participantsSection.newPanel.nameRequired"));
       return;
     }
     if (!ncEmail.trim() && !ncPhone.trim()) {
-      toast.error("Provide at least an email or a phone number.");
+      toast.error(t("addModal.participantsSection.newPanel.emailOrPhoneRequired"));
       return;
     }
     try {
@@ -414,7 +422,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
         phone: ncPhone.trim(),
         type: ncType,
       });
-      toast.success("Contact created");
+      toast.success(t("addModal.participantsSection.newPanel.contactCreated"));
       if (ncAddAsParticipant) {
         setParticipants((rows) => [...rows, {
           key: newRowKey(), role: ncRole, contactId: contact.id, contactLabel: contact.fullName,
@@ -424,7 +432,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       }
       closeParticipantPanel();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create contact");
+      toast.error(err instanceof Error ? err.message : t("addModal.participantsSection.newPanel.createFailed"));
     }
   }
 
@@ -448,7 +456,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
       (r) => (r.role === "BUYER" || r.role === "SELLER") && r.contactId,
     );
     if (!hasBuyerOrSeller) {
-      setParticipantsError("At least one Buyer or Seller contact is required.");
+      setParticipantsError(t("addModal.participantsRequired"));
       return;
     }
     // A source was picked (document/template) but never finished (no
@@ -457,8 +465,8 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
     if (mode === "create" && contractSource !== "NONE" && !contractSelection) {
       setContractError(
         contractSource === "TEMPLATE"
-          ? "Select a template and a signer to send this contract, or switch to No Contract."
-          : "Select a document and at least one signer to send this contract, or switch to No Contract.",
+          ? t("addModal.contractIncompleteTemplate")
+          : t("addModal.contractIncompleteUpload"),
       );
       return;
     }
@@ -518,19 +526,19 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
               opportunityId: saved.id,
             });
           }
-          toast.success("Opportunity created and contract sent");
+          toast.success(t("addModal.toasts.createdAndSent"));
         } catch {
-          toast.error("Opportunity created, but contract sending failed. You can retry from the Opportunity.");
+          toast.error(t("addModal.toasts.sendFailed"));
           onClose();
           return;
         }
       } else {
-        toast.success(mode === "edit" ? "Opportunity updated" : "Opportunity created");
+        toast.success(mode === "edit" ? t("addModal.toasts.updated") : t("addModal.toasts.created"));
       }
 
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save opportunity");
+      toast.error(err instanceof Error ? err.message : t("addModal.toasts.saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -546,7 +554,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between px-6 py-5 border-b border-[#e5e7eb]">
           <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>
-            {mode === "edit" ? "Edit Opportunity" : "New Opportunity"}
+            {mode === "edit" ? t("addModal.editTitle") : t("addModal.newTitle")}
           </p>
           <button type="button" onClick={requestClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
             <X size={18} />
@@ -566,9 +574,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                   <AlertTriangle size={18} className="text-[#b45309]" />
                 </span>
                 <div className="flex flex-col gap-1">
-                  <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Discard changes?</p>
+                  <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("addModal.discardConfirm.title")}</p>
                   <p className="text-[13px] leading-5 text-[#6a7282]" style={mont}>
-                    You have unsaved changes to this opportunity. Closing now will lose them.
+                    {t("addModal.discardConfirm.message")}
                   </p>
                 </div>
               </div>
@@ -579,7 +587,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                   className="flex-1 h-10 rounded-[10px] border border-[#e5e7eb] bg-white text-[13px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
                   style={mont}
                 >
-                  Keep Editing
+                  {t("addModal.discardConfirm.keepEditing")}
                 </button>
                 <button
                   type="button"
@@ -587,7 +595,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                   className="flex-1 h-10 rounded-[10px] bg-[#fb2c36] text-[13px] font-medium text-white transition-colors hover:bg-[#e0262f]"
                   style={mont}
                 >
-                  Discard
+                  {t("addModal.discardConfirm.discard")}
                 </button>
               </div>
             </div>
@@ -597,17 +605,17 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-6">
           {/* Opportunity name */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Opportunity Name *</label>
-            <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter opportunity name" className={inputClass} style={mont} />
+            <label className={labelClass} style={mont}>{t("addModal.name")}</label>
+            <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("addModal.namePlaceholder")} className={inputClass} style={mont} />
           </div>
 
           {/* Participants */}
           <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
             <div className="flex items-center gap-2">
               <Users size={15} className="shrink-0 text-[#1a5ea8]" />
-              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Participants *</p>
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>{t("addModal.participantsSection.title")}</p>
             </div>
-            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Assign people associated with this opportunity.</p>
+            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>{t("addModal.participantsSection.subtitle")}</p>
 
             {participants.length > 0 && (
               <div className="flex flex-col gap-2">
@@ -619,7 +627,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                       </span>
                       <div className="flex min-w-0 flex-col">
                         <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>
-                          {row.role === "AGENCY" ? row.companyName || "Untitled company" : row.contactLabel || "Untitled contact"}
+                          {row.role === "AGENCY" ? row.companyName || t("addModal.participantsSection.untitledCompany") : row.contactLabel || t("addModal.participantsSection.untitledContact")}
                         </span>
                         <span className="truncate text-[11px] text-[#6a7282]" style={mont}>{ROLE_LABELS[row.role]}</span>
                       </div>
@@ -627,7 +635,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     <button
                       type="button"
                       onClick={() => removeParticipant(row.key)}
-                      title="Remove participant"
+                      title={t("addModal.participantsSection.removeAria")}
                       className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
                     >
                       <Trash2 size={14} />
@@ -644,7 +652,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors"
                 style={mont}
               >
-                <Plus size={14} /> Add Contact
+                <Plus size={14} /> {t("addModal.participantsSection.addContact")}
               </button>
               <button
                 type="button"
@@ -652,7 +660,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
                 style={mont}
               >
-                <UserPlus size={14} /> Add Participant
+                <UserPlus size={14} /> {t("addModal.participantsSection.addParticipant")}
               </button>
             </div>
 
@@ -661,15 +669,15 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             {/* Add Existing Contact as Participant */}
             {participantPanel === "existing" && (
               <div className="flex flex-col gap-3 rounded-[10px] border border-[#e5e7eb] bg-white p-3.5">
-                <p className="text-[12px] font-semibold text-[#0d2138]" style={mont}>Add Existing Contact as Participant</p>
+                <p className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{t("addModal.participantsSection.existingPanel.title")}</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>{existingRole === "AGENCY" ? "Company Name *" : "Select Contact *"}</label>
+                    <label className={labelClass} style={mont}>{existingRole === "AGENCY" ? t("addModal.participantsSection.existingPanel.companyName") : t("addModal.participantsSection.existingPanel.selectContact")}</label>
                     {existingRole === "AGENCY" ? (
                       <input
                         value={existingCompanyName}
                         onChange={(e) => setExistingCompanyName(e.target.value)}
-                        placeholder="Real estate company name"
+                        placeholder={t("addModal.participantsSection.existingPanel.companyNamePlaceholder")}
                         className={inputClass}
                         style={mont}
                       />
@@ -678,34 +686,34 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                         value={existingContactId}
                         label={existingContactLabel}
                         onSelect={(id, lbl, email) => { setExistingContactId(id); setExistingContactLabel(lbl); setExistingContactEmail(email ?? ""); }}
-                        placeholder="Search and select contact…"
+                        placeholder={t("addModal.participantsSection.existingPanel.contactSearchPlaceholder")}
                       />
                     )}
                   </div>
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>Role *</label>
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.existingPanel.role")}</label>
                     <SearchableSelect
                       size="sm"
                       searchable={false}
                       value={existingRole}
                       onChange={(next) => setExistingRole(next as OpportunityParticipantRole)}
                       options={ROLE_OPTIONS}
-                      placeholder="Select role"
+                      placeholder={t("addModal.participantsSection.existingPanel.selectRole")}
                     />
                   </div>
                 </div>
                 {existingRole === "AGENCY" && (
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>Company Email</label>
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.existingPanel.companyEmail")}</label>
                     <input
                       type="email"
                       value={existingCompanyEmail}
                       onChange={(e) => setExistingCompanyEmail(e.target.value)}
-                      placeholder="contracts@agency.com"
+                      placeholder={t("addModal.participantsSection.existingPanel.companyEmailPlaceholder")}
                       className={inputClass}
                       style={mont}
                     />
-                    <p className="text-[11px] text-[#9ca3af]" style={mont}>Optional — lets this company be picked as a contract signer.</p>
+                    <p className="text-[11px] text-[#9ca3af]" style={mont}>{t("addModal.participantsSection.existingPanel.companyEmailHint")}</p>
                   </div>
                 )}
                 <div className="flex gap-3">
@@ -715,7 +723,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     className="h-9 px-4 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
                     style={mont}
                   >
-                    <UserPlus size={14} /> Add to Opportunity
+                    <UserPlus size={14} /> {t("addModal.participantsSection.existingPanel.addToOpportunity")}
                   </button>
                   <button
                     type="button"
@@ -723,7 +731,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     className="h-9 px-4 rounded-[8px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
                     style={mont}
                   >
-                    Cancel
+                    {t("addModal.participantsSection.existingPanel.cancel")}
                   </button>
                 </div>
               </div>
@@ -732,51 +740,51 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             {/* Add Contact */}
             {participantPanel === "new" && (
               <div className="flex flex-col gap-3 rounded-[10px] border border-[#e5e7eb] bg-white p-3.5">
-                <p className="text-[12px] font-semibold text-[#0d2138]" style={mont}>New Contact</p>
+                <p className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{t("addModal.participantsSection.newPanel.title")}</p>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>First Name *</label>
-                    <input value={ncFirstName} onChange={(e) => setNcFirstName(e.target.value)} placeholder="e.g. Jane" className={inputClass} style={mont} />
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.firstName")}</label>
+                    <input value={ncFirstName} onChange={(e) => setNcFirstName(e.target.value)} placeholder={t("addModal.participantsSection.newPanel.firstNamePlaceholder")} className={inputClass} style={mont} />
                   </div>
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>Last Name *</label>
-                    <input value={ncLastName} onChange={(e) => setNcLastName(e.target.value)} placeholder="e.g. Smith" className={inputClass} style={mont} />
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.lastName")}</label>
+                    <input value={ncLastName} onChange={(e) => setNcLastName(e.target.value)} placeholder={t("addModal.participantsSection.newPanel.lastNamePlaceholder")} className={inputClass} style={mont} />
                   </div>
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>Email Address</label>
-                    <input type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} placeholder="jane@example.com" className={inputClass} style={mont} />
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.email")}</label>
+                    <input type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} placeholder={t("addModal.participantsSection.newPanel.emailPlaceholder")} className={inputClass} style={mont} />
                   </div>
                   <div className="flex min-w-0 flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>Phone Number</label>
-                    <input type="tel" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} placeholder="+1 (555) 000-0000" className={inputClass} style={mont} />
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.phone")}</label>
+                    <input type="tel" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} placeholder={t("addModal.participantsSection.newPanel.phonePlaceholder")} className={inputClass} style={mont} />
                   </div>
                 </div>
                 {!ncEmail.trim() && !ncPhone.trim() && (
-                  <p className="text-[11px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+                  <p className="text-[11px] text-[#b45309]" style={mont}>{t("addModal.participantsSection.newPanel.emailOrPhoneRequired")}</p>
                 )}
 
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass} style={mont}>Contact Type *</label>
+                  <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.contactType")}</label>
                   <SearchableSelect
                     size="sm"
                     searchable={false}
                     value={ncType}
                     onChange={(next) => setNcType(next as ContactType)}
                     options={[
-                      { value: ContactType.BUYER, label: "Buyer" },
-                      { value: ContactType.SELLER, label: "Seller" },
-                      { value: ContactType.BOTH, label: "Both" },
+                      { value: ContactType.BUYER, label: t("addModal.participantsSection.newPanel.contactTypeOptions.BUYER") },
+                      { value: ContactType.SELLER, label: t("addModal.participantsSection.newPanel.contactTypeOptions.SELLER") },
+                      { value: ContactType.BOTH, label: t("addModal.participantsSection.newPanel.contactTypeOptions.BOTH") },
                     ]}
-                    placeholder="Select contact type"
-                    ariaLabel="Contact type"
+                    placeholder={t("addModal.participantsSection.newPanel.selectContactType")}
+                    ariaLabel={t("addModal.participantsSection.newPanel.contactTypeAria")}
                   />
                 </div>
 
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-3">
                   <span className="flex flex-col">
-                    <span className="text-[12px] font-medium text-[#1f2937]" style={mont}>Add as participant</span>
-                    <span className="text-[11px] text-[#6a7282]" style={mont}>Link this new contact directly to this opportunity</span>
+                    <span className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("addModal.participantsSection.newPanel.addAsParticipant")}</span>
+                    <span className="text-[11px] text-[#6a7282]" style={mont}>{t("addModal.participantsSection.newPanel.addAsParticipantHint")}</span>
                   </span>
                   <input
                     type="checkbox"
@@ -789,14 +797,14 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
 
                 {ncAddAsParticipant && (
                   <div className="flex flex-col gap-1.5">
-                    <label className={labelClass} style={mont}>Role *</label>
+                    <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.role")}</label>
                     <SearchableSelect
                       size="sm"
                       searchable={false}
                       value={ncRole}
                       onChange={(next) => setNcRole(next as OpportunityParticipantRole)}
                       options={CONTACT_ROLE_OPTIONS}
-                      placeholder="Select role"
+                      placeholder={t("addModal.participantsSection.newPanel.selectRole")}
                     />
                   </div>
                 )}
@@ -809,7 +817,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     className="h-9 px-4 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                     style={mont}
                   >
-                    <UserPlus size={14} /> {createContactMutation.isPending ? "Creating…" : "Create & Add to Opportunity"}
+                    <UserPlus size={14} /> {createContactMutation.isPending ? t("addModal.participantsSection.newPanel.creating") : t("addModal.participantsSection.newPanel.createAndAdd")}
                   </button>
                   <button
                     type="button"
@@ -817,7 +825,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     className="h-9 px-4 rounded-[8px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
                     style={mont}
                   >
-                    Cancel
+                    {t("addModal.participantsSection.newPanel.cancel")}
                   </button>
                 </div>
               </div>
@@ -828,9 +836,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
             <div className="flex items-center gap-2">
               <Home size={15} className="shrink-0 text-[#1a5ea8]" />
-              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings</p>
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>{t("addModal.listingsSection.title")}</p>
             </div>
-            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>Assign the properties linked to this opportunity.</p>
+            <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>{t("addModal.listingsSection.subtitle")}</p>
 
             <div className="flex flex-col gap-2.5">
               {listingRows.map((row, index) => (
@@ -845,14 +853,14 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     label={row.propertyLabel}
                     onSelect={(id, label) => updateListingRow(row.key, id, label)}
                     excludeIds={listingRows.filter((_, i) => i !== index).map((r) => r.propertyId).filter(Boolean)}
-                    placeholder="Select a listing…"
+                    placeholder={t("addModal.listingsSection.selectPlaceholder")}
                   />
                   <button
                     type="button"
                     onClick={() => removeListingRow(row.key)}
                     disabled={listingRows.length === 1}
-                    title="Remove listing"
-                    aria-label="Remove listing"
+                    title={t("addModal.listingsSection.removeAria")}
+                    aria-label={t("addModal.listingsSection.removeAria")}
                     className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Trash2 size={14} />
@@ -867,28 +875,28 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
               className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] sm:w-auto sm:self-start"
               style={mont}
             >
-              Add Listing
+              {t("addModal.listingsSection.addListing")}
             </button>
           </div>
 
           {/* Deal type / size */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Deal Type *</label>
+              <label className={labelClass} style={mont}>{t("addModal.dealType")}</label>
               <SearchableSelect
                 size="sm"
                 searchable={false}
                 value={dealType}
                 onChange={(next) => setDealType(next as "Rent" | "Sale")}
                 options={DEAL_TYPE_OPTIONS}
-                placeholder="Select type"
+                placeholder={t("addModal.selectType")}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Deal Size *</label>
+              <label className={labelClass} style={mont}>{t("addModal.dealSize")}</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>$</span>
-                <input required type="number" value={dealSize} onChange={(e) => setDealSize(e.target.value)} placeholder="0.00" className="h-10 w-full pl-7 pr-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
+                <input required type="number" value={dealSize} onChange={(e) => setDealSize(e.target.value)} placeholder={t("addModal.dealSizePlaceholder")} className="h-10 w-full pl-7 pr-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
               </div>
             </div>
           </div>
@@ -898,15 +906,15 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
             <div className="bg-[#f8fafc] border border-[#e5e7eb] rounded-[12px] p-4 flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <Calendar size={15} className="text-[#1e4f86]" />
-                <p className="text-[12px] font-medium text-[#1e4f86]" style={mont}>Rental contract period</p>
+                <p className="text-[12px] font-medium text-[#1e4f86]" style={mont}>{t("addModal.rentalPeriod.title")}</p>
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass} style={mont}>Contract start date *</label>
+                  <label className={labelClass} style={mont}>{t("addModal.rentalPeriod.startDate")}</label>
                   <DatePickerField required value={contractStart} onChange={setContractStart} />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass} style={mont}>Contract end date *</label>
+                  <label className={labelClass} style={mont}>{t("addModal.rentalPeriod.endDate")}</label>
                   <DatePickerField required value={contractEnd} onChange={setContractEnd} />
                 </div>
               </div>
@@ -916,9 +924,9 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           {/* Commission amount / payment terms */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Commission Amount</label>
+              <label className={labelClass} style={mont}>{t("addModal.commissionAmount")}</label>
               <div className="flex items-center gap-2">
-                <input value={commission} onChange={(e) => setCommission(e.target.value)} placeholder="Input the percentage" className={`flex-1 ${inputClass}`} style={mont} />
+                <input value={commission} onChange={(e) => setCommission(e.target.value)} placeholder={t("addModal.commissionPlaceholder")} className={`flex-1 ${inputClass}`} style={mont} />
                 <SearchableSelect
                   className="w-[72px] shrink-0"
                   size="sm"
@@ -930,18 +938,18 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 />
               </div>
               {commissionPreview && (
-                <p className="text-[11px] text-[#6a7282]" style={mont}>{commissionPreview} of deal size — company revenue</p>
+                <p className="text-[11px] text-[#6a7282]" style={mont}>{t("addModal.commissionPreview", { amount: commissionPreview })}</p>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Payment Terms</label>
-              <input value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} placeholder="e.g. Net 30, Installments, Cash" className={inputClass} style={mont} />
+              <label className={labelClass} style={mont}>{t("addModal.paymentTerms")}</label>
+              <input value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} placeholder={t("addModal.paymentTermsPlaceholder")} className={inputClass} style={mont} />
             </div>
           </div>
 
           {/* Probability slider */}
           <div className="flex flex-col gap-2">
-            <label className={labelClass} style={mont}>Probability: {probability}%</label>
+            <label className={labelClass} style={mont}>{t("addModal.probability", { value: probability })}</label>
             <input
               type="range"
               min={0}
@@ -960,45 +968,45 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           {/* Stage / expected close */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Stage *</label>
+              <label className={labelClass} style={mont}>{t("addModal.stage")}</label>
               <SearchableSelect
                 size="sm"
                 searchable={false}
                 value={stage}
                 onChange={(next) => setStage(next as OpportunityStage)}
                 options={STAGE_OPTIONS}
-                placeholder="Select stage"
+                placeholder={t("addModal.selectStage")}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Expected Close Date *</label>
+              <label className={labelClass} style={mont}>{t("addModal.expectedCloseDate")}</label>
               <DatePickerField required value={expectedCloseAt} onChange={setExpectedCloseAt} />
             </div>
           </div>
 
           {/* Status */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Status *</label>
+            <label className={labelClass} style={mont}>{t("addModal.status")}</label>
             <SearchableSelect
               size="sm"
               searchable={false}
               value={status}
               onChange={(next) => setStatus(next as OpportunityStatus)}
               options={STATUS_OPTIONS}
-              placeholder="Select status"
+              placeholder={t("addModal.selectStatus")}
             />
           </div>
 
           {/* Agent / agent commission */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Agent *</label>
-              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder="Select agent…" lockedAgent={lockedAgent} />
+              <label className={labelClass} style={mont}>{t("addModal.agent")}</label>
+              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder={t("addModal.selectAgentPlaceholder")} lockedAgent={lockedAgent} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Agent Commission</label>
+              <label className={labelClass} style={mont}>{t("addModal.agentCommission")}</label>
               <div className="flex items-center gap-2">
-                <input value={agentCommissionValue} onChange={(e) => setAgentCommissionValue(e.target.value)} placeholder="Input the percentage" className={`flex-1 ${inputClass}`} style={mont} />
+                <input value={agentCommissionValue} onChange={(e) => setAgentCommissionValue(e.target.value)} placeholder={t("addModal.commissionPlaceholder")} className={`flex-1 ${inputClass}`} style={mont} />
                 <SearchableSelect
                   className="w-[72px] shrink-0"
                   size="sm"
@@ -1010,25 +1018,25 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                 />
               </div>
               {agentCommissionPreview && (
-                <p className="text-[11px] text-[#6a7282]" style={mont}>{agentCommissionPreview} — reflected on the agent&apos;s earnings</p>
+                <p className="text-[11px] text-[#6a7282]" style={mont}>{t("addModal.agentCommissionPreview", { amount: agentCommissionPreview })}</p>
               )}
             </div>
           </div>
 
           {/* Description */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass} style={mont}>Description</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Describe this opportunity..." rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
+            <label className={labelClass} style={mont}>{t("addModal.description")}</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("addModal.descriptionPlaceholder")} rows={3} className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none" style={mont} />
           </div>
 
           {/* Contracts & Signatures */}
           <div className="flex flex-col gap-4 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
             <div className="flex items-center gap-2">
               <FileSignature size={15} className="shrink-0 text-[#1a5ea8]" />
-              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Contracts &amp; Signatures</p>
+              <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>{t("addModal.contractsSection.title")}</p>
             </div>
             <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-              Contracts added here are sent through DocuSign and linked to this Opportunity. They will also appear in the dashboard DocuSign page and in the client&apos;s My Contracts area when the client is a recipient.
+              {t("addModal.contractsSection.subtitle")}
             </p>
 
             {initial ? (
@@ -1045,31 +1053,31 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                               <div className="flex flex-wrap items-center gap-1.5">
                                 <span className="truncate text-[12px] font-medium text-[#0d2138]" style={mont}>{e.templateName}</span>
                                 <span className="shrink-0 rounded-full bg-[#f3f4f6] px-1.5 py-0.5 text-[9px] font-medium text-[#6a7282]" style={mont}>
-                                  {e.source === EnvelopeSource.CUSTOM_UPLOAD ? "Custom Document" : "DocuSign Template"}
+                                  {e.source === EnvelopeSource.CUSTOM_UPLOAD ? t("addModal.contractsSection.customDocumentBadge") : t("addModal.contractsSection.templateBadge")}
                                 </span>
                                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium" style={{ backgroundColor: badge.bg, color: badge.text }}>
                                   <span className="size-1.5 rounded-full" style={{ backgroundColor: badge.dot }} />
-                                  {badge.label}
+                                  {t(`dashboard:envelopeStatus.${e.status}`, { defaultValue: badge.label })}
                                 </span>
                               </div>
                               <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
-                                {e.recipientName}{e.recipients.length > 1 ? ` +${e.recipients.length - 1} more` : ""}
-                                {e.propertyReference ? ` · ${e.propertyReference}` : ""} · Updated {fmtDate(e.updatedAt)}
+                                {e.recipientName}{e.recipients.length > 1 ? t("addModal.contractsSection.moreRecipients", { count: e.recipients.length - 1 }) : ""}
+                                {e.propertyReference ? ` · ${e.propertyReference}` : ""} · {t("addModal.contractsSection.updated", { date: fmtDate(e.updatedAt) })}
                               </span>
                             </div>
                             <div className="flex shrink-0 items-center gap-1">
                               {e.documentUrl && (
-                                <a href={e.documentUrl} target="_blank" rel="noopener noreferrer" title="View" className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+                                <a href={e.documentUrl} target="_blank" rel="noopener noreferrer" title={t("addModal.contractsSection.viewAria")} className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]">
                                   <ExternalLink size={14} />
                                 </a>
                               )}
                               {canResendEnvelope && isPending && (
-                                <button type="button" onClick={() => resendLinkedEnvelope(e.id)} title="Resend" className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+                                <button type="button" onClick={() => resendLinkedEnvelope(e.id)} title={t("addModal.contractsSection.resendAria")} className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]">
                                   <RefreshCw size={14} />
                                 </button>
                               )}
                               {canVoidEnvelope && isPending && (
-                                <button type="button" onClick={() => voidLinkedEnvelope(e.id)} title="Void" className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]">
+                                <button type="button" onClick={() => voidLinkedEnvelope(e.id)} title={t("addModal.contractsSection.voidAria")} className="flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]">
                                   <XCircle size={14} />
                                 </button>
                               )}
@@ -1077,7 +1085,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                                 type="button"
                                 onClick={() => detachEnvelope(e.id)}
                                 disabled={detachMutation.isPending}
-                                title="Detach from this Opportunity"
+                                title={t("addModal.contractsSection.detachAria")}
                                 className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
                               >
                                 <Link2Off size={14} />
@@ -1099,7 +1107,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                         value={selectedEnvelopeId}
                         onChange={(next) => setSelectedEnvelopeId(next)}
                         options={availableEnvelopes.map((e) => ({ value: e.id, label: `${e.templateName} — ${e.recipientName}` }))}
-                        placeholder="Attach an existing envelope…"
+                        placeholder={t("addModal.contractsSection.attachPlaceholder")}
                       />
                       <button
                         type="button"
@@ -1108,7 +1116,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                         className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                         style={mont}
                       >
-                        Attach
+                        {t("addModal.contractsSection.attach")}
                       </button>
                     </>
                   )}
@@ -1118,7 +1126,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
                     className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
                     style={mont}
                   >
-                    <Send size={14} /> Add Contract / Send for Signature
+                    <Send size={14} /> {t("addModal.contractsSection.addOrSend")}
                   </button>
                 </div>
               </div>
@@ -1144,16 +1152,16 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
           {/* Actions */}
           <div className="flex gap-3 border-t border-[#e5e7eb] pt-4">
             <button type="button" onClick={requestClose} disabled={submitting || isSaving} className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-white hover:bg-[#f3f4f6] transition-colors disabled:cursor-not-allowed disabled:opacity-60" style={mont}>
-              Cancel
+              {t("addModal.cancel")}
             </button>
             <button type="submit" disabled={submitting || isSaving} className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed" style={mont}>
               {submitting || isSaving
-                ? "Saving…"
+                ? t("addModal.saving")
                 : mode === "edit"
-                  ? "Save Changes"
+                  ? t("addModal.saveChanges")
                   : contractSelection
-                    ? "Create Opportunity & Send Contract"
-                    : "Create Opportunity"}
+                    ? t("addModal.createAndSend")
+                    : t("addModal.create")}
             </button>
           </div>
         </form>

@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Search, Plus, DollarSign, FolderOpen, Trophy, BarChart3,
   Filter, Download, MoreVertical, Pencil, Trash2, Loader2,
@@ -101,10 +102,11 @@ function ProbabilityBar({ value }: { value: number }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation("dashboard");
   const s = STATUS_BADGE[status] ?? STATUS_BADGE.OPEN;
   return (
     <span className="inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap" style={{ backgroundColor: s.bg, color: s.text, ...mont }}>
-      {STATUS_LABEL[status] ?? status}
+      {t(`status.${status}`, { defaultValue: STATUS_LABEL[status] ?? status })}
     </span>
   );
 }
@@ -116,6 +118,7 @@ function StatusBadge({ status }: { status: string }) {
 type RowMenuItem = { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean };
 
 function RowMenu({ label, items }: { label: string; items: RowMenuItem[] }) {
+  const { t } = useTranslation("opportunities");
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -171,8 +174,8 @@ function RowMenu({ label, items }: { label: string; items: RowMenuItem[] }) {
       <button
         ref={buttonRef}
         type="button"
-        title="Actions"
-        aria-label={`Open actions for ${label}`}
+        title={t("page.rowActions.actionsTitle")}
+        aria-label={t("page.rowActions.actionsAria", { name: label })}
         aria-expanded={open}
         onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
         className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
@@ -227,6 +230,7 @@ export function OpportunitiesPage({
   currentUserId: string;
   currentUserName: string;
 }) {
+  const { t } = useTranslation("opportunities");
   const [editing, setEditing] = useState<OpportunityDto | "new" | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState<OpportunityFilterValues>(EMPTY_OPPORTUNITY_FILTERS);
@@ -328,18 +332,18 @@ export function OpportunitiesPage({
       const { opportunity } = await createMutation.mutateAsync(payload);
       return opportunity;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save opportunity");
+      toast.error(err instanceof Error ? err.message : t("page.toasts.saveFailed"));
       return null;
     }
   }
 
   async function handleDelete(opp: OpportunityDto) {
-    if (!confirm(`Delete "${opp.title}"? This can't be undone.`)) return;
+    if (!confirm(t("page.deleteConfirm", { title: opp.title }))) return;
     try {
       await deleteMutation.mutateAsync(opp.id);
-      toast.success("Opportunity deleted");
+      toast.success(t("page.toasts.deleted"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete opportunity");
+      toast.error(err instanceof Error ? err.message : t("page.toasts.deleteFailed"));
     }
   }
 
@@ -354,8 +358,8 @@ export function OpportunitiesPage({
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>Opportunity</h1>
-          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Track and manage sales opportunities</p>
+          <h1 className="text-[20px] font-medium text-[#0d2138] leading-[32px]" style={poppins}>{t("page.title")}</h1>
+          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>{t("page.subtitle")}</p>
         </div>
         {canCreate && (
           <button
@@ -365,17 +369,17 @@ export function OpportunitiesPage({
             style={mont}
           >
             <Plus size={16} />
-            New Opportunity
+            {t("page.newOpportunity")}
           </button>
         )}
       </div>
 
       {/* Stat cards */}
       <div className="flex flex-wrap gap-3.5">
-        <StatCard label="Total Value" value={isLoading ? "—" : fmt(metrics?.totalValue ?? null)} trend="Live from database" iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
-        <StatCard label="Open" value={isLoading ? "—" : String(metrics?.open ?? 0)} trend="Active opportunities" iconBg="#e0e7ff" icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
-        <StatCard label="Won" value={isLoading ? "—" : String(metrics?.closedWon ?? 0)} trend="Closed successfully" iconBg="#d1fae5" icon={<Trophy size={18} className="text-[#10b981]" />} />
-        <StatCard label="Win Rate" value={isLoading ? "—" : `${winRate}%`} trend="Closed Won ÷ Total" iconBg="#dbeafe" icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />
+        <StatCard label={t("page.stats.totalValue")} value={isLoading ? "—" : fmt(metrics?.totalValue ?? null)} trend={t("page.stats.totalValueTrend")} iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
+        <StatCard label={t("page.stats.open")} value={isLoading ? "—" : String(metrics?.open ?? 0)} trend={t("page.stats.openTrend")} iconBg="#e0e7ff" icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
+        <StatCard label={t("page.stats.won")} value={isLoading ? "—" : String(metrics?.closedWon ?? 0)} trend={t("page.stats.wonTrend")} iconBg="#d1fae5" icon={<Trophy size={18} className="text-[#10b981]" />} />
+        <StatCard label={t("page.stats.winRate")} value={isLoading ? "—" : `${winRate}%`} trend={t("page.stats.winRateTrend")} iconBg="#dbeafe" icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />
       </div>
 
       {/* Table */}
@@ -392,7 +396,7 @@ export function OpportunitiesPage({
                 }`}
                 style={mont}
               >
-                {tab === "All" ? "All" : STAGE_LABEL[tab]}
+                {tab === "All" ? t("page.tabs.all") : t(`dashboard:status.${tab}`, { defaultValue: STAGE_LABEL[tab] })}
               </button>
             ))}
           </div>
@@ -402,7 +406,7 @@ export function OpportunitiesPage({
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search opportunities..."
+                placeholder={t("page.searchPlaceholder")}
                 className="text-[14px] text-[#2b3038] placeholder:text-[#99a1af] bg-transparent outline-none w-full"
                 style={mont}
               />
@@ -414,7 +418,7 @@ export function OpportunitiesPage({
               className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#4a5565] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
               style={mont}
             >
-              Export CSV <Download size={16} />
+              {t("page.exportCsv")} <Download size={16} />
             </button>
             <button
               type="button"
@@ -426,7 +430,7 @@ export function OpportunitiesPage({
               }`}
               style={mont}
             >
-              Filter By <Filter size={16} />
+              {t("page.filterBy")} <Filter size={16} />
               {filtersActive && <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-[#1e4f86]" />}
             </button>
           </div>
@@ -435,16 +439,24 @@ export function OpportunitiesPage({
         {isLoading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-[#6a7282]">
             <Loader2 size={18} className="animate-spin" />
-            <span className="text-[14px]" style={mont}>Loading opportunities…</span>
+            <span className="text-[14px]" style={mont}>{t("page.loading")}</span>
           </div>
         ) : isError ? (
-          <div className="py-10 text-center text-[14px] text-red-500" style={mont}>Failed to load opportunities.</div>
+          <div className="py-10 text-center text-[14px] text-red-500" style={mont}>{t("page.loadError")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1000px]">
               <thead>
                 <tr className="bg-[#f9fafb] border-y border-[#e5e7eb]">
-                  {["Opportunity", "Contact", "Deal Size", "Probability", "Stage", "Expected Close", "Status"].map((h) => (
+                  {[
+                    t("page.columns.opportunity"),
+                    t("page.columns.participants"),
+                    t("page.columns.dealSize"),
+                    t("page.columns.probability"),
+                    t("page.columns.stage"),
+                    t("page.columns.expectedClose"),
+                    t("page.columns.status"),
+                  ].map((h) => (
                     <th key={h} className="px-5 py-3 text-[14px] font-medium text-[#6a7282] text-left whitespace-nowrap" style={mont}>{h}</th>
                   ))}
                   <th className="px-5 py-3 w-[55px]" />
@@ -470,7 +482,7 @@ export function OpportunitiesPage({
                     </td>
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#f8fafc] border border-[#e5e7eb] text-[12px] font-medium text-[#2b3038] whitespace-nowrap" style={mont}>
-                        {STAGE_LABEL[opp.stage] ?? opp.stage}
+                        {t(`dashboard:status.${opp.stage}`, { defaultValue: STAGE_LABEL[opp.stage] ?? opp.stage })}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -485,9 +497,9 @@ export function OpportunitiesPage({
                       <RowMenu
                         label={opp.title ?? opp.id}
                         items={[
-                          { label: "Edit", icon: <Pencil size={14} className="text-[#1e4f86]" />, onClick: () => setEditing(opp) },
+                          { label: t("page.rowActions.edit"), icon: <Pencil size={14} className="text-[#1e4f86]" />, onClick: () => setEditing(opp) },
                           ...(canDelete
-                            ? [{ label: "Delete", icon: <Trash2 size={14} />, onClick: () => handleDelete(opp), danger: true }]
+                            ? [{ label: t("page.rowActions.delete"), icon: <Trash2 size={14} />, onClick: () => handleDelete(opp), danger: true }]
                             : []),
                         ]}
                       />
@@ -497,7 +509,7 @@ export function OpportunitiesPage({
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                      {opportunities.length === 0 ? "No opportunities yet — create your first." : "No opportunities match your search."}
+                      {opportunities.length === 0 ? t("page.emptyNone") : t("page.emptyFiltered")}
                     </td>
                   </tr>
                 )}

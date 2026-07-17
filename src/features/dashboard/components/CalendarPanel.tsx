@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] as const;
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+const DAY_KEYS = ["su", "mo", "tu", "we", "th", "fr", "sa"] as const;
+const MONTH_KEYS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
 ] as const;
 
 function getDaysInMonth(year: number, month: number) {
@@ -50,6 +51,7 @@ export function CalendarPanel({
   align = "right",
   inline = false,
 }: CalendarPanelProps) {
+  const { t } = useTranslation("dashboard");
   const today = new Date();
   const initial = value ?? today;
   const [viewYear, setViewYear] = useState(initial.getFullYear());
@@ -110,9 +112,9 @@ export function CalendarPanel({
             searchable={false}
             value={String(viewMonth)}
             onChange={(next) => setViewMonth(Number(next))}
-            options={MONTHS.map((m, i) => ({ value: String(i), label: m }))}
-            placeholder="Month"
-            ariaLabel="Select month"
+            options={MONTH_KEYS.map((key, i) => ({ value: String(i), label: t(`calendarPanel.months.${key}`) }))}
+            placeholder={t("calendarPanel.monthPlaceholder")}
+            ariaLabel={t("calendarPanel.selectMonthAria")}
             className="flex-1"
           />
           {/* Year */}
@@ -125,8 +127,8 @@ export function CalendarPanel({
               value: String(y),
               label: String(y),
             }))}
-            placeholder="Year"
-            ariaLabel="Select year"
+            placeholder={t("calendarPanel.yearPlaceholder")}
+            ariaLabel={t("calendarPanel.selectYearAria")}
             className="w-[86px]"
           />
         </div>
@@ -145,9 +147,9 @@ export function CalendarPanel({
       <div className="p-2.5">
         {/* Day headers */}
         <div className="grid grid-cols-7 mb-1">
-          {DAYS.map((d) => (
-            <div key={d} className="flex items-center justify-center size-9">
-              <span className="text-[12px] text-[#232323]" style={mont}>{d}</span>
+          {DAY_KEYS.map((key) => (
+            <div key={key} className="flex items-center justify-center size-9">
+              <span className="text-[12px] text-[#232323]" style={mont}>{t(`calendarPanel.days.${key}`)}</span>
             </div>
           ))}
         </div>

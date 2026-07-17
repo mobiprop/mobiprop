@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { X, Upload, Check, Copy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { createAgentInvitation } from "@/features/auth/staff-actions";
 import type { AgentDto } from "@/features/agents/agent-actions";
@@ -15,13 +16,22 @@ type AddAgentModalProps = {
   onClose: () => void;
 };
 
+// Displayed labels are translated via ROLE_I18N_KEY below; these values stay
+// in stable English because they're compared against directly and sent to
+// the server as `role.toUpperCase()`.
 const ROLES = ["Agent", "Manager"] as const;
 const ADMIN_ROLE_LABEL = "Administrator";
+const ROLE_I18N_KEY: Record<string, string> = {
+  Agent: "role.agent",
+  Manager: "role.manager",
+  Administrator: "role.administrator",
+};
 
 type InviteSuccess = { inviteUrl: string; emailSent: boolean; email: string };
 type TeamLeaderOption = { id: string; name: string };
 
 export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
+  const { t } = useTranslation("agents");
   const canInviteAdmin = viewerRole === "ADMIN";
   const roleOptions = canInviteAdmin ? [...ROLES, ADMIN_ROLE_LABEL] : ROLES;
 
@@ -78,7 +88,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
     e.preventDefault();
     if (submitting) return;
     if (isAdminRole && !adminConfirmed) {
-      setError("Confirm that this invite should grant full Administrator access.");
+      setError(t("addModal.adminConfirmRequired"));
       return;
     }
     setError(null);
@@ -138,11 +148,11 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
             <div className="size-[56px] rounded-full bg-[#dcfce7] flex items-center justify-center">
               <Check size={28} className="text-[#16a34a]" />
             </div>
-            <p className="text-[16px] font-semibold text-[#1f2937]" style={mont}>Invitation created</p>
+            <p className="text-[16px] font-semibold text-[#1f2937]" style={mont}>{t("addModal.success.title")}</p>
             <p className="text-[13px] text-[#6a7282]" style={mont}>
               {success.emailSent
-                ? `An invitation email was sent to ${success.email}.`
-                : `Email delivery is not configured — share the link below with ${success.email} manually.`}
+                ? t("addModal.success.emailSent", { email: success.email })
+                : t("addModal.success.emailNotSent", { email: success.email })}
             </p>
 
             <div className="w-full mt-2 flex items-stretch gap-2">
@@ -160,7 +170,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
                 style={mont}
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
-                {copied ? "Copied" : "Copy"}
+                {copied ? t("addModal.success.copied") : t("addModal.success.copy")}
               </button>
             </div>
 
@@ -170,7 +180,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="mt-4 w-full h-[40px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
               style={mont}
             >
-              Done
+              {t("addModal.success.done")}
             </button>
           </div>
         </div>
@@ -196,21 +206,21 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
             className="text-[15px] font-semibold text-[#1f2937] sm:text-[16px]"
             style={mont}
           >
-            Add New Agent
+            {t("addModal.title")}
           </p>
 
           <p
             className="mt-0.5 text-[11px] leading-4 text-[#6a7282] sm:text-[12px]"
             style={mont}
           >
-            Fill in the details to add a new team member
+            {t("addModal.subtitle")}
           </p>
         </div>
 
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close modal"
+          aria-label={t("addModal.closeAria")}
           className="flex size-9 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
         >
           <X size={18} />
@@ -227,7 +237,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
             className="mb-3 text-[13px] font-medium text-[#1f2937] sm:text-[14px]"
             style={mont}
           >
-            Profile Photo
+            {t("addModal.profilePhoto")}
           </p>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -235,7 +245,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               {photoPreview ? (
                 <img
                   src={photoPreview}
-                  alt="Preview"
+                  alt={t("addModal.uploadPhoto")}
                   className="size-full object-cover"
                 />
               ) : (
@@ -260,7 +270,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="h-[38px] rounded-[10px] border border-[#e5e7eb] px-3 text-[11px] font-medium text-[#6a7282] transition-colors hover:bg-[#f9fafb] sm:px-4 sm:text-[12px]"
               style={mont}
             >
-              Upload Photo
+              {t("addModal.uploadPhoto")}
             </button>
           </div>
         </div>
@@ -272,14 +282,14 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              First Name *
+              {t("addModal.firstName")}
             </label>
 
             <input
               required
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Enter first name"
+              placeholder={t("addModal.firstNamePlaceholder")}
               className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[38px]"
               style={mont}
             />
@@ -290,14 +300,14 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Last Name *
+              {t("addModal.lastName")}
             </label>
 
             <input
               required
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Enter last name"
+              placeholder={t("addModal.lastNamePlaceholder")}
               className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[38px]"
               style={mont}
             />
@@ -311,7 +321,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Email Address *
+              {t("addModal.email")}
             </label>
 
             <input
@@ -330,7 +340,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Phone Number *
+              {t("addModal.phone")}
             </label>
 
             <input
@@ -352,14 +362,14 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Role *
+              {t("addModal.role")}
             </label>
 
             <SearchableSelect
               value={role}
               onChange={handleRoleChange}
-              options={roleOptions.map((r) => ({ value: r, label: r }))}
-              placeholder="Select role"
+              options={roleOptions.map((r) => ({ value: r, label: t(ROLE_I18N_KEY[r]) }))}
+              placeholder={t("addModal.rolePlaceholder")}
               searchable={false}
               size="sm"
             />
@@ -370,14 +380,14 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Location *
+              {t("addModal.location")}
             </label>
 
             <input
               required
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Buenos Aires, Argentina"
+              placeholder={t("addModal.locationPlaceholder")}
               className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[38px]"
               style={mont}
             />
@@ -391,7 +401,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
               style={mont}
             >
-              Team Leader
+              {t("addModal.teamLeader")}
             </label>
 
             <SearchableSelect
@@ -399,12 +409,12 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
               onChange={setTeamLeader}
               options={[
                 // Explicit empty option so a picked leader can be cleared.
-                ...(teamLeader ? [{ value: "", label: "— No team leader —" }] : []),
+                ...(teamLeader ? [{ value: "", label: t("addModal.noTeamLeaderOption") }] : []),
                 ...teamLeaders.map((leader) => ({ value: leader.id, label: leader.name })),
               ]}
-              placeholder="Select Team Leader"
-              searchPlaceholder="Search team leaders..."
-              emptyLabel="No team leaders found."
+              placeholder={t("addModal.teamLeaderPlaceholder")}
+              searchPlaceholder={t("addModal.searchTeamLeadersPlaceholder")}
+              emptyLabel={t("addModal.noTeamLeadersFound")}
               loading={teamLeadersLoading}
               size="sm"
             />
@@ -415,11 +425,10 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
         {isAdminRole && (
           <div className="rounded-[10px] border border-[#fde68a] bg-[#fffbeb] px-3 py-3">
             <p className="text-[12px] font-medium text-[#92400e]" style={mont}>
-              You&rsquo;re inviting a new Administrator
+              {t("addModal.adminWarningTitle")}
             </p>
             <p className="mt-1 text-[11px] leading-4 text-[#92400e]" style={mont}>
-              Administrators have full access to all data, settings, and can invite or manage
-              other admins. This action is logged.
+              {t("addModal.adminWarningBody")}
             </p>
             <label className="mt-2 flex items-start gap-2 text-[11px] text-[#92400e]" style={mont}>
               <input
@@ -428,7 +437,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
                 onChange={(e) => setAdminConfirmed(e.target.checked)}
                 className="mt-0.5"
               />
-              I understand and want to grant full Administrator access to this person.
+              {t("addModal.adminConfirmLabel")}
             </label>
           </div>
         )}
@@ -439,13 +448,13 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
             className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]"
             style={mont}
           >
-            Notes
+            {t("addModal.notes")}
           </label>
 
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Additional notes about this contact..."
+            placeholder={t("addModal.notesPlaceholder")}
             rows={4}
             className="min-h-[96px] resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
             style={mont}
@@ -470,7 +479,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
             className="h-10 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] text-[11px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] disabled:opacity-60 sm:text-[12px]"
             style={mont}
           >
-            Cancel
+            {t("addModal.cancel")}
           </button>
 
           <button
@@ -479,7 +488,7 @@ export function AddAgentModal({ viewerRole, onClose }: AddAgentModalProps) {
             className="h-10 rounded-[10px] bg-[#1e4f86] text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:opacity-60 sm:text-[12px]"
             style={mont}
           >
-            {submitting ? "Sending invite…" : "Send Invite"}
+            {submitting ? t("addModal.sendingInvite") : t("addModal.sendInvite")}
           </button>
         </div>
       </form>

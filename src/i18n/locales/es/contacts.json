@@ -1,0 +1,150 @@
+{
+  "page": {
+    "title": "Contactos",
+    "subtitle": "Gestiona tu base de datos de clientes y prospectos"
+  },
+  "actions": {
+    "import": "Importar",
+    "export": "Exportar",
+    "addContact": "Agregar Contacto"
+  },
+  "stats": {
+    "totalContacts": "Total de Contactos",
+    "buyersCount": "{{count}} compradores",
+    "sellersCount": "{{count}} vendedores",
+    "bothCount": "{{count}} ambos",
+    "activeDeals": "Negocios Activos",
+    "openOpportunities": "Oportunidades abiertas",
+    "contactsVsLeads": "Contactos vs Prospectos",
+    "contactsVsLeadsNote": "Contactos registrados vs. prospectos activos",
+    "contactsInOpportunities": "Contactos en Oportunidades",
+    "contactsInOpportunitiesNote": "{{withOpportunities}} de {{total}} contactos"
+  },
+  "table": {
+    "title": "Todos los Contactos",
+    "searchPlaceholder": "Buscar contactos...",
+    "sortAria": "Ordenar contactos",
+    "sort": {
+      "default": "Ordenar Por",
+      "name": "Nombre (A–Z)",
+      "listings": "Propiedades Asignadas"
+    },
+    "typeFilterAria": "Filtrar por tipo de contacto",
+    "typeFilterAll": "Tipo de Contacto",
+    "loadingContacts": "Cargando contactos…",
+    "failedToLoad": "No se pudieron cargar los contactos.",
+    "columns": {
+      "contactName": "Nombre del Contacto",
+      "contactInformation": "Información de Contacto",
+      "location": "Ubicación",
+      "assignedListings": "Propiedades Asignadas",
+      "contactId": "ID de Contacto",
+      "contactType": "Tipo de Contacto"
+    },
+    "mobileLabels": {
+      "phone": "Teléfono",
+      "location": "Ubicación",
+      "assignedListings": "Propiedades Asignadas",
+      "contactType": "Tipo de Contacto",
+      "contactId": "ID de Contacto"
+    },
+    "noContactsYet": "Aún no hay contactos — agrega tu primer contacto.",
+    "noContactsMatch": "Ningún contacto coincide con tu búsqueda.",
+    "showingCount": "Mostrando {{filtered}} de {{total}} contactos"
+  },
+  "rowMenu": {
+    "actionsTitle": "Acciones",
+    "openActionsAria": "Abrir acciones para {{name}}",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  },
+  "deleteModal": {
+    "title": "Eliminar Contacto",
+    "body": "{{name}} se marcará como eliminado y se quitará de todas las listas. Un administrador puede restaurarlo.",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "deleting": "Eliminando…"
+  },
+  "type": {
+    "buyer": "Comprador",
+    "seller": "Vendedor",
+    "both": "Ambos"
+  },
+  "toasts": {
+    "contactCreated": "Contacto creado",
+    "createFailed": "No se pudo crear el contacto",
+    "contactUpdated": "Contacto actualizado",
+    "updateFailed": "No se pudo actualizar el contacto",
+    "contactDeleted": "Contacto eliminado",
+    "deleteFailed": "No se pudo eliminar el contacto",
+    "couldNotOpenExisting": "No se pudo abrir el contacto existente.",
+    "importNoDataRows": "Ese archivo no tiene filas de datos para importar",
+    "importedCount_one": "Se importó {{count}} contacto",
+    "importedCount_other": "Se importaron {{count}} contactos",
+    "skippedCount_one": "Se omitió {{count}} fila",
+    "skippedCount_other": "Se omitieron {{count}} filas",
+    "importNothing": "Nada para importar — verifica que el archivo tenga columnas de Nombre/Apellido",
+    "importFailed": "No se pudieron importar los contactos"
+  },
+  "fields": {
+    "firstName": "Nombre *",
+    "firstNamePlaceholder": "Ingresa el nombre",
+    "lastName": "Apellido *",
+    "lastNamePlaceholder": "Ingresa el apellido",
+    "email": "Correo Electrónico",
+    "emailPlaceholder": "contacto@correo.com",
+    "phone": "Número de Teléfono",
+    "phonePlaceholder": "+54 11 1234-5678",
+    "contactType": "Tipo de Contacto *",
+    "selectType": "Seleccionar tipo",
+    "location": "Ubicación",
+    "locationPlaceholder": "Ciudad, Provincia",
+    "address": "Dirección",
+    "addressPlaceholder": "Dirección",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas adicionales sobre este contacto...",
+    "provideEmailOrPhone": "Proporciona al menos un correo electrónico o un número de teléfono."
+  },
+  "propertyListings": {
+    "title": "Propiedades",
+    "addDescription": "Vincula propiedades existentes que este vendedor posee. Las nuevas propiedades también se pueden asignar a este contacto más tarde desde el formulario de propiedad.",
+    "editDescription": "Propiedades que este vendedor posee. Los cambios se guardan al hacer clic en Guardar Cambios.",
+    "addProperty": "Agregar Propiedad",
+    "removePropertyTitle": "Quitar propiedad",
+    "removePropertyAria": "Quitar propiedad"
+  },
+  "addModal": {
+    "title": "Agregar Nuevo Contacto",
+    "subtitle": "Agrega un nuevo cliente o prospecto a tu base de datos",
+    "closeAria": "Cerrar modal",
+    "openExistingContact": "Abrir contacto existente",
+    "cancel": "Cancelar",
+    "addContact": "Agregar Contacto",
+    "saving": "Guardando…"
+  },
+  "editModal": {
+    "title": "Editar Contacto",
+    "subtitle": "{{contactId}} · Actualizar información de contacto",
+    "cancel": "Cancelar",
+    "save": "Guardar Cambios",
+    "saving": "Guardando…"
+  },
+  "quickAddModal": {
+    "title": "Agregar Nuevo Contacto",
+    "firstName": "Nombre *",
+    "firstNamePlaceholder": "Juan",
+    "lastName": "Apellido *",
+    "lastNamePlaceholder": "Pérez",
+    "email": "Correo Electrónico",
+    "emailPlaceholder": "juan.perez@ejemplo.com",
+    "phone": "Teléfono",
+    "phonePlaceholder": "+1 (555) 123-4567",
+    "provideEmailOrPhone": "Proporciona al menos un correo electrónico o un número de teléfono.",
+    "type": "Tipo",
+    "typeAria": "Tipo de contacto",
+    "selectType": "Seleccionar tipo",
+    "cancel": "Cancelar",
+    "addContact": "Agregar Contacto",
+    "saving": "Guardando…"
+  }
+}

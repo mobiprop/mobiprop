@@ -1,0 +1,150 @@
+{
+  "page": {
+    "title": "Contacts",
+    "subtitle": "Manage your clients and prospects database"
+  },
+  "actions": {
+    "import": "Import",
+    "export": "Export",
+    "addContact": "Add Contact"
+  },
+  "stats": {
+    "totalContacts": "Total Contacts",
+    "buyersCount": "{{count}} buyers",
+    "sellersCount": "{{count}} sellers",
+    "bothCount": "{{count}} both",
+    "activeDeals": "Active Deals",
+    "openOpportunities": "Open opportunities",
+    "contactsVsLeads": "Contacts vs Leads",
+    "contactsVsLeadsNote": "Contacts on file vs. active leads",
+    "contactsInOpportunities": "Contacts in Opportunities",
+    "contactsInOpportunitiesNote": "{{withOpportunities}} of {{total}} contacts"
+  },
+  "table": {
+    "title": "All Contacts",
+    "searchPlaceholder": "Search contacts...",
+    "sortAria": "Sort contacts",
+    "sort": {
+      "default": "Sort By",
+      "name": "Name (A–Z)",
+      "listings": "Assigned Listings"
+    },
+    "typeFilterAria": "Filter by contact type",
+    "typeFilterAll": "Contact Type",
+    "loadingContacts": "Loading contacts…",
+    "failedToLoad": "Failed to load contacts.",
+    "columns": {
+      "contactName": "Contact Name",
+      "contactInformation": "Contact Information",
+      "location": "Location",
+      "assignedListings": "Assigned Listings",
+      "contactId": "Contact ID",
+      "contactType": "Contact Type"
+    },
+    "mobileLabels": {
+      "phone": "Phone",
+      "location": "Location",
+      "assignedListings": "Assigned Listings",
+      "contactType": "Contact Type",
+      "contactId": "Contact ID"
+    },
+    "noContactsYet": "No contacts yet — add your first contact.",
+    "noContactsMatch": "No contacts match your search.",
+    "showingCount": "Showing {{filtered}} of {{total}} contacts"
+  },
+  "rowMenu": {
+    "actionsTitle": "Actions",
+    "openActionsAria": "Open actions for {{name}}",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "deleteModal": {
+    "title": "Delete Contact",
+    "body": "{{name}} will be marked as deleted and removed from all lists. This can be restored by an administrator.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…"
+  },
+  "type": {
+    "buyer": "Buyer",
+    "seller": "Seller",
+    "both": "Both"
+  },
+  "toasts": {
+    "contactCreated": "Contact created",
+    "createFailed": "Failed to create contact",
+    "contactUpdated": "Contact updated",
+    "updateFailed": "Failed to update contact",
+    "contactDeleted": "Contact deleted",
+    "deleteFailed": "Failed to delete contact",
+    "couldNotOpenExisting": "Could not open the existing contact.",
+    "importNoDataRows": "That file has no data rows to import",
+    "importedCount_one": "Imported {{count}} contact",
+    "importedCount_other": "Imported {{count}} contacts",
+    "skippedCount_one": "Skipped {{count}} row",
+    "skippedCount_other": "Skipped {{count}} rows",
+    "importNothing": "Nothing to import — check the file has First Name/Last Name columns",
+    "importFailed": "Failed to import contacts"
+  },
+  "fields": {
+    "firstName": "First Name *",
+    "firstNamePlaceholder": "Enter first name",
+    "lastName": "Last Name *",
+    "lastNamePlaceholder": "Enter last name",
+    "email": "Email Address",
+    "emailPlaceholder": "contact@email.com",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+54 11 1234-5678",
+    "contactType": "Contact Type *",
+    "selectType": "Select type",
+    "location": "Location",
+    "locationPlaceholder": "City, Province",
+    "address": "Address",
+    "addressPlaceholder": "Street address",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes about this contact...",
+    "provideEmailOrPhone": "Provide at least an email or a phone number."
+  },
+  "propertyListings": {
+    "title": "Property Listings",
+    "addDescription": "Link existing listings this seller owns. New listings can also be assigned to this contact later from the listing form.",
+    "editDescription": "Listings this seller owns. Changes are saved when you click Save Changes.",
+    "addProperty": "Add Property",
+    "removePropertyTitle": "Remove property",
+    "removePropertyAria": "Remove property"
+  },
+  "addModal": {
+    "title": "Add New Contact",
+    "subtitle": "Add a new client or prospect to your database",
+    "closeAria": "Close modal",
+    "openExistingContact": "Open existing contact",
+    "cancel": "Cancel",
+    "addContact": "Add Contact",
+    "saving": "Saving…"
+  },
+  "editModal": {
+    "title": "Edit Contact",
+    "subtitle": "{{contactId}} · Update contact information",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "saving": "Saving…"
+  },
+  "quickAddModal": {
+    "title": "Add New Contact",
+    "firstName": "First Name *",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name *",
+    "lastNamePlaceholder": "Doe",
+    "email": "Email",
+    "emailPlaceholder": "john.doe@example.com",
+    "phone": "Phone",
+    "phonePlaceholder": "+1 (555) 123-4567",
+    "provideEmailOrPhone": "Provide at least an email or a phone number.",
+    "type": "Type",
+    "typeAria": "Contact type",
+    "selectType": "Select type",
+    "cancel": "Cancel",
+    "addContact": "Add Contact",
+    "saving": "Saving…"
+  }
+}

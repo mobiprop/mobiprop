@@ -1,0 +1,215 @@
+{
+  "page": {
+    "title": "DocuSign",
+    "subtitle": "Firma electrónica y gestión de contratos",
+    "connected": "Conectado",
+    "notConnected": "No Conectado",
+    "sendForSignature": "Enviar para Firma",
+    "stats": {
+      "totalSent": "Total Enviados",
+      "totalSentSub": "Histórico",
+      "awaitingSignature": "Esperando Firma",
+      "awaitingSignatureSub": "Acción pendiente",
+      "completed": "Completados",
+      "completedSub": "Firmados y archivados",
+      "declinedVoided": "Rechazados / Anulados",
+      "declinedVoidedSub": "Requieren acción"
+    },
+    "tabs": {
+      "overview": "Resumen",
+      "envelopes": "Sobres",
+      "templates": "Plantillas",
+      "settings": "Configuración"
+    },
+    "overview": {
+      "recentActivity": "Actividad Reciente",
+      "loading": "Cargando…",
+      "empty": "Aún no se enviaron sobres.",
+      "quickActions": "Acciones Rápidas",
+      "viewEnvelopes": "Ver Sobres",
+      "manageTemplates": "Gestionar Plantillas"
+    },
+    "envelopes": {
+      "searchPlaceholder": "Buscar sobres...",
+      "filterByStatusAria": "Filtrar por estado",
+      "allStatuses": "Todos los estados",
+      "statusOptions": {
+        "SENT": "Enviado",
+        "DELIVERED": "Entregado",
+        "COMPLETED": "Completado",
+        "DECLINED": "Rechazado",
+        "VOIDED": "Anulado"
+      },
+      "loading": "Cargando sobres…",
+      "loadError": "No se pudieron cargar los sobres.",
+      "columns": {
+        "document": "Documento",
+        "recipient": "Destinatario",
+        "sentBy": "Enviado Por",
+        "sent": "Enviado",
+        "expires": "Vence",
+        "status": "Estado"
+      },
+      "emptyNone": "Aún no se enviaron sobres.",
+      "emptyFiltered": "Ningún sobre coincide con tu búsqueda.",
+      "customDocumentBadge": "Documento Personalizado",
+      "moreRecipients": "+{{count}} más",
+      "resendReminder": "Reenviar recordatorio",
+      "voidEnvelope": "Anular sobre",
+      "voidReasonPrompt": "¿Motivo para anular este sobre?",
+      "toasts": {
+        "voided": "Sobre anulado",
+        "voidFailed": "No se pudo anular el sobre",
+        "reminderSent": "Recordatorio enviado",
+        "resendFailed": "No se pudo reenviar"
+      }
+    },
+    "templates": {
+      "notice": "Las plantillas se gestionan en tu cuenta de DocuSign — esta lista se actualiza en vivo desde la API de DocuSign.",
+      "loading": "Cargando plantillas…",
+      "notConfigured": "DocuSign aún no está configurado — las plantillas aparecerán aquí una vez que se configuren las credenciales.",
+      "empty": "No se encontraron plantillas en tu cuenta de DocuSign.",
+      "useTemplate": "Usar plantilla",
+      "descriptionFallback": "Plantilla de DocuSign",
+      "usedCount": "Usada {{count}}x",
+      "newTemplate": "Nueva plantilla",
+      "createInConsole": "Crear en la consola de DocuSign"
+    },
+    "statusBadge": {
+      "SENT": "Esperando",
+      "DELIVERED": "Visto",
+      "COMPLETED": "Completado",
+      "DECLINED": "Rechazado",
+      "VOIDED": "Anulado"
+    },
+    "preview": {
+      "signHere": "Firmar aquí",
+      "partyA": "Parte A",
+      "partyB": "Parte B"
+    },
+    "settings": {
+      "savedMessage": "Configuración guardada con éxito.",
+      "saveFailed": "No se pudo guardar la configuración",
+      "apiCredentials": {
+        "title": "Credenciales de API",
+        "subtitle": "Configuradas mediante variables de entorno — no editables aquí.",
+        "integrationKey": "Clave de Integración",
+        "userId": "ID de Usuario",
+        "accountId": "ID de Cuenta",
+        "privateKey": "Clave Privada",
+        "configured": "Configurada",
+        "notConfigured": "No configurada"
+      },
+      "webhook": {
+        "title": "Configuración de Webhook",
+        "subtitle": "Pega esta URL en DocuSign Connect (Admin → Connect) con la firma HMAC habilitada.",
+        "copyAria": "Copiar URL del webhook",
+        "eventsNote": "Eventos: envelope-completed, envelope-declined, envelope-voided, recipient-viewed",
+        "urlCopied": "URL del webhook copiada"
+      },
+      "defaults": {
+        "title": "Valores Predeterminados de Firma",
+        "autoSendReminders": "Recordatorios automáticos",
+        "autoSendRemindersHint": "Recuerda automáticamente a los destinatarios antes del vencimiento",
+        "emailNotifications": "Notificaciones por correo",
+        "emailNotificationsHint": "Notifica a los agentes sobre eventos de firma por correo electrónico",
+        "smsNotifications": "Notificaciones por SMS",
+        "smsNotificationsHint": "Próximamente — aún no hay proveedor de SMS configurado",
+        "smsNotificationsAria": "Notificaciones por SMS (próximamente)"
+      }
+    }
+  },
+  "sendModal": {
+    "title": "Enviar para Firma",
+    "stepOf": "Paso {{step}} de {{total}} — {{label}}",
+    "stepLabels": {
+      "custom": ["Elegir Método", "Subir Documento", "Destinatarios", "Mensaje y Vencimiento", "Revisar y Enviar"],
+      "template": ["Elegir Método", "Seleccionar Plantilla", "Datos del Destinatario", "Revisar y Enviar"]
+    },
+    "chooseMethod": {
+      "prompt": "¿Cómo te gustaría enviar esto para firma?",
+      "templateTitle": "Usar una Plantilla de DocuSign",
+      "templateDescription": "Envía un formato de contrato reutilizable ya configurado en DocuSign.",
+      "uploadTitle": "Subir Contrato Personalizado",
+      "uploadDescription": "Sube un PDF, DOC o DOCX puntual y agrega firmantes manualmente."
+    },
+    "templateFlow": {
+      "chooseTemplate": "Elige una plantilla para enviar a firma",
+      "noTemplates": "No se encontraron plantillas. Primero crea plantillas en tu cuenta de DocuSign.",
+      "enterDetails": "Ingresa los datos del destinatario y de la propiedad",
+      "recipientName": "Nombre Completo del Destinatario *",
+      "recipientNamePlaceholder": "ej. Carlos Martínez",
+      "recipientEmail": "Correo del Destinatario *",
+      "recipientEmailPlaceholder": "destinatario@email.com",
+      "selectTemplateRequired": "Selecciona una plantilla para continuar.",
+      "recipientRequired": "El nombre y correo del destinatario son obligatorios."
+    },
+    "uploadFlow": {
+      "uploadPrompt": "Sube el contrato para enviarlo a firma",
+      "removeAria": "Quitar",
+      "dragDrop": "Haz clic para subir o arrastra y suelta",
+      "uploadHint": "PDF, DOC, DOCX hasta 10MB — se sube al enviar",
+      "addSigners": "Agrega a cada persona que deba firmar, y su rol",
+      "optionalMessageAndExpiry": "Mensaje y vencimiento opcionales",
+      "fromOpportunity": "De esta Oportunidad",
+      "recipientLabel": "Destinatario {{index}}",
+      "removeRecipientAria": "Quitar",
+      "namePlaceholder": "Nombre completo",
+      "emailPlaceholder": "Correo electrónico",
+      "rolePlaceholder": "Rol",
+      "roleLabelPlaceholder": "ej. Escribano",
+      "addRecipient": "Agregar Destinatario",
+      "documentRequired": "Elige un documento para continuar.",
+      "recipientDetailsRequired": "Cada destinatario necesita un nombre y un correo.",
+      "roleLabelRequired": "Ingresa una etiqueta de rol para los destinatarios marcados como \"Otro\".",
+      "roleLabels": {
+        "AGENCY": "Inmobiliaria",
+        "BUYER": "Comprador",
+        "SELLER": "Vendedor"
+      },
+      "otherFallback": "Otro"
+    },
+    "roleOptions": {
+      "BUYER": "Comprador",
+      "SELLER": "Vendedor",
+      "AGENT": "Agente",
+      "THIRD_PARTY": "Empresa Externa",
+      "OTHER": "Otro"
+    },
+    "expiryOptions": {
+      "7": "7 días a partir de hoy",
+      "14": "14 días a partir de hoy",
+      "30": "30 días a partir de hoy"
+    },
+    "propertyAndExpiry": {
+      "propertyReference": "Referencia de Propiedad",
+      "propertySearchPlaceholder": "Buscar una propiedad…",
+      "expiryPeriod": "Período de Vencimiento",
+      "personalMessage": "Mensaje Personal (opcional)",
+      "messagePlaceholder": "Por favor revisa y firma el documento adjunto a la brevedad…"
+    },
+    "review": {
+      "prompt": "Revisa los detalles antes de enviar",
+      "template": "Plantilla",
+      "recipient": "Destinatario",
+      "email": "Correo",
+      "property": "Propiedad",
+      "expiresIn": "Vence en",
+      "expiresInDays": "{{count}} días",
+      "document": "Documento",
+      "recipients": "Destinatarios"
+    },
+    "disclosure": "Este documento se enviará a través de DocuSign. Los destinatarios recibirán un enlace seguro de firma. Se te notificará cuando todas las partes hayan firmado.",
+    "back": "Atrás",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "sending": "Enviando…",
+    "send": "Enviar para Firma",
+    "toasts": {
+      "fileTypeError": "Solo se admiten archivos PDF, DOC y DOCX.",
+      "fileSizeError": "El archivo debe pesar 10MB o menos.",
+      "sent": "Sobre enviado con éxito",
+      "sendFailed": "No se pudo enviar el sobre"
+    }
+  }
+}

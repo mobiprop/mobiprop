@@ -8,6 +8,7 @@ import {
   CheckCircle2, LayoutGrid, FileText, Users, Settings as SettingsIcon, Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
@@ -33,13 +34,13 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 type SendGridTab = "overview" | "campaigns" | "templates" | "contacts" | "settings";
 
-const STATUS_BADGE: Record<EmailCampaignStatus, { bg: string; text: string; label: string }> = {
-  DRAFT: { bg: "#f3f4f6", text: "#6a7282", label: "Draft" },
-  SCHEDULED: { bg: "#e0e7ff", text: "#4f46e5", label: "Scheduled" },
-  SENDING: { bg: "#fef3e2", text: "#b45309", label: "Sending" },
-  SENT: { bg: "#dcfce7", text: "#16a34a", label: "Sent" },
-  FAILED: { bg: "#fee2e2", text: "#dc2626", label: "Failed" },
-  CANCELLED: { bg: "#f3f4f6", text: "#6a7282", label: "Cancelled" },
+const STATUS_BADGE: Record<EmailCampaignStatus, { bg: string; text: string }> = {
+  DRAFT: { bg: "#f3f4f6", text: "#6a7282" },
+  SCHEDULED: { bg: "#e0e7ff", text: "#4f46e5" },
+  SENDING: { bg: "#fef3e2", text: "#b45309" },
+  SENT: { bg: "#dcfce7", text: "#16a34a" },
+  FAILED: { bg: "#fee2e2", text: "#dc2626" },
+  CANCELLED: { bg: "#f3f4f6", text: "#6a7282" },
 };
 
 function fmtDate(iso: string | null) {
@@ -95,6 +96,7 @@ function FunnelBar({ label, value, max, color }: { label: string; value: number;
 function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
   connected: boolean; webhookConfigured: boolean; onViewCampaigns: () => void;
 }) {
+  const { t } = useTranslation("sendgrid");
   const { data, isLoading, isError } = useSendgridOverviewQuery();
   const overview = data?.overview;
 
@@ -102,12 +104,12 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
     return (
       <div className="flex items-center justify-center gap-2 py-16 text-[#6a7282]">
         <Loader2 size={18} className="animate-spin" />
-        <span className="text-[14px]" style={mont}>Loading overview…</span>
+        <span className="text-[14px]" style={mont}>{t("overview.loading")}</span>
       </div>
     );
   }
   if (isError || !overview) {
-    return <p className="py-16 text-center text-[14px] text-[#dc2626]" style={mont}>Could not load the SendGrid overview. Try refreshing the page.</p>;
+    return <p className="py-16 text-center text-[14px] text-[#dc2626]" style={mont}>{t("overview.loadError")}</p>;
   }
 
   const funnelMax = overview.funnel.sent;
@@ -117,27 +119,27 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
       <div className="flex min-w-0 flex-col gap-4">
         {/* Connection status */}
         <div className="flex flex-col gap-4 rounded-[14px] border border-[#e5e7eb] bg-white p-5">
-          <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Connection Status</p>
+          <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("overview.connectionStatus")}</p>
           <div className={`flex items-center gap-3 rounded-[12px] border px-4 py-3.5 ${connected ? "border-[#bbf7d0] bg-[#f0fdf4]" : "border-[#fde68a] bg-[#fffbeb]"}`}>
             <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${connected ? "bg-[#16a34a]" : "bg-[#f59e0b]"}`}>
               <CheckCircle2 size={18} className="text-white" />
             </span>
             <div className="flex min-w-0 flex-col">
               <span className={`text-[14px] font-semibold ${connected ? "text-[#15803d]" : "text-[#b45309]"}`} style={mont}>
-                {connected ? "Connected to SendGrid" : "SendGrid API key not configured"}
+                {connected ? t("overview.connectedTitle") : t("overview.notConfiguredTitle")}
               </span>
               <span className={`text-[12px] ${connected ? "text-[#15803d]" : "text-[#b45309]"}`} style={mont}>
                 {connected
-                  ? `Campaigns send from mailing@ulrichpropiedades.com${overview.lastCampaignSentAt ? ` · Last campaign ${fmtDate(overview.lastCampaignSentAt)}` : ""}`
-                  : "Add SENDGRID_API_KEY to the server environment to enable sending."}
+                  ? `${t("overview.connectedDetail")}${overview.lastCampaignSentAt ? t("overview.lastCampaignSuffix", { date: fmtDate(overview.lastCampaignSentAt) }) : ""}`
+                  : t("overview.notConfiguredDetail")}
               </span>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
-              ["Campaign Sender", "mailing@ulrichpropiedades.com"],
-              ["Sending Domain", "ulrichpropiedades.com"],
-              ["Event Webhook", webhookConfigured ? "Configured" : "Pending setup"],
+              [t("overview.campaignSenderLabel"), "mailing@ulrichpropiedades.com"],
+              [t("overview.sendingDomainLabel"), "ulrichpropiedades.com"],
+              [t("overview.eventWebhookLabel"), webhookConfigured ? t("overview.webhookConfigured") : t("overview.webhookPending")],
             ].map(([label, value]) => (
               <div key={label} className="flex min-w-0 flex-col gap-1 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3">
                 <span className="text-[11px] text-[#9ca3af]" style={mont}>{label}</span>
@@ -150,19 +152,19 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
         {/* Delivery funnel */}
         <div className="flex flex-col gap-4 rounded-[14px] border border-[#e5e7eb] bg-white p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Delivery Funnel — All Campaigns</p>
+            <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("overview.deliveryFunnelTitle")}</p>
           </div>
           {overview.emailsSent === 0 ? (
-            <p className="py-6 text-center text-[13px] text-[#9ca3af]" style={mont}>No campaigns sent yet — the funnel appears after your first send.</p>
+            <p className="py-6 text-center text-[13px] text-[#9ca3af]" style={mont}>{t("overview.noCampaignsYet")}</p>
           ) : (
             <>
-              <FunnelBar label="Sent" value={overview.funnel.sent} max={funnelMax} color="#1e4f86" />
-              <FunnelBar label="Delivered" value={overview.funnel.delivered} max={funnelMax} color="#16a34a" />
-              <FunnelBar label="Opened" value={overview.funnel.opened} max={funnelMax} color="#f59e0b" />
-              <FunnelBar label="Clicked" value={overview.funnel.clicked} max={funnelMax} color="#38bdf8" />
+              <FunnelBar label={t("metrics.sent")} value={overview.funnel.sent} max={funnelMax} color="#1e4f86" />
+              <FunnelBar label={t("metrics.delivered")} value={overview.funnel.delivered} max={funnelMax} color="#16a34a" />
+              <FunnelBar label={t("metrics.opened")} value={overview.funnel.opened} max={funnelMax} color="#f59e0b" />
+              <FunnelBar label={t("metrics.clicked")} value={overview.funnel.clicked} max={funnelMax} color="#38bdf8" />
               {!overview.metricsAvailable && (
                 <p className="text-[11px] text-[#9ca3af]" style={mont}>
-                  Delivered/opened/clicked stay at zero until the SendGrid Event Webhook is configured (Settings tab).
+                  {t("overview.webhookNote")}
                 </p>
               )}
             </>
@@ -172,13 +174,13 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
         {/* Recent activity */}
         <div className="flex flex-col gap-1 rounded-[14px] border border-[#e5e7eb] bg-white p-5">
           <div className="flex items-center justify-between gap-3 pb-2">
-            <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Recent Activity</p>
+            <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("overview.recentActivity")}</p>
             <button type="button" onClick={onViewCampaigns} className="text-[13px] font-medium text-[#1e4f86] hover:underline" style={mont}>
-              View campaigns ›
+              {t("overview.viewCampaigns")}
             </button>
           </div>
           {overview.recentActivity.length === 0 ? (
-            <p className="py-6 text-center text-[13px] text-[#9ca3af]" style={mont}>No campaign activity yet.</p>
+            <p className="py-6 text-center text-[13px] text-[#9ca3af]" style={mont}>{t("overview.noActivity")}</p>
           ) : (
             overview.recentActivity.map((item) => (
               <div key={`${item.id}-${item.at}`} className="flex items-start gap-3 border-b border-[#f3f4f6] py-3 last:border-b-0">
@@ -204,13 +206,13 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
       {/* Right column */}
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-3 rounded-[14px] border border-[#e5e7eb] bg-white p-5">
-          <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Audience</p>
+          <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("overview.audience")}</p>
           {[
-            ["Total recipients", overview.totalRecipients],
-            ["Subscribed", overview.subscribedRecipients],
-            ["Unsubscribed", overview.unsubscribedRecipients],
-            ["Bounced", overview.bouncedRecipients],
-            ["Contact lists", overview.totalLists],
+            [t("overview.totalRecipients"), overview.totalRecipients],
+            [t("overview.subscribed"), overview.subscribedRecipients],
+            [t("overview.unsubscribed"), overview.unsubscribedRecipients],
+            [t("metrics.bounced"), overview.bouncedRecipients],
+            [t("overview.contactLists"), overview.totalLists],
           ].map(([label, value]) => (
             <div key={label as string} className="flex items-center justify-between border-b border-[#f3f4f6] pb-2.5 last:border-b-0 last:pb-0">
               <span className="text-[13px] text-[#6a7282]" style={mont}>{label as string}</span>
@@ -221,21 +223,21 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
 
         <div className="flex flex-col gap-3 rounded-[14px] border border-[#e5e7eb] bg-white p-5">
           <div className="flex flex-col gap-0.5">
-            <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Scheduled</p>
+            <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("overview.scheduled")}</p>
             <p className="text-[12px] text-[#6a7282]" style={mont}>
-              {overview.scheduledCampaigns.length} upcoming
+              {t("overview.upcoming", { count: overview.scheduledCampaigns.length })}
             </p>
           </div>
           {overview.scheduledCampaigns.length === 0 ? (
-            <p className="py-4 text-center text-[13px] text-[#9ca3af]" style={mont}>No scheduled campaigns.</p>
+            <p className="py-4 text-center text-[13px] text-[#9ca3af]" style={mont}>{t("overview.noScheduled")}</p>
           ) : (
             overview.scheduledCampaigns.map((item) => (
               <div key={item.id} className="flex flex-col gap-1 border-b border-[#f3f4f6] pb-3 last:border-b-0 last:pb-0">
                 <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>{item.name}</span>
-                <span className="text-[12px] text-[#6a7282]" style={mont}>{item.recipients.toLocaleString()} recipients</span>
+                <span className="text-[12px] text-[#6a7282]" style={mont}>{t("overview.recipientsCount", { count: item.recipients.toLocaleString() })}</span>
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] text-[#6a7282]" style={mont}>{fmtDate(item.scheduledAt)}</span>
-                  <span className="rounded-[6px] bg-[#e0e7ff] px-2.5 py-0.5 text-[11px] font-medium text-[#4f46e5]" style={mont}>Scheduled</span>
+                  <span className="rounded-[6px] bg-[#e0e7ff] px-2.5 py-0.5 text-[11px] font-medium text-[#4f46e5]" style={mont}>{t("overview.scheduledBadge")}</span>
                 </div>
               </div>
             ))
@@ -243,13 +245,13 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
         </div>
 
         <div className="flex flex-col gap-2 rounded-[14px] border border-[#e5e7eb] bg-white p-5">
-          <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>Campaigns</p>
+          <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("overview.campaignsTitle")}</p>
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[#6a7282]" style={mont}>Sent</span>
+            <span className="text-[13px] text-[#6a7282]" style={mont}>{t("metrics.sent")}</span>
             <span className="text-[14px] font-semibold text-[#0d2138]" style={poppins}>{overview.campaignsSent}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[#6a7282]" style={mont}>Drafts</span>
+            <span className="text-[13px] text-[#6a7282]" style={mont}>{t("overview.drafts")}</span>
             <span className="text-[14px] font-semibold text-[#0d2138]" style={poppins}>{overview.draftCampaigns}</span>
           </div>
         </div>
@@ -261,17 +263,18 @@ function OverviewTab({ connected, webhookConfigured, onViewCampaigns }: {
 // ── Campaign metrics modal ───────────────────────────────────────────────────
 
 function CampaignMetricsModal({ campaign, onClose }: { campaign: EmailCampaignDto; onClose: () => void }) {
+  const { t } = useTranslation("sendgrid");
   const m = campaign.metrics;
   const hasEvents = campaign.lastEventAt !== null;
   const cells: [string, string, string][] = [
-    ["Sent", m.sent.toLocaleString(), ""],
-    ["Delivered", m.delivered.toLocaleString(), pct(m.delivered, m.sent)],
-    ["Opened", m.opened.toLocaleString(), pct(m.opened, m.delivered || m.sent)],
-    ["Clicked", m.clicked.toLocaleString(), pct(m.clicked, m.opened)],
-    ["Bounced", m.bounced.toLocaleString(), pct(m.bounced, m.sent)],
-    ["Unsubscribed", m.unsubscribed.toLocaleString(), ""],
-    ["Spam reports", m.spamReports.toLocaleString(), ""],
-    ["Failed sends", m.failed.toLocaleString(), ""],
+    [t("metrics.sent"), m.sent.toLocaleString(), ""],
+    [t("metrics.delivered"), m.delivered.toLocaleString(), pct(m.delivered, m.sent)],
+    [t("metrics.opened"), m.opened.toLocaleString(), pct(m.opened, m.delivered || m.sent)],
+    [t("metrics.clicked"), m.clicked.toLocaleString(), pct(m.clicked, m.opened)],
+    [t("metrics.bounced"), m.bounced.toLocaleString(), pct(m.bounced, m.sent)],
+    [t("metrics.unsubscribed"), m.unsubscribed.toLocaleString(), ""],
+    [t("metrics.spamReports"), m.spamReports.toLocaleString(), ""],
+    [t("metrics.failedSends"), m.failed.toLocaleString(), ""],
   ];
 
   return (
@@ -283,10 +286,10 @@ function CampaignMetricsModal({ campaign, onClose }: { campaign: EmailCampaignDt
             <div className="flex min-w-0 flex-col gap-0.5">
               <p className="truncate text-[17px] font-semibold text-[#0d2138]" style={poppins}>{campaign.name}</p>
               <p className="text-[12px] text-[#6a7282]" style={mont}>
-                {campaign.campaignId} · {campaign.listName ?? "No audience"} · Sent {fmtDate(campaign.sentAt)}
+                {campaign.campaignId} · {campaign.listName ?? t("campaignMetricsModal.noAudience")} · {t("campaignMetricsModal.sentOn", { date: fmtDate(campaign.sentAt) })}
               </p>
             </div>
-            <button type="button" onClick={onClose} aria-label="Close" className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+            <button type="button" onClick={onClose} aria-label={t("campaignMetricsModal.close")} className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]">
               <X size={18} />
             </button>
           </div>
@@ -304,18 +307,17 @@ function CampaignMetricsModal({ campaign, onClose }: { campaign: EmailCampaignDt
           {!hasEvents && (
             <div className="rounded-[10px] border border-[#fde68a] bg-[#fffbeb] px-4 py-3">
               <p className="text-[12px] leading-5 text-[#b45309]" style={mont}>
-                No engagement events received yet. Delivered/opened/clicked metrics require the SendGrid Event
-                Webhook (Settings tab) — until it is configured, only the send count is tracked.
+                {t("campaignMetricsModal.webhookNotice")}
               </p>
             </div>
           )}
           {campaign.failedReason && (
             <div className="rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-4 py-3">
-              <p className="text-[12px] leading-5 text-[#dc2626]" style={mont}>Send error: {campaign.failedReason}</p>
+              <p className="text-[12px] leading-5 text-[#dc2626]" style={mont}>{t("campaignMetricsModal.sendError", { reason: campaign.failedReason })}</p>
             </div>
           )}
           <p className="text-[11px] text-[#9ca3af]" style={mont}>
-            Last event: {campaign.lastEventAt ? new Date(campaign.lastEventAt).toLocaleString() : "—"}
+            {t("campaignMetricsModal.lastEvent", { date: campaign.lastEventAt ? new Date(campaign.lastEventAt).toLocaleString() : "—" })}
           </p>
         </div>
       </div>
@@ -332,6 +334,7 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
   onEdit: () => void;
   onMetrics: () => void;
 }) {
+  const { t } = useTranslation("sendgrid");
   const [menuOpen, setMenuOpen] = useState(false);
   const duplicateMutation = useDuplicateCampaignMutation();
   const deleteMutation = useDeleteCampaignMutation();
@@ -344,21 +347,21 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
     setMenuOpen(false);
     try {
       await duplicateMutation.mutateAsync(campaign.id);
-      toast.success("Campaign duplicated as a new draft");
+      toast.success(t("campaigns.toasts.duplicated"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to duplicate");
+      toast.error(err instanceof Error ? err.message : t("campaigns.toasts.duplicateFailed"));
     }
   }
 
   async function handleDelete() {
     setMenuOpen(false);
-    const label = campaign.status === EmailCampaignStatus.SENT ? "archive/delete this sent campaign and its metrics" : "delete this campaign";
-    if (!window.confirm(`Are you sure you want to ${label}? This cannot be undone.`)) return;
+    const action = campaign.status === EmailCampaignStatus.SENT ? t("campaigns.deleteConfirmSent") : t("campaigns.deleteConfirmDraft");
+    if (!window.confirm(t("campaigns.deleteConfirmPrompt", { action }))) return;
     try {
       await deleteMutation.mutateAsync(campaign.id);
-      toast.success("Campaign deleted");
+      toast.success(t("campaigns.toasts.deleted"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete");
+      toast.error(err instanceof Error ? err.message : t("campaigns.toasts.deleteFailed"));
     }
   }
 
@@ -366,9 +369,9 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
     setMenuOpen(false);
     try {
       await cancelMutation.mutateAsync(campaign.id);
-      toast.success("Schedule cancelled — campaign is a draft again");
+      toast.success(t("campaigns.toasts.scheduleCancelled"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel schedule");
+      toast.error(err instanceof Error ? err.message : t("campaigns.toasts.cancelFailed"));
     }
   }
 
@@ -408,36 +411,36 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
       </td>
       <td className="px-5 py-4">
         <span className="inline-flex rounded-[6px] px-3 py-1 text-[12px] font-medium whitespace-nowrap" style={{ backgroundColor: badge.bg, color: badge.text, ...mont }}>
-          {badge.label}
+          {t(`campaignStatus.${campaign.status}`)}
         </span>
       </td>
       <td className="relative w-[55px] px-5 py-4 text-center">
-        <button type="button" onClick={() => setMenuOpen((v) => !v)} className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+        <button type="button" onClick={() => setMenuOpen((v) => !v)} aria-label={t("campaigns.row.actionsAria")} className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]">
           <MoreVertical size={16} />
         </button>
         {menuOpen && (
           <div className="absolute right-5 top-12 z-50 w-[190px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
             <button type="button" onClick={() => { setMenuOpen(false); onMetrics(); }} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
-              <BarChart3 size={13} /> View metrics
+              <BarChart3 size={13} /> {t("campaigns.row.viewMetrics")}
             </button>
             {canManage && editable && (
               <button type="button" onClick={() => { setMenuOpen(false); onEdit(); }} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
-                <Pencil size={13} /> Edit
+                <Pencil size={13} /> {t("campaigns.row.edit")}
               </button>
             )}
             {canSend && campaign.status === EmailCampaignStatus.SCHEDULED && (
               <button type="button" onClick={handleCancelSchedule} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
-                <CalendarClock size={13} /> Cancel schedule
+                <CalendarClock size={13} /> {t("campaigns.row.cancelSchedule")}
               </button>
             )}
             {canManage && (
               <>
                 <button type="button" onClick={handleDuplicate} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
-                  <Copy size={13} /> Duplicate
+                  <Copy size={13} /> {t("campaigns.row.duplicate")}
                 </button>
                 {campaign.status !== EmailCampaignStatus.SENDING && (
                   <button type="button" onClick={handleDelete} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#dc2626] hover:bg-[#fff1f2]" style={mont}>
-                    <Trash2 size={13} /> Delete
+                    <Trash2 size={13} /> {t("campaigns.row.delete")}
                   </button>
                 )}
               </>
@@ -452,6 +455,7 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
 function CampaignsTab({ canManage, canSend, onEdit }: {
   canManage: boolean; canSend: boolean; onEdit: (campaign: EmailCampaignDto) => void;
 }) {
+  const { t } = useTranslation("sendgrid");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | EmailCampaignStatus>("ALL");
   const [metricsFor, setMetricsFor] = useState<EmailCampaignDto | null>(null);
@@ -477,7 +481,7 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search campaigns"
+              placeholder={t("campaigns.searchPlaceholder")}
               className="min-h-[38px] w-full rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] pl-9 pr-3 text-[12px] text-[#0d2138] placeholder:text-[#9ca3af] focus:border-[#1e4f86] focus:outline-none"
               style={mont}
             />
@@ -488,27 +492,27 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
             className="min-h-[38px] rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3 text-[12px] text-[#0d2138] focus:border-[#1e4f86] focus:outline-none"
             style={mont}
           >
-            <option value="ALL">All statuses</option>
-            {Object.entries(STATUS_BADGE).map(([status, meta]) => (
-              <option key={status} value={status}>{meta.label}</option>
+            <option value="ALL">{t("campaigns.allStatuses")}</option>
+            {Object.keys(STATUS_BADGE).map((status) => (
+              <option key={status} value={status}>{t(`campaignStatus.${status}`)}</option>
             ))}
           </select>
           <div className="flex-1" />
-          <span className="text-[12px] text-[#6a7282]" style={mont}>{filtered.length} campaign{filtered.length === 1 ? "" : "s"}</span>
+          <span className="text-[12px] text-[#6a7282]" style={mont}>{t("campaigns.count", { count: filtered.length })}</span>
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-14 text-[#6a7282]">
             <Loader2 size={16} className="animate-spin" />
-            <span className="text-[13px]" style={mont}>Loading campaigns…</span>
+            <span className="text-[13px]" style={mont}>{t("campaigns.loading")}</span>
           </div>
         ) : isError ? (
-          <p className="py-14 text-center text-[13px] text-[#dc2626]" style={mont}>Could not load campaigns.</p>
+          <p className="py-14 text-center text-[13px] text-[#dc2626]" style={mont}>{t("campaigns.loadError")}</p>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-14">
             <Send size={26} className="text-[#c9d6e5]" />
             <p className="text-[13px] text-[#6a7282]" style={mont}>
-              {search || statusFilter !== "ALL" ? "No campaigns match your filters." : "No campaigns yet — create your first one."}
+              {search || statusFilter !== "ALL" ? t("campaigns.emptyFiltered") : t("campaigns.emptyNone")}
             </p>
           </div>
         ) : (
@@ -516,7 +520,11 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
             <table className="w-full min-w-[960px]">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#fafbfc]">
-                  {["Campaign", "Subject", "Audience", "Date", "Recipients", "Opens", "Clicks", "Status", ""].map((h) => (
+                  {[
+                    t("campaigns.columns.campaign"), t("campaigns.columns.subject"), t("campaigns.columns.audience"),
+                    t("campaigns.columns.date"), t("campaigns.columns.recipients"), t("campaigns.columns.opens"),
+                    t("campaigns.columns.clicks"), t("campaigns.columns.status"), "",
+                  ].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#6a7282]" style={mont}>{h}</th>
                   ))}
                 </tr>
@@ -546,13 +554,14 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
 // ── Templates tab ────────────────────────────────────────────────────────────
 
 function TemplatePreviewModal({ template, onClose }: { template: MarketingTemplate; onClose: () => void }) {
+  const { t } = useTranslation("sendgrid");
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center px-3 py-3 sm:items-center sm:p-4" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative z-10 flex max-h-[92vh] w-full max-w-[680px] flex-col overflow-hidden rounded-[18px] bg-white shadow-xl sm:rounded-[14px]" onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e5e7eb] px-5 py-4">
           <p className="text-[16px] font-semibold text-[#0d2138]" style={poppins}>{template.name}</p>
-          <button type="button" onClick={onClose} aria-label="Close" className="flex size-9 items-center justify-center rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]">
+          <button type="button" onClick={onClose} aria-label={t("templates.closeAria")} className="flex size-9 items-center justify-center rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]">
             <X size={18} />
           </button>
         </div>
@@ -563,6 +572,7 @@ function TemplatePreviewModal({ template, onClose }: { template: MarketingTempla
 }
 
 function TemplatesTab({ canManage, onUseTemplate }: { canManage: boolean; onUseTemplate: (key: string) => void }) {
+  const { t } = useTranslation("sendgrid");
   const { data } = useSendgridCampaignsQuery();
   const [preview, setPreview] = useState<MarketingTemplate | null>(null);
 
@@ -581,8 +591,7 @@ function TemplatesTab({ canManage, onUseTemplate }: { canManage: boolean; onUseT
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-[#6a7282]" style={mont}>
-        Reusable email templates for marketing campaigns — pick one to start a new campaign, then customise the
-        content in the editor.
+        {t("templates.intro")}
       </p>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {MARKETING_TEMPLATES.map((template) => {
@@ -602,18 +611,18 @@ function TemplatesTab({ canManage, onUseTemplate }: { canManage: boolean; onUseT
               </div>
 
               <div className="flex flex-col gap-1 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3">
-                <span className="text-[11px] text-[#9ca3af]" style={mont}>Subject line</span>
-                <span className="truncate text-[13px] text-[#0d2138]" style={mont}>{template.subject || "(set when creating the campaign)"}</span>
+                <span className="text-[11px] text-[#9ca3af]" style={mont}>{t("templates.subjectLine")}</span>
+                <span className="truncate text-[13px] text-[#0d2138]" style={mont}>{template.subject || t("templates.subjectFallback")}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col items-center gap-0.5 rounded-[10px] bg-[#f8fafc] px-3 py-2.5">
                   <span className="text-[15px] font-semibold text-[#0d2138]" style={poppins}>{used?.count ?? 0}x</span>
-                  <span className="text-[11px] text-[#9ca3af]" style={mont}>Used</span>
+                  <span className="text-[11px] text-[#9ca3af]" style={mont}>{t("templates.used")}</span>
                 </div>
                 <div className="flex flex-col items-center gap-0.5 rounded-[10px] bg-[#f8fafc] px-3 py-2.5">
                   <span className="text-[15px] font-semibold text-[#0d2138]" style={poppins}>{used?.lastUsed ? fmtDate(used.lastUsed) : "—"}</span>
-                  <span className="text-[11px] text-[#9ca3af]" style={mont}>Last used</span>
+                  <span className="text-[11px] text-[#9ca3af]" style={mont}>{t("templates.lastUsed")}</span>
                 </div>
               </div>
 
@@ -625,13 +634,13 @@ function TemplatesTab({ canManage, onUseTemplate }: { canManage: boolean; onUseT
                     className="flex min-h-[40px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[13px] font-medium text-white hover:bg-[#1b487a]"
                     style={mont}
                   >
-                    <Send size={14} /> Use Template
+                    <Send size={14} /> {t("templates.useTemplate")}
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setPreview(template)}
-                  title="Preview"
+                  title={t("templates.preview")}
                   className="flex min-h-[40px] items-center justify-center rounded-[10px] border border-[#e5e7eb] px-3.5 text-[#6a7282] hover:bg-[#f9fafb] hover:text-[#0d2138]"
                 >
                   <Eye size={15} />
@@ -649,6 +658,7 @@ function TemplatesTab({ canManage, onUseTemplate }: { canManage: boolean; onUseT
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export function SendGridPage({ role }: { role: Role }) {
+  const { t } = useTranslation("sendgrid");
   const [activeTab, setActiveTab] = useState<SendGridTab>("overview");
   const [wizard, setWizard] = useState<{ campaign: EmailCampaignDto | null; templateKey?: string } | null>(null);
 
@@ -666,12 +676,12 @@ export function SendGridPage({ role }: { role: Role }) {
   const overview = overviewData?.overview;
 
   const tabs: { id: SendGridTab; label: string; icon: React.ReactNode }[] = [
-    { id: "overview", label: "Overview", icon: <LayoutGrid size={15} /> },
-    { id: "campaigns", label: "Campaigns", icon: <Send size={15} /> },
-    { id: "templates", label: "Templates", icon: <FileText size={15} /> },
-    { id: "contacts", label: "Contacts", icon: <Users size={15} /> },
+    { id: "overview", label: t("page.tabs.overview"), icon: <LayoutGrid size={15} /> },
+    { id: "campaigns", label: t("page.tabs.campaigns"), icon: <Send size={15} /> },
+    { id: "templates", label: t("page.tabs.templates"), icon: <FileText size={15} /> },
+    { id: "contacts", label: t("page.tabs.contacts"), icon: <Users size={15} /> },
     // Settings is ADMIN-only per the client's Figma spec.
-    ...(canManageSettings ? [{ id: "settings" as const, label: "Settings", icon: <SettingsIcon size={15} /> }] : []),
+    ...(canManageSettings ? [{ id: "settings" as const, label: t("page.tabs.settings"), icon: <SettingsIcon size={15} /> }] : []),
   ];
 
   return (
@@ -682,7 +692,7 @@ export function SendGridPage({ role }: { role: Role }) {
         className="flex w-fit items-center gap-1 text-[13px] font-medium text-[#6a7282] hover:text-[#0d2138]"
         style={mont}
       >
-        <ChevronLeft size={15} /> Back
+        <ChevronLeft size={15} /> {t("page.back")}
       </Link>
 
       {/* Header */}
@@ -692,8 +702,8 @@ export function SendGridPage({ role }: { role: Role }) {
             <Mail size={20} />
           </span>
           <div className="flex flex-col gap-0.5">
-            <h1 className="text-[20px] font-medium leading-[32px] text-[#0d2138]" style={poppins}>SendGrid</h1>
-            <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Email delivery &amp; marketing campaigns</p>
+            <h1 className="text-[20px] font-medium leading-[32px] text-[#0d2138]" style={poppins}>{t("page.title")}</h1>
+            <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>{t("page.subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -704,7 +714,7 @@ export function SendGridPage({ role }: { role: Role }) {
             style={mont}
           >
             <span className={`size-1.5 rounded-full ${connected ? "bg-[#16a34a]" : "bg-[#9ca3af]"}`} />
-            {connected ? "Connected" : "Not Connected"}
+            {connected ? t("page.connected") : t("page.notConnected")}
           </span>
           {canManage && (
             <button
@@ -713,7 +723,7 @@ export function SendGridPage({ role }: { role: Role }) {
               className="flex h-10 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a]"
               style={mont}
             >
-              <Plus size={16} /> New Campaign
+              <Plus size={16} /> {t("page.newCampaign")}
             </button>
           )}
         </div>
@@ -722,30 +732,30 @@ export function SendGridPage({ role }: { role: Role }) {
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Emails Sent"
+          label={t("page.stats.emailsSent")}
           value={(overview?.emailsSent ?? 0).toLocaleString()}
-          sub="All campaigns"
+          sub={t("page.stats.emailsSentSub")}
           iconBg="#e8f0fe"
           icon={<Send size={16} className="text-[#1e4f86]" />}
         />
         <StatCard
-          label="Avg. Open Rate"
+          label={t("page.stats.avgOpenRate")}
           value={overview?.openRate != null ? `${overview.openRate}%` : "—"}
-          sub={overview?.metricsAvailable ? "Across sent emails" : "Pending webhook setup"}
+          sub={overview?.metricsAvailable ? t("page.stats.acrossSentEmails") : t("page.stats.pendingWebhookSetup")}
           iconBg="#fef3c6"
           icon={<Eye size={16} className="text-[#d08700]" />}
         />
         <StatCard
-          label="Avg. Click Rate"
+          label={t("page.stats.avgClickRate")}
           value={overview?.clickRate != null ? `${overview.clickRate}%` : "—"}
-          sub={overview?.metricsAvailable ? "Of opened emails" : "Pending webhook setup"}
+          sub={overview?.metricsAvailable ? t("page.stats.ofOpenedEmails") : t("page.stats.pendingWebhookSetup")}
           iconBg="#d1fae5"
           icon={<MousePointerClick size={16} className="text-[#10b981]" />}
         />
         <StatCard
-          label="Bounce Rate"
+          label={t("page.stats.bounceRate")}
           value={overview?.bounceRate != null ? `${overview.bounceRate}%` : "—"}
-          sub={overview?.metricsAvailable ? "Hard & soft" : "Pending webhook setup"}
+          sub={overview?.metricsAvailable ? t("page.stats.hardAndSoft") : t("page.stats.pendingWebhookSetup")}
           iconBg="#fee2e2"
           icon={<AlertOctagon size={16} className="text-[#dc2626]" />}
         />

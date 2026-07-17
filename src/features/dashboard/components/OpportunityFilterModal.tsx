@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { X, Search, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
 import type { OpportunityDto } from "@/features/crm/types/crm-dto";
@@ -89,21 +90,45 @@ export function matchesOpportunityFilters(o: OpportunityDto, f: OpportunityFilte
   return true;
 }
 
-const STAGES: { value: OpportunityStage; label: string; dot: string }[] = [
-  { value: OpportunityStage.QUALIFICATION, label: "Qualification", dot: "#a855f7" },
-  { value: OpportunityStage.VISITATION, label: "Visitation", dot: "#3b82f6" },
-  { value: OpportunityStage.OFFER, label: "Offer", dot: "#22c55e" },
-  { value: OpportunityStage.NEGOTIATION, label: "Negotiation", dot: "#f59e0b" },
-  { value: OpportunityStage.CLOSING, label: "Closing", dot: "#3b82f6" },
+const STAGE_LABEL_EN: Record<OpportunityStage, string> = {
+  QUALIFICATION: "Qualification",
+  VISITATION: "Visitation",
+  OFFER: "Offer",
+  NEGOTIATION: "Negotiation",
+  CLOSING: "Closing",
+};
+
+const STAGE_DOTS: { value: OpportunityStage; dot: string }[] = [
+  { value: OpportunityStage.QUALIFICATION, dot: "#a855f7" },
+  { value: OpportunityStage.VISITATION, dot: "#3b82f6" },
+  { value: OpportunityStage.OFFER, dot: "#22c55e" },
+  { value: OpportunityStage.NEGOTIATION, dot: "#f59e0b" },
+  { value: OpportunityStage.CLOSING, dot: "#3b82f6" },
 ];
 
-const STATUSES: { value: OpportunityStatus; label: string; dot: string }[] = [
-  { value: OpportunityStatus.OPEN, label: "Open", dot: "#22c55e" },
-  { value: OpportunityStatus.CLOSED_WON, label: "Closed Won", dot: "#16a34a" },
-  { value: OpportunityStatus.CLOSED_LOST, label: "Closed Lost", dot: "#ef4444" },
+const STATUS_LABEL_EN: Record<OpportunityStatus, string> = {
+  OPEN: "Open",
+  CLOSED_WON: "Closed Won",
+  CLOSED_LOST: "Closed Lost",
+};
+
+const STATUS_DOTS: { value: OpportunityStatus; dot: string }[] = [
+  { value: OpportunityStatus.OPEN, dot: "#22c55e" },
+  { value: OpportunityStatus.CLOSED_WON, dot: "#16a34a" },
+  { value: OpportunityStatus.CLOSED_LOST, dot: "#ef4444" },
 ];
 
+// Bucket values stay stable English — matchesExpectedCloseBucket compares against
+// them directly and they're stored in filter state. Display label comes from
+// EXPECTED_CLOSE_I18N_KEY below.
 const EXPECTED_CLOSE = ["This week", "This month", "This quarter", "This year", "Overdue"];
+const EXPECTED_CLOSE_I18N_KEY: Record<string, string> = {
+  "This week": "THIS_WEEK",
+  "This month": "THIS_MONTH",
+  "This quarter": "THIS_QUARTER",
+  "This year": "THIS_YEAR",
+  "Overdue": "OVERDUE",
+};
 
 type Agent = { id: string; name: string; status: string };
 
@@ -133,6 +158,7 @@ function DotPill({ label, dot, active, onClick }: { label: string; dot: string; 
 }
 
 export function OpportunityFilterModal({ initial, baseResults, onApply, onClose }: OpportunityFilterModalProps) {
+  const { t } = useTranslation("opportunities");
   const [stages, setStages] = useState<OpportunityStage[]>(initial.stages);
   const [statuses, setStatuses] = useState<OpportunityStatus[]>(initial.statuses);
   const [minCommission, setMinCommission] = useState(initial.minCommission);
@@ -185,9 +211,9 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between px-6 py-5 border-b border-[#f0f0f0]">
-          <p className="text-[16px] font-semibold text-[#1a1a1a]" style={mont}>Filter Opportunities</p>
+          <p className="text-[16px] font-semibold text-[#1a1a1a]" style={mont}>{t("filterModal.title")}</p>
           <div className="flex items-center gap-4">
-            <button type="button" onClick={clearAll} className="text-[12px] font-medium text-[#185fa5] hover:underline" style={mont}>Clear all</button>
+            <button type="button" onClick={clearAll} className="text-[12px] font-medium text-[#185fa5] hover:underline" style={mont}>{t("filterModal.clearAll")}</button>
             <button type="button" onClick={onClose} className="text-[#6a7282] hover:text-[#0d2138] transition-colors"><X size={18} /></button>
           </div>
         </div>
@@ -197,37 +223,37 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
           <div className="px-6 py-5 flex flex-col gap-5">
             {/* Stage */}
           <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Stage</p>
+            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.stage")}</p>
             <div className="flex flex-wrap gap-2.5">
-              {STAGES.map((s) => (
-                <DotPill key={s.value} label={s.label} dot={s.dot} active={stages.includes(s.value)} onClick={() => toggle(stages, s.value, setStages)} />
+              {STAGE_DOTS.map((s) => (
+                <DotPill key={s.value} label={t(`dashboard:status.${s.value}`, { defaultValue: STAGE_LABEL_EN[s.value] })} dot={s.dot} active={stages.includes(s.value)} onClick={() => toggle(stages, s.value, setStages)} />
               ))}
             </div>
           </div>
 
           {/* Status */}
           <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Status</p>
+            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.status")}</p>
             <div className="flex flex-wrap gap-2.5">
-              {STATUSES.map((s) => (
-                <DotPill key={s.value} label={s.label} dot={s.dot} active={statuses.includes(s.value)} onClick={() => toggle(statuses, s.value, setStatuses)} />
+              {STATUS_DOTS.map((s) => (
+                <DotPill key={s.value} label={t(`dashboard:status.${s.value}`, { defaultValue: STATUS_LABEL_EN[s.value] })} dot={s.dot} active={statuses.includes(s.value)} onClick={() => toggle(statuses, s.value, setStatuses)} />
               ))}
             </div>
           </div>
 
           {/* Commission range */}
           <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Commission range</p>
+            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.commissionRange")}</p>
             <div className="flex items-center gap-3">
-              <input value={minCommission} onChange={(e) => setMinCommission(e.target.value)} placeholder="Min $" inputMode="numeric" className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
+              <input value={minCommission} onChange={(e) => setMinCommission(e.target.value)} placeholder={t("filterModal.minCommissionPlaceholder")} inputMode="numeric" className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
               <span className="text-[#9a9a9a]">—</span>
-              <input value={maxCommission} onChange={(e) => setMaxCommission(e.target.value)} placeholder="Max $" inputMode="numeric" className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
+              <input value={maxCommission} onChange={(e) => setMaxCommission(e.target.value)} placeholder={t("filterModal.maxCommissionPlaceholder")} inputMode="numeric" className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
             </div>
           </div>
 
           {/* Min probability */}
           <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Min probability</p>
+            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.minProbability")}</p>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -244,7 +270,7 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
 
           {/* Expected close */}
           <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Expected close</p>
+            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.expectedClose")}</p>
             <div className="flex flex-wrap gap-2.5">
               {EXPECTED_CLOSE.map((e) => (
                 <button
@@ -256,7 +282,7 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
                   }`}
                   style={mont}
                 >
-                  {e}
+                  {t(`filterModal.expectedCloseOptions.${EXPECTED_CLOSE_I18N_KEY[e]}`, { defaultValue: e })}
                 </button>
               ))}
             </div>
@@ -264,14 +290,14 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
 
           {/* Assigned agent */}
           <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>Assigned agent</p>
+            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.assignedAgent")}</p>
             <div className="flex items-center gap-2 h-10 px-3 border border-[#d0d0d0] rounded-[10px]">
               <Search size={16} className="text-[#9a9a9a] shrink-0" />
-              <input value={agentSearch} onChange={(e) => setAgentSearch(e.target.value)} placeholder="Search by agent name..." className="text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] bg-transparent outline-none w-full" style={mont} />
+              <input value={agentSearch} onChange={(e) => setAgentSearch(e.target.value)} placeholder={t("filterModal.agentSearchPlaceholder")} className="text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] bg-transparent outline-none w-full" style={mont} />
             </div>
             <div className="border border-[#e5e7eb] rounded-[10px] divide-y divide-[#f0f0f0] overflow-hidden">
               {agentsLoading ? (
-                <p className="px-3 py-3 text-[12px] text-[#9a9a9a]" style={mont}>Loading agents…</p>
+                <p className="px-3 py-3 text-[12px] text-[#9a9a9a]" style={mont}>{t("filterModal.loadingAgents")}</p>
               ) : (
                 visibleAgents.map((a) => {
                   const selected = agentId === a.id;
@@ -286,7 +312,7 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
                         <span className="size-7 rounded-full bg-[#1e4f86] text-white flex items-center justify-center text-[10px] font-semibold" style={mont}>
                           {a.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                         </span>
-                        <span className="text-[13px] text-[#2a2a2a]" style={mont}>{a.name}{selected ? " (Selected)" : ""}</span>
+                        <span className="text-[13px] text-[#2a2a2a]" style={mont}>{a.name}{selected ? t("filterModal.selectedSuffix") : ""}</span>
                       </span>
                       {selected && <Check size={16} className="text-[#1e4f86]" />}
                     </button>
@@ -294,27 +320,27 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
                 })
               )}
               {!agentsLoading && visibleAgents.length === 0 && (
-                <p className="px-3 py-3 text-[12px] text-[#9a9a9a]" style={mont}>No agents found.</p>
+                <p className="px-3 py-3 text-[12px] text-[#9a9a9a]" style={mont}>{t("filterModal.noAgentsFound")}</p>
               )}
             </div>
             {!agentsLoading && (
-              <p className="text-[12px] text-[#9a9a9a]" style={mont}>Showing {visibleAgents.length} matches out of {agents.length} total agents</p>
+              <p className="text-[12px] text-[#9a9a9a]" style={mont}>{t("filterModal.agentMatchCount", { matches: visibleAgents.length, total: agents.length })}</p>
             )}
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[#f0f0f0]">
-          <span className="text-[12px] text-[#6b6b6b]" style={mont}>{previewCount} results</span>
+          <span className="text-[12px] text-[#6b6b6b]" style={mont}>{t("filterModal.resultsCount", { count: previewCount })}</span>
           <div className="flex items-center gap-2.5">
-            <button type="button" onClick={clearAll} className="h-9 px-4 border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#5a5a5a] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>Reset</button>
+            <button type="button" onClick={clearAll} className="h-9 px-4 border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#5a5a5a] bg-white hover:bg-[#f3f4f6] transition-colors" style={mont}>{t("filterModal.reset")}</button>
             <button
               type="button"
               onClick={() => onApply(draft)}
               className="h-9 px-5 bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
               style={mont}
             >
-              Apply filters
+              {t("filterModal.applyFilters")}
             </button>
           </div>
         </div>

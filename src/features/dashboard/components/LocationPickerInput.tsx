@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useLocationSuggestionsQuery } from "@/hooks/queries/useLocationSuggestionsQuery";
 
@@ -32,6 +33,7 @@ export function LocationPickerInput({
   placeholder,
   className,
 }: LocationPickerInputProps) {
+  const { t } = useTranslation("dashboardListings");
   const { data, isLoading } = useLocationSuggestionsQuery();
   const locations = data?.locations ?? [];
   const selected = locations.find((loc) => loc.id === value) ?? null;
@@ -82,7 +84,7 @@ export function LocationPickerInput({
         onKeyDown={(event) => {
           if (event.key === "Escape") setIsOpen(false);
         }}
-        placeholder={isLoading ? "Loading locations..." : placeholder}
+        placeholder={isLoading ? t("locationPicker.loadingLocations") : placeholder}
         autoComplete="off"
         className={className}
         style={mont}
@@ -114,7 +116,7 @@ export function LocationPickerInput({
           className="absolute z-20 mt-1 w-full rounded-[10px] border border-[#d7dde5] bg-white px-3.5 py-2.5 text-[13px] text-[#6a7282] shadow-lg"
           style={mont}
         >
-          No matching location. Add it from the Locations page first.
+          {t("locationPicker.noMatchingLocation")}
         </div>
       )}
     </div>

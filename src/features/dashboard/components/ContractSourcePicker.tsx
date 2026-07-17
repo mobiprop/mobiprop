@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, FileText, Upload, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import type { DocusignTemplateSummary } from "@/lib/docusign";
 import { EnvelopeRecipientRole } from "@/generated/prisma/enums";
@@ -40,12 +41,6 @@ const PARTICIPANT_ROLE_TO_RECIPIENT_ROLE: Record<ContractParticipantOption["role
   BUYER: EnvelopeRecipientRole.BUYER,
   SELLER: EnvelopeRecipientRole.SELLER,
   AGENCY: EnvelopeRecipientRole.THIRD_PARTY,
-};
-
-const PARTICIPANT_ROLE_LABEL: Record<ContractParticipantOption["role"], string> = {
-  BUYER: "Buyer",
-  SELLER: "Seller",
-  AGENCY: "Agency",
 };
 
 function fmtBytes(bytes: number): string {
@@ -88,6 +83,12 @@ export function ContractSourcePicker({
   onSelectionChange,
   onSourceChange,
 }: ContractSourcePickerProps) {
+  const { t } = useTranslation("opportunities");
+  const PARTICIPANT_ROLE_LABEL: Record<ContractParticipantOption["role"], string> = {
+    BUYER: t("contractSourcePicker.participantRoles.BUYER"),
+    SELLER: t("contractSourcePicker.participantRoles.SELLER"),
+    AGENCY: t("contractSourcePicker.participantRoles.AGENCY"),
+  };
   const [source, setSource] = useState<Source>(allowNone ? "NONE" : "TEMPLATE");
   const [templateId, setTemplateId] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -164,11 +165,11 @@ export function ContractSourcePicker({
     if (!next) return;
     const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
     if (!allowed.includes(next.type)) {
-      toast.error("Only PDF, DOC, and DOCX files are supported.");
+      toast.error(t("contractSourcePicker.fileTypeError"));
       return;
     }
     if (next.size > 10 * 1024 * 1024) {
-      toast.error("File must be 10MB or smaller.");
+      toast.error(t("contractSourcePicker.fileSizeError"));
       return;
     }
     setFile(next);
@@ -184,9 +185,9 @@ export function ContractSourcePicker({
   }
 
   const sourceTabs: { value: Source; label: string }[] = [
-    ...(allowNone ? [{ value: "NONE" as const, label: "No Contract" }] : []),
-    { value: "TEMPLATE", label: "Use DocuSign Template" },
-    { value: "CUSTOM_UPLOAD", label: "Upload Custom Contract Document" },
+    ...(allowNone ? [{ value: "NONE" as const, label: t("contractSourcePicker.tabs.noContract") }] : []),
+    { value: "TEMPLATE", label: t("contractSourcePicker.tabs.template") },
+    { value: "CUSTOM_UPLOAD", label: t("contractSourcePicker.tabs.customUpload") },
   ];
 
   return (
@@ -213,14 +214,14 @@ export function ContractSourcePicker({
         <>
           {/* Document */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Document</label>
+            <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("contractSourcePicker.document")}</label>
             {source === "TEMPLATE" ? (
               <SearchableSelect
                 size="sm"
                 value={templateId}
                 onChange={setTemplateId}
-                options={templates.map((t) => ({ value: t.templateId, label: t.name }))}
-                placeholder={templates.length ? "Select a template…" : "No templates found"}
+                options={templates.map((tpl) => ({ value: tpl.templateId, label: tpl.name }))}
+                placeholder={templates.length ? t("contractSourcePicker.selectTemplatePlaceholder") : t("contractSourcePicker.noTemplatesFound")}
                 disabled={disabled || templates.length === 0}
               />
             ) : file ? (
@@ -230,7 +231,7 @@ export function ContractSourcePicker({
                   <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={mont}>{file.name}</span>
                   <span className="shrink-0 text-[11px] text-[#9ca3af]" style={mont}>{fmtBytes(file.size)}</span>
                 </div>
-                <button type="button" onClick={() => setFile(null)} disabled={disabled} title="Remove" className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36] disabled:cursor-not-allowed">
+                <button type="button" onClick={() => setFile(null)} disabled={disabled} title={t("contractSourcePicker.removeAria")} className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36] disabled:cursor-not-allowed">
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -249,7 +250,7 @@ export function ContractSourcePicker({
               >
                 <Upload size={22} className="text-[#9ca3af]" />
                 <label className="cursor-pointer text-[12px] font-medium text-[#6b7280]" style={mont}>
-                  Click to upload or drag and drop
+                  {t("contractSourcePicker.dragDrop")}
                   <input
                     type="file"
                     disabled={disabled}
@@ -258,7 +259,7 @@ export function ContractSourcePicker({
                     onChange={(e) => { if (e.target.files?.length) handleFileSelected(e.target.files); e.target.value = ""; }}
                   />
                 </label>
-                <p className="text-[11px] text-[#9ca3af]" style={mont}>PDF, DOC, DOCX up to 10MB — uploaded when sent</p>
+                <p className="text-[11px] text-[#9ca3af]" style={mont}>{t("contractSourcePicker.uploadHint")}</p>
               </div>
             )}
           </div>
@@ -266,15 +267,15 @@ export function ContractSourcePicker({
           {/* Signers */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>
-              {source === "TEMPLATE" ? "Signer" : "Signers"}
+              {source === "TEMPLATE" ? t("contractSourcePicker.signer") : t("contractSourcePicker.signers")}
             </label>
             <p className="text-[11px] text-[#9ca3af]" style={mont}>
-              {source === "TEMPLATE" ? "A DocuSign Template can only go to one signer." : "Select everyone who needs to sign."}
+              {source === "TEMPLATE" ? t("contractSourcePicker.signerHintTemplate") : t("contractSourcePicker.signerHintMultiple")}
             </p>
 
             {eligibleParticipants.length === 0 ? (
               <p className="rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 py-4 text-[12px] text-[#6a7282]" style={mont}>
-                No participants with an email on file. Add a participant with an email first.
+                {t("contractSourcePicker.noParticipants")}
               </p>
             ) : (
               <div className="flex flex-col gap-2">
@@ -302,7 +303,7 @@ export function ContractSourcePicker({
                       <div className="flex min-w-0 flex-col">
                         <span className="truncate text-[13px] font-semibold text-[#0d2138]" style={mont}>{p.name}</span>
                         <span className="truncate text-[11px] text-[#6a7282]" style={mont}>
-                          {p.email ?? "No email on file"} · {PARTICIPANT_ROLE_LABEL[p.role]}
+                          {p.email ?? t("contractSourcePicker.noEmailOnFile")} · {PARTICIPANT_ROLE_LABEL[p.role]}
                         </span>
                       </div>
                       {selected && (
@@ -325,9 +326,9 @@ export function ContractSourcePicker({
               <p className="text-[12px] leading-5 text-[#92400e]" style={mont}>
                 {!documentName
                   ? source === "TEMPLATE"
-                    ? "Select a template to include this contract, or switch to No Contract."
-                    : "Upload a document to include this contract, or switch to No Contract."
-                  : "Select at least one signer above — otherwise this contract won't be sent."}
+                    ? t("contractSourcePicker.incompleteNoDocumentTemplate")
+                    : t("contractSourcePicker.incompleteNoDocumentUpload")
+                  : t("contractSourcePicker.incompleteNoSigner")}
               </p>
             </div>
           )}
@@ -336,8 +337,8 @@ export function ContractSourcePicker({
           {documentName && signerNames.length > 0 && (
             <div className="flex flex-col divide-y divide-[#e5e7eb] rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc]">
               {[
-                ["Document", documentName],
-                ["Signers", signerNames.join(", ")],
+                [t("contractSourcePicker.reviewDocument"), documentName],
+                [t("contractSourcePicker.reviewSigners"), signerNames.join(", ")],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-4 px-4 py-2.5">
                   <span className="shrink-0 text-[12px] text-[#6a7282]" style={mont}>{label}</span>
