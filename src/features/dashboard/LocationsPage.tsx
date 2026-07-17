@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Plus,
   Search,
@@ -109,6 +110,7 @@ function LocationListCard({
   pinColors,
   onSelect,
 }: LocationListCardProps) {
+  const { t } = useTranslation("locations");
   return (
     <button
       type="button"
@@ -152,7 +154,7 @@ function LocationListCard({
             {location.properties}
           </p>
           <p className="text-[11px] text-[#6a7282]" style={mont}>
-            Properties
+            {t("page.listCard.properties")}
           </p>
         </div>
         <div className="bg-[#f9fafb] rounded-[10px] py-2 flex flex-col items-center">
@@ -160,7 +162,7 @@ function LocationListCard({
             {location.active}
           </p>
           <p className="text-[11px] text-[#6a7282]" style={mont}>
-            Active
+            {t("page.listCard.active")}
           </p>
         </div>
         <div className="bg-[#f9fafb] rounded-[10px] py-2 flex flex-col items-center">
@@ -168,7 +170,7 @@ function LocationListCard({
             {location.sold}
           </p>
           <p className="text-[11px] text-[#6a7282]" style={mont}>
-            Sold
+            {t("page.listCard.sold")}
           </p>
         </div>
       </div>
@@ -178,10 +180,10 @@ function LocationListCard({
           <span className="font-semibold text-[#1f2937]">
             {formatRevenue(location.revenue)}
           </span>
-          <span className="text-[#6b7280]"> revenue</span>
+          <span className="text-[#6b7280]"> {t("page.listCard.revenue")}</span>
         </p>
         <p className="text-[12px] text-[#6b7280]" style={mont}>
-          {location.agents} agents
+          {t("page.listCard.agents", { count: location.agents })}
         </p>
       </div>
     </button>
@@ -234,6 +236,7 @@ type LocationsPageProps = {
 };
 
 export function LocationsPage({ role }: LocationsPageProps) {
+  const { t } = useTranslation("locations");
   const { data, isLoading, isError } = useDashboardLocationsQuery();
   const createMutation = useCreateLocationMutation();
   const updateMutation = useUpdateLocationMutation();
@@ -272,9 +275,9 @@ export function LocationsPage({ role }: LocationsPageProps) {
       const result = await createMutation.mutateAsync(values);
       setSelectedId(result.location.id);
       setModalMode(null);
-      toast.success("Location added");
+      toast.success(t("page.toasts.added"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to add location");
+      toast.error(error instanceof Error ? error.message : t("page.toasts.addFailed"));
     }
   }
 
@@ -283,9 +286,9 @@ export function LocationsPage({ role }: LocationsPageProps) {
     try {
       await updateMutation.mutateAsync({ id: selected.id, body: values });
       setModalMode(null);
-      toast.success("Location updated");
+      toast.success(t("page.toasts.updated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update location");
+      toast.error(error instanceof Error ? error.message : t("page.toasts.updateFailed"));
     }
   }
 
@@ -293,16 +296,16 @@ export function LocationsPage({ role }: LocationsPageProps) {
     if (!selected) return;
     if (
       typeof window !== "undefined" &&
-      !window.confirm(`Delete ${selected.name}? This action cannot be undone.`)
+      !window.confirm(t("page.deleteConfirm", { name: selected.name }))
     ) {
       return;
     }
     try {
       await deleteMutation.mutateAsync(selected.id);
       setSelectedId("");
-      toast.success("Location deleted");
+      toast.success(t("page.toasts.deleted"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete location");
+      toast.error(error instanceof Error ? error.message : t("page.toasts.deleteFailed"));
     }
   }
 
@@ -315,10 +318,10 @@ export function LocationsPage({ role }: LocationsPageProps) {
             className="text-[20px] font-medium text-[#0d2138] leading-[32px]"
             style={poppins}
           >
-            Property Locations
+            {t("page.title")}
           </h1>
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>
-            Manage properties across multiple locations
+            {t("page.subtitle")}
           </p>
         </div>
         {canManage && (
@@ -329,7 +332,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
             style={mont}
           >
             <Plus size={16} />
-            Add New Location
+            {t("page.addNewLocation")}
           </button>
         )}
       </div>
@@ -340,7 +343,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
           style={mont}
         >
           <Loader2 size={18} className="animate-spin" />
-          Loading locations...
+          {t("page.loading")}
         </div>
       ) : isError ? (
         <div
@@ -348,32 +351,32 @@ export function LocationsPage({ role }: LocationsPageProps) {
           className="flex min-h-[220px] items-center justify-center rounded-[14px] border border-[#fecaca] bg-white px-4 py-16 text-center text-[14px] text-[#e7000b]"
           style={mont}
         >
-          Failed to load locations. Please refresh the page.
+          {t("page.loadError")}
         </div>
       ) : (
         <>
           {/* Stat cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <StatCard
-              label="Active Locations"
+              label={t("page.stats.activeLocations")}
               value={locations.length}
               iconBg="#e0e7ff"
               icon={<UsersRound size={18} className="text-[#6366f1]" />}
             />
             <StatCard
-              label="Total Properties"
+              label={t("page.stats.totalProperties")}
               value={totalProperties}
               iconBg="#fee2e2"
               icon={<Flame size={18} className="text-[#ef4444]" />}
             />
             <StatCard
-              label="Total Revenue"
+              label={t("page.stats.totalRevenue")}
               value={`$${totalRevenue.toFixed(1)}M`}
               iconBg="#d1fae5"
               icon={<Percent size={18} className="text-[#10b981]" />}
             />
             <StatCard
-              label="Active Agents"
+              label={t("page.stats.activeAgents")}
               value={totalAgents}
               iconBg="#fef3c7"
               icon={<CircleDollarSign size={18} className="text-[#f59e0b]" />}
@@ -393,7 +396,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search locations..."
+                    placeholder={t("page.searchPlaceholder")}
                     className="w-full h-9 pl-9 pr-3 bg-[#f9fafb] border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0a0a0a] placeholder:text-[#9ca3af] outline-none focus:border-[#1e4f86] transition-colors"
                     style={mont}
                   />
@@ -414,7 +417,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                     className="px-4 py-6 text-center text-[12px] text-[#6a7282]"
                     style={mont}
                   >
-                    No locations found.
+                    {t("page.noLocationsFound")}
                   </p>
                 )}
               </div>
@@ -468,11 +471,11 @@ export function LocationsPage({ role }: LocationsPageProps) {
                         style={mont}
                       >
                         <Pencil size={14} />
-                        Edit
+                        {t("page.edit")}
                       </button>
                       <button
                         type="button"
-                        aria-label={`Delete ${selected.name}`}
+                        aria-label={t("page.deleteAria", { name: selected.name })}
                         onClick={handleDelete}
                         className="size-9 flex items-center justify-center border border-[#fca5a5] rounded-[10px] text-[#ef4444] hover:bg-[#fee2e2] transition-colors"
                       >
@@ -498,7 +501,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                         className="ml-3 text-[16px] font-semibold text-[#10233f]"
                         style={mont}
                       >
-                        Location Map
+                        {t("page.locationMap")}
                       </p>
 
                       <Send
@@ -522,7 +525,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                           className="flex h-full w-full items-center justify-center text-[14px] text-[#6a7282]"
                           style={mont}
                         >
-                          No coordinates yet for this location.
+                          {t("page.noCoordinates")}
                         </div>
                       )}
 
@@ -545,7 +548,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                         className="text-[14px] font-semibold text-[#0d2138]"
                         style={mont}
                       >
-                        Property Distribution
+                        {t("page.propertyDistribution")}
                       </p>
                     </div>
                     <div className="flex flex-col gap-4">
@@ -573,7 +576,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                                   className="text-[13px] font-medium text-[#1f2937]"
                                   style={mont}
                                 >
-                                  {item.label}
+                                  {t(`page.distribution.${item.key}`)}
                                 </p>
                               </div>
                               <p className="text-[13px]" style={mont}>
@@ -605,7 +608,7 @@ export function LocationsPage({ role }: LocationsPageProps) {
                 {/* Bottom stat cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
                   <BottomStatCard
-                    label="Total Properties"
+                    label={t("page.bottomStats.totalProperties")}
                     icon={<Building2 size={14} className="text-[#6a7282]" />}
                     value={String(selected.properties)}
                     valueColor="#1E4F86"
@@ -620,38 +623,38 @@ export function LocationsPage({ role }: LocationsPageProps) {
                         />
                       </div>
                       <p className="text-[11px] text-[#6a7282]" style={mont}>
-                        {selected.active} active
+                        {t("page.bottomStats.activeCount", { count: selected.active })}
                       </p>
                     </div>
                   </BottomStatCard>
                   <BottomStatCard
-                    label="Revenue"
+                    label={t("page.bottomStats.revenue")}
                     icon={<DollarSign size={14} className="text-[#6a7282]" />}
                     value={formatRevenue(selected.revenue)}
                     valueColor="#4896B6"
                   >
                     <p className="text-[11px] text-[#10b981]" style={mont}>
-                      ↑ +{selected.growthPercent}% from last month
+                      {t("page.bottomStats.growthFromLastMonth", { percent: selected.growthPercent })}
                     </p>
                   </BottomStatCard>
                   <BottomStatCard
-                    label="Avg. Price per m²"
+                    label={t("page.bottomStats.avgPricePerM2")}
                     icon={<TrendingUp size={14} className="text-[#6a7282]" />}
                     value={formatPriceM2(selected.avgPricePerM2)}
                     valueColor="#1E4F86"
                   >
                     <p className="text-[11px] text-[#6a7282]" style={mont}>
-                      Per property
+                      {t("page.bottomStats.perProperty")}
                     </p>
                   </BottomStatCard>
                   <BottomStatCard
-                    label="Active Agents"
+                    label={t("page.bottomStats.activeAgents")}
                     icon={<UsersRound size={14} className="text-[#6a7282]" />}
                     value={String(selected.agents)}
                     valueColor="#1E4F86"
                   >
                     <p className="text-[11px] text-[#6a7282]" style={mont}>
-                      Team members
+                      {t("page.bottomStats.teamMembers")}
                     </p>
                   </BottomStatCard>
                 </div>
@@ -664,13 +667,13 @@ export function LocationsPage({ role }: LocationsPageProps) {
                       className="text-[14px] font-semibold text-[#0d2138]"
                       style={mont}
                     >
-                      Recent Activity
+                      {t("page.recentActivity")}
                     </p>
                   </div>
                   <div className="flex flex-col gap-3">
                     {selected.activity.length === 0 && (
                       <p className="text-[12px] text-[#6a7282]" style={mont}>
-                        No recent activity for this location.
+                        {t("page.noActivity")}
                       </p>
                     )}
                     {selected.activity.map((item) => {

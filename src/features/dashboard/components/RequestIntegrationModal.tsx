@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -29,6 +30,7 @@ export function RequestIntegrationModal({
   onClose,
   onSubmit,
 }: RequestIntegrationModalProps) {
+  const { t } = useTranslation("integrations");
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -70,21 +72,21 @@ export function RequestIntegrationModal({
                 className="break-words text-[15px] font-semibold leading-6 text-[#1f2937] sm:text-[16px]"
                 style={mont}
               >
-                Request Integration
+                {t("requestModal.title")}
               </p>
 
               <p
                 className="mt-0.5 break-words text-[11px] leading-5 text-[#6a7282] sm:text-[12px]"
                 style={mont}
               >
-                Suggest a new integration
+                {t("requestModal.subtitle")}
               </p>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label={t("requestModal.closeAria")}
               className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
             >
               <X size={18} />
@@ -106,7 +108,7 @@ export function RequestIntegrationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Integration Name *
+                  {t("requestModal.nameLabel")}
                 </label>
 
                 <input
@@ -116,7 +118,7 @@ export function RequestIntegrationModal({
                   onChange={(event) =>
                     setName(event.target.value)
                   }
-                  placeholder="e.g., HubSpot, Asana, Monday.com, Notion"
+                  placeholder={t("requestModal.namePlaceholder")}
                   className={inputClass}
                   style={mont}
                 />
@@ -129,7 +131,7 @@ export function RequestIntegrationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Website / URL
+                  {t("requestModal.urlLabel")}
                 </label>
 
                 <input
@@ -139,7 +141,7 @@ export function RequestIntegrationModal({
                   onChange={(event) =>
                     setUrl(event.target.value)
                   }
-                  placeholder="https://example.com"
+                  placeholder={t("requestModal.urlPlaceholder")}
                   className={inputClass}
                   style={mont}
                 />
@@ -152,7 +154,7 @@ export function RequestIntegrationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Brief Description *
+                  {t("requestModal.descriptionLabel")}
                 </label>
 
                 <textarea
@@ -162,7 +164,7 @@ export function RequestIntegrationModal({
                   onChange={(event) =>
                     setDescription(event.target.value)
                   }
-                  placeholder="Describe what this integration does and its main features..."
+                  placeholder={t("requestModal.descriptionPlaceholder")}
                   rows={3}
                   className={`${textareaClass} min-h-[96px]`}
                   style={mont}
@@ -176,7 +178,7 @@ export function RequestIntegrationModal({
                   className={labelClass}
                   style={mont}
                 >
-                  Your Use Case *
+                  {t("requestModal.useCaseLabel")}
                 </label>
 
                 <textarea
@@ -186,7 +188,7 @@ export function RequestIntegrationModal({
                   onChange={(event) =>
                     setUseCase(event.target.value)
                   }
-                  placeholder="Explain how this integration would benefit your workflow and improve your business processes..."
+                  placeholder={t("requestModal.useCasePlaceholder")}
                   rows={4}
                   className={`${textareaClass} min-h-[120px]`}
                   style={mont}
@@ -204,7 +206,7 @@ export function RequestIntegrationModal({
                 className="min-h-10 w-full flex-1 rounded-[10px] border border-[#e5e7eb] bg-white px-5 text-[12px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/20"
                 style={mont}
               >
-                Cancel
+                {t("requestModal.cancel")}
               </button>
 
               <button
@@ -212,7 +214,7 @@ export function RequestIntegrationModal({
                 className="min-h-10 w-full flex-1 rounded-[10px] bg-[#1e4f86] px-5 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
                 style={mont}
               >
-                Submit Request
+                {t("requestModal.submit")}
               </button>
             </div>
           </div>

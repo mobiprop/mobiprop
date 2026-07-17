@@ -1,0 +1,54 @@
+{
+  "page": {
+    "title": "Integration",
+    "subtitle": "Connect your favorite tools and apps",
+    "requestIntegration": "Request Integration",
+    "stats": {
+      "totalIntegrations": "Total Integrations",
+      "connected": "Connected",
+      "available": "Available",
+      "activeThisMonth": "Active This Month"
+    },
+    "card": {
+      "connected": "Connected",
+      "available": "Available",
+      "manage": "Manage",
+      "connect": "Connect"
+    }
+  },
+  "detailModal": {
+    "subtitle": "Manage integration settings",
+    "closeAria": "Close modal",
+    "connectedSuccessfully": "Connected Successfully",
+    "lastSynced": "Last synced: {{value}}",
+    "syncNow": "Sync Now",
+    "integrationSettings": "Integration Settings",
+    "selectOption": "Select an option",
+    "permissions": "Permissions",
+    "saveChanges": "Save Changes",
+    "disconnect": "Disconnect"
+  },
+  "requestModal": {
+    "title": "Request Integration",
+    "subtitle": "Suggest a new integration",
+    "closeAria": "Close modal",
+    "nameLabel": "Integration Name *",
+    "namePlaceholder": "e.g., HubSpot, Asana, Monday.com, Notion",
+    "urlLabel": "Website / URL",
+    "urlPlaceholder": "https://example.com",
+    "descriptionLabel": "Brief Description *",
+    "descriptionPlaceholder": "Describe what this integration does and its main features...",
+    "useCaseLabel": "Your Use Case *",
+    "useCasePlaceholder": "Explain how this integration would benefit your workflow and improve your business processes...",
+    "cancel": "Cancel",
+    "submit": "Submit Request"
+  },
+  "googleCalendarModal": {
+    "title": "Google Calendar",
+    "closeAria": "Close modal",
+    "connected": "Connected",
+    "connectedAccountFallback": "Connected account",
+    "description": "New tours scheduled for listings assigned to you are added to this calendar, and a conflicting time will be offered alternative slots instead. Disconnecting stops new tours from syncing — existing calendar events are left as-is.",
+    "disconnect": "Disconnect"
+  }
+}

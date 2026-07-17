@@ -8,16 +8,15 @@ import type { LocationDistribution, LocationActivityKind } from "@/features/loca
 
 export const DISTRIBUTION_CONFIG: {
   key: keyof LocationDistribution;
-  label: string;
   icon: LucideIcon;
   iconBg: string;
   iconColor: string;
   barColor: string;
 }[] = [
-  { key: "houses", label: "Houses", icon: Home, iconBg: "rgba(105,169,195,0.12)", iconColor: "#69a9c3", barColor: "#69a9c3" },
-  { key: "apartments", label: "Apartments", icon: Building2, iconBg: "rgba(16,185,129,0.08)", iconColor: "#10b981", barColor: "#10b981" },
-  { key: "lots", label: "Lots", icon: Layers, iconBg: "rgba(245,158,11,0.08)", iconColor: "#f59e0b", barColor: "#f59e0b" },
-  { key: "commercial", label: "Commercial", icon: Store, iconBg: "rgba(239,68,68,0.08)", iconColor: "#ef4444", barColor: "#ef4444" },
+  { key: "houses", icon: Home, iconBg: "rgba(105,169,195,0.12)", iconColor: "#69a9c3", barColor: "#69a9c3" },
+  { key: "apartments", icon: Building2, iconBg: "rgba(16,185,129,0.08)", iconColor: "#10b981", barColor: "#10b981" },
+  { key: "lots", icon: Layers, iconBg: "rgba(245,158,11,0.08)", iconColor: "#f59e0b", barColor: "#f59e0b" },
+  { key: "commercial", icon: Store, iconBg: "rgba(239,68,68,0.08)", iconColor: "#ef4444", barColor: "#ef4444" },
 ];
 
 export const ACTIVITY_KIND_CONFIG: Record<

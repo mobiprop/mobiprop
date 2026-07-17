@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, CheckCircle2, Loader2 } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -12,6 +13,7 @@ type GoogleCalendarManageModalProps = {
 };
 
 export function GoogleCalendarManageModal({ email, onClose, onDisconnect }: GoogleCalendarManageModalProps) {
+  const { t } = useTranslation("integrations");
   const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   async function handleDisconnect() {
@@ -41,12 +43,12 @@ export function GoogleCalendarManageModal({ email, onClose, onDisconnect }: Goog
         <div className="shrink-0 border-b border-[#e5e7eb] bg-white px-4 py-4 sm:px-5 sm:py-5">
           <div className="flex min-w-0 items-start justify-between gap-3">
             <p id="google-calendar-modal-title" className="text-[15px] font-semibold text-[#1f2937] sm:text-[16px]" style={mont}>
-              Google Calendar
+              {t("googleCalendarModal.title")}
             </p>
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label={t("googleCalendarModal.closeAria")}
               className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
             >
               <X size={18} />
@@ -62,19 +64,17 @@ export function GoogleCalendarManageModal({ email, onClose, onDisconnect }: Goog
               </div>
               <div className="min-w-0">
                 <p className="text-[13px] font-medium text-[#047857] sm:text-[14px]" style={mont}>
-                  Connected
+                  {t("googleCalendarModal.connected")}
                 </p>
                 <p className="truncate text-[12px] text-[#059669]" style={mont}>
-                  {email ?? "Connected account"}
+                  {email ?? t("googleCalendarModal.connectedAccountFallback")}
                 </p>
               </div>
             </div>
           </div>
 
           <p className="mt-4 text-[12px] leading-5 text-[#6a7282]" style={mont}>
-            New tours scheduled for listings assigned to you are added to this calendar, and a
-            conflicting time will be offered alternative slots instead. Disconnecting stops new
-            tours from syncing — existing calendar events are left as-is.
+            {t("googleCalendarModal.description")}
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export function GoogleCalendarManageModal({ email, onClose, onDisconnect }: Goog
             style={mont}
           >
             {isDisconnecting && <Loader2 size={14} className="animate-spin" />}
-            Disconnect
+            {t("googleCalendarModal.disconnect")}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Plus,
   Search,
@@ -30,6 +31,7 @@ import {
 import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 import { BlogEditorModal, type BlogFormValues } from "./components/BlogEditorModal";
 import { ManageCategoriesModal } from "./components/ManageCategoriesModal";
+import { SearchableSelect } from "./components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -67,20 +69,21 @@ function StatCard({
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  PUBLISHED: { bg: "#dcfce7", text: "#166534", label: "Published" },
-  SCHEDULED: { bg: "#dbeafe", text: "#1d4ed8", label: "Scheduled" },
-  DRAFT: { bg: "#f3f4f6", text: "#4b5563", label: "Draft" },
+const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  PUBLISHED: { bg: "#dcfce7", text: "#166534" },
+  SCHEDULED: { bg: "#dbeafe", text: "#1d4ed8" },
+  DRAFT: { bg: "#f3f4f6", text: "#4b5563" },
 };
 
 function StatusBadge({ status }: { status: BlogStatus }) {
+  const { t } = useTranslation("dashboardBlog");
   const s = STATUS_STYLE[status] ?? STATUS_STYLE.DRAFT;
   return (
     <span
       className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
-      {s.label}
+      {t(`status.${status}`)}
     </span>
   );
 }
@@ -103,6 +106,7 @@ function RowMenu({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation("dashboardBlog");
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -162,8 +166,8 @@ function RowMenu({
       <button
         ref={buttonRef}
         type="button"
-        title="Actions"
-        aria-label={`Open actions for ${label}`}
+        title={t("adminPage.rowMenu.actionsTitle")}
+        aria-label={t("adminPage.rowMenu.actionsAria", { label })}
         aria-expanded={open}
         onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
         className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
@@ -189,7 +193,7 @@ function RowMenu({
                 className="flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
                 style={mont}
               >
-                <Pencil size={14} className="text-[#1e4f86]" /> Edit
+                <Pencil size={14} className="text-[#1e4f86]" /> {t("adminPage.rowMenu.edit")}
               </button>
             )}
             {canDelete && (
@@ -200,7 +204,7 @@ function RowMenu({
                 className="flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium text-[#fb2c36] transition-colors hover:bg-[#fff1f2]"
                 style={mont}
               >
-                <Trash2 size={14} /> Delete
+                <Trash2 size={14} /> {t("adminPage.rowMenu.delete")}
               </button>
             )}
           </div>,
@@ -213,6 +217,7 @@ function RowMenu({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function BlogAdminPage({ role }: { role: Role }) {
+  const { t } = useTranslation("dashboardBlog");
   const canCreate = hasPermission(role, "blog:create");
   const canUpdate = hasPermission(role, "blog:update");
   const canDelete = hasPermission(role, "blog:delete");
@@ -281,11 +286,11 @@ export function BlogAdminPage({ role }: { role: Role }) {
         { id: editing.id, body },
         {
           onSuccess: () => {
-            toast.success("Post updated");
+            toast.success(t("adminPage.toasts.postUpdated"));
             setEditorOpen(false);
             setEditing(null);
           },
-          onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update post"),
+          onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.updateFailed")),
         },
       );
     } else {
@@ -293,38 +298,35 @@ export function BlogAdminPage({ role }: { role: Role }) {
         onSuccess: () => {
           toast.success(
             values.status === BlogStatus.PUBLISHED
-              ? "Post published"
+              ? t("adminPage.toasts.postPublished")
               : values.status === BlogStatus.SCHEDULED
-                ? "Post scheduled"
-                : "Draft saved",
+                ? t("adminPage.toasts.postScheduled")
+                : t("adminPage.toasts.draftSaved"),
           );
           setEditorOpen(false);
         },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to create post"),
+        onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.createFailed")),
       });
     }
   }
 
   function handleDelete(post: BlogPostDto) {
-    if (!window.confirm(`Delete "${post.title}"? This cannot be undone.`)) return;
+    if (!window.confirm(t("adminPage.deleteConfirm", { title: post.title }))) return;
     setDeletingId(post.id);
     deleteMutation.mutate(post.id, {
-      onSuccess: () => toast.success("Post deleted"),
-      onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete post"),
+      onSuccess: () => toast.success(t("adminPage.toasts.postDeleted")),
+      onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.deleteFailed")),
       onSettled: () => setDeletingId(null),
     });
   }
-
-  const selectClass =
-    "h-9 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[12px] text-[#374151] outline-none focus:border-[#1e4f86]";
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6" style={mont}>
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#1f2937]" style={poppins}>Blog</h1>
-          <p className="mt-1 text-[13px] text-[#6a7282]">Manage content, articles, and publications.</p>
+          <h1 className="text-[22px] font-semibold text-[#1f2937]" style={poppins}>{t("adminPage.title")}</h1>
+          <p className="mt-1 text-[13px] text-[#6a7282]">{t("adminPage.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
           {canUpdate && (
@@ -333,7 +335,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
               onClick={() => setManageCategoriesOpen(true)}
               className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-4 text-[13px] font-medium text-[#374151] hover:bg-[#f8fafc]"
             >
-              <FolderCog className="size-4" /> Manage Categories
+              <FolderCog className="size-4" /> {t("adminPage.manageCategories")}
             </button>
           )}
           {canCreate && (
@@ -342,7 +344,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
               onClick={openCreate}
               className="flex h-10 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[13px] font-medium text-white hover:bg-[#1a4574]"
             >
-              <Plus className="size-4" /> New Post
+              <Plus className="size-4" /> {t("adminPage.newPost")}
             </button>
           )}
         </div>
@@ -351,21 +353,19 @@ export function BlogAdminPage({ role }: { role: Role }) {
       {/* Preview-data notice (dummy fallback before the DB migration is applied) */}
       {isPreviewData && (
         <div className="flex items-start gap-2 rounded-[12px] border border-[#fde68a] bg-[#fffbeb] px-4 py-3 text-[12px] text-[#92400e]">
-          <span className="mt-0.5 font-semibold">Preview data</span>
+          <span className="mt-0.5 font-semibold">{t("adminPage.previewData")}</span>
           <span>
-            These are placeholder posts. The blog database table hasn&apos;t been created yet, so
-            creating, editing, or deleting won&apos;t save. Apply the pending migration to start
-            managing real posts.
+            {t("adminPage.previewDataMessage")}
           </span>
         </div>
       )}
 
       {/* Metrics */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Total posts" value={metrics?.total ?? "—"} trend="All time" iconBg="#dbeafe" icon={<FileText className="size-4 text-[#1e4f86]" />} />
-        <StatCard label="Published" value={metrics?.published ?? "—"} trend="Live on the site" iconBg="#dcfce7" icon={<CheckCircle2 className="size-4 text-[#16a34a]" />} />
-        <StatCard label="Drafts" value={metrics?.drafts ?? "—"} trend="Awaiting publish" iconBg="#fef3c7" icon={<FileEdit className="size-4 text-[#d97706]" />} />
-        <StatCard label="Categories" value={metrics?.categories ?? "—"} trend="Managed taxonomy" iconBg="#ede9fe" icon={<Tags className="size-4 text-[#7c3aed]" />} />
+        <StatCard label={t("adminPage.stats.totalPosts")} value={metrics?.total ?? "—"} trend={t("adminPage.stats.allTime")} iconBg="#dbeafe" icon={<FileText className="size-4 text-[#1e4f86]" />} />
+        <StatCard label={t("adminPage.stats.published")} value={metrics?.published ?? "—"} trend={t("adminPage.stats.liveOnSite")} iconBg="#dcfce7" icon={<CheckCircle2 className="size-4 text-[#16a34a]" />} />
+        <StatCard label={t("adminPage.stats.drafts")} value={metrics?.drafts ?? "—"} trend={t("adminPage.stats.awaitingPublish")} iconBg="#fef3c7" icon={<FileEdit className="size-4 text-[#d97706]" />} />
+        <StatCard label={t("adminPage.stats.categories")} value={metrics?.categories ?? "—"} trend={t("adminPage.stats.managedTaxonomy")} iconBg="#ede9fe" icon={<Tags className="size-4 text-[#7c3aed]" />} />
       </div>
 
       {/* Filters */}
@@ -375,42 +375,58 @@ export function BlogAdminPage({ role }: { role: Role }) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, author…"
+            placeholder={t("adminPage.searchPlaceholder")}
             className="h-9 w-full rounded-[10px] border border-[#e5e7eb] bg-white pl-9 pr-3 text-[12px] text-[#374151] outline-none focus:border-[#1e4f86]"
           />
         </div>
-        <select className={selectClass} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">All statuses</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="SCHEDULED">Scheduled</option>
-          <option value="DRAFT">Draft</option>
-        </select>
-        <select className={selectClass} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.name}>{c.name}</option>
-          ))}
-        </select>
+        <SearchableSelect
+          className="w-[170px] shrink-0"
+          size="sm"
+          searchable={false}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          placeholder={t("adminPage.allStatuses")}
+          ariaLabel={t("adminPage.allStatuses")}
+          options={[
+            { value: "", label: t("adminPage.allStatuses") },
+            { value: "PUBLISHED", label: t("status.PUBLISHED") },
+            { value: "SCHEDULED", label: t("status.SCHEDULED") },
+            { value: "DRAFT", label: t("status.DRAFT") },
+          ]}
+        />
+        <SearchableSelect
+          className="w-[190px] shrink-0"
+          size="sm"
+          searchable={false}
+          value={categoryFilter}
+          onChange={setCategoryFilter}
+          placeholder={t("adminPage.allCategories")}
+          ariaLabel={t("adminPage.allCategories")}
+          options={[
+            { value: "", label: t("adminPage.allCategories") },
+            ...categories.map((c) => ({ value: c.name, label: c.name })),
+          ]}
+        />
       </div>
 
       {/* List */}
       <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-16 text-[13px] text-[#6a7282]">
-            <Loader2 className="size-4 animate-spin" /> Loading posts…
+            <Loader2 className="size-4 animate-spin" /> {t("adminPage.loading")}
           </div>
         ) : isError ? (
-          <div className="py-16 text-center text-[13px] text-[#dc2626]">Failed to load posts. Try again.</div>
+          <div className="py-16 text-center text-[13px] text-[#dc2626]">{t("adminPage.loadError")}</div>
         ) : posts.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <span className="flex size-12 items-center justify-center rounded-full bg-[#f3f4f6]">
               <Newspaper className="size-6 text-[#9ca3af]" />
             </span>
-            <p className="text-[14px] font-medium text-[#1f2937]">No posts yet</p>
+            <p className="text-[14px] font-medium text-[#1f2937]">{t("adminPage.noPostsYet")}</p>
             <p className="max-w-[320px] text-[12px] text-[#6a7282]">
               {search || statusFilter || categoryFilter
-                ? "No posts match your filters."
-                : "Create your first article to get started."}
+                ? t("adminPage.noPostsMatchFilters")
+                : t("adminPage.createFirstArticle")}
             </p>
             {canCreate && !search && !statusFilter && !categoryFilter && (
               <button
@@ -418,7 +434,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
                 onClick={openCreate}
                 className="mt-1 flex h-9 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[12px] font-medium text-white hover:bg-[#1a4574]"
               >
-                <Plus className="size-4" /> New Post
+                <Plus className="size-4" /> {t("adminPage.newPost")}
               </button>
             )}
           </div>
@@ -427,11 +443,11 @@ export function BlogAdminPage({ role }: { role: Role }) {
             <table className="w-full min-w-[760px] border-collapse">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#fafbfc] text-left text-[11px] uppercase tracking-wide text-[#6a7282]">
-                  <th className="px-4 py-3 font-medium">Post</th>
-                  <th className="px-4 py-3 font-medium">Category</th>
-                  <th className="px-4 py-3 font-medium">Author</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Updated</th>
+                  <th className="px-4 py-3 font-medium">{t("adminPage.columns.post")}</th>
+                  <th className="px-4 py-3 font-medium">{t("adminPage.columns.category")}</th>
+                  <th className="px-4 py-3 font-medium">{t("adminPage.columns.author")}</th>
+                  <th className="px-4 py-3 font-medium">{t("adminPage.columns.status")}</th>
+                  <th className="px-4 py-3 font-medium">{t("adminPage.columns.updated")}</th>
                   <th className="w-[52px]" />
                 </tr>
               </thead>
@@ -462,7 +478,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
                           {post.category}
                         </span>
                       ) : (
-                        <span className="text-[12px] text-[#9ca3af]">Uncategorized</span>
+                        <span className="text-[12px] text-[#9ca3af]">{t("adminPage.uncategorized")}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-[12px] text-[#374151]">{post.author}</td>

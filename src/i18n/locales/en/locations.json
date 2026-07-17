@@ -1,0 +1,56 @@
+{
+  "page": {
+    "title": "Property Locations",
+    "subtitle": "Manage properties across multiple locations",
+    "addNewLocation": "Add New Location",
+    "loading": "Loading locations...",
+    "loadError": "Failed to load locations. Please refresh the page.",
+    "stats": {
+      "activeLocations": "Active Locations",
+      "totalProperties": "Total Properties",
+      "totalRevenue": "Total Revenue",
+      "activeAgents": "Active Agents"
+    },
+    "searchPlaceholder": "Search locations...",
+    "noLocationsFound": "No locations found.",
+    "listCard": {
+      "properties": "Properties",
+      "active": "Active",
+      "sold": "Sold",
+      "revenue": "revenue",
+      "agents": "{{count}} agents"
+    },
+    "edit": "Edit",
+    "deleteAria": "Delete {{name}}",
+    "deleteConfirm": "Delete {{name}}? This action cannot be undone.",
+    "locationMap": "Location Map",
+    "noCoordinates": "No coordinates yet for this location.",
+    "propertyDistribution": "Property Distribution",
+    "distribution": {
+      "houses": "Houses",
+      "apartments": "Apartments",
+      "lots": "Lots",
+      "commercial": "Commercial"
+    },
+    "bottomStats": {
+      "totalProperties": "Total Properties",
+      "activeCount": "{{count}} active",
+      "revenue": "Revenue",
+      "growthFromLastMonth": "↑ +{{percent}}% from last month",
+      "avgPricePerM2": "Avg. Price per m²",
+      "perProperty": "Per property",
+      "activeAgents": "Active Agents",
+      "teamMembers": "Team members"
+    },
+    "recentActivity": "Recent Activity",
+    "noActivity": "No recent activity for this location.",
+    "toasts": {
+      "added": "Location added",
+      "addFailed": "Failed to add location",
+      "updated": "Location updated",
+      "updateFailed": "Failed to update location",
+      "deleted": "Location deleted",
+      "deleteFailed": "Failed to delete location"
+    }
+  }
+}
