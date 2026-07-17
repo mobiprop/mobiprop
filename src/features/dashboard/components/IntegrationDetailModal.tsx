@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   X,
   CheckCircle2,
@@ -60,6 +61,7 @@ export function IntegrationDetailModal({
   onSave,
   onDisconnect,
 }: IntegrationDetailModalProps) {
+  const { t } = useTranslation("integrations");
   const [settings, setSettings] = useState<
     IntegrationSettingField[]
   >(integration.settings ?? []);
@@ -144,14 +146,14 @@ export function IntegrationDetailModal({
                 className="mt-0.5 break-words text-[11px] leading-5 text-[#6a7282] sm:text-[12px]"
                 style={mont}
               >
-                Manage integration settings
+                {t("detailModal.subtitle")}
               </p>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label={t("detailModal.closeAria")}
               className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
             >
               <X size={18} />
@@ -178,16 +180,14 @@ export function IntegrationDetailModal({
                       className="break-words text-[13px] font-medium leading-5 text-[#047857] sm:text-[14px]"
                       style={mont}
                     >
-                      Connected Successfully
+                      {t("detailModal.connectedSuccessfully")}
                     </p>
 
                     <p
                       className="break-words text-[11px] leading-5 text-[#059669] sm:text-[12px]"
                       style={mont}
                     >
-                      Last synced:{" "}
-                      {integration.lastSynced ??
-                        "just now"}
+                      {t("detailModal.lastSynced", { value: integration.lastSynced ?? "just now" })}
                     </p>
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export function IntegrationDetailModal({
                   style={mont}
                 >
                   <RefreshCw size={12} />
-                  Sync Now
+                  {t("detailModal.syncNow")}
                 </button>
               </div>
             </div>
@@ -210,7 +210,7 @@ export function IntegrationDetailModal({
                   className="text-[14px] font-medium text-[#1f2937]"
                   style={mont}
                 >
-                  Integration Settings
+                  {t("detailModal.integrationSettings")}
                 </p>
 
                 <div className="flex min-w-0 flex-col gap-4">
@@ -238,7 +238,7 @@ export function IntegrationDetailModal({
                             value: option,
                             label: option,
                           }))}
-                          placeholder="Select an option"
+                          placeholder={t("detailModal.selectOption")}
                         />
                       ) : (
                         <input
@@ -268,7 +268,7 @@ export function IntegrationDetailModal({
                   className="text-[14px] font-medium text-[#1f2937]"
                   style={mont}
                 >
-                  Permissions
+                  {t("detailModal.permissions")}
                 </p>
 
                 <div className="flex min-w-0 flex-col gap-2">
@@ -314,7 +314,7 @@ export function IntegrationDetailModal({
               className="min-h-10 w-full flex-1 rounded-[10px] bg-[#1e4f86] px-5 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30"
               style={mont}
             >
-              Save Changes
+              {t("detailModal.saveChanges")}
             </button>
 
             <button
@@ -323,7 +323,7 @@ export function IntegrationDetailModal({
               className="min-h-10 w-full shrink-0 rounded-[10px] border border-[#fca5a5] px-5 text-[12px] font-medium text-[#dc2626] transition-colors hover:bg-[#fef2f2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626]/20 sm:w-auto"
               style={mont}
             >
-              Disconnect
+              {t("detailModal.disconnect")}
             </button>
           </div>
         </div>

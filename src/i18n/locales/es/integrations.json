@@ -1,0 +1,54 @@
+{
+  "page": {
+    "title": "Integración",
+    "subtitle": "Conecta tus herramientas y aplicaciones favoritas",
+    "requestIntegration": "Solicitar Integración",
+    "stats": {
+      "totalIntegrations": "Total de Integraciones",
+      "connected": "Conectadas",
+      "available": "Disponibles",
+      "activeThisMonth": "Activas Este Mes"
+    },
+    "card": {
+      "connected": "Conectado",
+      "available": "Disponible",
+      "manage": "Gestionar",
+      "connect": "Conectar"
+    }
+  },
+  "detailModal": {
+    "subtitle": "Gestiona la configuración de la integración",
+    "closeAria": "Cerrar modal",
+    "connectedSuccessfully": "Conectado con Éxito",
+    "lastSynced": "Última sincronización: {{value}}",
+    "syncNow": "Sincronizar Ahora",
+    "integrationSettings": "Configuración de la Integración",
+    "selectOption": "Selecciona una opción",
+    "permissions": "Permisos",
+    "saveChanges": "Guardar Cambios",
+    "disconnect": "Desconectar"
+  },
+  "requestModal": {
+    "title": "Solicitar Integración",
+    "subtitle": "Sugiere una nueva integración",
+    "closeAria": "Cerrar modal",
+    "nameLabel": "Nombre de la Integración *",
+    "namePlaceholder": "ej. HubSpot, Asana, Monday.com, Notion",
+    "urlLabel": "Sitio Web / URL",
+    "urlPlaceholder": "https://example.com",
+    "descriptionLabel": "Descripción Breve *",
+    "descriptionPlaceholder": "Describe qué hace esta integración y sus principales funciones...",
+    "useCaseLabel": "Tu Caso de Uso *",
+    "useCasePlaceholder": "Explica cómo esta integración beneficiaría tu flujo de trabajo y mejoraría tus procesos de negocio...",
+    "cancel": "Cancelar",
+    "submit": "Enviar Solicitud"
+  },
+  "googleCalendarModal": {
+    "title": "Google Calendar",
+    "closeAria": "Cerrar modal",
+    "connected": "Conectado",
+    "connectedAccountFallback": "Cuenta conectada",
+    "description": "Los nuevos recorridos programados para propiedades asignadas a ti se agregan a este calendario, y un horario en conflicto recibirá horarios alternativos en su lugar. Al desconectar se detiene la sincronización de nuevos recorridos — los eventos existentes en el calendario permanecen sin cambios.",
+    "disconnect": "Desconectar"
+  }
+}

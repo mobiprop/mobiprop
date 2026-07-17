@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Plus,
   LayoutGrid,
@@ -143,6 +144,7 @@ function IntegrationCard({
   onConnect,
   onManage,
 }: IntegrationCardProps) {
+  const { t } = useTranslation("integrations");
   const Icon = integration.icon;
   const isConnected = integration.status === "Connected";
 
@@ -165,14 +167,14 @@ function IntegrationCard({
             style={mont}
           >
             <CheckCircle2 size={12} />
-            Connected
+            {t("page.card.connected")}
           </span>
         ) : (
           <span
             className="min-h-[24.5px] px-2.5 sm:px-3 py-1 rounded-full bg-[#f3f4f6] flex items-center text-[10px] sm:text-[11px] font-semibold text-[#6b7280] shrink-0"
             style={mont}
           >
-            Available
+            {t("page.card.available")}
           </span>
         )}
       </div>
@@ -201,7 +203,7 @@ function IntegrationCard({
           className="w-full min-h-[38px] bg-[#f9fafb] border border-[#e5e7eb] rounded-[10px] px-4 text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           style={mont}
         >
-          Manage
+          {t("page.card.manage")}
         </button>
       ) : (
         <button
@@ -211,7 +213,7 @@ function IntegrationCard({
           className="w-full min-h-[38px] bg-[#1e4f86] rounded-[10px] px-4 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           style={mont}
         >
-          Connect
+          {t("page.card.connect")}
         </button>
       )}
     </div>
@@ -227,6 +229,7 @@ type IntegrationsPageProps = {
 export function IntegrationsPage({
   role,
 }: IntegrationsPageProps) {
+  const { t } = useTranslation("integrations");
   const queryClient = useQueryClient();
   const router = useRouter();
   const calendarStatus = useGoogleCalendarStatusQuery();
@@ -387,14 +390,14 @@ export function IntegrationsPage({
             className="text-[20px] font-medium text-[#0d2138] leading-[30px] sm:leading-[32px]"
             style={poppins}
           >
-            Integration
+            {t("page.title")}
           </h1>
 
           <p
             className="text-[13px] sm:text-[14px] font-medium leading-5 text-[#6a7282]"
             style={mont}
           >
-            Connect your favorite tools and apps
+            {t("page.subtitle")}
           </p>
         </div>
 
@@ -406,7 +409,7 @@ export function IntegrationsPage({
             style={mont}
           >
             <Plus size={16} />
-            Request Integration
+            {t("page.requestIntegration")}
           </button>
         )}
       </div>
@@ -415,7 +418,7 @@ export function IntegrationsPage({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
         <StatCard
-          label="Total Integrations"
+          label={t("page.stats.totalIntegrations")}
           value={integrations.length}
           iconBg="#e0e7ff"
           icon={
@@ -427,7 +430,7 @@ export function IntegrationsPage({
         />
 
         <StatCard
-          label="Connected"
+          label={t("page.stats.connected")}
           value={connected.length}
           iconBg="#d1fae5"
           icon={
@@ -439,7 +442,7 @@ export function IntegrationsPage({
         />
 
         <StatCard
-          label="Available"
+          label={t("page.stats.available")}
           value={available.length}
           iconBg="#fef3c7"
           icon={
@@ -451,7 +454,7 @@ export function IntegrationsPage({
         />
 
         <StatCard
-          label="Active This Month"
+          label={t("page.stats.activeThisMonth")}
           value={connected.length}
           iconBg="#dbeafe"
           icon={

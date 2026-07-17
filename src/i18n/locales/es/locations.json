@@ -1,0 +1,56 @@
+{
+  "page": {
+    "title": "Ubicaciones de Propiedades",
+    "subtitle": "Gestiona propiedades en múltiples ubicaciones",
+    "addNewLocation": "Agregar Nueva Ubicación",
+    "loading": "Cargando ubicaciones...",
+    "loadError": "No se pudieron cargar las ubicaciones. Por favor actualiza la página.",
+    "stats": {
+      "activeLocations": "Ubicaciones Activas",
+      "totalProperties": "Propiedades Totales",
+      "totalRevenue": "Ingresos Totales",
+      "activeAgents": "Agentes Activos"
+    },
+    "searchPlaceholder": "Buscar ubicaciones...",
+    "noLocationsFound": "No se encontraron ubicaciones.",
+    "listCard": {
+      "properties": "Propiedades",
+      "active": "Activas",
+      "sold": "Vendidas",
+      "revenue": "ingresos",
+      "agents": "{{count}} agentes"
+    },
+    "edit": "Editar",
+    "deleteAria": "Eliminar {{name}}",
+    "deleteConfirm": "¿Eliminar {{name}}? Esta acción no se puede deshacer.",
+    "locationMap": "Mapa de Ubicación",
+    "noCoordinates": "Aún no hay coordenadas para esta ubicación.",
+    "propertyDistribution": "Distribución de Propiedades",
+    "distribution": {
+      "houses": "Casas",
+      "apartments": "Departamentos",
+      "lots": "Lotes",
+      "commercial": "Comercial"
+    },
+    "bottomStats": {
+      "totalProperties": "Propiedades Totales",
+      "activeCount": "{{count}} activas",
+      "revenue": "Ingresos",
+      "growthFromLastMonth": "↑ +{{percent}}% desde el mes pasado",
+      "avgPricePerM2": "Precio Prom. por m²",
+      "perProperty": "Por propiedad",
+      "activeAgents": "Agentes Activos",
+      "teamMembers": "Miembros del equipo"
+    },
+    "recentActivity": "Actividad Reciente",
+    "noActivity": "Aún no hay actividad reciente para esta ubicación.",
+    "toasts": {
+      "added": "Ubicación agregada",
+      "addFailed": "No se pudo agregar la ubicación",
+      "updated": "Ubicación actualizada",
+      "updateFailed": "No se pudo actualizar la ubicación",
+      "deleted": "Ubicación eliminada",
+      "deleteFailed": "No se pudo eliminar la ubicación"
+    }
+  }
+}

@@ -28,6 +28,9 @@ import enLeads from "./locales/en/leads.json";
 import enOpportunities from "./locales/en/opportunities.json";
 import enDocusign from "./locales/en/docusign.json";
 import enSendgrid from "./locales/en/sendgrid.json";
+import enIntegrations from "./locales/en/integrations.json";
+import enLocations from "./locales/en/locations.json";
+import enDashboardBlog from "./locales/en/dashboardBlog.json";
 
 import esCommon from "./locales/es/common.json";
 import esNavigation from "./locales/es/navigation.json";
@@ -54,6 +57,9 @@ import esLeads from "./locales/es/leads.json";
 import esOpportunities from "./locales/es/opportunities.json";
 import esDocusign from "./locales/es/docusign.json";
 import esSendgrid from "./locales/es/sendgrid.json";
+import esIntegrations from "./locales/es/integrations.json";
+import esLocations from "./locales/es/locations.json";
+import esDashboardBlog from "./locales/es/dashboardBlog.json";
 
 const resources = {
   en: {
@@ -82,6 +88,9 @@ const resources = {
     opportunities: enOpportunities,
     docusign: enDocusign,
     sendgrid: enSendgrid,
+    integrations: enIntegrations,
+    locations: enLocations,
+    dashboardBlog: enDashboardBlog,
   },
   es: {
     common: esCommon,
@@ -109,6 +118,9 @@ const resources = {
     opportunities: esOpportunities,
     docusign: esDocusign,
     sendgrid: esSendgrid,
+    integrations: esIntegrations,
+    locations: esLocations,
+    dashboardBlog: esDashboardBlog,
   },
 };
 
@@ -117,7 +129,7 @@ if (!i18next.isInitialized) {
     resources,
     lng: DEFAULT_LANGUAGE,
     fallbackLng: "es",
-    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth", "agents", "contacts", "dashboardListings", "leads", "opportunities", "docusign", "sendgrid"],
+    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth", "agents", "contacts", "dashboardListings", "leads", "opportunities", "docusign", "sendgrid", "integrations", "locations", "dashboardBlog"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     returnEmptyString: false,

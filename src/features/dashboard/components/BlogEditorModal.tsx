@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { X, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { BlogStatus } from "@/generated/prisma/enums";
 import { uploadBlogCover } from "@/lib/blog-cover-upload";
@@ -53,6 +54,7 @@ function fromDateInput(date: string): string {
 }
 
 export function BlogEditorModal({ post, canPublish, submitting, categories, onClose, onSubmit }: BlogEditorModalProps) {
+  const { t } = useTranslation("dashboardBlog");
   const isEdit = Boolean(post);
 
   const [title, setTitle] = useState(post?.title ?? "");
@@ -95,19 +97,19 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
 
   function validateForStatus(nextStatus: BlogStatus): boolean {
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error(t("editorModal.toasts.titleRequired"));
       return false;
     }
     if (!author.trim()) {
-      toast.error("Author is required");
+      toast.error(t("editorModal.toasts.authorRequired"));
       return false;
     }
     if (content.replace(/<[^>]*>/g, "").trim().length === 0) {
-      toast.error("Content is required");
+      toast.error(t("editorModal.toasts.contentRequired"));
       return false;
     }
     if (nextStatus === BlogStatus.SCHEDULED && new Date(fromDateInput(scheduledDate)).getTime() <= Date.now()) {
-      toast.error("Publish date must be in the future");
+      toast.error(t("editorModal.toasts.dateInFuture"));
       return false;
     }
     return true;
@@ -119,7 +121,7 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
       const url = await uploadBlogCover(file);
       setCoverImageUrl(url);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload cover image");
+      toast.error(err instanceof Error ? err.message : t("editorModal.toasts.uploadFailed"));
     } finally {
       setUploadingCover(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -146,17 +148,17 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#e5e7eb] bg-white px-5 py-4">
           <div className="min-w-0">
             <p id="blog-modal-title" className="text-[16px] font-semibold text-[#1f2937]" style={mont}>
-              {isEdit ? "Edit Blog Post" : "Create New Post"}
+              {isEdit ? t("editorModal.editTitle") : t("editorModal.newTitle")}
             </p>
             <p className="mt-0.5 text-[12px] text-[#6a7282]" style={mont}>
-              {isEdit ? "Update this article." : "Fill in the details to publish your article."}
+              {isEdit ? t("editorModal.editSubtitle") : t("editorModal.newSubtitle")}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex size-8 items-center justify-center rounded-full text-[#6a7282] hover:bg-[#f3f4f6]"
-            aria-label="Close"
+            aria-label={t("editorModal.closeAria")}
           >
             <X className="size-4" />
           </button>
@@ -167,21 +169,21 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px]">
             {/* Content column */}
             <div className="flex flex-col gap-4 border-b border-[#e5e7eb] px-5 py-4 lg:border-b-0 lg:border-r">
-              <p className="text-[13px] font-semibold text-[#1f2937]">Content</p>
+              <p className="text-[13px] font-semibold text-[#1f2937]">{t("editorModal.content")}</p>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="blog-title">Post Title *</label>
+                <label className={labelClass} htmlFor="blog-title">{t("editorModal.postTitle")}</label>
                 <input
                   id="blog-title"
                   className={inputClass}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Top Real Estate Trends in Buenos Aires"
+                  placeholder={t("editorModal.postTitlePlaceholder")}
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="blog-slug">URL Slug</label>
+                <label className={labelClass} htmlFor="blog-slug">{t("editorModal.urlSlug")}</label>
                 <div className="flex h-10 w-full min-w-0 items-center overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] focus-within:border-[#1e4f86]">
                   <span className="shrink-0 pl-3.5 text-[12px] text-[#9ca3af]">/blog/</span>
                   <input
@@ -189,109 +191,109 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
                     className="h-full w-full min-w-0 bg-transparent px-1 text-[12px] text-[#0a0a0a] outline-none placeholder:text-[#6a7282]"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    placeholder="auto-generated-from-title"
+                    placeholder={t("editorModal.slugPlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="blog-excerpt">Excerpt / Summary</label>
+                <label className={labelClass} htmlFor="blog-excerpt">{t("editorModal.excerpt")}</label>
                 <textarea
                   id="blog-excerpt"
                   className="min-h-[64px] w-full rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-2.5 text-[12px] text-[#0a0a0a] outline-none placeholder:text-[#6a7282] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10"
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
-                  placeholder="Short description shown in post listings…"
+                  placeholder={t("editorModal.excerptPlaceholder")}
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass}>Article Content</label>
-                <RichTextEditor value={content} onChange={setContent} placeholder="Write your article…" />
+                <label className={labelClass}>{t("editorModal.articleContent")}</label>
+                <RichTextEditor value={content} onChange={setContent} placeholder={t("editorModal.articleContentPlaceholder")} />
               </div>
             </div>
 
             {/* Settings column */}
             <div className="flex flex-col gap-4 bg-[#fafbfc] px-5 py-4">
-              <p className="text-[13px] font-semibold text-[#1f2937]">Settings</p>
+              <p className="text-[13px] font-semibold text-[#1f2937]">{t("editorModal.settings")}</p>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="blog-author">Author *</label>
+                <label className={labelClass} htmlFor="blog-author">{t("editorModal.author")}</label>
                 <input
                   id="blog-author"
                   className={`${inputClass} bg-white`}
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  placeholder="Full name"
+                  placeholder={t("editorModal.authorPlaceholder")}
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass}>Category</label>
+                <label className={labelClass}>{t("editorModal.category")}</label>
                 <SearchableSelect
                   size="sm"
                   searchable={false}
                   value={category}
                   onChange={setCategory}
                   options={[
-                    { value: "", label: "Uncategorized" },
+                    { value: "", label: t("adminPage.uncategorized") },
                     ...categories.map((c) => ({ value: c.name, label: c.name })),
                   ]}
-                  placeholder="Select category"
-                  ariaLabel="Category"
+                  placeholder={t("editorModal.selectCategory")}
+                  ariaLabel={t("editorModal.categoryAria")}
                   className="bg-white"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass}>Status</label>
+                <label className={labelClass}>{t("editorModal.status")}</label>
                 <SearchableSelect
                   size="sm"
                   searchable={false}
                   value={status}
                   onChange={(next) => setStatus(next as BlogStatus)}
                   options={[
-                    { value: BlogStatus.DRAFT, label: "Draft" },
+                    { value: BlogStatus.DRAFT, label: t("status.DRAFT") },
                     ...(canPublish
                       ? [
-                          { value: BlogStatus.SCHEDULED, label: "Scheduled" },
-                          { value: BlogStatus.PUBLISHED, label: "Published" },
+                          { value: BlogStatus.SCHEDULED, label: t("status.SCHEDULED") },
+                          { value: BlogStatus.PUBLISHED, label: t("status.PUBLISHED") },
                         ]
                       : []),
                   ]}
-                  placeholder="Select status"
-                  ariaLabel="Status"
+                  placeholder={t("editorModal.selectStatus")}
+                  ariaLabel={t("editorModal.statusAria")}
                   className="bg-white"
                 />
               </div>
 
               {status === BlogStatus.SCHEDULED && (
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Publish Date *</label>
+                  <label className={labelClass}>{t("editorModal.publishDate")}</label>
                   <DatePickerField
                     value={scheduledDate}
                     onChange={setScheduledDate}
                     minDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
-                    placeholder="mm/dd/yy"
+                    placeholder={t("editorModal.publishDatePlaceholder")}
                     className="[&>button]:bg-white"
                   />
                 </div>
               )}
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass} htmlFor="blog-tags">Tags</label>
+                <label className={labelClass} htmlFor="blog-tags">{t("editorModal.tags")}</label>
                 <input
                   id="blog-tags"
                   className={`${inputClass} bg-white`}
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="investment, tips, 2024"
+                  placeholder={t("editorModal.tagsPlaceholder")}
                 />
-                <p className="text-[11px] text-[#9ca3af]">Comma separated</p>
+                <p className="text-[11px] text-[#9ca3af]">{t("editorModal.commaSeparated")}</p>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className={labelClass}>Featured Image</label>
+                <label className={labelClass}>{t("editorModal.featuredImage")}</label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -305,21 +307,21 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
                 {coverImageUrl ? (
                   <div className="relative overflow-hidden rounded-[12px] border border-[#e5e7eb]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={coverImageUrl} alt="Cover preview" className="h-32 w-full object-cover" />
+                    <img src={coverImageUrl} alt={t("editorModal.coverPreviewAlt")} className="h-32 w-full object-cover" />
                     <div className="absolute right-2 top-2 flex gap-2">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         className="rounded-[8px] bg-white/90 px-2.5 py-1 text-[11px] font-medium text-[#1f2937] shadow-sm hover:bg-white"
                       >
-                        Replace
+                        {t("editorModal.replace")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setCoverImageUrl("")}
                         className="flex items-center gap-1 rounded-[8px] bg-white/90 px-2.5 py-1 text-[11px] font-medium text-[#dc2626] shadow-sm hover:bg-white"
                       >
-                        <Trash2 className="size-3" /> Remove
+                        <Trash2 className="size-3" /> {t("editorModal.remove")}
                       </button>
                     </div>
                   </div>
@@ -333,13 +335,13 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
                     {uploadingCover ? (
                       <>
                         <Loader2 className="size-6 animate-spin" />
-                        <span className="text-[12px]">Uploading…</span>
+                        <span className="text-[12px]">{t("editorModal.uploading")}</span>
                       </>
                     ) : (
                       <>
                         <ImagePlus className="size-6" />
-                        <span className="text-[12px]">Click to upload or drag &amp; drop</span>
-                        <span className="text-[11px] text-[#9ca3af]">PNG, JPG, WEBP up to 10MB</span>
+                        <span className="text-[12px]">{t("editorModal.clickToUpload")}</span>
+                        <span className="text-[11px] text-[#9ca3af]">{t("editorModal.uploadHint")}</span>
                       </>
                     )}
                   </button>
@@ -360,7 +362,7 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
             onClick={onClose}
             className="h-9 rounded-[10px] px-4 text-[12px] font-medium text-[#374151] hover:bg-[#f3f4f6]"
           >
-            Cancel
+            {t("editorModal.cancel")}
           </button>
           <button
             type="button"
@@ -369,7 +371,7 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
             className="flex h-9 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[12px] font-medium text-white hover:bg-[#1a4574] disabled:opacity-60"
           >
             {busy && <Loader2 className="size-3.5 animate-spin" />}
-            {isEdit ? "Save Changes" : "Save Post"}
+            {isEdit ? t("editorModal.saveChanges") : t("editorModal.savePost")}
           </button>
         </div>
       </div>

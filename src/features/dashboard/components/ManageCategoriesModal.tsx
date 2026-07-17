@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Plus, Pencil, Trash2, LayoutGrid, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import type { BlogCategoryDto } from "@/features/blog/types/blog-dto";
 import {
@@ -45,6 +46,7 @@ function DeleteCategoryDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation("dashboardBlog");
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={onCancel}>
       <div className="absolute inset-0 bg-black/40" />
@@ -58,12 +60,12 @@ function DeleteCategoryDialog({
             <Trash2 className="size-5 text-[#dc2626]" />
           </span>
           <div className="min-w-0">
-            <p className="text-[15px] font-semibold text-[#1f2937]">Delete Category</p>
-            <p className="text-[12px] text-[#9ca3af]">Posts will not be deleted</p>
+            <p className="text-[15px] font-semibold text-[#1f2937]">{t("categoriesModal.deleteDialog.title")}</p>
+            <p className="text-[12px] text-[#9ca3af]">{t("categoriesModal.deleteDialog.subtitle")}</p>
           </div>
         </div>
         <p className="mt-4 text-[13px] leading-5 text-[#4b5563]">
-          Are you sure? Posts in &quot;{category.name}&quot; will remain but will no longer be categorised.
+          {t("categoriesModal.deleteDialog.message", { name: category.name })}
         </p>
         <div className="mt-5 flex gap-3">
           <button
@@ -72,7 +74,7 @@ function DeleteCategoryDialog({
             disabled={busy}
             className="h-10 flex-1 rounded-[10px] border border-[#e5e7eb] text-[13px] font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-60"
           >
-            Cancel
+            {t("categoriesModal.deleteDialog.cancel")}
           </button>
           <button
             type="button"
@@ -81,7 +83,7 @@ function DeleteCategoryDialog({
             className="flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#dc2626] text-[13px] font-medium text-white hover:bg-[#c81e1e] disabled:opacity-60"
           >
             {busy && <Loader2 className="size-3.5 animate-spin" />}
-            Delete
+            {t("categoriesModal.deleteDialog.delete")}
           </button>
         </div>
       </div>
@@ -98,6 +100,7 @@ export function ManageCategoriesModal({
   canDelete,
   onClose,
 }: ManageCategoriesModalProps) {
+  const { t } = useTranslation("dashboardBlog");
   const [panel, setPanel] = useState<PanelState>({ mode: "empty" });
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -124,7 +127,7 @@ export function ManageCategoriesModal({
 
   function handleSave() {
     if (!name.trim()) {
-      toast.error("Category name is required");
+      toast.error(t("categoriesModal.toasts.nameRequired"));
       return;
     }
     const body = { name: name.trim(), slug: slug.trim(), description: description.trim() };
@@ -134,19 +137,19 @@ export function ManageCategoriesModal({
         { id: panel.category.id, body },
         {
           onSuccess: () => {
-            toast.success("Category updated");
+            toast.success(t("categoriesModal.toasts.updated"));
             setPanel({ mode: "empty" });
           },
-          onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to update category"),
+          onError: (err) => toast.error(err instanceof Error ? err.message : t("categoriesModal.toasts.updateFailed")),
         },
       );
     } else {
       createMutation.mutate(body, {
         onSuccess: () => {
-          toast.success("Category added");
+          toast.success(t("categoriesModal.toasts.added"));
           setPanel({ mode: "empty" });
         },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to add category"),
+        onError: (err) => toast.error(err instanceof Error ? err.message : t("categoriesModal.toasts.addFailed")),
       });
     }
   }
@@ -155,11 +158,11 @@ export function ManageCategoriesModal({
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.id, {
       onSuccess: () => {
-        toast.success("Category deleted");
+        toast.success(t("categoriesModal.toasts.deleted"));
         setDeleteTarget(null);
         if (panel.mode === "edit" && panel.category.id === deleteTarget.id) setPanel({ mode: "empty" });
       },
-      onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete category"),
+      onError: (err) => toast.error(err instanceof Error ? err.message : t("categoriesModal.toasts.deleteFailed")),
     });
   }
 
@@ -177,10 +180,10 @@ export function ManageCategoriesModal({
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#e5e7eb] px-5 py-4">
           <div>
-            <p className="text-[16px] font-semibold text-[#1f2937]">Manage Categories</p>
-            <p className="mt-0.5 text-[12px] text-[#6a7282]">Organise your content into structured categories</p>
+            <p className="text-[16px] font-semibold text-[#1f2937]">{t("categoriesModal.title")}</p>
+            <p className="mt-0.5 text-[12px] text-[#6a7282]">{t("categoriesModal.subtitle")}</p>
           </div>
-          <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-full text-[#6a7282] hover:bg-[#f3f4f6]" aria-label="Close">
+          <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-full text-[#6a7282] hover:bg-[#f3f4f6]" aria-label={t("categoriesModal.closeAria")}>
             <X className="size-4" />
           </button>
         </div>
@@ -188,15 +191,15 @@ export function ManageCategoriesModal({
         {/* Summary strip */}
         <div className="grid shrink-0 grid-cols-3 divide-x divide-[#f0f0f0] border-b border-[#e5e7eb]">
           <div className="px-5 py-3">
-            <p className="text-[12px] text-[#9ca3af]">Total Categories</p>
+            <p className="text-[12px] text-[#9ca3af]">{t("categoriesModal.totalCategories")}</p>
             <p className="text-[18px] font-semibold text-[#1f2937]">{categories.length}</p>
           </div>
           <div className="px-5 py-3">
-            <p className="text-[12px] text-[#9ca3af]">Total Posts</p>
+            <p className="text-[12px] text-[#9ca3af]">{t("categoriesModal.totalPosts")}</p>
             <p className="text-[18px] font-semibold text-[#1f2937]">{totalPosts}</p>
           </div>
           <div className="px-5 py-3">
-            <p className="text-[12px] text-[#9ca3af]">Uncategorised</p>
+            <p className="text-[12px] text-[#9ca3af]">{t("categoriesModal.uncategorized")}</p>
             <p className="text-[18px] font-semibold text-[#1f2937]">{uncategorizedPosts}</p>
           </div>
         </div>
@@ -205,20 +208,20 @@ export function ManageCategoriesModal({
         <div className="flex flex-1 overflow-hidden">
           <div className="flex w-full max-w-[380px] shrink-0 flex-col overflow-y-auto border-r border-[#e5e7eb]">
             <div className="flex shrink-0 items-center justify-between px-5 py-3">
-              <p className="text-[13px] font-semibold text-[#1f2937]">Categories ({categories.length})</p>
+              <p className="text-[13px] font-semibold text-[#1f2937]">{t("categoriesModal.categoriesCount", { count: categories.length })}</p>
               {canCreate && (
                 <button
                   type="button"
                   onClick={openAdd}
                   className="flex h-8 items-center gap-1.5 rounded-[8px] bg-[#1e4f86] px-3 text-[12px] font-medium text-white hover:bg-[#1a4574]"
                 >
-                  <Plus className="size-3.5" /> Add New
+                  <Plus className="size-3.5" /> {t("categoriesModal.addNew")}
                 </button>
               )}
             </div>
 
             {categories.length === 0 ? (
-              <p className="px-5 py-6 text-[12px] text-[#9ca3af]">No categories yet.</p>
+              <p className="px-5 py-6 text-[12px] text-[#9ca3af]">{t("categoriesModal.noCategoriesYet")}</p>
             ) : (
               categories.map((c) => (
                 <button
@@ -233,7 +236,7 @@ export function ManageCategoriesModal({
                     <div className="flex items-center gap-2">
                       <p className="truncate text-[13px] font-semibold text-[#1f2937]">{c.name}</p>
                       <span className="shrink-0 rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#6b7280]">
-                        {c.postCount} {c.postCount === 1 ? "post" : "posts"}
+                        {t("categoriesModal.postCount", { count: c.postCount })}
                       </span>
                     </div>
                     <p className="truncate text-[11px] text-[#9ca3af]">/{c.slug}</p>
@@ -275,15 +278,15 @@ export function ManageCategoriesModal({
                 <span className="flex size-11 items-center justify-center rounded-[12px] bg-[#f3f4f6]">
                   <LayoutGrid className="size-5 text-[#9ca3af]" />
                 </span>
-                <p className="text-[14px] font-semibold text-[#1f2937]">No category selected</p>
-                <p className="text-[12px] text-[#9ca3af]">Select a category to edit, or add a new one</p>
+                <p className="text-[14px] font-semibold text-[#1f2937]">{t("categoriesModal.noCategorySelected")}</p>
+                <p className="text-[12px] text-[#9ca3af]">{t("categoriesModal.selectToEdit")}</p>
                 {canCreate && (
                   <button
                     type="button"
                     onClick={openAdd}
                     className="mt-1 flex h-9 items-center gap-2 rounded-[10px] bg-[#1e4f86] px-4 text-[12px] font-medium text-white hover:bg-[#1a4574]"
                   >
-                    <Plus className="size-4" /> Add New Category
+                    <Plus className="size-4" /> {t("categoriesModal.addNewCategory")}
                   </button>
                 )}
               </div>
@@ -294,49 +297,49 @@ export function ManageCategoriesModal({
                     <Plus className="size-4" />
                   </span>
                   <p className="text-[14px] font-semibold text-[#1f2937]">
-                    {panel.mode === "edit" ? "Edit Category" : "Add New Category"}
+                    {panel.mode === "edit" ? t("categoriesModal.editCategory") : t("categoriesModal.addNewCategory")}
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Category Name *</label>
+                  <label className={labelClass}>{t("categoriesModal.categoryName")}</label>
                   <input
                     className={inputClass}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Market Insights"
+                    placeholder={t("categoriesModal.categoryNamePlaceholder")}
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>URL Slug</label>
+                  <label className={labelClass}>{t("categoriesModal.urlSlug")}</label>
                   <div className="flex h-10 w-full min-w-0 items-center overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white focus-within:border-[#1e4f86]">
                     <span className="shrink-0 pl-3.5 text-[12px] text-[#9ca3af]">/blog/category/</span>
                     <input
                       className="h-full w-full min-w-0 bg-transparent px-1 text-[12px] text-[#0a0a0a] outline-none placeholder:text-[#6a7282]"
                       value={slug}
                       onChange={(e) => setSlug(e.target.value)}
-                      placeholder="auto-generated"
+                      placeholder={t("categoriesModal.slugPlaceholder")}
                     />
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Description</label>
+                  <label className={labelClass}>{t("categoriesModal.description")}</label>
                   <textarea
                     className="min-h-[80px] w-full rounded-[10px] border border-[#e5e7eb] bg-white px-3.5 py-2.5 text-[12px] text-[#0a0a0a] outline-none placeholder:text-[#9ca3af] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Brief description of this category…"
+                    placeholder={t("categoriesModal.descriptionPlaceholder")}
                   />
                 </div>
 
                 <div className="rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3">
-                  <p className="mb-1.5 text-[11px] text-[#9ca3af]">Preview</p>
+                  <p className="mb-1.5 text-[11px] text-[#9ca3af]">{t("categoriesModal.preview")}</p>
                   <div className="flex items-center justify-between">
-                    <p className="text-[13px] font-semibold text-[#1f2937]">{name.trim() || "Category Name"}</p>
+                    <p className="text-[13px] font-semibold text-[#1f2937]">{name.trim() || t("categoriesModal.categoryNameFallback")}</p>
                     <span className="rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#6b7280]">
-                      {panel.mode === "edit" ? panel.category.postCount : 0} posts
+                      {t("categoriesModal.postCount", { count: panel.mode === "edit" ? panel.category.postCount : 0 })}
                     </span>
                   </div>
                 </div>
@@ -348,7 +351,7 @@ export function ManageCategoriesModal({
                     disabled={saving}
                     className="h-10 flex-1 rounded-[10px] border border-[#e5e7eb] text-[13px] font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-60"
                   >
-                    Cancel
+                    {t("categoriesModal.cancel")}
                   </button>
                   <button
                     type="button"
@@ -357,7 +360,7 @@ export function ManageCategoriesModal({
                     className="flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] text-[13px] font-medium text-white hover:bg-[#1a4574] disabled:opacity-60"
                   >
                     {saving && <Loader2 className="size-3.5 animate-spin" />}
-                    {panel.mode === "edit" ? "Save Changes" : "Add Category"}
+                    {panel.mode === "edit" ? t("categoriesModal.saveChanges") : t("categoriesModal.addCategory")}
                   </button>
                 </div>
               </div>
