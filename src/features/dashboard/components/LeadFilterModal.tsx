@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Check } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -13,9 +14,29 @@ export type LeadFilterValues = {
   scoreQuality: string;
 };
 
+// Displayed labels are translated via the *_I18N_KEY maps below; these
+// values stay in stable English because they're compared against directly
+// in component state.
 const STATUSES = ["Cold", "Won", "In Progress", "Lost"];
+const STATUS_I18N_KEY: Record<string, string> = {
+  Cold: "statusBadge.cold",
+  Won: "statusBadge.won",
+  "In Progress": "statusBadge.inProgress",
+  Lost: "statusBadge.lost",
+};
+
 const SOURCES = ["Zonaprop", "Website", "Whatsapp", "Campaign"];
+const SOURCE_I18N_KEY: Record<string, string> = {
+  Zonaprop: "filterModal.sourceOptions.zonaprop",
+  Website: "filterModal.sourceOptions.website",
+  Whatsapp: "filterModal.sourceOptions.whatsapp",
+  Campaign: "filterModal.sourceOptions.campaign",
+};
+
 const SCORE_QUALITY = ["All", ">75%", ">50%", "<25%"];
+const SCORE_QUALITY_I18N_KEY: Record<string, string> = {
+  All: "filterModal.scoreQualityOptions.all",
+};
 
 type LeadFilterModalProps = {
   resultCount: number;
@@ -39,6 +60,7 @@ function CheckboxRow({ label, checked, onToggle }: { label: string; checked: boo
 }
 
 export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterModalProps) {
+  const { t } = useTranslation("leads");
   const [statuses, setStatuses] = useState<string[]>(["Cold"]);
   const [sources, setSources] = useState<string[]>([]);
   const [minBudget, setMinBudget] = useState("");
@@ -80,7 +102,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
           className="text-[16px] font-semibold text-[#1a1a1a]"
           style={mont}
         >
-          Filter Leads
+          {t("filterModal.title")}
         </p>
 
         <div className="flex items-center gap-3 sm:gap-4">
@@ -90,13 +112,13 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
             className="text-[12px] font-medium text-[#185fa5] hover:underline"
             style={mont}
           >
-            Clear all
+            {t("filterModal.clearAll")}
           </button>
 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close filters"
+            aria-label={t("filterModal.closeAria")}
             className="flex size-8 shrink-0 items-center justify-center rounded-full text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
           >
             <X size={18} />
@@ -112,14 +134,14 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
             className="text-[12px] text-[#7a7a7a]"
             style={mont}
           >
-            Lead Status
+            {t("filterModal.leadStatus")}
           </p>
 
           <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:flex sm:items-center sm:justify-between sm:gap-3">
             {STATUSES.map((status) => (
               <CheckboxRow
                 key={status}
-                label={status}
+                label={t(STATUS_I18N_KEY[status])}
                 checked={statuses.includes(status)}
                 onToggle={() =>
                   toggle(statuses, status, setStatuses)
@@ -135,14 +157,14 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
             className="text-[12px] text-[#7a7a7a]"
             style={mont}
           >
-            Lead Source
+            {t("filterModal.leadSource")}
           </p>
 
           <div className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-3 sm:gap-x-6">
             {SOURCES.map((source) => (
               <CheckboxRow
                 key={source}
-                label={source}
+                label={t(SOURCE_I18N_KEY[source])}
                 checked={sources.includes(source)}
                 onToggle={() =>
                   toggle(sources, source, setSources)
@@ -158,7 +180,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
             className="text-[12px] text-[#7a7a7a]"
             style={mont}
           >
-            Budget Limit
+            {t("filterModal.budgetLimit")}
           </p>
 
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
@@ -166,7 +188,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
               type="text"
               value={minBudget}
               onChange={(e) => setMinBudget(e.target.value)}
-              placeholder="Min $"
+              placeholder={t("filterModal.minBudgetPlaceholder")}
               inputMode="numeric"
               className="h-10 min-w-0 w-full rounded-[10px] border border-[#d0d0d0] px-3 text-[12px] text-[#2a2a2a] outline-none transition-colors placeholder:text-[#9a9a9a] focus:border-[#1e4f86]"
               style={mont}
@@ -178,7 +200,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
               type="text"
               value={maxBudget}
               onChange={(e) => setMaxBudget(e.target.value)}
-              placeholder="Max $"
+              placeholder={t("filterModal.maxBudgetPlaceholder")}
               inputMode="numeric"
               className="h-10 min-w-0 w-full rounded-[10px] border border-[#d0d0d0] px-3 text-[12px] text-[#2a2a2a] outline-none transition-colors placeholder:text-[#9a9a9a] focus:border-[#1e4f86]"
               style={mont}
@@ -192,7 +214,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
             className="text-[12px] text-[#7a7a7a]"
             style={mont}
           >
-            Lead Score Quality
+            {t("filterModal.leadScoreQuality")}
           </p>
 
           <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
@@ -208,7 +230,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
                 }`}
                 style={mont}
               >
-                {quality}
+                {SCORE_QUALITY_I18N_KEY[quality] ? t(SCORE_QUALITY_I18N_KEY[quality]) : quality}
               </button>
             ))}
           </div>
@@ -222,7 +244,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
             className="text-center text-[12px] text-[#6b6b6b] sm:text-left"
             style={mont}
           >
-            {resultCount} results
+            {t("filterModal.resultsCount", { count: resultCount })}
           </span>
 
           <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center">
@@ -232,7 +254,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
               className="h-10 rounded-[10px] border border-[#e5e7eb] bg-white px-4 text-[12px] font-medium text-[#5a5a5a] transition-colors hover:bg-[#f3f4f6] sm:h-9"
               style={mont}
             >
-              Reset
+              {t("filterModal.reset")}
             </button>
 
             <button
@@ -249,7 +271,7 @@ export function LeadFilterModal({ resultCount, onApply, onClose }: LeadFilterMod
               className="h-10 rounded-[10px] bg-[#1e4f86] px-5 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:h-9"
               style={mont}
             >
-              Apply filters
+              {t("filterModal.applyFilters")}
             </button>
           </div>
         </div>

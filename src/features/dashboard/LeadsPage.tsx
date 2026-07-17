@@ -10,6 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   Search,
@@ -47,15 +48,24 @@ import { SearchableSelect } from "./components/SearchableSelect";
 import type { LeadListFilters } from "@/schemas/lead.schema";
 import { toCsv, downloadCsv } from "@/lib/csv";
 
-const SORT_OPTIONS = [
-  { value: "newest", label: "Newest" },
-  { value: "oldest", label: "Oldest" },
-  { value: "score_desc", label: "Highest Score" },
-  { value: "score_asc", label: "Lowest Score" },
-  { value: "budget_desc", label: "Highest Budget" },
-  { value: "budget_asc", label: "Lowest Budget" },
-  { value: "updated", label: "Recently Updated" },
-];
+const SORT_VALUES = [
+  "newest",
+  "oldest",
+  "score_desc",
+  "score_asc",
+  "budget_desc",
+  "budget_asc",
+  "updated",
+] as const;
+const SORT_I18N_KEY: Record<(typeof SORT_VALUES)[number], string> = {
+  newest: "list.sort.newest",
+  oldest: "list.sort.oldest",
+  score_desc: "list.sort.scoreDesc",
+  score_asc: "list.sort.scoreAsc",
+  budget_desc: "list.sort.budgetDesc",
+  budget_asc: "list.sort.budgetAsc",
+  updated: "list.sort.updated",
+};
 
 const PAGE_LIMIT = 25;
 const uiFont = {
@@ -155,20 +165,22 @@ function ScoreBar({ score }: { score: number }) {
 function LeadStatusBadge({
   lifecycleStatus,
   temperature,
+  t,
 }: {
   lifecycleStatus: LeadLifecycleStatus;
   temperature: LeadTemperature;
+  t: (key: string) => string;
 }) {
-  let label = "Cold";
+  let label = t("statusBadge.cold");
   let backgroundColor = "#dff2ff";
   let color = "#1785c1";
 
   if (lifecycleStatus === LeadLifecycleStatus.CONVERTED) {
-    label = "Won";
+    label = t("statusBadge.won");
     backgroundColor = "#dcfce7";
     color = "#159447";
   } else if (lifecycleStatus === LeadLifecycleStatus.CLOSED) {
-    label = "Lost";
+    label = t("statusBadge.lost");
     backgroundColor = "#ffdede";
     color = "#ef4444";
   } else if (
@@ -176,15 +188,15 @@ function LeadStatusBadge({
     lifecycleStatus === LeadLifecycleStatus.FOLLOW_UP ||
     lifecycleStatus === LeadLifecycleStatus.QUALIFIED
   ) {
-    label = "In Progress";
+    label = t("statusBadge.inProgress");
     backgroundColor = "#e9eef5";
     color = "#315f91";
   } else if (temperature === LeadTemperature.HOT) {
-    label = "Hot";
+    label = t("statusBadge.hot");
     backgroundColor = "#fee2e2";
     color = "#dc2626";
   } else if (temperature === LeadTemperature.WARM) {
-    label = "Warm";
+    label = t("statusBadge.warm");
     backgroundColor = "#fef3c7";
     color = "#d97706";
   }
@@ -210,10 +222,12 @@ function RowActions({
   lead,
   role,
   onView,
+  t,
 }: {
   lead: LeadDto;
   role: Role;
   onView: (id: string) => void;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<MenuPosition>({ top: 0, left: 0 });
@@ -282,7 +296,7 @@ function RowActions({
           <>
             <button
               type="button"
-              aria-label="Close actions menu"
+              aria-label={t("list.rowActions.closeAria")}
               className="fixed inset-0 z-[9998] cursor-default bg-transparent"
               onClick={() => setOpen(false)}
             />
@@ -302,7 +316,7 @@ function RowActions({
                 }}
                 className="w-full px-3 py-2.5 text-left text-[14px] text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
               >
-                View Details
+                {t("list.rowActions.viewDetails")}
               </button>
 
               {canArchive && (
@@ -316,7 +330,7 @@ function RowActions({
                   disabled={archive.isPending}
                   className="w-full px-3 py-2.5 text-left text-[14px] text-[#dc2626] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {archive.isPending ? "Archiving…" : "Archive"}
+                  {archive.isPending ? t("list.rowActions.archiving") : t("list.rowActions.archive")}
                 </button>
               )}
             </div>
@@ -330,7 +344,7 @@ function RowActions({
       <button
         ref={buttonRef}
         type="button"
-        aria-label={`Actions for ${lead.submittedName || "lead"}`}
+        aria-label={t("list.rowActions.actionsAria", { name: lead.submittedName || t("list.rowActions.defaultName") })}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={handleToggle}
@@ -362,6 +376,8 @@ function formatBudget(lead: LeadDto): string {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+// Kept in stable English for the CSV export (data-interchange format, not UI).
+// UI display uses the "source.*" keys in the leads i18n namespace instead.
 const SOURCE_LABELS: Partial<Record<LeadSource, string>> = {
   WEBSITE_LISTING_INQUIRY: "Listing Inquiry",
   WEBSITE_CONTACT_FORM: "Contact Form",
@@ -382,6 +398,7 @@ type LeadsPageProps = {
 };
 
 export function LeadsPage({ role }: LeadsPageProps) {
+  const { t } = useTranslation("leads");
   const router = useRouter();
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -449,7 +466,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
         params.set("page", String(exportPage));
         params.set("limit", String(exportLimit));
         const res = await fetch(`/api/dashboard/leads?${params.toString()}`);
-        if (!res.ok) throw new Error("Failed to fetch leads for export");
+        if (!res.ok) throw new Error(t("toasts.exportFailed"));
         const json = await res.json();
         all.push(...(json.leads as LeadDto[]));
         exportTotal = json.total ?? all.length;
@@ -478,7 +495,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
       ]);
       downloadCsv(`leads-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to export leads");
+      toast.error(err instanceof Error ? err.message : t("toasts.exportFailed"));
     } finally {
       setIsExporting(false);
     }
@@ -518,10 +535,10 @@ export function LeadsPage({ role }: LeadsPageProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="flex min-w-0 flex-col gap-0.5">
           <h1 className="text-[20px] font-semibold leading-[30px] tracking-[-0.2px] text-[#0d2138]">
-            Leads
+            {t("page.title")}
           </h1>
           <p className="text-[14px] font-normal text-[#6a7282] sm:text-[14px]">
-            Manage and nurture your sales leads
+            {t("page.subtitle")}
           </p>
         </div>
 
@@ -532,7 +549,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
             className="hidden"
             onChange={(e) => {
               if (e.target.files?.[0]) {
-                toast.info("Lead import is coming soon!");
+                toast.info(t("page.importComingSoon"));
                 e.target.value = "";
               }
             }}
@@ -545,7 +562,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               style={uiFont}
             >
               <Upload size={16} className="shrink-0" />
-              <span className="truncate">Import</span>
+              <span className="truncate">{t("page.import")}</span>
             </label>
           )}
           {hasPermission(role, "leads:export") && (
@@ -561,7 +578,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               ) : (
                 <Share2 size={16} className="shrink-0" />
               )}
-              <span className="truncate">Export</span>
+              <span className="truncate">{t("page.export")}</span>
             </button>
           )}
           {canCreate && (
@@ -571,7 +588,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               className="col-span-2 flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] px-3 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a] sm:col-span-1 sm:px-4"
             >
               <Plus size={16} strokeWidth={1.8} />
-              <span className="truncate">Add Leads</span>
+              <span className="truncate">{t("page.addLead")}</span>
             </button>
           )}
         </div>
@@ -580,9 +597,9 @@ export function LeadsPage({ role }: LeadsPageProps) {
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Total Leads"
+          label={t("stats.totalLeads")}
           value={String(metrics?.total ?? total)}
-          trend="+ 2 new this month"
+          trend={t("stats.trendThisMonth")}
           iconBg="#e0e7ff"
           icon={
             <UsersRound
@@ -594,9 +611,9 @@ export function LeadsPage({ role }: LeadsPageProps) {
         />
 
         <StatCard
-          label="Conversion Rate (Won)"
+          label={t("stats.conversionRate")}
           value={`${metrics?.conversionRate ?? 0}%`}
-          trend="+ 2 new this month"
+          trend={t("stats.trendThisMonth")}
           iconBg="#d1fae5"
           icon={
             <Percent
@@ -608,10 +625,10 @@ export function LeadsPage({ role }: LeadsPageProps) {
         />
 
         <StatCard
-          label="Lost Leads"
+          label={t("stats.lostLeads")}
           value={String(lostLeads)}
           valueColor="#ff2738"
-          trend="+ 2 new this month"
+          trend={t("stats.trendThisMonth")}
           iconBg="#fee2e2"
           icon={
             <Flame
@@ -623,7 +640,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
         />
 
         <StatCard
-          label="Cold (Not Contacted)"
+          label={t("stats.coldNotContacted")}
           value={String(coldNotContactedLeads)}
           trend="+ 2 new this month"
           iconBg="#e0f2fe"
@@ -642,7 +659,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
         {/* Header controls */}
         <div className="flex flex-col gap-3 px-3 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
           <h2 className="text-[15px] font-semibold text-[#10233d]">
-            All Leads List
+            {t("list.title")}
           </h2>
 
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
@@ -655,7 +672,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               <input
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Search contacts..."
+                placeholder={t("list.searchPlaceholder")}
                 className="min-w-0 flex-1 bg-transparent text-[14px] text-[#263951] outline-none placeholder:text-[#7d899a]"
               />
             </label>
@@ -665,7 +682,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               onClick={() => setShowFilter(true)}
               className="flex h-9 items-center justify-center gap-2 rounded-[9px] border border-[#dfe4ea] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#778397] transition-colors hover:bg-[#f1f4f7] sm:justify-start"
             >
-              Filter
+              {t("list.filter")}
               <Filter size={14} strokeWidth={1.8} />
             </button>
 
@@ -674,13 +691,13 @@ export function LeadsPage({ role }: LeadsPageProps) {
                 size="sm"
                 searchable={false}
                 value={sortBy}
-                ariaLabel="Sort leads"
+                ariaLabel={t("list.sortAria")}
                 onChange={(next) => {
                   setSortBy(next as LeadListFilters["sortBy"]);
                   setPage(1);
                 }}
-                options={SORT_OPTIONS}
-                placeholder="Sort by"
+                options={SORT_VALUES.map((value) => ({ value, label: t(SORT_I18N_KEY[value]) }))}
+                placeholder={t("list.sortPlaceholder")}
                 className="h-full w-full"
               />
             </div>
@@ -705,14 +722,14 @@ export function LeadsPage({ role }: LeadsPageProps) {
             <thead>
               <tr className="border-y border-[#e6eaef] bg-[#f8fafc]">
                 {[
-                  "Name",
-                  "Contact",
-                  "Source",
-                  "Location",
-                  "Budget",
-                  "Score",
-                  "Status",
-                  "Agent",
+                  t("list.columns.name"),
+                  t("list.columns.contact"),
+                  t("list.columns.source"),
+                  t("list.columns.location"),
+                  t("list.columns.budget"),
+                  t("list.columns.score"),
+                  t("list.columns.status"),
+                  t("list.columns.agent"),
                 ].map((heading) => (
                   <th
                     key={heading}
@@ -732,7 +749,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                     colSpan={9}
                     className="px-5 py-12 text-center text-[14px] text-[#69758a]"
                   >
-                    Loading leads…
+                    {t("list.loading")}
                   </td>
                 </tr>
               )}
@@ -743,7 +760,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                     colSpan={9}
                     className="px-5 py-12 text-center text-[14px] text-[#dc2626]"
                   >
-                    Failed to load leads.
+                    {t("list.loadError")}
                   </td>
                 </tr>
               )}
@@ -775,7 +792,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
                     <td className="px-5 py-3">
                       <span className="block truncate text-[14px] text-[#34445b]">
-                        {SOURCE_LABELS[lead.source] ?? lead.source ?? "—"}
+                        {lead.source ? t(`source.${lead.source}`, { defaultValue: SOURCE_LABELS[lead.source] ?? lead.source }) : "—"}
                       </span>
                     </td>
 
@@ -802,6 +819,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                       <LeadStatusBadge
                         lifecycleStatus={lead.lifecycleStatus}
                         temperature={lead.temperature}
+                        t={t}
                       />
                     </td>
 
@@ -819,6 +837,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                         lead={lead}
                         role={role}
                         onView={handleView}
+                        t={t}
                       />
                     </td>
                   </tr>
@@ -830,7 +849,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                     colSpan={9}
                     className="px-5 py-12 text-center text-[14px] text-[#69758a]"
                   >
-                    No leads found.
+                    {t("list.empty")}
                   </td>
                 </tr>
               )}
@@ -842,13 +861,13 @@ export function LeadsPage({ role }: LeadsPageProps) {
         <div className="border-t border-[#e6eaef] md:hidden">
           {isLoading && (
             <div className="px-4 py-12 text-center text-[14px] text-[#69758a]">
-              Loading leads…
+              {t("list.loading")}
             </div>
           )}
 
           {isError && (
             <div className="px-4 py-12 text-center text-[14px] text-[#dc2626]">
-              Failed to load leads.
+              {t("list.loadError")}
             </div>
           )}
 
@@ -882,24 +901,25 @@ export function LeadsPage({ role }: LeadsPageProps) {
                     <LeadStatusBadge
                       lifecycleStatus={lead.lifecycleStatus}
                       temperature={lead.temperature}
+                      t={t}
                     />
-                    <RowActions lead={lead} role={role} onView={handleView} />
+                    <RowActions lead={lead} role={role} onView={handleView} t={t} />
                   </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-[0.04em] text-[#94a0b2]">
-                      Source
+                      {t("list.columns.source")}
                     </p>
                     <p className="mt-1 truncate text-[14px] text-[#34445b]">
-                      {SOURCE_LABELS[lead.source] ?? lead.source ?? "—"}
+                      {lead.source ? t(`source.${lead.source}`, { defaultValue: SOURCE_LABELS[lead.source] ?? lead.source }) : "—"}
                     </p>
                   </div>
 
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-[0.04em] text-[#94a0b2]">
-                      Location
+                      {t("list.columns.location")}
                     </p>
                     <p className="mt-1 truncate text-[14px] text-[#34445b]">
                       {lead.submittedLocation ?? lead.contact?.location ?? "—"}
@@ -908,7 +928,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-[0.04em] text-[#94a0b2]">
-                      Budget
+                      {t("list.columns.budget")}
                     </p>
                     <p className="mt-1 truncate text-[14px] font-medium text-[#10233d]">
                       {formatBudget(lead)}
@@ -917,7 +937,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-[0.04em] text-[#94a0b2]">
-                      Score
+                      {t("list.columns.score")}
                     </p>
                     <div className="mt-1.5">
                       <ScoreBar score={lead.score ?? 0} />
@@ -929,7 +949,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
           {!isLoading && !isError && leads.length === 0 && (
             <div className="px-4 py-12 text-center text-[14px] text-[#69758a]">
-              No leads found.
+              {t("list.empty")}
             </div>
           )}
         </div>
@@ -938,13 +958,13 @@ export function LeadsPage({ role }: LeadsPageProps) {
         {totalPages > 1 && (
           <div className="flex flex-col gap-3 border-t border-[#e6eaef] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <span className="text-center text-[14px] text-[#69758a] sm:text-left">
-              Showing {leads.length} of {total} leads
+              {t("list.pagination.showing", { count: leads.length, total })}
             </span>
 
             <div className="flex items-center justify-center gap-2 sm:justify-end">
               <button
                 type="button"
-                aria-label="Previous page"
+                aria-label={t("list.pagination.prevAria")}
                 disabled={page <= 1}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 className="flex size-8 items-center justify-center rounded-md border border-[#dfe4ea] text-[#69758a] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-40"
@@ -958,7 +978,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
               <button
                 type="button"
-                aria-label="Next page"
+                aria-label={t("list.pagination.nextAria")}
                 disabled={page >= totalPages}
                 onClick={() =>
                   setPage((current) => Math.min(totalPages, current + 1))

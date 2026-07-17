@@ -1,0 +1,268 @@
+{
+  "page": {
+    "title": "Oportunidad",
+    "subtitle": "Rastrea y gestiona las oportunidades de venta",
+    "newOpportunity": "Nueva Oportunidad",
+    "stats": {
+      "totalValue": "Valor Total",
+      "totalValueTrend": "En vivo desde la base de datos",
+      "open": "Abiertas",
+      "openTrend": "Oportunidades activas",
+      "won": "Ganadas",
+      "wonTrend": "Cerradas con éxito",
+      "winRate": "Tasa de Éxito",
+      "winRateTrend": "Ganadas ÷ Total"
+    },
+    "tabs": {
+      "all": "Todas"
+    },
+    "searchPlaceholder": "Buscar oportunidades...",
+    "exportCsv": "Exportar CSV",
+    "filterBy": "Filtrar por",
+    "loading": "Cargando oportunidades…",
+    "loadError": "No se pudieron cargar las oportunidades.",
+    "columns": {
+      "opportunity": "Oportunidad",
+      "participants": "Participantes",
+      "dealSize": "Tamaño del Trato",
+      "probability": "Probabilidad",
+      "stage": "Etapa",
+      "expectedClose": "Cierre Esperado",
+      "status": "Estado"
+    },
+    "emptyNone": "Aún no hay oportunidades — crea la primera.",
+    "emptyFiltered": "Ninguna oportunidad coincide con tu búsqueda.",
+    "rowActions": {
+      "actionsTitle": "Acciones",
+      "actionsAria": "Abrir acciones para {{name}}",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "deleteConfirm": "¿Eliminar \"{{title}}\"? Esto no se puede deshacer.",
+    "toasts": {
+      "deleted": "Oportunidad eliminada",
+      "deleteFailed": "No se pudo eliminar la oportunidad",
+      "saveFailed": "No se pudo guardar la oportunidad"
+    }
+  },
+  "filterModal": {
+    "title": "Filtrar Oportunidades",
+    "clearAll": "Limpiar todo",
+    "stage": "Etapa",
+    "status": "Estado",
+    "commissionRange": "Rango de comisión",
+    "minCommissionPlaceholder": "Mín $",
+    "maxCommissionPlaceholder": "Máx $",
+    "minProbability": "Probabilidad mínima",
+    "expectedClose": "Cierre esperado",
+    "expectedCloseOptions": {
+      "THIS_WEEK": "Esta semana",
+      "THIS_MONTH": "Este mes",
+      "THIS_QUARTER": "Este trimestre",
+      "THIS_YEAR": "Este año",
+      "OVERDUE": "Vencida"
+    },
+    "assignedAgent": "Agente asignado",
+    "agentSearchPlaceholder": "Buscar por nombre de agente...",
+    "loadingAgents": "Cargando agentes…",
+    "noAgentsFound": "No se encontraron agentes.",
+    "selectedSuffix": " (Seleccionado)",
+    "agentMatchCount": "Mostrando {{matches}} coincidencias de {{total}} agentes en total",
+    "resultsCount": "{{count}} resultados",
+    "reset": "Restablecer",
+    "applyFilters": "Aplicar filtros"
+  },
+  "addModal": {
+    "editTitle": "Editar Oportunidad",
+    "newTitle": "Nueva Oportunidad",
+    "discardConfirm": {
+      "title": "¿Descartar cambios?",
+      "message": "Tienes cambios sin guardar en esta oportunidad. Cerrar ahora los perderá.",
+      "keepEditing": "Seguir Editando",
+      "discard": "Descartar"
+    },
+    "name": "Nombre de la Oportunidad *",
+    "namePlaceholder": "Ingresa el nombre de la oportunidad",
+    "participantsSection": {
+      "title": "Participantes *",
+      "subtitle": "Asigna a las personas asociadas con esta oportunidad.",
+      "untitledCompany": "Empresa sin nombre",
+      "untitledContact": "Contacto sin nombre",
+      "removeAria": "Quitar participante",
+      "addContact": "Agregar Contacto",
+      "addParticipant": "Agregar Participante",
+      "companyNameRequired": "Ingresa el nombre de una empresa.",
+      "selectContactRequired": "Selecciona un contacto.",
+      "roles": {
+        "BUYER": "Comprador",
+        "SELLER": "Vendedor",
+        "AGENCY": "Inmobiliaria"
+      },
+      "existingPanel": {
+        "title": "Agregar Contacto Existente como Participante",
+        "companyName": "Nombre de la Empresa *",
+        "selectContact": "Seleccionar Contacto *",
+        "companyNamePlaceholder": "Nombre de la inmobiliaria",
+        "contactSearchPlaceholder": "Buscar y seleccionar contacto…",
+        "role": "Rol *",
+        "selectRole": "Seleccionar rol",
+        "companyEmail": "Correo de la Empresa",
+        "companyEmailPlaceholder": "contratos@inmobiliaria.com",
+        "companyEmailHint": "Opcional — permite elegir a esta empresa como firmante del contrato.",
+        "addToOpportunity": "Agregar a la Oportunidad",
+        "cancel": "Cancelar"
+      },
+      "newPanel": {
+        "title": "Nuevo Contacto",
+        "firstName": "Nombre *",
+        "firstNamePlaceholder": "ej. Jane",
+        "lastName": "Apellido *",
+        "lastNamePlaceholder": "ej. Smith",
+        "email": "Correo Electrónico",
+        "emailPlaceholder": "jane@example.com",
+        "phone": "Número de Teléfono",
+        "phonePlaceholder": "+1 (555) 000-0000",
+        "emailOrPhoneRequired": "Proporciona al menos un correo electrónico o un número de teléfono.",
+        "nameRequired": "El nombre y el apellido son obligatorios.",
+        "contactType": "Tipo de Contacto *",
+        "selectContactType": "Seleccionar tipo de contacto",
+        "contactTypeAria": "Tipo de contacto",
+        "contactTypeOptions": {
+          "BUYER": "Comprador",
+          "SELLER": "Vendedor",
+          "BOTH": "Ambos"
+        },
+        "addAsParticipant": "Agregar como participante",
+        "addAsParticipantHint": "Vincula este nuevo contacto directamente a esta oportunidad",
+        "role": "Rol *",
+        "selectRole": "Seleccionar rol",
+        "cancel": "Cancelar",
+        "creating": "Creando…",
+        "createAndAdd": "Crear y Agregar a la Oportunidad",
+        "contactCreated": "Contacto creado",
+        "createFailed": "No se pudo crear el contacto"
+      }
+    },
+    "listingsSection": {
+      "title": "Propiedades Vinculadas",
+      "subtitle": "Asigna las propiedades vinculadas a esta oportunidad.",
+      "selectPlaceholder": "Selecciona una propiedad…",
+      "removeAria": "Quitar propiedad",
+      "addListing": "Agregar Propiedad"
+    },
+    "dealType": "Tipo de Trato *",
+    "selectType": "Seleccionar tipo",
+    "dealTypeOptions": {
+      "RENT": "Alquiler",
+      "SALE": "Venta"
+    },
+    "dealSize": "Tamaño del Trato *",
+    "dealSizePlaceholder": "0.00",
+    "rentalPeriod": {
+      "title": "Período del contrato de alquiler",
+      "startDate": "Fecha de inicio del contrato *",
+      "endDate": "Fecha de fin del contrato *"
+    },
+    "commissionAmount": "Monto de Comisión",
+    "commissionPlaceholder": "Ingresa el porcentaje",
+    "commissionPreview": "{{amount}} del tamaño del trato — ingreso de la empresa",
+    "paymentTerms": "Condiciones de Pago",
+    "paymentTermsPlaceholder": "ej. Neto 30, Cuotas, Efectivo",
+    "probability": "Probabilidad: {{value}}%",
+    "stage": "Etapa *",
+    "selectStage": "Seleccionar etapa",
+    "expectedCloseDate": "Fecha de Cierre Esperada *",
+    "status": "Estado *",
+    "selectStatus": "Seleccionar estado",
+    "agent": "Agente *",
+    "selectAgentPlaceholder": "Seleccionar agente…",
+    "agentCommission": "Comisión del Agente",
+    "agentCommissionPreview": "{{amount}} — reflejado en las ganancias del agente",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Describe esta oportunidad...",
+    "contractsSection": {
+      "title": "Contratos y Firmas",
+      "subtitle": "Los contratos agregados aquí se envían a través de DocuSign y se vinculan a esta Oportunidad. También aparecerán en la página de DocuSign del panel y en el área Mis Contratos del cliente cuando este sea destinatario.",
+      "customDocumentBadge": "Documento Personalizado",
+      "templateBadge": "Plantilla de DocuSign",
+      "moreRecipients": " +{{count}} más",
+      "updated": "Actualizado {{date}}",
+      "viewAria": "Ver",
+      "resendAria": "Reenviar",
+      "voidAria": "Anular",
+      "detachAria": "Desvincular de esta Oportunidad",
+      "attachPlaceholder": "Vincular un sobre existente…",
+      "attach": "Vincular",
+      "addOrSend": "Agregar Contrato / Enviar para Firma",
+      "voidReasonPrompt": "¿Motivo para anular este sobre?",
+      "toasts": {
+        "attached": "Sobre vinculado",
+        "attachFailed": "No se pudo vincular el sobre",
+        "detached": "Sobre desvinculado",
+        "detachFailed": "No se pudo desvincular el sobre",
+        "voided": "Sobre anulado",
+        "voidFailed": "No se pudo anular el sobre",
+        "reminderSent": "Recordatorio enviado",
+        "resendFailed": "No se pudo reenviar"
+      }
+    },
+    "cancel": "Cancelar",
+    "saving": "Guardando…",
+    "saveChanges": "Guardar Cambios",
+    "createAndSend": "Crear Oportunidad y Enviar Contrato",
+    "create": "Crear Oportunidad",
+    "participantsRequired": "Se requiere al menos un contacto Comprador o Vendedor.",
+    "contractIncompleteTemplate": "Selecciona una plantilla y un firmante para enviar este contrato, o cambia a Sin Contrato.",
+    "contractIncompleteUpload": "Selecciona un documento y al menos un firmante para enviar este contrato, o cambia a Sin Contrato.",
+    "toasts": {
+      "createdAndSent": "Oportunidad creada y contrato enviado",
+      "sendFailed": "Oportunidad creada, pero el envío del contrato falló. Puedes reintentar desde la Oportunidad.",
+      "updated": "Oportunidad actualizada",
+      "created": "Oportunidad creada",
+      "saveFailed": "No se pudo guardar la oportunidad"
+    }
+  },
+  "sendContractModal": {
+    "title": "Agregar Contrato / Enviar para Firma",
+    "activeEnvelopeWarning": "Otro documento de esta oportunidad todavía está esperando firma. Aún puedes enviar uno nuevo — ambos se rastrearán por separado.",
+    "opportunityLabel": "Oportunidad",
+    "cancel": "Cancelar",
+    "sending": "Enviando…",
+    "send": "Enviar para Firma",
+    "toasts": {
+      "sent": "Sobre enviado con éxito",
+      "sendFailed": "No se pudo enviar el sobre"
+    }
+  },
+  "contractSourcePicker": {
+    "tabs": {
+      "noContract": "Sin Contrato",
+      "template": "Usar Plantilla de DocuSign",
+      "customUpload": "Subir Documento de Contrato Personalizado"
+    },
+    "document": "Documento",
+    "selectTemplatePlaceholder": "Selecciona una plantilla…",
+    "noTemplatesFound": "No se encontraron plantillas",
+    "removeAria": "Quitar",
+    "dragDrop": "Haz clic para subir o arrastra y suelta",
+    "uploadHint": "PDF, DOC, DOCX hasta 10MB — se sube al enviar",
+    "signer": "Firmante",
+    "signers": "Firmantes",
+    "signerHintTemplate": "Una Plantilla de DocuSign solo puede enviarse a un firmante.",
+    "signerHintMultiple": "Selecciona a todos los que deban firmar.",
+    "noParticipants": "No hay participantes con correo electrónico registrado. Agrega primero un participante con correo.",
+    "noEmailOnFile": "Sin correo registrado",
+    "participantRoles": {
+      "BUYER": "Comprador",
+      "SELLER": "Vendedor",
+      "AGENCY": "Inmobiliaria"
+    },
+    "incompleteNoDocumentTemplate": "Selecciona una plantilla para incluir este contrato, o cambia a Sin Contrato.",
+    "incompleteNoDocumentUpload": "Sube un documento para incluir este contrato, o cambia a Sin Contrato.",
+    "incompleteNoSigner": "Selecciona al menos un firmante arriba — de lo contrario este contrato no se enviará.",
+    "reviewDocument": "Documento",
+    "reviewSigners": "Firmantes",
+    "fileTypeError": "Solo se admiten archivos PDF, DOC y DOCX.",
+    "fileSizeError": "El archivo debe pesar 10MB o menos."
+  }
+}

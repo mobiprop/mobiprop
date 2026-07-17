@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   Calendar,
@@ -53,6 +54,7 @@ function DateTimePicker({
   onChange: (d: Date) => void;
   minDate?: Date;
 }) {
+  const { t } = useTranslation("leads");
   const [openPanel, setOpenPanel] = useState<"date" | "time" | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const time = value ? timeString(value) : "";
@@ -91,7 +93,7 @@ function DateTimePicker({
           style={mont}
         >
           <span className={value ? "" : "text-[#9ca3af]"}>
-            {value ? DATE_FMT.format(value) : "Select date"}
+            {value ? DATE_FMT.format(value) : t("tourSection.selectDate")}
           </span>
           <Calendar size={13} color="#6a7282" className="shrink-0" />
         </button>
@@ -113,7 +115,7 @@ function DateTimePicker({
           style={mont}
         >
           <span className={value ? "" : "text-[#9ca3af]"}>
-            {value ? TIME_FMT.format(value) : "Time"}
+            {value ? TIME_FMT.format(value) : t("tourSection.selectTime")}
           </span>
           <Clock size={13} color="#6a7282" className="shrink-0" />
         </button>
@@ -131,13 +133,14 @@ function DateTimePicker({
 }
 
 function StatusBadge({ status }: { status: TourStatus }) {
+  const { t } = useTranslation("dashboard");
   const b = TOUR_STATUS_BADGE[status];
   return (
     <span
       className="text-[12px] font-semibold px-3 py-1 rounded-full"
       style={{ background: b.bg, color: b.text, ...mont }}
     >
-      {b.label}
+      {t(`tourStatus.${status}`, { defaultValue: b.label })}
     </span>
   );
 }
@@ -173,13 +176,13 @@ function NoteBox({
 // ── Status transition panel (ported from the former TourDetailPage) ───────────
 
 const TRANSITION_LABELS: Partial<
-  Record<TourStatus, { label: string; color: string; icon: React.ReactNode }>
+  Record<TourStatus, { label: string; color: string; icon: React.ReactNode; i18nKey: string }>
 > = {
-  [TourStatus.CONFIRMED]: { label: "Confirm Tour", color: "#059669", icon: <CheckCircle2 size={14} /> },
-  [TourStatus.RESCHEDULED]: { label: "Reschedule", color: "#d97706", icon: <RefreshCw size={14} /> },
-  [TourStatus.COMPLETED]: { label: "Mark Completed", color: "#16a34a", icon: <CheckCircle2 size={14} /> },
-  [TourStatus.CANCELLED]: { label: "Cancel Tour", color: "#dc2626", icon: <XCircle size={14} /> },
-  [TourStatus.NO_SHOW]: { label: "Mark No-show", color: "#6b7280", icon: <AlertTriangle size={14} /> },
+  [TourStatus.CONFIRMED]: { label: "Confirm Tour", color: "#059669", icon: <CheckCircle2 size={14} />, i18nKey: "tourSection.statusPanel.confirmTour" },
+  [TourStatus.RESCHEDULED]: { label: "Reschedule", color: "#d97706", icon: <RefreshCw size={14} />, i18nKey: "tourSection.statusPanel.reschedule" },
+  [TourStatus.COMPLETED]: { label: "Mark Completed", color: "#16a34a", icon: <CheckCircle2 size={14} />, i18nKey: "tourSection.statusPanel.markCompleted" },
+  [TourStatus.CANCELLED]: { label: "Cancel Tour", color: "#dc2626", icon: <XCircle size={14} />, i18nKey: "tourSection.statusPanel.cancelTour" },
+  [TourStatus.NO_SHOW]: { label: "Mark No-show", color: "#6b7280", icon: <AlertTriangle size={14} />, i18nKey: "tourSection.statusPanel.markNoShow" },
 };
 
 const VALID_NEXT: Partial<Record<TourStatus, TourStatus[]>> = {
@@ -189,6 +192,7 @@ const VALID_NEXT: Partial<Record<TourStatus, TourStatus[]>> = {
 };
 
 function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
+  const { t } = useTranslation("leads");
   const [selected, setSelected] = useState<TourStatus | null>(null);
   const [note, setNote] = useState("");
   const [newDate, setNewDate] = useState<Date | null>(null);
@@ -224,7 +228,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
   return (
     <div className="flex flex-col gap-3 rounded-[10px] bg-[#f9fafb] p-4">
       <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>
-        Change Status
+        {t("tourSection.statusPanel.changeStatus")}
       </p>
       <div className="flex flex-wrap gap-2">
         {nextStatuses.map((s) => {
@@ -244,7 +248,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
               }}
             >
               {def.icon}
-              {def.label}
+              {t(def.i18nKey, { defaultValue: def.label })}
             </button>
           );
         })}
@@ -258,7 +262,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
                 className="text-[11px] font-semibold text-[#6b7280] uppercase"
                 style={mont}
               >
-                New Date &amp; Time
+                {t("tourSection.statusPanel.newDateTime")}
               </label>
               <DateTimePicker value={newDate} onChange={setNewDate} minDate={new Date()} />
             </div>
@@ -266,14 +270,14 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
           <textarea
             placeholder={
               selected === TourStatus.CONFIRMED
-                ? "Confirmation note (optional)…"
+                ? t("tourSection.statusPanel.confirmationPlaceholder")
                 : selected === TourStatus.RESCHEDULED
-                  ? "Reason for rescheduling (optional)…"
+                  ? t("tourSection.statusPanel.reschedulePlaceholder")
                   : selected === TourStatus.CANCELLED
-                    ? "Cancellation reason (optional)…"
+                    ? t("tourSection.statusPanel.cancellationPlaceholder")
                     : selected === TourStatus.COMPLETED
-                      ? "Completion notes (optional)…"
-                      : "Note (optional)…"
+                      ? t("tourSection.statusPanel.completionPlaceholder")
+                      : t("tourSection.statusPanel.notePlaceholder")
             }
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -290,7 +294,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
               style={mont}
             >
               {statusMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : null}
-              Apply
+              {t("tourSection.statusPanel.apply")}
             </button>
             {conflict && (
               <button
@@ -300,7 +304,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
                 className="self-start flex items-center gap-2 border border-[#d97706] text-[#d97706] text-[12px] font-semibold px-4 py-2 rounded-[8px] hover:bg-[#fffbeb] disabled:opacity-40 transition-colors"
                 style={mont}
               >
-                Book anyway
+                {t("tourSection.statusPanel.bookAnyway")}
               </button>
             )}
           </div>
@@ -312,7 +316,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
           {conflict && conflict.suggestedSlots.length > 0 && (
             <div className="flex flex-col gap-1.5">
               <p className="text-[11px] font-semibold text-[#6b7280] uppercase" style={mont}>
-                Available times instead
+                {t("tourSection.statusPanel.availableTimesInstead")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {conflict.suggestedSlots.map((iso) => (
@@ -338,6 +342,7 @@ function StatusActionPanel({ tour, role }: { tour: TourDto; role: Role }) {
 // ── Inline reschedule (date/time only, no status change) ──────────────────────
 
 function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
+  const { t } = useTranslation("leads");
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState<Date | null>(null);
   const [error, setError] = useState("");
@@ -372,7 +377,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
       } else {
         setSuggestedSlots([]);
       }
-      setError((err as Error).message || "Failed to update tour");
+      setError((err as Error).message || t("tourSection.updateFailed"));
     }
   };
 
@@ -384,7 +389,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
         className="self-start text-[11px] text-[#4f46e5] hover:underline"
         style={mont}
       >
-        Edit date/time
+        {t("tourSection.editDateTime")}
       </button>
     );
   }
@@ -400,7 +405,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
           className="text-[12px] font-semibold text-white bg-[#0d2138] px-3 py-1 rounded-[6px] disabled:opacity-40"
           style={mont}
         >
-          Save
+          {t("tourSection.save")}
         </button>
         <button
           type="button"
@@ -408,7 +413,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
           className="text-[12px] text-[#6b7280]"
           style={mont}
         >
-          Cancel
+          {t("tourSection.cancel")}
         </button>
         {suggestedSlots.length > 0 && (
           <button
@@ -418,7 +423,7 @@ function RescheduleDateForm({ tour, role }: { tour: TourDto; role: Role }) {
             className="text-[12px] font-semibold text-[#d97706] disabled:opacity-40"
             style={mont}
           >
-            Book anyway
+            {t("tourSection.bookAnyway")}
           </button>
         )}
       </div>
@@ -452,6 +457,7 @@ type LeadForTour = Pick<
 >;
 
 export function LeadTourSection({ lead, role }: { lead: LeadForTour; role: Role }) {
+  const { t } = useTranslation("leads");
   const { data, isLoading } = useDashboardToursQuery({
     leadId: lead.id,
     limit: 5,
@@ -468,7 +474,7 @@ export function LeadTourSection({ lead, role }: { lead: LeadForTour; role: Role 
     return (
       <p className="flex items-center gap-1.5 text-[14px] text-[#6a7282]" style={mont}>
         <Loader2 size={13} className="animate-spin" />
-        Loading tour…
+        {t("tourSection.loading")}
       </p>
     );
   }
@@ -479,7 +485,7 @@ export function LeadTourSection({ lead, role }: { lead: LeadForTour; role: Role 
     return (
       <div className="flex flex-col gap-3">
         <p className="text-[14px] text-[#6a7282]" style={mont}>
-          No tour scheduled for this lead yet.
+          {t("tourSection.empty")}
         </p>
         {canCreate && (
           <button
@@ -489,7 +495,7 @@ export function LeadTourSection({ lead, role }: { lead: LeadForTour; role: Role 
             style={mont}
           >
             <Plus size={13} />
-            Schedule a Tour
+            {t("tourSection.scheduleTour")}
           </button>
         )}
         {showAdd && (
@@ -523,7 +529,7 @@ export function LeadTourSection({ lead, role }: { lead: LeadForTour; role: Role 
             {format(new Date(tour.scheduledAt), "EEEE, MMMM d, yyyy")}
           </p>
           <p className="text-[13px] text-[#6a7282]" style={mont}>
-            {format(new Date(tour.scheduledAt), "h:mm a")} · {tour.durationMinutes} min
+            {format(new Date(tour.scheduledAt), "h:mm a")} · {tour.durationMinutes} {t("tourSection.min")}
           </p>
         </div>
         <StatusBadge status={tour.status} />
@@ -532,16 +538,16 @@ export function LeadTourSection({ lead, role }: { lead: LeadForTour; role: Role 
       <RescheduleDateForm tour={tour} role={role} />
 
       {tour.confirmationNote && (
-        <NoteBox label="Confirmation note" value={tour.confirmationNote} bg="#d1fae5" labelColor="#059669" textColor="#065f46" />
+        <NoteBox label={t("tourSection.notes.confirmationNote")} value={tour.confirmationNote} bg="#d1fae5" labelColor="#059669" textColor="#065f46" />
       )}
       {tour.rescheduleNote && (
-        <NoteBox label="Reschedule note" value={tour.rescheduleNote} bg="#fef3c7" labelColor="#d97706" textColor="#92400e" />
+        <NoteBox label={t("tourSection.notes.rescheduleNote")} value={tour.rescheduleNote} bg="#fef3c7" labelColor="#d97706" textColor="#92400e" />
       )}
       {tour.cancellationReason && (
-        <NoteBox label="Cancellation reason" value={tour.cancellationReason} bg="#fee2e2" labelColor="#dc2626" textColor="#7f1d1d" />
+        <NoteBox label={t("tourSection.notes.cancellationReason")} value={tour.cancellationReason} bg="#fee2e2" labelColor="#dc2626" textColor="#7f1d1d" />
       )}
       {tour.completionNote && (
-        <NoteBox label="Completion notes" value={tour.completionNote} bg="#dcfce7" labelColor="#16a34a" textColor="#14532d" />
+        <NoteBox label={t("tourSection.notes.completionNote")} value={tour.completionNote} bg="#dcfce7" labelColor="#16a34a" textColor="#14532d" />
       )}
 
       <StatusActionPanel tour={tour} role={role} />

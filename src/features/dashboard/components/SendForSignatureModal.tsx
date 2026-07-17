@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Check, ShieldCheck, FileText, Upload, Plus, Trash2, FileSignature } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import type { DocusignTemplateSummary } from "@/lib/docusign";
 import { EnvelopeRecipientRole } from "@/generated/prisma/enums";
@@ -13,18 +14,13 @@ import { ListingPicker } from "./ListingPicker";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-const EXPIRY_OPTIONS = [
-  { value: 7, label: "7 days from today" },
-  { value: 14, label: "14 days from today" },
-  { value: 30, label: "30 days from today" },
-];
-
-const ROLE_OPTIONS = [
-  { value: EnvelopeRecipientRole.BUYER, label: "Buyer" },
-  { value: EnvelopeRecipientRole.SELLER, label: "Seller" },
-  { value: EnvelopeRecipientRole.AGENT, label: "Agent" },
-  { value: EnvelopeRecipientRole.THIRD_PARTY, label: "Third-Party Company" },
-  { value: EnvelopeRecipientRole.OTHER, label: "Other" },
+const EXPIRY_VALUES = [7, 14, 30];
+const ROLE_VALUES = [
+  EnvelopeRecipientRole.BUYER,
+  EnvelopeRecipientRole.SELLER,
+  EnvelopeRecipientRole.AGENT,
+  EnvelopeRecipientRole.THIRD_PARTY,
+  EnvelopeRecipientRole.OTHER,
 ];
 
 function fmtBytes(bytes: number): string {
@@ -74,6 +70,8 @@ type SendForSignatureModalProps = {
 };
 
 export function SendForSignatureModal({ templates, onClose, onSent, initial, initialTemplateId }: SendForSignatureModalProps) {
+  const { t } = useTranslation("docusign");
+  const ROLE_OPTIONS = ROLE_VALUES.map((value) => ({ value, label: t(`sendModal.roleOptions.${value}`) }));
   const [source, setSource] = useState<Source | null>(initialTemplateId ? "TEMPLATE" : null);
   const [step, setStep] = useState<Step>(initialTemplateId ? 1 : 0);
 
@@ -106,7 +104,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
   function goToTemplateSelect() {
     if (!templateId) {
-      toast.error("Select a template to continue.");
+      toast.error(t("sendModal.templateFlow.selectTemplateRequired"));
       return;
     }
     setStep(2);
@@ -114,7 +112,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
   function goToTemplateRecipient() {
     if (!recipientName.trim() || !recipientEmail.trim()) {
-      toast.error("Recipient name and email are required.");
+      toast.error(t("sendModal.templateFlow.recipientRequired"));
       return;
     }
     setStep(3);
@@ -125,11 +123,11 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
     if (!next) return;
     const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
     if (!allowed.includes(next.type)) {
-      toast.error("Only PDF, DOC, and DOCX files are supported.");
+      toast.error(t("sendModal.toasts.fileTypeError"));
       return;
     }
     if (next.size > 10 * 1024 * 1024) {
-      toast.error("File must be 10MB or smaller.");
+      toast.error(t("sendModal.toasts.fileSizeError"));
       return;
     }
     setFile(next);
@@ -137,7 +135,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
   function goToRecipients() {
     if (!file) {
-      toast.error("Choose a document to continue.");
+      toast.error(t("sendModal.uploadFlow.documentRequired"));
       return;
     }
     setStep(2);
@@ -179,11 +177,11 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
   function goToDetails() {
     for (const r of recipients) {
       if (!r.name.trim() || !r.email.trim()) {
-        toast.error("Every recipient needs a name and email.");
+        toast.error(t("sendModal.uploadFlow.recipientDetailsRequired"));
         return;
       }
       if (r.role === EnvelopeRecipientRole.OTHER && !r.roleLabel.trim()) {
-        toast.error("Enter a role label for recipients marked \"Other\".");
+        toast.error(t("sendModal.uploadFlow.roleLabelRequired"));
         return;
       }
     }
@@ -227,20 +225,21 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
           opportunityId: initial?.opportunityId,
         });
       }
-      toast.success("Envelope sent successfully");
+      toast.success(t("sendModal.toasts.sent"));
       onSent();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send envelope");
+      toast.error(err instanceof Error ? err.message : t("sendModal.toasts.sendFailed"));
     } finally {
       setSubmitting(false);
     }
   }
 
-  const stepLabels =
+  const stepLabels = (
     source === "CUSTOM_UPLOAD"
-      ? ["Choose Method", "Upload Document", "Recipients", "Message & Expiry", "Review & Send"]
-      : ["Choose Method", "Select Template", "Recipient Details", "Review & Send"];
+      ? t("sendModal.stepLabels.custom", { returnObjects: true })
+      : t("sendModal.stepLabels.template", { returnObjects: true })
+  ) as unknown as string[];
   const stepLabel = stepLabels[step];
 
   return (
@@ -253,9 +252,9 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between border-b border-[#e5e7eb] px-6 py-5">
           <div className="flex flex-col gap-0.5">
-            <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>Send for Signature</p>
+            <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("sendModal.title")}</p>
             <p className="text-[12px] text-[#6a7282]" style={mont}>
-              {step === 0 ? stepLabel : `Step ${step} of ${totalSteps} — ${stepLabel}`}
+              {step === 0 ? stepLabel : t("sendModal.stepOf", { step, total: totalSteps, label: stepLabel })}
             </p>
           </div>
           <button type="button" onClick={onClose} className="p-1.5 rounded-[10px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
@@ -290,7 +289,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
           {/* Step 0 — choose method */}
           {step === 0 && (
             <div className="flex flex-col gap-3">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>How would you like to send this for signature?</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.chooseMethod.prompt")}</p>
               <button
                 type="button"
                 onClick={() => chooseSource("TEMPLATE")}
@@ -298,8 +297,8 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#eff6ff] text-[#1e4f86]"><FileText size={18} /></span>
                 <span className="flex flex-col gap-0.5">
-                  <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>Use a DocuSign Template</span>
-                  <span className="text-[12px] text-[#6a7282]" style={mont}>Send a reusable contract format already set up in DocuSign.</span>
+                  <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>{t("sendModal.chooseMethod.templateTitle")}</span>
+                  <span className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.chooseMethod.templateDescription")}</span>
                 </span>
               </button>
               <button
@@ -309,8 +308,8 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#eff6ff] text-[#1e4f86]"><FileSignature size={18} /></span>
                 <span className="flex flex-col gap-0.5">
-                  <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>Upload Custom Contract</span>
-                  <span className="text-[12px] text-[#6a7282]" style={mont}>Upload a one-off PDF, DOC, or DOCX and add signers manually.</span>
+                  <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>{t("sendModal.chooseMethod.uploadTitle")}</span>
+                  <span className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.chooseMethod.uploadDescription")}</span>
                 </span>
               </button>
             </div>
@@ -319,10 +318,10 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
           {/* Template flow */}
           {source === "TEMPLATE" && step === 1 && (
             <div className="flex flex-col gap-2.5">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Choose a template to send for signature</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.templateFlow.chooseTemplate")}</p>
               {templates.length === 0 && (
                 <p className="rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 py-6 text-center text-[12px] text-[#6a7282]" style={mont}>
-                  No templates found. Create templates in your DocuSign account first.
+                  {t("sendModal.templateFlow.noTemplates")}
                 </p>
               )}
               {templates.map((t) => (
@@ -350,15 +349,15 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
           {source === "TEMPLATE" && step === 2 && (
             <div className="flex flex-col gap-4">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Enter the recipient and property details</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.templateFlow.enterDetails")}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Recipient Full Name *</label>
-                  <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="e.g. Carlos Martinez" className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
+                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("sendModal.templateFlow.recipientName")}</label>
+                  <input value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder={t("sendModal.templateFlow.recipientNamePlaceholder")} className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Recipient Email *</label>
-                  <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder="recipient@email.com" className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
+                  <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("sendModal.templateFlow.recipientEmail")}</label>
+                  <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder={t("sendModal.templateFlow.recipientEmailPlaceholder")} className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
                 </div>
               </div>
               <PropertyAndExpiry
@@ -374,14 +373,14 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
           {source === "TEMPLATE" && step === 3 && selectedTemplate && (
             <div className="flex flex-col gap-4">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Review the details before sending</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.review.prompt")}</p>
               <div className="flex flex-col divide-y divide-[#e5e7eb] rounded-[10px] border border-[#e5e7eb]">
                 {[
-                  ["Template", selectedTemplate.name],
-                  ["Recipient", recipientName],
-                  ["Email", recipientEmail],
-                  ["Property", propertyReference || "—"],
-                  ["Expires in", `${expiresInDays} days`],
+                  [t("sendModal.review.template"), selectedTemplate.name],
+                  [t("sendModal.review.recipient"), recipientName],
+                  [t("sendModal.review.email"), recipientEmail],
+                  [t("sendModal.review.property"), propertyReference || "—"],
+                  [t("sendModal.review.expiresIn"), t("sendModal.review.expiresInDays", { count: expiresInDays })],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between px-4 py-3">
                     <span className="text-[12px] text-[#6a7282]" style={mont}>{label}</span>
@@ -396,7 +395,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
           {/* Custom-upload flow */}
           {source === "CUSTOM_UPLOAD" && step === 1 && (
             <div className="flex flex-col gap-2">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Upload the contract to send for signature</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.uploadFlow.uploadPrompt")}</p>
 
               {file && (
                 <div className="flex items-center justify-between gap-3 rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2.5">
@@ -408,7 +407,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                   <button
                     type="button"
                     onClick={() => setFile(null)}
-                    title="Remove"
+                    title={t("sendModal.uploadFlow.removeAria")}
                     className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#fb2c36]"
                   >
                     <Trash2 size={14} />
@@ -420,7 +419,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                 <div className="flex flex-col items-center justify-center gap-1.5 rounded-[10px] border-2 border-dashed border-[#e5e7eb] bg-[#fafbfc] px-4 py-8 text-center transition-colors">
                   <Upload size={24} className="text-[#9ca3af]" />
                   <label className="cursor-pointer text-[13px] font-medium text-[#6b7280]" style={mont}>
-                    Click to upload or drag and drop
+                    {t("sendModal.uploadFlow.dragDrop")}
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -428,7 +427,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                       onChange={(e) => { if (e.target.files?.length) handleFileSelected(e.target.files); e.target.value = ""; }}
                     />
                   </label>
-                  <p className="text-[11px] text-[#9ca3af]" style={mont}>PDF, DOC, DOCX up to 10MB — uploaded when you send</p>
+                  <p className="text-[11px] text-[#9ca3af]" style={mont}>{t("sendModal.uploadFlow.uploadHint")}</p>
                 </div>
               )}
             </div>
@@ -436,11 +435,11 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
           {source === "CUSTOM_UPLOAD" && step === 2 && (
             <div className="flex flex-col gap-3">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Add each person who needs to sign, and their role</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.uploadFlow.addSigners")}</p>
 
               {initial?.participants && initial.participants.length > 0 && (
                 <div className="flex flex-col gap-1.5 rounded-[10px] bg-[#f8fafc] p-3">
-                  <span className="text-[11px] font-semibold text-[#6a7282]" style={mont}>From this Opportunity</span>
+                  <span className="text-[11px] font-semibold text-[#6a7282]" style={mont}>{t("sendModal.uploadFlow.fromOpportunity")}</span>
                   <div className="flex flex-wrap gap-2">
                     {initial.participants.map((p) => {
                       const added = recipients.some((r) => r.email.trim().toLowerCase() === p.email.toLowerCase());
@@ -457,7 +456,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                           }`}
                           style={mont}
                         >
-                          {added ? <Check size={12} /> : <Plus size={12} />} {p.name} · {p.role === "AGENCY" ? "Agency" : p.role === "BUYER" ? "Buyer" : "Seller"}
+                          {added ? <Check size={12} /> : <Plus size={12} />} {p.name} · {t(`sendModal.uploadFlow.roleLabels.${p.role}`)}
                         </button>
                       );
                     })}
@@ -468,16 +467,16 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
               {recipients.map((r, i) => (
                 <div key={r.key} className="flex flex-col gap-2.5 rounded-[10px] border border-[#e5e7eb] p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-[#6a7282]" style={mont}>Recipient {i + 1}</span>
+                    <span className="text-[11px] font-semibold text-[#6a7282]" style={mont}>{t("sendModal.uploadFlow.recipientLabel", { index: i + 1 })}</span>
                     {recipients.length > 1 && (
-                      <button type="button" onClick={() => removeRecipient(r.key)} title="Remove" className="flex size-7 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-red-50 hover:text-[#fb2c36]">
+                      <button type="button" onClick={() => removeRecipient(r.key)} title={t("sendModal.uploadFlow.removeRecipientAria")} className="flex size-7 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-red-50 hover:text-[#fb2c36]">
                         <Trash2 size={13} />
                       </button>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <input value={r.name} onChange={(e) => updateRecipient(r.key, { name: e.target.value })} placeholder="Full name" className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
-                    <input type="email" value={r.email} onChange={(e) => updateRecipient(r.key, { email: e.target.value })} placeholder="Email address" className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
+                    <input value={r.name} onChange={(e) => updateRecipient(r.key, { name: e.target.value })} placeholder={t("sendModal.uploadFlow.namePlaceholder")} className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
+                    <input type="email" value={r.email} onChange={(e) => updateRecipient(r.key, { email: e.target.value })} placeholder={t("sendModal.uploadFlow.emailPlaceholder")} className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <SearchableSelect
@@ -486,10 +485,10 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                       value={r.role}
                       onChange={(next) => updateRecipient(r.key, { role: next as EnvelopeRecipientRole })}
                       options={ROLE_OPTIONS}
-                      placeholder="Role"
+                      placeholder={t("sendModal.uploadFlow.rolePlaceholder")}
                     />
                     {r.role === EnvelopeRecipientRole.OTHER && (
-                      <input value={r.roleLabel} onChange={(e) => updateRecipient(r.key, { roleLabel: e.target.value })} placeholder="e.g. Notary" className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
+                      <input value={r.roleLabel} onChange={(e) => updateRecipient(r.key, { roleLabel: e.target.value })} placeholder={t("sendModal.uploadFlow.roleLabelPlaceholder")} className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86]" style={mont} />
                     )}
                   </div>
                 </div>
@@ -500,14 +499,14 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                 className="flex items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-[#c2dcff] bg-[#f5f9ff] px-4 py-2.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors"
                 style={mont}
               >
-                <Plus size={14} /> Add Recipient
+                <Plus size={14} /> {t("sendModal.uploadFlow.addRecipient")}
               </button>
             </div>
           )}
 
           {source === "CUSTOM_UPLOAD" && step === 3 && (
             <div className="flex flex-col gap-4">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Optional message and expiry</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.uploadFlow.optionalMessageAndExpiry")}</p>
               <PropertyAndExpiry
                 propertyReference={propertyReference}
                 setPropertyReference={setPropertyReference}
@@ -521,23 +520,23 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
 
           {source === "CUSTOM_UPLOAD" && step === 4 && file && (
             <div className="flex flex-col gap-4">
-              <p className="text-[12px] text-[#6a7282]" style={mont}>Review the details before sending</p>
+              <p className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.review.prompt")}</p>
               <div className="flex flex-col divide-y divide-[#e5e7eb] rounded-[10px] border border-[#e5e7eb]">
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-[12px] text-[#6a7282]" style={mont}>Document</span>
+                  <span className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.review.document")}</span>
                   <span className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{file.name}</span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-[12px] text-[#6a7282]" style={mont}>Property</span>
+                  <span className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.review.property")}</span>
                   <span className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{propertyReference || "—"}</span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-[12px] text-[#6a7282]" style={mont}>Expires in</span>
-                  <span className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{expiresInDays} days</span>
+                  <span className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.review.expiresIn")}</span>
+                  <span className="text-[12px] font-semibold text-[#0d2138]" style={mont}>{t("sendModal.review.expiresInDays", { count: expiresInDays })}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="text-[12px] text-[#6a7282]" style={mont}>Recipients</span>
+                <span className="text-[12px] text-[#6a7282]" style={mont}>{t("sendModal.review.recipients")}</span>
                 <div className="flex flex-col divide-y divide-[#e5e7eb] rounded-[10px] border border-[#e5e7eb]">
                   {recipients.map((r) => (
                     <div key={r.key} className="flex items-center justify-between px-4 py-3">
@@ -546,7 +545,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
                         <span className="text-[11px] text-[#9ca3af]" style={mont}>{r.email}</span>
                       </div>
                       <span className="rounded-full bg-[#eff6ff] px-2.5 py-1 text-[11px] font-medium text-[#1e4f86]" style={mont}>
-                        {r.role === EnvelopeRecipientRole.OTHER ? r.roleLabel || "Other" : ROLE_OPTIONS.find((o) => o.value === r.role)?.label}
+                        {r.role === EnvelopeRecipientRole.OTHER ? r.roleLabel || t("sendModal.uploadFlow.otherFallback") : ROLE_OPTIONS.find((o) => o.value === r.role)?.label}
                       </span>
                     </div>
                   ))}
@@ -567,7 +566,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
               className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
               style={mont}
             >
-              Back
+              {t("sendModal.back")}
             </button>
           )}
           <button
@@ -577,7 +576,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
             className="h-10 px-4 rounded-[10px] border border-[#e5e7eb] bg-white text-[12px] font-medium text-[#6b7280] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
             style={mont}
           >
-            Cancel
+            {t("sendModal.cancel")}
           </button>
           <div className="flex-1" />
           {step > 0 && step < totalSteps && (
@@ -592,7 +591,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
               className="h-10 px-5 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
               style={mont}
             >
-              Continue
+              {t("sendModal.continue")}
             </button>
           )}
           {step === totalSteps && step > 0 && (
@@ -603,7 +602,7 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
               className="h-10 px-5 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
               style={mont}
             >
-              {submitting ? "Sending…" : "Send for Signature"}
+              {submitting ? t("sendModal.sending") : t("sendModal.send")}
             </button>
           )}
         </div>
@@ -627,37 +626,36 @@ function PropertyAndExpiry({
   message: string;
   setMessage: (v: string) => void;
 }) {
+  const { t } = useTranslation("docusign");
   return (
     <>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Property Reference</label>
+        <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("sendModal.propertyAndExpiry.propertyReference")}</label>
         <ListingPicker
           tone="neutral"
           value={propertyReference ? "selected" : ""}
           label={propertyReference}
           onSelect={(_id, label) => setPropertyReference(label)}
-          placeholder="Search a listing…"
+          placeholder={t("sendModal.propertyAndExpiry.propertySearchPlaceholder")}
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Expiry Period</label>
-        <select
-          value={expiresInDays}
-          onChange={(e) => setExpiresInDays(Number(e.target.value))}
-          className="h-10 px-3.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86] bg-white"
-          style={mont}
-        >
-          {EXPIRY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+        <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("sendModal.propertyAndExpiry.expiryPeriod")}</label>
+        <SearchableSelect
+          size="sm"
+          searchable={false}
+          value={String(expiresInDays)}
+          onChange={(next) => setExpiresInDays(Number(next))}
+          options={EXPIRY_VALUES.map((value) => ({ value: String(value), label: t(`sendModal.expiryOptions.${value}`) }))}
+          placeholder={t("sendModal.propertyAndExpiry.expiryPeriod")}
+        />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>Personal Message (optional)</label>
+        <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>{t("sendModal.propertyAndExpiry.personalMessage")}</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Please review and sign the attached document at your earliest convenience…"
+          placeholder={t("sendModal.propertyAndExpiry.messagePlaceholder")}
           rows={3}
           className="px-3.5 py-2.5 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] resize-none"
           style={mont}
@@ -668,11 +666,12 @@ function PropertyAndExpiry({
 }
 
 function DisclosureBox() {
+  const { t } = useTranslation("docusign");
   return (
     <div className="flex items-start gap-2.5 rounded-[10px] bg-[#eff6ff] px-4 py-3">
       <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#1e4f86]" />
       <p className="text-[12px] leading-5 text-[#1e4f86]" style={mont}>
-        This document will be sent via DocuSign. Recipients will receive a secure signing link. You will be notified once all parties have signed.
+        {t("sendModal.disclosure")}
       </p>
     </div>
   );

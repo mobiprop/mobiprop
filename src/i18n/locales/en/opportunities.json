@@ -1,0 +1,268 @@
+{
+  "page": {
+    "title": "Opportunity",
+    "subtitle": "Track and manage sales opportunities",
+    "newOpportunity": "New Opportunity",
+    "stats": {
+      "totalValue": "Total Value",
+      "totalValueTrend": "Live from database",
+      "open": "Open",
+      "openTrend": "Active opportunities",
+      "won": "Won",
+      "wonTrend": "Closed successfully",
+      "winRate": "Win Rate",
+      "winRateTrend": "Closed Won ÷ Total"
+    },
+    "tabs": {
+      "all": "All"
+    },
+    "searchPlaceholder": "Search opportunities...",
+    "exportCsv": "Export CSV",
+    "filterBy": "Filter By",
+    "loading": "Loading opportunities…",
+    "loadError": "Failed to load opportunities.",
+    "columns": {
+      "opportunity": "Opportunity",
+      "participants": "Participants",
+      "dealSize": "Deal Size",
+      "probability": "Probability",
+      "stage": "Stage",
+      "expectedClose": "Expected Close",
+      "status": "Status"
+    },
+    "emptyNone": "No opportunities yet — create your first.",
+    "emptyFiltered": "No opportunities match your search.",
+    "rowActions": {
+      "actionsTitle": "Actions",
+      "actionsAria": "Open actions for {{name}}",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteConfirm": "Delete \"{{title}}\"? This can't be undone.",
+    "toasts": {
+      "deleted": "Opportunity deleted",
+      "deleteFailed": "Failed to delete opportunity",
+      "saveFailed": "Failed to save opportunity"
+    }
+  },
+  "filterModal": {
+    "title": "Filter Opportunities",
+    "clearAll": "Clear all",
+    "stage": "Stage",
+    "status": "Status",
+    "commissionRange": "Commission range",
+    "minCommissionPlaceholder": "Min $",
+    "maxCommissionPlaceholder": "Max $",
+    "minProbability": "Min probability",
+    "expectedClose": "Expected close",
+    "expectedCloseOptions": {
+      "THIS_WEEK": "This week",
+      "THIS_MONTH": "This month",
+      "THIS_QUARTER": "This quarter",
+      "THIS_YEAR": "This year",
+      "OVERDUE": "Overdue"
+    },
+    "assignedAgent": "Assigned agent",
+    "agentSearchPlaceholder": "Search by agent name...",
+    "loadingAgents": "Loading agents…",
+    "noAgentsFound": "No agents found.",
+    "selectedSuffix": " (Selected)",
+    "agentMatchCount": "Showing {{matches}} matches out of {{total}} total agents",
+    "resultsCount": "{{count}} results",
+    "reset": "Reset",
+    "applyFilters": "Apply filters"
+  },
+  "addModal": {
+    "editTitle": "Edit Opportunity",
+    "newTitle": "New Opportunity",
+    "discardConfirm": {
+      "title": "Discard changes?",
+      "message": "You have unsaved changes to this opportunity. Closing now will lose them.",
+      "keepEditing": "Keep Editing",
+      "discard": "Discard"
+    },
+    "name": "Opportunity Name *",
+    "namePlaceholder": "Enter opportunity name",
+    "participantsSection": {
+      "title": "Participants *",
+      "subtitle": "Assign people associated with this opportunity.",
+      "untitledCompany": "Untitled company",
+      "untitledContact": "Untitled contact",
+      "removeAria": "Remove participant",
+      "addContact": "Add Contact",
+      "addParticipant": "Add Participant",
+      "companyNameRequired": "Enter a company name.",
+      "selectContactRequired": "Select a contact.",
+      "roles": {
+        "BUYER": "Buyer",
+        "SELLER": "Seller",
+        "AGENCY": "Real Estate Company"
+      },
+      "existingPanel": {
+        "title": "Add Existing Contact as Participant",
+        "companyName": "Company Name *",
+        "selectContact": "Select Contact *",
+        "companyNamePlaceholder": "Real estate company name",
+        "contactSearchPlaceholder": "Search and select contact…",
+        "role": "Role *",
+        "selectRole": "Select role",
+        "companyEmail": "Company Email",
+        "companyEmailPlaceholder": "contracts@agency.com",
+        "companyEmailHint": "Optional — lets this company be picked as a contract signer.",
+        "addToOpportunity": "Add to Opportunity",
+        "cancel": "Cancel"
+      },
+      "newPanel": {
+        "title": "New Contact",
+        "firstName": "First Name *",
+        "firstNamePlaceholder": "e.g. Jane",
+        "lastName": "Last Name *",
+        "lastNamePlaceholder": "e.g. Smith",
+        "email": "Email Address",
+        "emailPlaceholder": "jane@example.com",
+        "phone": "Phone Number",
+        "phonePlaceholder": "+1 (555) 000-0000",
+        "emailOrPhoneRequired": "Provide at least an email or a phone number.",
+        "nameRequired": "First and last name are required.",
+        "contactType": "Contact Type *",
+        "selectContactType": "Select contact type",
+        "contactTypeAria": "Contact type",
+        "contactTypeOptions": {
+          "BUYER": "Buyer",
+          "SELLER": "Seller",
+          "BOTH": "Both"
+        },
+        "addAsParticipant": "Add as participant",
+        "addAsParticipantHint": "Link this new contact directly to this opportunity",
+        "role": "Role *",
+        "selectRole": "Select role",
+        "cancel": "Cancel",
+        "creating": "Creating…",
+        "createAndAdd": "Create & Add to Opportunity",
+        "contactCreated": "Contact created",
+        "createFailed": "Failed to create contact"
+      }
+    },
+    "listingsSection": {
+      "title": "Property Listings",
+      "subtitle": "Assign the properties linked to this opportunity.",
+      "selectPlaceholder": "Select a listing…",
+      "removeAria": "Remove listing",
+      "addListing": "Add Listing"
+    },
+    "dealType": "Deal Type *",
+    "selectType": "Select type",
+    "dealTypeOptions": {
+      "RENT": "Rent",
+      "SALE": "Sale"
+    },
+    "dealSize": "Deal Size *",
+    "dealSizePlaceholder": "0.00",
+    "rentalPeriod": {
+      "title": "Rental contract period",
+      "startDate": "Contract start date *",
+      "endDate": "Contract end date *"
+    },
+    "commissionAmount": "Commission Amount",
+    "commissionPlaceholder": "Input the percentage",
+    "commissionPreview": "{{amount}} of deal size — company revenue",
+    "paymentTerms": "Payment Terms",
+    "paymentTermsPlaceholder": "e.g. Net 30, Installments, Cash",
+    "probability": "Probability: {{value}}%",
+    "stage": "Stage *",
+    "selectStage": "Select stage",
+    "expectedCloseDate": "Expected Close Date *",
+    "status": "Status *",
+    "selectStatus": "Select status",
+    "agent": "Agent *",
+    "selectAgentPlaceholder": "Select agent…",
+    "agentCommission": "Agent Commission",
+    "agentCommissionPreview": "{{amount}} — reflected on the agent's earnings",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe this opportunity...",
+    "contractsSection": {
+      "title": "Contracts & Signatures",
+      "subtitle": "Contracts added here are sent through DocuSign and linked to this Opportunity. They will also appear in the dashboard DocuSign page and in the client's My Contracts area when the client is a recipient.",
+      "customDocumentBadge": "Custom Document",
+      "templateBadge": "DocuSign Template",
+      "moreRecipients": " +{{count}} more",
+      "updated": "Updated {{date}}",
+      "viewAria": "View",
+      "resendAria": "Resend",
+      "voidAria": "Void",
+      "detachAria": "Detach from this Opportunity",
+      "attachPlaceholder": "Attach an existing envelope…",
+      "attach": "Attach",
+      "addOrSend": "Add Contract / Send for Signature",
+      "voidReasonPrompt": "Reason for voiding this envelope?",
+      "toasts": {
+        "attached": "Envelope attached",
+        "attachFailed": "Failed to attach envelope",
+        "detached": "Envelope detached",
+        "detachFailed": "Failed to detach envelope",
+        "voided": "Envelope voided",
+        "voidFailed": "Failed to void envelope",
+        "reminderSent": "Reminder sent",
+        "resendFailed": "Failed to resend"
+      }
+    },
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "saveChanges": "Save Changes",
+    "createAndSend": "Create Opportunity & Send Contract",
+    "create": "Create Opportunity",
+    "participantsRequired": "At least one Buyer or Seller contact is required.",
+    "contractIncompleteTemplate": "Select a template and a signer to send this contract, or switch to No Contract.",
+    "contractIncompleteUpload": "Select a document and at least one signer to send this contract, or switch to No Contract.",
+    "toasts": {
+      "createdAndSent": "Opportunity created and contract sent",
+      "sendFailed": "Opportunity created, but contract sending failed. You can retry from the Opportunity.",
+      "updated": "Opportunity updated",
+      "created": "Opportunity created",
+      "saveFailed": "Failed to save opportunity"
+    }
+  },
+  "sendContractModal": {
+    "title": "Add Contract / Send for Signature",
+    "activeEnvelopeWarning": "Another document on this opportunity is still awaiting signature. You can still send a new one — both will be tracked separately.",
+    "opportunityLabel": "Opportunity",
+    "cancel": "Cancel",
+    "sending": "Sending…",
+    "send": "Send for Signature",
+    "toasts": {
+      "sent": "Envelope sent successfully",
+      "sendFailed": "Failed to send envelope"
+    }
+  },
+  "contractSourcePicker": {
+    "tabs": {
+      "noContract": "No Contract",
+      "template": "Use DocuSign Template",
+      "customUpload": "Upload Custom Contract Document"
+    },
+    "document": "Document",
+    "selectTemplatePlaceholder": "Select a template…",
+    "noTemplatesFound": "No templates found",
+    "removeAria": "Remove",
+    "dragDrop": "Click to upload or drag and drop",
+    "uploadHint": "PDF, DOC, DOCX up to 10MB — uploaded when sent",
+    "signer": "Signer",
+    "signers": "Signers",
+    "signerHintTemplate": "A DocuSign Template can only go to one signer.",
+    "signerHintMultiple": "Select everyone who needs to sign.",
+    "noParticipants": "No participants with an email on file. Add a participant with an email first.",
+    "noEmailOnFile": "No email on file",
+    "participantRoles": {
+      "BUYER": "Buyer",
+      "SELLER": "Seller",
+      "AGENCY": "Agency"
+    },
+    "incompleteNoDocumentTemplate": "Select a template to include this contract, or switch to No Contract.",
+    "incompleteNoDocumentUpload": "Upload a document to include this contract, or switch to No Contract.",
+    "incompleteNoSigner": "Select at least one signer above — otherwise this contract won't be sent.",
+    "reviewDocument": "Document",
+    "reviewSigners": "Signers",
+    "fileTypeError": "Only PDF, DOC, and DOCX files are supported.",
+    "fileSizeError": "File must be 10MB or smaller."
+  }
+}

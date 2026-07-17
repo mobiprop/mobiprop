@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -80,6 +81,7 @@ type TimePanelProps = {
 };
 
 export function TimePanel({ value, onSelect, onClose, align = "left", inline = false }: TimePanelProps) {
+  const { t } = useTranslation("dashboard");
   const { hour12, minute, period } = parseTime(value);
 
   function update(next: Partial<{ hour12: number; minute: number; period: "AM" | "PM" }>) {
@@ -96,12 +98,12 @@ export function TimePanel({ value, onSelect, onClose, align = "left", inline = f
       onClick={(e) => e.stopPropagation()}
     >
       <div className="px-3 py-2 border-b border-[#e6e6e6]">
-        <span className="text-[12px] font-medium text-[#0d2138]" style={mont}>Select Time</span>
+        <span className="text-[12px] font-medium text-[#0d2138]" style={mont}>{t("timePanel.selectTime")}</span>
       </div>
       <div className="flex gap-1 px-2 py-1.5">
         <Column items={HOURS} selected={hour12} onPick={(h) => update({ hour12: h })} format={pad} />
         <Column items={MINUTES} selected={minute} onPick={(m) => update({ minute: m })} format={pad} />
-        <Column items={[...PERIODS]} selected={period} onPick={(p) => update({ period: p })} format={(p) => p} />
+        <Column items={[...PERIODS]} selected={period} onPick={(p) => update({ period: p })} format={(p) => t(`timePanel.period.${p.toLowerCase()}`)} />
       </div>
       <div className="flex justify-end px-3 py-2 border-t border-[#e6e6e6]">
         <button
@@ -110,7 +112,7 @@ export function TimePanel({ value, onSelect, onClose, align = "left", inline = f
           className="text-[12px] font-semibold text-white bg-[#0d2138] px-3 py-1 rounded-[6px] hover:bg-[#1a3a5c] transition-colors"
           style={mont}
         >
-          Done
+          {t("timePanel.done")}
         </button>
       </div>
     </div>

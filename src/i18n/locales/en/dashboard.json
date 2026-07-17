@@ -3,7 +3,45 @@
     "searchPlaceholder": "Search...",
     "noResultsFound": "No results found.",
     "loading": "Loading...",
-    "toggleSetting": "Toggle setting"
+    "toggleSetting": "Toggle setting",
+    "selectDate": "Select date"
+  },
+  "calendarPanel": {
+    "days": {
+      "su": "Su",
+      "mo": "Mo",
+      "tu": "Tu",
+      "we": "We",
+      "th": "Th",
+      "fr": "Fr",
+      "sa": "Sa"
+    },
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "monthPlaceholder": "Month",
+    "yearPlaceholder": "Year",
+    "selectMonthAria": "Select month",
+    "selectYearAria": "Select year"
+  },
+  "timePanel": {
+    "selectTime": "Select Time",
+    "done": "Done",
+    "period": {
+      "am": "AM",
+      "pm": "PM"
+    }
   },
   "nav": {
     "sections": {

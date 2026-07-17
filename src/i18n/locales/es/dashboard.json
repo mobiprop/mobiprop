@@ -3,7 +3,45 @@
     "searchPlaceholder": "Buscar...",
     "noResultsFound": "No se encontraron resultados.",
     "loading": "Cargando...",
-    "toggleSetting": "Alternar opción"
+    "toggleSetting": "Alternar opción",
+    "selectDate": "Seleccionar fecha"
+  },
+  "calendarPanel": {
+    "days": {
+      "su": "Do",
+      "mo": "Lu",
+      "tu": "Ma",
+      "we": "Mi",
+      "th": "Ju",
+      "fr": "Vi",
+      "sa": "Sá"
+    },
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "monthPlaceholder": "Mes",
+    "yearPlaceholder": "Año",
+    "selectMonthAria": "Seleccionar mes",
+    "selectYearAria": "Seleccionar año"
+  },
+  "timePanel": {
+    "selectTime": "Seleccionar hora",
+    "done": "Listo",
+    "period": {
+      "am": "AM",
+      "pm": "PM"
+    }
   },
   "nav": {
     "sections": {
