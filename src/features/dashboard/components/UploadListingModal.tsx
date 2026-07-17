@@ -14,6 +14,7 @@ import {
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   X,
   ChevronLeft,
@@ -71,7 +72,6 @@ import {
 } from "@/hooks/mutations/useUpdateListingMutation";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import type { ListingInput } from "@/schemas/listing.schema";
-import { TYPE_LABELS, STATUS_LABELS } from "../listings-data";
 import { LocationPickerInput } from "./LocationPickerInput";
 import { PlaceAutocompleteInput } from "@/components/maps/PlaceAutocompleteInput";
 
@@ -79,11 +79,13 @@ const mont = { fontFamily: "'Montserrat', sans-serif" };
 
 const MAX_IMAGE_MB = Math.round(LISTING_IMAGE_MAX_BYTES / (1024 * 1024));
 
-const STEPS = ["Basic Info", "Listing Details", "Images"] as const;
+// Displayed labels are translated via t(`uploadModal.steps.${key}`); these
+// identifiers stay in stable English because they're used for step indexing.
+const STEPS = ["basicInfo", "listingDetails", "images"] as const;
 
 type AreaField = {
   key: "totalAreaM2" | "coveredAreaM2" | "semiCoveredAreaM2" | "lotSizeM2" | "lotFrontageM2" | "lotDepthM2";
-  label: string;
+  labelKey: string;
   placeholder: string;
   required: boolean;
 };
@@ -91,16 +93,16 @@ type AreaField = {
 // Non-LOT listings break area into total/covered/semi-covered + optional lot
 // size; LOT listings replace all of that with frontage/depth instead.
 const NON_LOT_AREA_FIELDS: AreaField[] = [
-  { key: "totalAreaM2", label: "Total (m²)", placeholder: "120", required: true },
-  { key: "coveredAreaM2", label: "Covered (m²)", placeholder: "95", required: false },
-  { key: "semiCoveredAreaM2", label: "Semi-covered (m²)", placeholder: "15", required: false },
-  { key: "lotSizeM2", label: "Lot Size (m²)", placeholder: "200", required: false },
+  { key: "totalAreaM2", labelKey: "uploadModal.areaLabels.total", placeholder: "120", required: true },
+  { key: "coveredAreaM2", labelKey: "uploadModal.areaLabels.covered", placeholder: "95", required: false },
+  { key: "semiCoveredAreaM2", labelKey: "uploadModal.areaLabels.semiCovered", placeholder: "15", required: false },
+  { key: "lotSizeM2", labelKey: "uploadModal.areaLabels.lotSize", placeholder: "200", required: false },
 ];
 
 const LOT_AREA_FIELDS: AreaField[] = [
-  { key: "totalAreaM2", label: "Total (m²)", placeholder: "500", required: true },
-  { key: "lotFrontageM2", label: "Lot Frontage (m²)", placeholder: "20", required: false },
-  { key: "lotDepthM2", label: "Lot Depth (m²)", placeholder: "25", required: false },
+  { key: "totalAreaM2", labelKey: "uploadModal.areaLabels.total", placeholder: "500", required: true },
+  { key: "lotFrontageM2", labelKey: "uploadModal.areaLabels.lotFrontage", placeholder: "20", required: false },
+  { key: "lotDepthM2", labelKey: "uploadModal.areaLabels.lotDepth", placeholder: "25", required: false },
 ];
 
 const AMENITY_ICONS: Record<
@@ -360,6 +362,8 @@ export function UploadListingModal({
   canFeature,
   canAssign,
 }: UploadListingModalProps) {
+  const { t } = useTranslation("dashboardListings");
+  const { t: td } = useTranslation("dashboard");
   const isEdit = listing !== undefined;
   const titleId = useId();
   const descriptionId = useId();
@@ -551,7 +555,7 @@ export function UploadListingModal({
 
     if (totalCount > LISTING_IMAGE_MAX_COUNT) {
       setImagesError(
-        `A listing can have at most ${LISTING_IMAGE_MAX_COUNT} images.`,
+        t("uploadModal.errors.tooManyImages", { max: LISTING_IMAGE_MAX_COUNT }),
       );
       return;
     }
@@ -562,12 +566,12 @@ export function UploadListingModal({
       );
 
       if (!isAllowedType) {
-        setImagesError("Only JPG, PNG, and WebP images are allowed.");
+        setImagesError(t("uploadModal.errors.invalidImageType"));
         return;
       }
 
       if (file.size > LISTING_IMAGE_MAX_BYTES) {
-        setImagesError(`"${file.name}" is larger than ${MAX_IMAGE_MB}MB.`);
+        setImagesError(t("uploadModal.errors.imageTooLarge", { name: file.name, maxMb: MAX_IMAGE_MB }));
         return;
       }
     }
@@ -669,7 +673,7 @@ export function UploadListingModal({
 
   const onSubmit = handleSubmit(async (values) => {
     if (totalImages === 0 && values.status !== PropertyStatus.DRAFT) {
-      setImagesError("At least one image is required to publish a listing.");
+      setImagesError(t("uploadModal.errors.atLeastOneImageToPublish"));
       setStep(2);
       return;
     }
@@ -750,7 +754,7 @@ export function UploadListingModal({
           });
         }
 
-        toast.success("Listing updated");
+        toast.success(t("uploadModal.toasts.listingUpdated"));
       } else {
         const coverIndex =
           cover && "newKey" in cover
@@ -763,13 +767,13 @@ export function UploadListingModal({
           coverIndex,
         });
 
-        toast.success("Listing created");
+        toast.success(t("uploadModal.toasts.listingCreated"));
       }
 
       onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong",
+        error instanceof Error ? error.message : t("uploadModal.errors.somethingWentWrong"),
       );
     }
   });
@@ -824,7 +828,7 @@ export function UploadListingModal({
               className="text-[18px] font-semibold leading-7 text-[#0d2138] sm:text-[20px]"
               style={mont}
             >
-              {isEdit ? "Edit Listing" : "Upload New Listing"}
+              {isEdit ? t("uploadModal.editTitle") : t("uploadModal.uploadTitle")}
             </h2>
 
             <p
@@ -832,7 +836,7 @@ export function UploadListingModal({
               className="mt-0.5 text-[14px] leading-5 text-[#6a7282]"
               style={mont}
             >
-              Step {step + 1} of {STEPS.length}
+              {t("uploadModal.stepOf", { step: step + 1, total: STEPS.length })}
             </p>
           </div>
 
@@ -840,7 +844,7 @@ export function UploadListingModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            aria-label="Close listing modal"
+            aria-label={t("uploadModal.closeAria")}
             className="flex size-10 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X size={19} />
@@ -882,7 +886,7 @@ export function UploadListingModal({
                     }`}
                     style={mont}
                   >
-                    {label}
+                    {t(`uploadModal.steps.${label}`)}
                   </span>
                 </button>
               );
@@ -913,13 +917,13 @@ export function UploadListingModal({
                       className={labelClass}
                       style={mont}
                     >
-                      Listing Name <span className="text-[#e7000b]">*</span>
+                      {t("uploadModal.fields.listingName")} <span className="text-[#e7000b]">*</span>
                     </label>
 
                     <input
                       id="listing-title"
                       {...register("title")}
-                      placeholder="e.g., Modern Downtown Apartment"
+                      placeholder={t("uploadModal.fields.listingNamePlaceholder")}
                       className={`${inputClass} ${borderClass(
                         Boolean(errors.title),
                       )}`}
@@ -936,7 +940,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Listing Type <span className="text-[#e7000b]">*</span>
+                        {t("uploadModal.fields.listingType")} <span className="text-[#e7000b]">*</span>
                       </label>
 
                       <SearchableSelect
@@ -948,10 +952,10 @@ export function UploadListingModal({
                             shouldValidate: true,
                           })
                         }
-                        options={Object.entries(TYPE_LABELS).map(
-                          ([value, label]) => ({ value, label }),
+                        options={Object.values(PropertyType).map(
+                          (value) => ({ value, label: td(`propertyType.${value}`) }),
                         )}
-                        placeholder="Select type"
+                        placeholder={t("uploadModal.fields.selectType")}
                         searchable={false}
                         hasError={Boolean(errors.type)}
                       />
@@ -965,7 +969,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Status <span className="text-[#e7000b]">*</span>
+                        {t("uploadModal.fields.status")} <span className="text-[#e7000b]">*</span>
                       </label>
 
                       <SearchableSelect
@@ -977,10 +981,10 @@ export function UploadListingModal({
                             shouldValidate: true,
                           })
                         }
-                        options={Object.entries(STATUS_LABELS).map(
-                          ([value, label]) => ({ value, label }),
+                        options={Object.values(PropertyStatus).map(
+                          (value) => ({ value, label: td(`status.${value}`) }),
                         )}
-                        placeholder="Select status"
+                        placeholder={t("uploadModal.fields.selectStatus")}
                         searchable={false}
                         hasError={Boolean(errors.status)}
                       />
@@ -991,7 +995,7 @@ export function UploadListingModal({
 
                   <div className="flex flex-col gap-2">
                     <span className={labelClass} style={mont}>
-                      Operation Type <span className="text-[#e7000b]">*</span>
+                      {t("uploadModal.fields.operationType")} <span className="text-[#e7000b]">*</span>
                     </span>
 
                     <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center">
@@ -1012,7 +1016,7 @@ export function UploadListingModal({
                             }`}
                             style={mont}
                           >
-                            {operation}
+                            {t(`uploadModal.operation.${operation === "Sale" ? "sale" : "rent"}`)}
                           </button>
                         );
                       })}
@@ -1033,7 +1037,7 @@ export function UploadListingModal({
                           className={labelClass}
                           style={mont}
                         >
-                          Sale Price <span className="text-[#e7000b]">*</span>
+                          {t("uploadModal.fields.salePrice")} <span className="text-[#e7000b]">*</span>
                         </label>
 
                         <input
@@ -1060,7 +1064,7 @@ export function UploadListingModal({
                           className={labelClass}
                           style={mont}
                         >
-                          Rent Price <span className="text-[#e7000b]">*</span>
+                          {t("uploadModal.fields.rentPrice")} <span className="text-[#e7000b]">*</span>
                         </label>
 
                         <input
@@ -1088,7 +1092,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Location <span className="text-[#e7000b]">*</span>
+                        {t("uploadModal.fields.location")} <span className="text-[#e7000b]">*</span>
                       </label>
 
                       <div className="flex min-w-0 items-center gap-2">
@@ -1112,7 +1116,7 @@ export function UploadListingModal({
                                 });
                               }
                             }}
-                            placeholder="Search locations..."
+                            placeholder={t("uploadModal.fields.searchLocations")}
                             className={`${inputClass} ${borderClass(
                               Boolean(errors.locationId),
                             )}`}
@@ -1125,7 +1129,7 @@ export function UploadListingModal({
                           className="h-11 shrink-0 rounded-[10px] border border-[#1e4f86] px-3.5 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff]"
                           style={mont}
                         >
-                          + Add Location
+                          {t("uploadModal.fields.addLocation")}
                         </button>
                       </div>
 
@@ -1138,7 +1142,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Full Address <span className="text-[#e7000b]">*</span>
+                        {t("uploadModal.fields.fullAddress")} <span className="text-[#e7000b]">*</span>
                       </label>
 
                       <PlaceAutocompleteInput
@@ -1159,7 +1163,7 @@ export function UploadListingModal({
                           }
                         }}
                         fields={["formattedAddress"]}
-                        placeholder="1234 Main Street, Downtown"
+                        placeholder={t("uploadModal.fields.fullAddressPlaceholder")}
                         className={`${inputClass} ${borderClass(
                           Boolean(errors.fullAddress),
                         )}`}
@@ -1177,7 +1181,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Assigned Agent
+                        {t("uploadModal.fields.assignedAgent")}
                       </label>
 
                       <SearchableSelect
@@ -1192,10 +1196,10 @@ export function UploadListingModal({
                           value: agent.id,
                           label: agent.name,
                         }))}
-                        placeholder="— Unassigned —"
+                        placeholder={t("uploadModal.fields.unassigned")}
                         searchable
-                        searchPlaceholder="Search agents..."
-                        emptyLabel="No agents found."
+                        searchPlaceholder={t("uploadModal.fields.searchAgents")}
+                        emptyLabel={t("uploadModal.fields.noAgentsFound")}
                         loading={agentsLoading}
                       />
                     </div>
@@ -1207,7 +1211,7 @@ export function UploadListingModal({
                       className={labelClass}
                       style={mont}
                     >
-                      Property Owner
+                      {t("uploadModal.fields.propertyOwner")}
                     </label>
 
                     <div className="flex min-w-0 items-center gap-2">
@@ -1224,10 +1228,10 @@ export function UploadListingModal({
                             value: c.id,
                             label: `${c.fullName} (${c.contactId})`,
                           }))}
-                          placeholder="— No owner set —"
+                          placeholder={t("uploadModal.fields.noOwnerSet")}
                           searchable
-                          searchPlaceholder="Search contacts..."
-                          emptyLabel="No contacts found."
+                          searchPlaceholder={t("uploadModal.fields.searchContacts")}
+                          emptyLabel={t("uploadModal.fields.noContactsFound")}
                           loading={contactsLoading}
                         />
                       </div>
@@ -1238,12 +1242,12 @@ export function UploadListingModal({
                         className="h-11 shrink-0 rounded-[10px] border border-[#1e4f86] px-3.5 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff]"
                         style={mont}
                       >
-                        + Add Contact
+                        {t("uploadModal.fields.addContact")}
                       </button>
                     </div>
 
                     <p className="text-[13px] leading-5 text-[#6a7282]" style={mont}>
-                      The seller/owner this listing is linked to in Contacts.
+                      {t("uploadModal.fields.ownerHint")}
                     </p>
                   </div>
 
@@ -1254,14 +1258,14 @@ export function UploadListingModal({
                           className="text-[14px] font-semibold leading-5 text-[#1f2937]"
                           style={mont}
                         >
-                          Featured listing
+                          {t("uploadModal.fields.featuredListing")}
                         </p>
 
                         <p
                           className="mt-1 text-[14px] leading-5 text-[#6a7282]"
                           style={mont}
                         >
-                          Highlight this property at the top of listings.
+                          {t("uploadModal.fields.featuredListingHint")}
                         </p>
                       </div>
 
@@ -1272,7 +1276,7 @@ export function UploadListingModal({
                             shouldDirty: true,
                           })
                         }
-                        label="Featured listing"
+                        label={t("uploadModal.fields.featuredListing")}
                       />
                     </div>
                   )}
@@ -1285,10 +1289,10 @@ export function UploadListingModal({
                   <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
                     {(
                       [
-                        ["bedrooms", "Bedrooms", "3"],
-                        ["bathrooms", "Bathrooms", "2"],
+                        ["bedrooms", "uploadModal.fields.bedrooms", "3"],
+                        ["bathrooms", "uploadModal.fields.bathrooms", "2"],
                       ] as const
-                    ).map(([field, label, placeholder]) => (
+                    ).map(([field, labelKey, placeholder]) => (
                       <div
                         key={field}
                         className="flex min-w-0 flex-col gap-2"
@@ -1298,7 +1302,7 @@ export function UploadListingModal({
                           className={labelClass}
                           style={mont}
                         >
-                          {label} <span className="text-[#e7000b]">*</span>
+                          {t(labelKey)} <span className="text-[#e7000b]">*</span>
                         </label>
 
                         <input
@@ -1321,18 +1325,18 @@ export function UploadListingModal({
 
                   <div className="flex min-w-0 flex-col gap-3">
                     <span className={labelClass} style={mont}>
-                      Area
+                      {t("uploadModal.fields.area")}
                     </span>
 
                     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-                      {areaFields.map(({ key, label, placeholder, required }) => (
+                      {areaFields.map(({ key, labelKey, placeholder, required }) => (
                         <div key={key} className="flex min-w-0 flex-col gap-2">
                           <label
                             htmlFor={`listing-${key}`}
                             className={labelClass}
                             style={mont}
                           >
-                            {label} {required && <span className="text-[#e7000b]">*</span>}
+                            {t(labelKey)} {required && <span className="text-[#e7000b]">*</span>}
                           </label>
 
                           <input
@@ -1361,7 +1365,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Year Built
+                        {t("uploadModal.fields.yearBuilt")}
                       </label>
 
                       <input
@@ -1386,7 +1390,7 @@ export function UploadListingModal({
                         className={labelClass}
                         style={mont}
                       >
-                        Toilets <span className="text-[#e7000b]">*</span>
+                        {t("uploadModal.fields.toilets")} <span className="text-[#e7000b]">*</span>
                       </label>
 
                       <input
@@ -1412,13 +1416,13 @@ export function UploadListingModal({
                       className={labelClass}
                       style={mont}
                     >
-                      Description <span className="text-[#e7000b]">*</span>
+                      {t("uploadModal.fields.description")} <span className="text-[#e7000b]">*</span>
                     </label>
 
                     <textarea
                       id="listing-description"
                       {...register("description")}
-                      placeholder="Describe the listing, its features, and unique selling points..."
+                      placeholder={t("uploadModal.fields.descriptionPlaceholder")}
                       rows={5}
                       className={`min-h-[130px] w-full min-w-0 resize-y rounded-[10px] border bg-[#fafbfc] px-3.5 py-3 text-[14px] leading-6 text-[#0d2138] outline-none transition-all placeholder:text-[#99a1af] focus:border-[#1e4f86] focus:ring-2 focus:ring-[#1e4f86]/10 ${borderClass(
                         Boolean(errors.description),
@@ -1431,11 +1435,11 @@ export function UploadListingModal({
 
                   <div className="flex min-w-0 flex-col gap-3">
                     <span className={labelClass} style={mont}>
-                      Features &amp; Amenities
+                      {t("uploadModal.fields.featuresAmenities")}
                     </span>
 
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {AMENITY_OPTIONS.map(({ key, label }) => {
+                      {AMENITY_OPTIONS.map(({ key }) => {
                         const Icon = AMENITY_ICONS[key];
                         const isActive = amenities.includes(key);
 
@@ -1462,7 +1466,7 @@ export function UploadListingModal({
                             />
 
                             <span className="min-w-0 break-words leading-5">
-                              {label}
+                              {td(`amenities.${key}`)}
                             </span>
                           </button>
                         );
@@ -1481,7 +1485,7 @@ export function UploadListingModal({
                       className={labelClass}
                       style={mont}
                     >
-                      Video URL
+                      {t("uploadModal.fields.videoUrl")}
                     </label>
 
                     <input
@@ -1500,14 +1504,13 @@ export function UploadListingModal({
                       className="text-[12px] leading-5 text-[#9ca3af]"
                       style={mont}
                     >
-                      Optional. Shown as a video preview above the map on the
-                      public listing page.
+                      {t("uploadModal.fields.videoUrlHint")}
                     </p>
                   </div>
 
                   <div className="flex min-w-0 flex-col gap-2">
                     <label className={labelClass} style={mont}>
-                      Listing Images <span className="text-[#e7000b]">*</span>
+                      {t("uploadModal.fields.listingImages")} <span className="text-[#e7000b]">*</span>
                     </label>
 
                     <input
@@ -1552,14 +1555,14 @@ export function UploadListingModal({
                           className="text-[16px] font-semibold leading-6 text-[#0d2138]"
                           style={mont}
                         >
-                          Upload Listing Images
+                          {t("uploadModal.fields.uploadImages")}
                         </p>
 
                         <p
                           className="text-[14px] leading-5 text-[#6a7282]"
                           style={mont}
                         >
-                          Drag and drop images here, or click to browse.
+                          {t("uploadModal.fields.dragDropHint")}
                         </p>
                       </div>
 
@@ -1567,14 +1570,14 @@ export function UploadListingModal({
                         className="inline-flex h-10 items-center justify-center rounded-[9px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white"
                         style={mont}
                       >
-                        Choose Files
+                        {t("uploadModal.fields.chooseFiles")}
                       </span>
 
                       <p
                         className="text-[12px] leading-5 text-[#9ca3af]"
                         style={mont}
                       >
-                        JPG, PNG or WebP. Maximum {MAX_IMAGE_MB}MB per image.
+                        {t("uploadModal.fields.imageSizeHint", { maxMb: MAX_IMAGE_MB })}
                       </p>
                     </button>
 
@@ -1587,8 +1590,7 @@ export function UploadListingModal({
                           className="text-[12px] leading-5 text-amber-600"
                           style={mont}
                         >
-                          At least one image is required to publish this
-                          listing. Add images or change status to Draft.
+                          {t("uploadModal.fields.atLeastOneImageRequired")}
                         </p>
                       )}
                   </div>
@@ -1599,7 +1601,7 @@ export function UploadListingModal({
                         className="text-[14px] font-medium text-[#1f2937]"
                         style={mont}
                       >
-                        Current Images ({existingImages.length})
+                        {t("uploadModal.fields.currentImages", { count: existingImages.length })}
                       </p>
 
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -1624,14 +1626,14 @@ export function UploadListingModal({
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={image.url}
-                              alt={image.altText ?? "Listing image"}
+                              alt={image.altText ?? t("uploadModal.fields.listingImageAlt")}
                               draggable={false}
                               className="size-full object-cover"
                             />
 
                             <button
                               type="button"
-                              title={isExistingCover(image.id) ? "Cover image" : "Set as cover"}
+                              title={isExistingCover(image.id) ? t("uploadModal.fields.coverImageTitle") : t("uploadModal.fields.setAsCoverTitle")}
                               aria-pressed={isExistingCover(image.id)}
                               onClick={() => setCover({ existingId: image.id })}
                               disabled={isSubmitting}
@@ -1643,13 +1645,13 @@ export function UploadListingModal({
                               style={mont}
                             >
                               <Star size={12} className={isExistingCover(image.id) ? "fill-white" : ""} />
-                              {isExistingCover(image.id) ? "Cover" : "Set cover"}
+                              {isExistingCover(image.id) ? t("uploadModal.fields.coverBadge") : t("uploadModal.fields.setCoverBadge")}
                             </button>
 
                             <button
                               type="button"
-                              title="Remove image"
-                              aria-label="Remove image"
+                              title={t("uploadModal.fields.removeImageTitle")}
+                              aria-label={t("uploadModal.fields.removeImageAria")}
                               onClick={() => removeExistingImage(image.id)}
                               disabled={isSubmitting}
                               className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-100 transition-opacity hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
@@ -1661,8 +1663,8 @@ export function UploadListingModal({
                               <div className="absolute inset-x-2 bottom-2 flex items-center justify-between opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
                                 <button
                                   type="button"
-                                  title="Move left"
-                                  aria-label="Move image left"
+                                  title={t("uploadModal.fields.moveLeftTitle")}
+                                  aria-label={t("uploadModal.fields.moveLeftAria")}
                                   onClick={() => moveExistingImage(index, -1)}
                                   disabled={isSubmitting || index === 0}
                                   className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
@@ -1672,8 +1674,8 @@ export function UploadListingModal({
 
                                 <button
                                   type="button"
-                                  title="Move right"
-                                  aria-label="Move image right"
+                                  title={t("uploadModal.fields.moveRightTitle")}
+                                  aria-label={t("uploadModal.fields.moveRightAria")}
                                   onClick={() => moveExistingImage(index, 1)}
                                   disabled={isSubmitting || index === existingImages.length - 1}
                                   className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
@@ -1690,7 +1692,7 @@ export function UploadListingModal({
                         className="text-[12px] leading-5 text-[#9ca3af]"
                         style={mont}
                       >
-                        Drag a photo or use the arrows to reorder. Click the star to set the cover photo.
+                        {t("uploadModal.fields.reorderHint")}
                       </p>
                     </div>
                   )}
@@ -1702,8 +1704,8 @@ export function UploadListingModal({
                         style={mont}
                       >
                         {isEdit
-                          ? `New Images (${newImages.length})`
-                          : `Uploaded Images (${newImages.length})`}
+                          ? t("uploadModal.fields.newImages", { count: newImages.length })
+                          : t("uploadModal.fields.uploadedImages", { count: newImages.length })}
                       </p>
 
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -1728,14 +1730,14 @@ export function UploadListingModal({
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={image.preview}
-                              alt={`Upload ${index + 1}`}
+                              alt={t("uploadModal.fields.uploadImageAlt", { index: index + 1 })}
                               draggable={false}
                               className="size-full object-cover"
                             />
 
                             <button
                               type="button"
-                              title={isNewCover(image) ? "Cover image" : "Set as cover"}
+                              title={isNewCover(image) ? t("uploadModal.fields.coverImageTitle") : t("uploadModal.fields.setAsCoverTitle")}
                               aria-pressed={isNewCover(image)}
                               onClick={() => setCover({ newKey: image.preview })}
                               disabled={isSubmitting}
@@ -1747,13 +1749,13 @@ export function UploadListingModal({
                               style={mont}
                             >
                               <Star size={12} className={isNewCover(image) ? "fill-white" : ""} />
-                              {isNewCover(image) ? "Cover" : "Set cover"}
+                              {isNewCover(image) ? t("uploadModal.fields.coverBadge") : t("uploadModal.fields.setCoverBadge")}
                             </button>
 
                             <button
                               type="button"
-                              title="Remove image"
-                              aria-label={`Remove upload ${index + 1}`}
+                              title={t("uploadModal.fields.removeImageTitle")}
+                              aria-label={t("uploadModal.fields.removeUploadAria", { index: index + 1 })}
                               onClick={() => removeNewImage(index)}
                               disabled={isSubmitting}
                               className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/60 text-white opacity-100 transition-opacity hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
@@ -1765,8 +1767,8 @@ export function UploadListingModal({
                               <div className="absolute inset-x-2 bottom-2 flex items-center justify-between opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
                                 <button
                                   type="button"
-                                  title="Move left"
-                                  aria-label="Move image left"
+                                  title={t("uploadModal.fields.moveLeftTitle")}
+                                  aria-label={t("uploadModal.fields.moveLeftAria")}
                                   onClick={() => moveNewImage(index, -1)}
                                   disabled={isSubmitting || index === 0}
                                   className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
@@ -1776,8 +1778,8 @@ export function UploadListingModal({
 
                                 <button
                                   type="button"
-                                  title="Move right"
-                                  aria-label="Move image right"
+                                  title={t("uploadModal.fields.moveRightTitle")}
+                                  aria-label={t("uploadModal.fields.moveRightAria")}
                                   onClick={() => moveNewImage(index, 1)}
                                   disabled={isSubmitting || index === newImages.length - 1}
                                   className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-30"
@@ -1794,7 +1796,7 @@ export function UploadListingModal({
                         className="text-[12px] leading-5 text-[#9ca3af]"
                         style={mont}
                       >
-                        Drag a photo or use the arrows to reorder. Click the star to set the cover photo.
+                        {t("uploadModal.fields.reorderHint")}
                       </p>
                     </div>
                   )}
@@ -1810,7 +1812,7 @@ export function UploadListingModal({
                 className="mb-3 text-[12px] leading-5 text-[#e7000b] sm:text-right"
                 style={mont}
               >
-                Please fix the highlighted fields.
+                {t("uploadModal.errors.fixHighlightedFields")}
               </p>
             )}
 
@@ -1824,7 +1826,7 @@ export function UploadListingModal({
                     className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[#d7dde5] bg-white px-4 text-[14px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 disabled:cursor-not-allowed disabled:opacity-50"
                     style={mont}
                   >
-                    Previous
+                    {t("uploadModal.actions.previous")}
                   </button>
                 ) : null}
 
@@ -1837,7 +1839,7 @@ export function UploadListingModal({
                   }`}
                   style={mont}
                 >
-                  Cancel
+                  {t("uploadModal.actions.cancel")}
                 </button>
               </div>
 
@@ -1850,7 +1852,7 @@ export function UploadListingModal({
                   className="inline-flex h-11 w-full items-center justify-center rounded-[10px] bg-[#1e4f86] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1b487a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   style={mont}
                 >
-                  Next Step
+                  {t("uploadModal.actions.nextStep")}
                 </button>
               ) : (
                 <button
@@ -1869,10 +1871,10 @@ export function UploadListingModal({
                   )}
 
                   {isSubmitting
-                    ? "Saving..."
+                    ? t("uploadModal.actions.saving")
                     : isEdit
-                      ? "Save Changes"
-                      : "Submit"}
+                      ? t("uploadModal.actions.saveChanges")
+                      : t("uploadModal.actions.submit")}
                 </button>
               )}
             </div>
@@ -1907,10 +1909,10 @@ export function UploadListingModal({
                 shouldValidate: true,
               });
               setValue("fullAddress", location.address, { shouldDirty: true, shouldValidate: true });
-              toast.success("Location added");
+              toast.success(t("uploadModal.toasts.locationAdded"));
               setShowAddLocation(false);
             } catch (err) {
-              toast.error(err instanceof Error ? err.message : "Failed to add location");
+              toast.error(err instanceof Error ? err.message : t("uploadModal.toasts.addLocationFailed"));
             }
           }}
         />

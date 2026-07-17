@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Star, StarOff, Pause, Play, Archive, Trash2, UserPlus, X, Loader2 } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -68,6 +69,7 @@ export function BulkActionsBar({
   onDelete,
   onAssign,
 }: BulkActionsBarProps) {
+  const { t } = useTranslation("dashboardListings");
   if (selectedCount === 0) return null;
 
   return (
@@ -76,14 +78,14 @@ export function BulkActionsBar({
         <button
           type="button"
           onClick={onClear}
-          aria-label="Clear selection"
+          aria-label={t("bulkActions.clearSelectionAria")}
           className="flex size-7 shrink-0 items-center justify-center rounded-full text-[#1e4f86] transition-colors hover:bg-white"
         >
           <X size={15} />
         </button>
 
         <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>
-          {selectedCount} listing{selectedCount === 1 ? "" : "s"} selected
+          {t("bulkActions.selectedCount", { count: selectedCount })}
         </p>
 
         {busy && <Loader2 size={15} className="animate-spin text-[#1e4f86]" />}
@@ -92,26 +94,26 @@ export function BulkActionsBar({
       <div className="flex flex-wrap items-center gap-2">
         {canFeature && (
           <>
-            <BulkActionButton label="Feature" icon={<Star size={15} />} onClick={onFeature} busy={busy} />
-            <BulkActionButton label="Unfeature" icon={<StarOff size={15} />} onClick={onUnfeature} busy={busy} />
+            <BulkActionButton label={t("bulkActions.feature")} icon={<Star size={15} />} onClick={onFeature} busy={busy} />
+            <BulkActionButton label={t("bulkActions.unfeature")} icon={<StarOff size={15} />} onClick={onUnfeature} busy={busy} />
           </>
         )}
 
         {canPause && (
           <>
-            <BulkActionButton label="Pause" icon={<Pause size={15} />} onClick={onPause} busy={busy} />
-            <BulkActionButton label="Activate" icon={<Play size={15} />} onClick={onActivate} busy={busy} />
-            <BulkActionButton label="Archive" icon={<Archive size={15} />} onClick={onArchive} busy={busy} />
+            <BulkActionButton label={t("bulkActions.pause")} icon={<Pause size={15} />} onClick={onPause} busy={busy} />
+            <BulkActionButton label={t("bulkActions.activate")} icon={<Play size={15} />} onClick={onActivate} busy={busy} />
+            <BulkActionButton label={t("bulkActions.archive")} icon={<Archive size={15} />} onClick={onArchive} busy={busy} />
           </>
         )}
 
         {canAssign && (
-          <BulkActionButton label="Assign Agent" icon={<UserPlus size={15} />} onClick={onAssign} busy={busy} />
+          <BulkActionButton label={t("bulkActions.assignAgent")} icon={<UserPlus size={15} />} onClick={onAssign} busy={busy} />
         )}
 
         {canDelete && (
           <BulkActionButton
-            label="Delete"
+            label={t("bulkActions.delete")}
             icon={<Trash2 size={15} />}
             onClick={onDelete}
             busy={busy}

@@ -114,5 +114,77 @@
     "COMPLETED": "Signed",
     "DECLINED": "Declined",
     "VOIDED": "Voided"
+  },
+  "propertyType": {
+    "APARTMENT": "Apartment",
+    "HOUSE": "House",
+    "COMMERCIAL_OFFICE": "Commercial Office",
+    "LOT": "Lot",
+    "TOWNHOUSE": "Townhouse"
+  },
+  "operationType": {
+    "SALE": "Sale",
+    "RENT": "Rent",
+    "SALE_AND_RENT": "Both"
+  },
+  "amenities": {
+    "PARKING": "Parking",
+    "GARDEN": "Garden",
+    "POOL": "Pool",
+    "GYM": "Gym",
+    "BALCONY": "Balcony",
+    "ELEVATOR": "Elevator",
+    "SECURITY": "Security",
+    "FURNISHED": "Furnished",
+    "PET_FRIENDLY": "Pet Friendly",
+    "CREDIT_APPROVED": "Credit Approved",
+    "INTERNET": "Internet",
+    "GAS": "Gas",
+    "RADIANT_FLOORS": "Radiant Floors",
+    "AIR_CONDITIONING": "Air Conditioning",
+    "BARBECUE": "Barbecue",
+    "LAUNDRY": "Laundry",
+    "WATER": "Water",
+    "TENNIS_COURT": "Tennis Court"
+  },
+  "agentSelect": {
+    "placeholder": "Select agent…",
+    "searchPlaceholder": "Search agents...",
+    "emptyLabel": "No agents found.",
+    "assignedToYouAria": "Assigned agent: {{name}} (you)",
+    "youSuffix": "(you)"
+  },
+  "contactPicker": {
+    "placeholder": "Search contacts…",
+    "searchPlaceholder": "Search contacts by name...",
+    "clearSelection": "— Clear selection —",
+    "loading": "Loading...",
+    "emptyLabel": "No contacts found."
+  },
+  "listingPicker": {
+    "placeholder": "Select a listing…",
+    "searchPlaceholder": "Search listings...",
+    "clearSelection": "— Clear selection —",
+    "loading": "Loading...",
+    "emptyLabel": "No listings found."
+  },
+  "locationModal": {
+    "editTitle": "Edit Location",
+    "addTitle": "Add New Location",
+    "editSubtitle": "Update this location's details",
+    "addSubtitle": "Add a new property location",
+    "closeAria": "Close modal",
+    "name": "Location Name *",
+    "namePlaceholder": "e.g., Buenos Aires",
+    "address": "Address *",
+    "addressPlaceholder": "Start typing an address...",
+    "region": "Region / Province *",
+    "regionPlaceholder": "e.g., Buenos Aires",
+    "postalCode": "Postal Code *",
+    "postalCodePlaceholder": "e.g., C1043",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "addLocation": "Add Location"
   }
 }

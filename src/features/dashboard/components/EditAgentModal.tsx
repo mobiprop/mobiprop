@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import type { AgentDto } from "@/features/agents/agent-actions";
 import { SearchableSelect } from "./SearchableSelect";
@@ -15,7 +16,15 @@ type EditAgentModalProps = {
   onSaved: (agent: AgentDto) => void;
 };
 
+// Displayed labels are translated via ROLE_I18N_KEY below; these values stay
+// in stable English because they're compared against directly and sent to
+// the server as `role.toUpperCase()`.
 const EDITABLE_ROLES = ["Agent", "Manager"] as const;
+const ROLE_I18N_KEY: Record<string, string> = {
+  Agent: "role.agent",
+  Manager: "role.manager",
+  Administrator: "role.administrator",
+};
 
 type TeamLeaderOption = { id: string; name: string };
 
@@ -26,6 +35,7 @@ function roleToLabel(role: AgentDto["role"]): string {
 }
 
 export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps) {
+  const { t } = useTranslation("agents");
   const [fullName, setFullName] = useState(agent.name);
   const [phone, setPhone] = useState(agent.phone ?? "");
   const [city, setCity] = useState(agent.city ?? "");
@@ -100,14 +110,14 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
         });
         const data = await res.json().catch(() => null);
         if (!res.ok || !data?.success) {
-          setError(data?.error ?? "Failed to upload photo.");
+          setError(data?.error ?? t("editModal.toasts.uploadPhotoFailed"));
           return;
         }
       } else if (removePhoto && agent.avatarUrl) {
         const res = await fetch(`/api/dashboard/agents/${agent.id}/avatar`, { method: "DELETE" });
         const data = await res.json().catch(() => null);
         if (!res.ok || !data?.success) {
-          setError(data?.error ?? "Failed to remove photo.");
+          setError(data?.error ?? t("editModal.toasts.removePhotoFailed"));
           return;
         }
       }
@@ -131,10 +141,10 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.success) {
-        setError(data?.error ?? "Failed to update agent.");
+        setError(data?.error ?? t("editModal.toasts.updateFailed"));
         return;
       }
-      toast.success("Agent updated.");
+      toast.success(t("editModal.toasts.updated"));
       onSaved(data.agent);
       onClose();
     } finally {
@@ -157,17 +167,17 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
         <div className="sticky top-0 z-10 flex shrink-0 items-start justify-between border-b border-[#e5e7eb] bg-white px-4 py-4 sm:px-6 sm:pb-[18px] sm:pt-[18px]">
           <div className="min-w-0 pr-3">
             <p className="text-[15px] font-semibold text-[#1f2937] sm:text-[16px]" style={mont}>
-              Edit Agent
+              {t("editModal.title")}
             </p>
             <p className="mt-0.5 text-[11px] leading-4 text-[#6a7282] sm:text-[12px]" style={mont}>
-              Update {agent.name}&rsquo;s details
+              {t("editModal.subtitle", { name: agent.name })}
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label={t("editModal.closeAria")}
             className="flex size-9 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
           >
             <X size={18} />
@@ -181,13 +191,13 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
           {/* Profile Photo */}
           <div>
             <p className="mb-3 text-[13px] font-medium text-[#1f2937] sm:text-[14px]" style={mont}>
-              Profile Photo
+              {t("editModal.profilePhoto")}
             </p>
 
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="flex size-[68px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f3f4f6] sm:size-[80px]">
                 {avatarPreview ? (
-                  <img src={avatarPreview} alt="Preview" className="size-full object-cover" />
+                  <img src={avatarPreview} alt={t("editModal.uploadPhoto")} className="size-full object-cover" />
                 ) : (
                   <Upload size={20} className="text-[#6a7282] sm:size-[22px]" />
                 )}
@@ -207,7 +217,7 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
                 className="h-[38px] rounded-[10px] border border-[#e5e7eb] px-3 text-[11px] font-medium text-[#6a7282] transition-colors hover:bg-[#f9fafb] sm:px-4 sm:text-[12px]"
                 style={mont}
               >
-                {avatarPreview ? "Change Photo" : "Upload Photo"}
+                {avatarPreview ? t("editModal.changePhoto") : t("editModal.uploadPhoto")}
               </button>
 
               {avatarPreview && (
@@ -217,7 +227,7 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
                   className="h-[38px] rounded-[10px] px-3 text-[11px] font-medium text-[#dc2626] transition-colors hover:bg-[#fef2f2] sm:px-4 sm:text-[12px]"
                   style={mont}
                 >
-                  Remove
+                  {t("editModal.remove")}
                 </button>
               )}
             </div>
@@ -225,13 +235,13 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-              Full Name *
+              {t("editModal.fullName")}
             </label>
             <input
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter full name"
+              placeholder={t("editModal.fullNamePlaceholder")}
               className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[38px]"
               style={mont}
             />
@@ -239,7 +249,7 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-              Email Address
+              {t("editModal.email")}
             </label>
             <input
               disabled
@@ -252,13 +262,13 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-                Phone Number
+                {t("editModal.phone")}
               </label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+54 11 1234-5678"
+                placeholder={t("editModal.phonePlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[38px]"
                 style={mont}
               />
@@ -266,12 +276,12 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-                Location
+                {t("editModal.location")}
               </label>
               <input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Buenos Aires, Argentina"
+                placeholder={t("editModal.locationPlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[38px]"
                 style={mont}
               />
@@ -280,14 +290,14 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-              Role *
+              {t("editModal.role")}
             </label>
 
             {agent.role === "ADMIN" ? (
               <input
                 disabled
-                value="Administrator"
-                title="An Admin's role can't be changed from this screen."
+                value={t("role.administrator")}
+                title={t("editModal.adminRoleTooltip")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[12px] text-[#6a7282] outline-none sm:h-[38px]"
                 style={mont}
               />
@@ -295,8 +305,8 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
               <SearchableSelect
                 value={role}
                 onChange={setRole}
-                options={EDITABLE_ROLES.map((r) => ({ value: r, label: r }))}
-                placeholder="Select role"
+                options={EDITABLE_ROLES.map((r) => ({ value: r, label: t(ROLE_I18N_KEY[r]) }))}
+                placeholder={t("editModal.rolePlaceholder")}
                 searchable={false}
                 size="sm"
               />
@@ -306,7 +316,7 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
           {agent.role !== "ADMIN" && role === "Agent" && (
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-                Team Leader
+                {t("editModal.teamLeader")}
               </label>
 
               <SearchableSelect
@@ -314,12 +324,12 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
                 onChange={setTeamLeaderId}
                 options={[
                   // Explicit empty option so an assigned leader can be cleared.
-                  ...(teamLeaderId ? [{ value: "", label: "— No team leader —" }] : []),
+                  ...(teamLeaderId ? [{ value: "", label: t("editModal.noTeamLeaderOption") }] : []),
                   ...teamLeaders.map((leader) => ({ value: leader.id, label: leader.name })),
                 ]}
-                placeholder="Select Team Leader"
-                searchPlaceholder="Search team leaders..."
-                emptyLabel="No team leaders found."
+                placeholder={t("editModal.teamLeaderPlaceholder")}
+                searchPlaceholder={t("editModal.searchTeamLeadersPlaceholder")}
+                emptyLabel={t("editModal.noTeamLeadersFound")}
                 loading={teamLeadersLoading}
                 size="sm"
               />
@@ -328,12 +338,12 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>
-              Notes
+              {t("editModal.notes")}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional notes about this agent..."
+              placeholder={t("editModal.notesPlaceholder")}
               rows={4}
               className="min-h-[96px] resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
               style={mont}
@@ -357,7 +367,7 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
               className="h-10 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] text-[11px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] disabled:opacity-60 sm:text-[12px]"
               style={mont}
             >
-              Cancel
+              {t("editModal.cancel")}
             </button>
 
             <button
@@ -366,7 +376,7 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
               className="h-10 rounded-[10px] bg-[#1e4f86] text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:opacity-60 sm:text-[12px]"
               style={mont}
             >
-              {submitting ? "Saving…" : "Save Changes"}
+              {submitting ? t("editModal.saving") : t("editModal.save")}
             </button>
           </div>
         </form>

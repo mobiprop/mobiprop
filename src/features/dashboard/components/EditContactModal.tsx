@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Home, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { ContactType } from "@/generated/prisma/enums";
@@ -9,12 +10,6 @@ import { ListingPicker } from "./ListingPicker";
 import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
-
-const CONTACT_TYPE_OPTIONS = [
-  { value: ContactType.BUYER, label: "Buyer" },
-  { value: ContactType.SELLER, label: "Seller" },
-  { value: ContactType.BOTH, label: "Both" },
-];
 
 export type EditContactInput = {
   firstName: string;
@@ -42,6 +37,12 @@ const labelClass = "text-[12px] font-medium text-[#1f2937]";
 type PropertyRow = { id: string; label: string };
 
 export function EditContactModal({ contact, onClose, onSave, isSaving }: EditContactModalProps) {
+  const { t } = useTranslation("contacts");
+  const CONTACT_TYPE_OPTIONS = [
+    { value: ContactType.BUYER, label: t("type.buyer") },
+    { value: ContactType.SELLER, label: t("type.seller") },
+    { value: ContactType.BOTH, label: t("type.both") },
+  ];
   const [firstName, setFirstName] = useState(contact.firstName);
   const [lastName, setLastName] = useState(contact.lastName);
   const [email, setEmail] = useState(contact.email ?? "");
@@ -95,9 +96,9 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-[25px] border-b border-[#e5e7eb]">
           <div className="flex flex-col">
-            <p className="text-[16px] font-semibold text-[#0d2138] leading-6" style={mont}>Edit Contact</p>
+            <p className="text-[16px] font-semibold text-[#0d2138] leading-6" style={mont}>{t("editModal.title")}</p>
             <p className="text-[12px] text-[#6a7282] mt-0.5" style={mont}>
-              {contact.contactId} · Update contact information
+              {t("editModal.subtitle", { contactId: contact.contactId })}
             </p>
           </div>
           <button
@@ -113,23 +114,23 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
           {/* First / Last name */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>First Name *</label>
+              <label className={labelClass} style={mont}>{t("fields.firstName")}</label>
               <input
                 required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Enter first name"
+                placeholder={t("fields.firstNamePlaceholder")}
                 className={inputClass}
                 style={mont}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Last Name *</label>
+              <label className={labelClass} style={mont}>{t("fields.lastName")}</label>
               <input
                 required
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Enter last name"
+                placeholder={t("fields.lastNamePlaceholder")}
                 className={inputClass}
                 style={mont}
               />
@@ -139,51 +140,51 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
           {/* Email / Phone */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Email Address</label>
+              <label className={labelClass} style={mont}>{t("fields.email")}</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@email.com"
+                placeholder={t("fields.emailPlaceholder")}
                 className={inputClass}
                 style={mont}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Phone Number</label>
+              <label className={labelClass} style={mont}>{t("fields.phone")}</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+54 11 1234-5678"
+                placeholder={t("fields.phonePlaceholder")}
                 className={inputClass}
                 style={mont}
               />
             </div>
           </div>
           {!email.trim() && !phone.trim() && (
-            <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+            <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>{t("fields.provideEmailOrPhone")}</p>
           )}
 
           {/* Contact Type / Location */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Contact Type *</label>
+              <label className={labelClass} style={mont}>{t("fields.contactType")}</label>
               <SearchableSelect
                 size="sm"
                 searchable={false}
                 value={type}
                 onChange={(next) => setType(next as ContactType)}
                 options={CONTACT_TYPE_OPTIONS}
-                placeholder="Select type"
+                placeholder={t("fields.selectType")}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>Location</label>
+              <label className={labelClass} style={mont}>{t("fields.location")}</label>
               <input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, Province"
+                placeholder={t("fields.locationPlaceholder")}
                 className={inputClass}
                 style={mont}
               />
@@ -192,11 +193,11 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
 
           {/* Address */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-[#1f2937]" style={mont}>Address</label>
+            <label className="text-[13px] font-semibold text-[#1f2937]" style={mont}>{t("fields.address")}</label>
             <input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Street address"
+              placeholder={t("fields.addressPlaceholder")}
               className={inputClass}
               style={mont}
             />
@@ -207,10 +208,10 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
             <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
               <div className="flex items-center gap-2">
                 <Home size={15} className="shrink-0 text-[#1a5ea8]" />
-                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings</p>
+                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>{t("propertyListings.title")}</p>
               </div>
               <p className="text-[12px] leading-5 text-[#6a7282]" style={mont}>
-                Listings this seller owns. Changes are saved when you click Save Changes.
+                {t("propertyListings.editDescription")}
               </p>
 
               {propertyRows.length > 0 && (
@@ -233,8 +234,8 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
                       <button
                         type="button"
                         onClick={() => removePropertyRow(index)}
-                        title="Remove property"
-                        aria-label="Remove property"
+                        title={t("propertyListings.removePropertyTitle")}
+                        aria-label={t("propertyListings.removePropertyAria")}
                         className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36]"
                       >
                         <Trash2 size={14} />
@@ -250,18 +251,18 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
                 className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start"
                 style={mont}
               >
-                Add Property
+                {t("propertyListings.addProperty")}
               </button>
             </div>
           )}
 
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-semibold text-[#1f2937]" style={mont}>Notes</label>
+            <label className="text-[13px] font-semibold text-[#1f2937]" style={mont}>{t("fields.notes")}</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional notes about this contact..."
+              placeholder={t("fields.notesPlaceholder")}
               rows={3}
               className="px-3 py-2 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors resize-none"
               style={mont}
@@ -276,7 +277,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
               className="flex-1 h-[41.5px] border border-[#e5e7eb] rounded-[10px] text-[12px] font-medium text-[#6b7280] bg-[#f8fafc] hover:bg-[#f3f4f6] transition-colors"
               style={mont}
             >
-              Cancel
+              {t("editModal.cancel")}
             </button>
             <button
               type="submit"
@@ -284,7 +285,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
               className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >
-              {isSaving ? "Saving…" : "Save Changes"}
+              {isSaving ? t("editModal.saving") : t("editModal.save")}
             </button>
           </div>
         </form>

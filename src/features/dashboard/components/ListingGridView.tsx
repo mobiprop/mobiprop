@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import { MapPin, BedDouble, Bath, Maximize, Eye, Pencil, Trash2, Star, Pause, Play } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
   STATUS_BADGE,
-  STATUS_LABELS,
   FALLBACK_LISTING_IMAGE,
   formatListingPrice,
 } from "../listings-data";
@@ -16,6 +16,8 @@ const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 function ListingCard({ listing, actions }: { listing: DashboardListingDto; actions: ListingRowActions }) {
+  const { t } = useTranslation("dashboardListings");
+  const { t: td } = useTranslation("dashboard");
   const status = STATUS_BADGE[listing.status];
   return (
     <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden flex flex-col">
@@ -31,14 +33,14 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
         {listing.isFeatured && (
           <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-[#1e4f86] text-white text-[11px] font-medium" style={mont}>
             <Star size={11} className="fill-white" />
-            Featured
+            {t("grid.featured")}
           </span>
         )}
         <span
           className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-[6px] text-[11px] font-medium"
           style={{ backgroundColor: status.bg, color: status.text, ...mont }}
         >
-          {STATUS_LABELS[listing.status]}
+          {td(`status.${listing.status}`)}
         </span>
       </div>
 
@@ -55,24 +57,24 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
         <p className="text-[20px] font-semibold text-[#1e4f86]" style={poppins}>{formatListingPrice(listing)}</p>
 
         <div className="flex items-center gap-4 text-[12px] text-[#2b3038]" style={mont}>
-          <span className="flex items-center gap-1.5"><BedDouble size={14} className="text-[#6a7282]" />{listing.bedrooms ?? 0} Bed</span>
-          <span className="flex items-center gap-1.5"><Bath size={14} className="text-[#6a7282]" />{listing.bathrooms ?? 0} Bath</span>
+          <span className="flex items-center gap-1.5"><BedDouble size={14} className="text-[#6a7282]" />{listing.bedrooms ?? 0} {t("grid.bed")}</span>
+          <span className="flex items-center gap-1.5"><Bath size={14} className="text-[#6a7282]" />{listing.bathrooms ?? 0} {t("grid.bath")}</span>
           <span className="flex items-center gap-1.5"><Maximize size={14} className="text-[#6a7282]" />{listing.totalAreaM2 ?? 0} m²</span>
         </div>
 
         <div className="flex items-center justify-between pt-1">
           <span className="flex items-center gap-1.5 text-[12px] text-[#6a7282]" style={mont}>
             <Eye size={14} />
-            {listing.viewsCount} views
+            {listing.viewsCount} {t("grid.views")}
           </span>
           <div className="flex items-center gap-2">
             {actions.canUpdate && (
-              <button type="button" title="Edit" onClick={() => actions.onEdit(listing)} className="size-7 flex items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#6a7282] hover:text-[#1e4f86] hover:bg-[#f9fafb] transition-colors"><Pencil size={14} /></button>
+              <button type="button" title={t("grid.editTitle")} onClick={() => actions.onEdit(listing)} className="size-7 flex items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#6a7282] hover:text-[#1e4f86] hover:bg-[#f9fafb] transition-colors"><Pencil size={14} /></button>
             )}
             {actions.canPause && (
               <button
                 type="button"
-                title={listing.status === "ACTIVE" ? "Pause listing" : "Activate listing"}
+                title={listing.status === "ACTIVE" ? t("grid.pauseTitle") : t("grid.activateTitle")}
                 onClick={() => actions.onToggleStatus(listing)}
                 className="size-7 flex items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#6a7282] hover:text-[#1e4f86] hover:bg-[#f9fafb] transition-colors"
               >
@@ -82,7 +84,7 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
             {actions.canFeature && (
               <button
                 type="button"
-                title={listing.isFeatured ? "Remove from featured" : "Mark as featured"}
+                title={listing.isFeatured ? t("grid.removeFromFeaturedTitle") : t("grid.markAsFeaturedTitle")}
                 onClick={() => actions.onToggleFeatured(listing)}
                 className="size-7 flex items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#6a7282] hover:text-[#f59e0b] hover:bg-[#f9fafb] transition-colors"
               >
@@ -90,7 +92,7 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
               </button>
             )}
             {actions.canDelete && (
-              <button type="button" title="Delete" onClick={() => actions.onDelete(listing)} className="size-7 flex items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#6a7282] hover:text-[#e7000b] hover:bg-[#fff5f5] transition-colors"><Trash2 size={14} /></button>
+              <button type="button" title={t("grid.deleteTitle")} onClick={() => actions.onDelete(listing)} className="size-7 flex items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#6a7282] hover:text-[#e7000b] hover:bg-[#fff5f5] transition-colors"><Trash2 size={14} /></button>
             )}
           </div>
         </div>
@@ -106,10 +108,11 @@ export function ListingGridView({
   listings: DashboardListingDto[];
   actions: ListingRowActions;
 }) {
+  const { t } = useTranslation("dashboardListings");
   if (listings.length === 0) {
     return (
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] py-16 text-center text-[14px] text-[#6a7282]" style={mont}>
-        No listings found.
+        {t("grid.noListingsFound")}
       </div>
     );
   }

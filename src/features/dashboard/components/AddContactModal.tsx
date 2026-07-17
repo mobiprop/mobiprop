@@ -2,17 +2,12 @@
 
 import { useState } from "react";
 import { X, Home, Trash2, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ListingPicker } from "./ListingPicker";
 import { SearchableSelect } from "./SearchableSelect";
 
 export type ContactType = "Buyer" | "Seller" | "Both";
-
-const CONTACT_TYPE_OPTIONS = [
-  { value: "Buyer", label: "Buyer" },
-  { value: "Seller", label: "Seller" },
-  { value: "Both", label: "Both" },
-];
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -49,6 +44,12 @@ export function AddContactModal({
   isSaving,
   conflict,
 }: AddContactModalProps) {
+  const { t } = useTranslation("contacts");
+  const CONTACT_TYPE_OPTIONS = [
+    { value: "Buyer", label: t("type.buyer") },
+    { value: "Seller", label: t("type.seller") },
+    { value: "Both", label: t("type.both") },
+  ];
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -102,13 +103,13 @@ export function AddContactModal({
         {/* Header */}
         <div className="sticky top-0 z-10 flex shrink-0 items-start justify-between border-b border-[#e5e7eb] bg-white px-4 py-4 sm:px-6 sm:pb-[25px] sm:pt-6">
           <div className="min-w-0 pr-3">
-            <p className="text-[15px] font-semibold leading-6 text-[#0d2138] sm:text-[16px]" style={mont}>Add New Contact</p>
-            <p className="mt-0.5 text-[11px] leading-4 text-[#6a7282] sm:text-[12px]" style={mont}>Add a new client or prospect to your database</p>
+            <p className="text-[15px] font-semibold leading-6 text-[#0d2138] sm:text-[16px]" style={mont}>{t("addModal.title")}</p>
+            <p className="mt-0.5 text-[11px] leading-4 text-[#6a7282] sm:text-[12px]" style={mont}>{t("addModal.subtitle")}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label={t("addModal.closeAria")}
             className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
           >
             <X size={19} />
@@ -128,7 +129,7 @@ export function AddContactModal({
                 className="self-start rounded-[8px] border border-[#fcd34d] bg-white px-3 py-1.5 text-[11px] font-medium text-[#92400e] transition-colors hover:bg-[#fef3c7] sm:text-[12px]"
                 style={mont}
               >
-                Open existing contact
+                {t("addModal.openExistingContact")}
               </button>
             </div>
           )}
@@ -136,23 +137,23 @@ export function AddContactModal({
           {/* First / Last name */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>First Name *</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.firstName")}</label>
               <input
                 required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Enter first name"
+                placeholder={t("fields.firstNamePlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
                 style={mont}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Last Name *</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.lastName")}</label>
               <input
                 required
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Enter last name"
+                placeholder={t("fields.lastNamePlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
                 style={mont}
               />
@@ -162,51 +163,51 @@ export function AddContactModal({
           {/* Email / Phone — at least one is required; enforced on submit below */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Email Address</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.email")}</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@email.com"
+                placeholder={t("fields.emailPlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
                 style={mont}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Phone Number</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.phone")}</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+54 11 1234-5678"
+                placeholder={t("fields.phonePlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
                 style={mont}
               />
             </div>
           </div>
           {!email.trim() && !phone.trim() && (
-            <p className="-mt-2 text-[11px] text-[#b45309]" style={mont}>Provide at least an email or a phone number.</p>
+            <p className="-mt-2 text-[11px] text-[#b45309]" style={mont}>{t("fields.provideEmailOrPhone")}</p>
           )}
 
           {/* Contact Type / Location */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Contact Type *</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.contactType")}</label>
               <SearchableSelect
                 size="sm"
                 searchable={false}
                 value={contactType}
                 onChange={(next) => setContactType(next as ContactType)}
                 options={CONTACT_TYPE_OPTIONS}
-                placeholder="Select type"
+                placeholder={t("fields.selectType")}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>Location</label>
+              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.location")}</label>
               <input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, Province"
+                placeholder={t("fields.locationPlaceholder")}
                 className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
                 style={mont}
               />
@@ -215,11 +216,11 @@ export function AddContactModal({
 
           {/* Address */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-[#1f2937] sm:text-[13px]" style={mont}>Address</label>
+            <label className="text-[11px] font-semibold text-[#1f2937] sm:text-[13px]" style={mont}>{t("fields.address")}</label>
             <input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Street address"
+              placeholder={t("fields.addressPlaceholder")}
               className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
               style={mont}
             />
@@ -230,10 +231,10 @@ export function AddContactModal({
             <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <Home size={15} className="shrink-0 text-[#1a5ea8]" />
-                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>Property Listings</p>
+                <p className="text-[12px] font-medium text-[#1a5ea8]" style={mont}>{t("propertyListings.title")}</p>
               </div>
               <p className="text-[11px] leading-5 text-[#6a7282] sm:text-[12px]" style={mont}>
-                Link existing listings this seller owns. New listings can also be assigned to this contact later from the listing form.
+                {t("propertyListings.addDescription")}
               </p>
 
               {propertyRows.length > 0 && (
@@ -256,8 +257,8 @@ export function AddContactModal({
                       <button
                         type="button"
                         onClick={() => removePropertyRow(index)}
-                        title="Remove property"
-                        aria-label="Remove property"
+                        title={t("propertyListings.removePropertyTitle")}
+                        aria-label={t("propertyListings.removePropertyAria")}
                         className="flex size-9 shrink-0 items-center justify-center text-[#6a7282] transition-colors hover:text-[#fb2c36]"
                       >
                         <Trash2 size={14} />
@@ -273,18 +274,18 @@ export function AddContactModal({
                 className="flex h-9 w-full items-center justify-center rounded-[8px] border-[1.5px] border-[#1a5ea8] px-4 text-[11px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start sm:text-[12px]"
                 style={mont}
               >
-                Add Property
+                {t("propertyListings.addProperty")}
               </button>
             </div>
           )}
 
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold text-[#1f2937] sm:text-[13px]" style={mont}>Notes</label>
+            <label className="text-[11px] font-semibold text-[#1f2937] sm:text-[13px]" style={mont}>{t("fields.notes")}</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional notes about this contact..."
+              placeholder={t("fields.notesPlaceholder")}
               rows={3}
               className="min-h-[88px] resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
               style={mont}
@@ -299,7 +300,7 @@ export function AddContactModal({
               className="h-[41.5px] rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] text-[11px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6] sm:text-[12px]"
               style={mont}
             >
-              Cancel
+              {t("addModal.cancel")}
             </button>
             <button
               type="submit"
@@ -307,7 +308,7 @@ export function AddContactModal({
               className="h-[41.5px] rounded-[10px] bg-[#1e4f86] text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60 sm:text-[12px]"
               style={mont}
             >
-              {isSaving ? "Saving…" : "Add Contact"}
+              {isSaving ? t("addModal.saving") : t("addModal.addContact")}
             </button>
           </div>
         </form>

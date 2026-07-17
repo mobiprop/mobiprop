@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, Search } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -42,11 +43,12 @@ export function ContactPicker({
   value,
   label,
   onSelect,
-  placeholder = "Search contacts…",
+  placeholder,
   disabled = false,
   className = "",
   hasError = false,
 }: ContactPickerProps) {
+  const { t } = useTranslation("dashboard");
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ContactOption[]>([]);
@@ -169,7 +171,7 @@ export function ContactPicker({
         style={mont}
       >
         <span className={`truncate ${value ? "text-[#0d2138]" : "text-[#99a1af]"}`}>
-          {value ? label : placeholder}
+          {value ? label : (placeholder ?? t("contactPicker.placeholder"))}
         </span>
         <ChevronDown size={14} className={`shrink-0 text-[#6a7282] transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
@@ -195,7 +197,7 @@ export function ContactPicker({
                     setIsOpen(false);
                   }
                 }}
-                placeholder="Search contacts by name..."
+                placeholder={t("contactPicker.searchPlaceholder")}
                 autoComplete="off"
                 className="h-7 w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] outline-none placeholder:text-[#99a1af]"
                 style={mont}
@@ -214,14 +216,14 @@ export function ContactPicker({
                   className="flex w-full items-center px-3.5 py-2.5 text-left text-[13px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6]"
                   style={mont}
                 >
-                  — Clear selection —
+                  {t("contactPicker.clearSelection")}
                 </button>
               )}
 
               {loading ? (
-                <p className="px-3.5 py-2.5 text-[13px] text-[#6a7282]" style={mont}>Loading...</p>
+                <p className="px-3.5 py-2.5 text-[13px] text-[#6a7282]" style={mont}>{t("contactPicker.loading")}</p>
               ) : results.length === 0 ? (
-                <p className="px-3.5 py-2.5 text-[13px] text-[#6a7282]" style={mont}>No contacts found.</p>
+                <p className="px-3.5 py-2.5 text-[13px] text-[#6a7282]" style={mont}>{t("contactPicker.emptyLabel")}</p>
               ) : (
                 results.map((contact) => {
                   const isSelected = contact.id === value;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { SearchableSelect } from "./SearchableSelect";
 
@@ -28,7 +29,8 @@ type AgentSelectProps = {
  * proven in UploadListingModal's "Assigned Agent" field so Opportunities and
  * Contracts use the same real picker instead of a free-text name input.
  */
-export function AgentSelect({ value, onChange, placeholder = "Select agent…", disabled, className, size = "sm", lockedAgent }: AgentSelectProps) {
+export function AgentSelect({ value, onChange, placeholder, disabled, className, size = "sm", lockedAgent }: AgentSelectProps) {
+  const { t } = useTranslation("dashboard");
   const [agents, setAgents] = useState<AssignableAgent[]>([]);
   // No fetch when locked to self — start un-loading so the locked field renders
   // immediately. (The parent seeds `value` with the agent's own id, and the
@@ -50,10 +52,10 @@ export function AgentSelect({ value, onChange, placeholder = "Select agent…", 
       <div
         className={`flex h-10 items-center rounded-[10px] border border-[#e5e7eb] bg-[#f3f4f6] px-3 text-[12px] text-[#6a7282] ${className ?? ""}`}
         style={{ fontFamily: "'Montserrat', sans-serif" }}
-        title="Assigned to you"
-        aria-label={`Assigned agent: ${lockedAgent.name} (you)`}
+        title={t("agentSelect.assignedToYouAria", { name: lockedAgent.name })}
+        aria-label={t("agentSelect.assignedToYouAria", { name: lockedAgent.name })}
       >
-        {lockedAgent.name} (you)
+        {lockedAgent.name} {t("agentSelect.youSuffix")}
       </div>
     );
   }
@@ -65,9 +67,9 @@ export function AgentSelect({ value, onChange, placeholder = "Select agent…", 
       value={value}
       onChange={onChange}
       options={agents.map((agent) => ({ value: agent.id, label: agent.name }))}
-      placeholder={placeholder}
-      searchPlaceholder="Search agents..."
-      emptyLabel="No agents found."
+      placeholder={placeholder ?? t("agentSelect.placeholder")}
+      searchPlaceholder={t("agentSelect.searchPlaceholder")}
+      emptyLabel={t("agentSelect.emptyLabel")}
       loading={loading}
       disabled={disabled}
     />

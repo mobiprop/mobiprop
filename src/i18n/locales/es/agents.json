@@ -1,0 +1,198 @@
+{
+  "page": {
+    "title": "Agentes",
+    "subtitle": "Gestiona tu equipo de agentes inmobiliarios"
+  },
+  "actions": {
+    "invitations": "Invitaciones",
+    "addAgent": "Agregar Agente"
+  },
+  "stats": {
+    "totalAgents": "Total de Agentes",
+    "activeDeals": "Negocios Activos",
+    "totalRevenue": "Ingresos Totales",
+    "totalListings": "Total de Propiedades",
+    "newThisMonth": "{{count}} nuevos este mes",
+    "noNewAgentsThisMonth": "Sin agentes nuevos este mes",
+    "openOpportunities": "Oportunidades abiertas",
+    "adminManagerOnly": "Solo Admin/Gerente",
+    "fromClosedWonOpportunities": "De oportunidades ganadas",
+    "allListings": "Todas las propiedades"
+  },
+  "table": {
+    "title": "Aprobar Agentes",
+    "searchPlaceholder": "Buscar agentes...",
+    "filterByStatusAria": "Filtrar por estado",
+    "filterByPeriodAria": "Filtrar por período",
+    "periodPlaceholder": "Período",
+    "columns": {
+      "agents": "Agentes",
+      "role": "Rol",
+      "contact": "Contacto",
+      "location": "Ubicación",
+      "signUpDate": "Fecha de Registro",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "loadingAgents": "Cargando agentes…",
+    "noAgentsFound": "No se encontraron agentes.",
+    "updating": "Actualizando…",
+    "moreActionsAria": "Más acciones para {{name}}",
+    "moreActions": "Más acciones",
+    "moreActionsFullWidth": "Más Acciones",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "noActions": "Sin acciones",
+    "noActionsAvailable": "No hay acciones disponibles",
+    "approve": "Aprobar",
+    "approveAria": "Aprobar a {{name}}",
+    "deny": "Rechazar",
+    "denyAria": "Rechazar a {{name}}",
+    "contactLabel": "Contacto",
+    "locationLabel": "Ubicación",
+    "signUpDateLabel": "Fecha de Registro",
+    "phoneNotAvailable": "Teléfono no disponible",
+    "agentStatus": "Agente {{status}}",
+    "showingCount": "Mostrando {{filtered}} de {{total}} agentes"
+  },
+  "status": {
+    "all": "Todos",
+    "approved": "Aprobado",
+    "pending": "Pendiente",
+    "denied": "Rechazado"
+  },
+  "period": {
+    "thisWeek": "Esta Semana",
+    "thisMonth": "Este Mes",
+    "lastMonth": "Mes Pasado",
+    "allTime": "Todo el Tiempo"
+  },
+  "role": {
+    "administrator": "Administrador",
+    "manager": "Gerente",
+    "agent": "Agente",
+    "propertySpecialist": "Especialista en Propiedades"
+  },
+  "confirmDelete": "¿Eliminar a {{name}}? Esto elimina permanentemente su cuenta y no se puede deshacer.",
+  "toasts": {
+    "declineFailed": "No se pudo rechazar al agente.",
+    "declinedSuccess": "Agente rechazado y eliminado.",
+    "deleteFailed": "No se pudo eliminar al agente.",
+    "deletedSuccess": "Agente eliminado."
+  },
+  "addModal": {
+    "title": "Agregar Nuevo Agente",
+    "subtitle": "Completa los detalles para agregar un nuevo miembro del equipo",
+    "closeAria": "Cerrar modal",
+    "profilePhoto": "Foto de Perfil",
+    "uploadPhoto": "Subir Foto",
+    "firstName": "Nombre *",
+    "firstNamePlaceholder": "Ingresa el nombre",
+    "lastName": "Apellido *",
+    "lastNamePlaceholder": "Ingresa el apellido",
+    "email": "Correo Electrónico *",
+    "phone": "Número de Teléfono *",
+    "role": "Rol *",
+    "rolePlaceholder": "Seleccionar rol",
+    "location": "Ubicación *",
+    "locationPlaceholder": "Buenos Aires, Argentina",
+    "teamLeader": "Líder de Equipo",
+    "teamLeaderPlaceholder": "Seleccionar Líder de Equipo",
+    "searchTeamLeadersPlaceholder": "Buscar líderes de equipo...",
+    "noTeamLeadersFound": "No se encontraron líderes de equipo.",
+    "noTeamLeaderOption": "— Sin líder de equipo —",
+    "adminWarningTitle": "Estás invitando a un nuevo Administrador",
+    "adminWarningBody": "Los administradores tienen acceso completo a todos los datos, configuraciones, y pueden invitar o gestionar a otros administradores. Esta acción queda registrada.",
+    "adminConfirmLabel": "Entiendo y quiero otorgar acceso completo de Administrador a esta persona.",
+    "adminConfirmRequired": "Confirma que esta invitación debe otorgar acceso completo de Administrador.",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas adicionales sobre este agente...",
+    "cancel": "Cancelar",
+    "sendInvite": "Enviar Invitación",
+    "sendingInvite": "Enviando invitación…",
+    "success": {
+      "title": "Invitación creada",
+      "emailSent": "Se envió un correo de invitación a {{email}}.",
+      "emailNotSent": "El envío de correo no está configurado — comparte el enlace de abajo con {{email}} manualmente.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "done": "Listo"
+    }
+  },
+  "editModal": {
+    "title": "Editar Agente",
+    "subtitle": "Actualiza los detalles de {{name}}",
+    "closeAria": "Cerrar modal",
+    "profilePhoto": "Foto de Perfil",
+    "uploadPhoto": "Subir Foto",
+    "changePhoto": "Cambiar Foto",
+    "remove": "Eliminar",
+    "fullName": "Nombre Completo *",
+    "fullNamePlaceholder": "Ingresa el nombre completo",
+    "email": "Correo Electrónico",
+    "phone": "Número de Teléfono",
+    "phonePlaceholder": "+54 11 1234-5678",
+    "location": "Ubicación",
+    "locationPlaceholder": "Buenos Aires, Argentina",
+    "role": "Rol *",
+    "rolePlaceholder": "Seleccionar rol",
+    "adminRoleTooltip": "El rol de un Administrador no se puede cambiar desde esta pantalla.",
+    "teamLeader": "Líder de Equipo",
+    "teamLeaderPlaceholder": "Seleccionar Líder de Equipo",
+    "searchTeamLeadersPlaceholder": "Buscar líderes de equipo...",
+    "noTeamLeadersFound": "No se encontraron líderes de equipo.",
+    "noTeamLeaderOption": "— Sin líder de equipo —",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas adicionales sobre este agente...",
+    "cancel": "Cancelar",
+    "save": "Guardar Cambios",
+    "saving": "Guardando…",
+    "toasts": {
+      "uploadPhotoFailed": "No se pudo subir la foto.",
+      "removePhotoFailed": "No se pudo eliminar la foto.",
+      "updateFailed": "No se pudo actualizar el agente.",
+      "updated": "Agente actualizado."
+    }
+  },
+  "detail": {
+    "backToAgents": "Volver a Agentes",
+    "loadingAgent": "Cargando agente…",
+    "notFound": "Agente no encontrado o acceso denegado.",
+    "selectPeriodAria": "Seleccionar período de informe",
+    "period": {
+      "currentMonth": "Mes Actual",
+      "lastMonth": "Mes Pasado",
+      "thisQuarter": "Este Trimestre",
+      "thisYear": "Este Año"
+    },
+    "stats": {
+      "totalListings": "Total de Propiedades",
+      "totalRevenue": "Ingresos Totales",
+      "totalDeals": "Negocios Totales",
+      "openDeals": "Negocios Abiertos",
+      "totalEarnings": "Ganancias Totales"
+    },
+    "propertiesAssigned": "Propiedades Asignadas",
+    "totalProperties_one": "{{count}} propiedad en total",
+    "totalProperties_other": "{{count}} propiedades en total",
+    "searchPropertiesPlaceholder": "Buscar propiedades...",
+    "searchAssignedPropertiesAria": "Buscar propiedades asignadas",
+    "columns": {
+      "listingId": "ID DE PROPIEDAD",
+      "propertyName": "NOMBRE DE PROPIEDAD",
+      "type": "TIPO",
+      "location": "UBICACIÓN",
+      "price": "PRECIO",
+      "status": "ESTADO"
+    },
+    "mobileLabels": {
+      "type": "Tipo",
+      "price": "Precio",
+      "location": "Ubicación"
+    },
+    "noPropertiesFound": "No se encontraron propiedades.",
+    "viewPublicListingTitle": "Ver propiedad pública",
+    "viewListingAria": "Ver {{title}}",
+    "viewProperty": "Ver Propiedad"
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   Plus,
@@ -27,7 +28,6 @@ import {
   useUpdateListingMutation,
 } from "@/hooks/mutations/useUpdateListingMutation";
 import { useDeleteListingMutation } from "@/hooks/mutations/useDeleteListingMutation";
-import { TYPE_LABELS, STATUS_LABELS } from "./listings-data";
 import {
   ListingListView,
   type ListingRowActions,
@@ -105,6 +105,8 @@ type ListingsPageProps = {
 };
 
 export function ListingsPage({ role }: ListingsPageProps) {
+  const { t } = useTranslation("dashboardListings");
+  const { t: td } = useTranslation("dashboard");
   const [view, setView] = useState<ViewMode>("list");
   const [showUpload, setShowUpload] = useState(false);
   const [editListing, setEditListing] = useState<DashboardListingDto | null>(
@@ -178,12 +180,12 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
       toast.success(
         nextStatus === PropertyStatus.PAUSED
-          ? "Listing paused"
-          : "Listing activated",
+          ? t("toasts.listingPaused")
+          : t("toasts.listingActivated"),
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update status",
+        error instanceof Error ? error.message : t("toasts.updateStatusFailed"),
       );
     }
   }
@@ -196,28 +198,28 @@ export function ListingsPage({ role }: ListingsPageProps) {
       });
 
       toast.success(
-        listing.isFeatured ? "Removed from featured" : "Marked as featured",
+        listing.isFeatured ? t("toasts.removedFromFeatured") : t("toasts.markedAsFeatured"),
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update listing",
+        error instanceof Error ? error.message : t("toasts.updateListingFailed"),
       );
     }
   }
 
   async function handleDelete(listing: DashboardListingDto) {
     const confirmed = window.confirm(
-      `Delete "${listing.title}" (${listing.listingId})? This permanently removes the listing and its images.`,
+      t("toasts.confirmDelete", { title: listing.title, listingId: listing.listingId }),
     );
 
     if (!confirmed) return;
 
     try {
       await deleteMutation.mutateAsync(listing.id);
-      toast.success("Listing deleted");
+      toast.success(t("toasts.listingDeleted"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to delete listing",
+        error instanceof Error ? error.message : t("toasts.deleteListingFailed"),
       );
     }
   }
@@ -273,41 +275,37 @@ export function ListingsPage({ role }: ListingsPageProps) {
     return runBulk(
       ids,
       (id) => featuredMutation.mutateAsync({ id, isFeatured }),
-      (n) => `${n} listing${n === 1 ? "" : "s"} ${isFeatured ? "featured" : "unfeatured"}`,
-      (n) => `${n} listing${n === 1 ? "" : "s"} failed to update`,
+      (n) => t(isFeatured ? "toasts.bulkFeatured" : "toasts.bulkUnfeatured", { count: n }),
+      (n) => t("toasts.bulkUpdateFailed", { count: n }),
     );
   }
 
-  function handleBulkStatus(status: PropertyStatus, verb: string) {
+  function handleBulkStatus(status: PropertyStatus, successKey: string) {
     const ids = [...selectedIds];
     return runBulk(
       ids,
       (id) => statusMutation.mutateAsync({ id, status }),
-      (n) => `${n} listing${n === 1 ? "" : "s"} ${verb}`,
-      (n) => `${n} listing${n === 1 ? "" : "s"} failed to update`,
+      (n) => t(successKey, { count: n }),
+      (n) => t("toasts.bulkUpdateFailed", { count: n }),
     );
   }
 
   function handleBulkArchive() {
     const ids = [...selectedIds];
-    const confirmed = window.confirm(
-      `Archive ${ids.length} listing${ids.length === 1 ? "" : "s"}? They will be hidden from the public site until reactivated.`,
-    );
+    const confirmed = window.confirm(t("toasts.confirmArchive", { count: ids.length }));
     if (!confirmed) return;
-    return handleBulkStatus(PropertyStatus.INACTIVE, "archived");
+    return handleBulkStatus(PropertyStatus.INACTIVE, "toasts.bulkArchived");
   }
 
   function handleBulkDelete() {
     const ids = [...selectedIds];
-    const confirmed = window.confirm(
-      `Permanently delete ${ids.length} listing${ids.length === 1 ? "" : "s"} and their images? This cannot be undone.`,
-    );
+    const confirmed = window.confirm(t("toasts.confirmBulkDelete", { count: ids.length }));
     if (!confirmed) return;
     return runBulk(
       ids,
       (id) => deleteMutation.mutateAsync(id),
-      (n) => `${n} listing${n === 1 ? "" : "s"} deleted`,
-      (n) => `${n} listing${n === 1 ? "" : "s"} failed to delete`,
+      (n) => t("toasts.bulkDeleted", { count: n }),
+      (n) => t("toasts.bulkDeleteFailed", { count: n }),
     );
   }
 
@@ -317,8 +315,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
     return runBulk(
       ids,
       (id) => updateMutation.mutateAsync({ id, data: { assignedAgentId: agentId } }),
-      (n) => `${n} listing${n === 1 ? "" : "s"} assigned`,
-      (n) => `${n} listing${n === 1 ? "" : "s"} failed to assign`,
+      (n) => t("toasts.bulkAssigned", { count: n }),
+      (n) => t("toasts.bulkAssignFailed", { count: n }),
     );
   }
 
@@ -332,14 +330,14 @@ export function ListingsPage({ role }: ListingsPageProps) {
               className="text-[20px] font-semibold leading-8 text-[#0d2138] sm:text-[22px]"
               style={poppins}
             >
-              Listings
+              {t("page.title")}
             </h1>
 
             <p
               className="mt-1 text-[14px] leading-5 text-[#6a7282]"
               style={mont}
             >
-              Manage and upload property listings
+              {t("page.subtitle")}
             </p>
           </div>
 
@@ -351,7 +349,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
               style={mont}
             >
               <Plus size={16} className="shrink-0" />
-              Upload New Listing
+              {t("page.uploadNewListing")}
             </button>
           )}
         </header>
@@ -359,9 +357,9 @@ export function ListingsPage({ role }: ListingsPageProps) {
         {/* Stat cards */}
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            label="Total Listings"
+            label={t("stats.totalListings")}
             value={metrics ? String(metrics.totalListings) : "—"}
-            trend="All listings"
+            trend={t("stats.allListings")}
             trendMuted
             iconBg="#e0e7ff"
             icon={
@@ -374,9 +372,9 @@ export function ListingsPage({ role }: ListingsPageProps) {
           />
 
           <StatCard
-            label="Active Listings"
+            label={t("stats.activeListings")}
             value={metrics ? String(metrics.activeListings) : "—"}
-            trend="Visible on the public site"
+            trend={t("stats.visibleOnPublicSite")}
             trendMuted
             iconBg="#d1fae5"
             icon={
@@ -389,9 +387,9 @@ export function ListingsPage({ role }: ListingsPageProps) {
           />
 
           <StatCard
-            label="Total Views"
+            label={t("stats.totalViews")}
             value={metrics ? metrics.totalViews.toLocaleString("en-US") : "—"}
-            trend="Across all listings"
+            trend={t("stats.acrossAllListings")}
             trendMuted
             iconBg="#fef3c7"
             icon={
@@ -404,9 +402,9 @@ export function ListingsPage({ role }: ListingsPageProps) {
           />
 
           <StatCard
-            label="Featured"
+            label={t("stats.featured")}
             value={metrics ? String(metrics.featuredListings) : "—"}
-            trend="Premium listings"
+            trend={t("stats.premiumListings")}
             trendMuted
             iconBg="#e0e7ff"
             icon={
@@ -430,8 +428,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by name, location..."
-                aria-label="Search listings"
+                placeholder={t("filters.searchPlaceholder")}
+                aria-label={t("filters.searchAria")}
                 className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af]"
                 style={mont}
               />
@@ -440,7 +438,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  aria-label="Clear search"
+                  aria-label={t("filters.clearSearchAria")}
                   className="flex size-7 shrink-0 items-center justify-center rounded-[7px] text-[#99a1af] transition-colors hover:bg-[#e9edf2] hover:text-[#0d2138]"
                 >
                   <X size={14} />
@@ -453,11 +451,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
               type="button"
               onClick={() => setShowFilter(true)}
               className="flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#6a7282] transition-colors hover:bg-[#f3f4f6] lg:w-11 lg:px-0"
-              title="More filters"
+              title={t("filters.moreFiltersTitle")}
               style={mont}
             >
               <Filter size={16} className="shrink-0" />
-              <span className="lg:hidden">Filters</span>
+              <span className="lg:hidden">{t("filters.filtersLabel")}</span>
             </button>
 
             {/* Status filter */}
@@ -467,11 +465,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
               value={statusFilter}
               onChange={(next) => setStatusFilter(next as PropertyStatus | "All")}
               options={[
-                { value: "All", label: "All Status" },
-                ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label })),
+                { value: "All", label: t("filters.allStatus") },
+                ...Object.values(PropertyStatus).map((value) => ({ value, label: td(`status.${value}`) })),
               ]}
-              placeholder="All Status"
-              ariaLabel="Filter by status"
+              placeholder={t("filters.allStatus")}
+              ariaLabel={t("filters.statusAria")}
               className="min-w-0 lg:min-w-[130px]"
             />
 
@@ -482,11 +480,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
               value={typeFilter}
               onChange={(next) => setTypeFilter(next as PropertyType | "All")}
               options={[
-                { value: "All", label: "All Types" },
-                ...Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label })),
+                { value: "All", label: t("filters.allTypes") },
+                ...Object.values(PropertyType).map((value) => ({ value, label: td(`propertyType.${value}`) })),
               ]}
-              placeholder="All Types"
-              ariaLabel="Filter by property type"
+              placeholder={t("filters.allTypes")}
+              ariaLabel={t("filters.typeAria")}
               className="min-w-0 lg:min-w-[135px]"
             />
 
@@ -499,7 +497,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
                 style={mont}
               >
                 <X size={15} />
-                Clear
+                {t("filters.clear")}
               </button>
             )}
 
@@ -508,8 +506,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
               <button
                 type="button"
                 onClick={() => setView("grid")}
-                title="Grid view"
-                aria-label="Show listings in grid view"
+                title={t("toolbar.gridViewTitle")}
+                aria-label={t("toolbar.gridViewAria")}
                 aria-pressed={view === "grid"}
                 className={`flex size-10 items-center justify-center rounded-[9px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
                   view === "grid"
@@ -523,8 +521,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
               <button
                 type="button"
                 onClick={() => setView("list")}
-                title="List view"
-                aria-label="Show listings in list view"
+                title={t("toolbar.listViewTitle")}
+                aria-label={t("toolbar.listViewAria")}
                 aria-pressed={view === "list"}
                 className={`flex size-10 items-center justify-center rounded-[9px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
                   view === "list"
@@ -542,7 +540,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
               className="text-[14px] font-medium text-[#6a7282]"
               style={mont}
             >
-              Showing {filtered.length} of {listings.length} listings
+              {t("filters.showingCount", { filtered: filtered.length, total: listings.length })}
             </p>
           </div>
         </section>
@@ -557,8 +555,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
           onClear={() => setSelectedIds(new Set())}
           onFeature={() => handleBulkFeature(true)}
           onUnfeature={() => handleBulkFeature(false)}
-          onPause={() => handleBulkStatus(PropertyStatus.PAUSED, "paused")}
-          onActivate={() => handleBulkStatus(PropertyStatus.ACTIVE, "activated")}
+          onPause={() => handleBulkStatus(PropertyStatus.PAUSED, "toasts.bulkPaused")}
+          onActivate={() => handleBulkStatus(PropertyStatus.ACTIVE, "toasts.bulkActivated")}
           onArchive={handleBulkArchive}
           onDelete={handleBulkDelete}
           onAssign={() => setShowBulkAssign(true)}
@@ -571,7 +569,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
             style={mont}
           >
             <Loader2 size={18} className="animate-spin" />
-            Loading listings...
+            {t("content.loading")}
           </div>
         ) : isError ? (
           <div
@@ -579,7 +577,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
             className="flex min-h-[220px] items-center justify-center rounded-[14px] border border-[#fecaca] bg-white px-4 py-16 text-center text-[14px] text-[#e7000b]"
             style={mont}
           >
-            Failed to load listings. Please refresh the page.
+            {t("content.failedToLoad")}
           </div>
         ) : filtered.length === 0 ? (
           <div
@@ -589,11 +587,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
             <Search size={24} className="text-[#99a1af]" />
 
             <p className="mt-3 text-[16px] font-semibold text-[#0d2138]">
-              No listings found
+              {t("content.noListingsFound")}
             </p>
 
             <p className="mt-1 text-[14px] text-[#6a7282]">
-              Try changing your search or filters.
+              {t("content.tryChangingSearch")}
             </p>
 
             {hasActiveFilters && (
@@ -602,7 +600,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
                 onClick={clearFilters}
                 className="mt-4 inline-flex h-10 items-center justify-center rounded-[9px] bg-[#1e4f86] px-4 text-[14px] font-medium text-white transition-colors hover:bg-[#1b487a]"
               >
-                Clear Filters
+                {t("content.clearFilters")}
               </button>
             )}
           </div>

@@ -1,0 +1,198 @@
+{
+  "page": {
+    "title": "Agents",
+    "subtitle": "Manage your team of property agents"
+  },
+  "actions": {
+    "invitations": "Invitations",
+    "addAgent": "Add Agent"
+  },
+  "stats": {
+    "totalAgents": "Total Agents",
+    "activeDeals": "Active Deals",
+    "totalRevenue": "Total Revenue",
+    "totalListings": "Total Listings",
+    "newThisMonth": "{{count}} new this month",
+    "noNewAgentsThisMonth": "No new agents this month",
+    "openOpportunities": "Open opportunities",
+    "adminManagerOnly": "Admin/Manager only",
+    "fromClosedWonOpportunities": "From closed-won opportunities",
+    "allListings": "All listings"
+  },
+  "table": {
+    "title": "Approve Agents",
+    "searchPlaceholder": "Search agents...",
+    "filterByStatusAria": "Filter by status",
+    "filterByPeriodAria": "Filter by period",
+    "periodPlaceholder": "Period",
+    "columns": {
+      "agents": "Agents",
+      "role": "Role",
+      "contact": "Contact",
+      "location": "Location",
+      "signUpDate": "Sign Up Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "loadingAgents": "Loading agents…",
+    "noAgentsFound": "No agents found.",
+    "updating": "Updating…",
+    "moreActionsAria": "More actions for {{name}}",
+    "moreActions": "More actions",
+    "moreActionsFullWidth": "More Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "noActions": "No actions",
+    "noActionsAvailable": "No actions available",
+    "approve": "Approve",
+    "approveAria": "Approve {{name}}",
+    "deny": "Deny",
+    "denyAria": "Deny {{name}}",
+    "contactLabel": "Contact",
+    "locationLabel": "Location",
+    "signUpDateLabel": "Sign Up Date",
+    "phoneNotAvailable": "Phone not available",
+    "agentStatus": "Agent {{status}}",
+    "showingCount": "Showing {{filtered}} of {{total}} agents"
+  },
+  "status": {
+    "all": "All",
+    "approved": "Approved",
+    "pending": "Pending",
+    "denied": "Denied"
+  },
+  "period": {
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "allTime": "All Time"
+  },
+  "role": {
+    "administrator": "Administrator",
+    "manager": "Manager",
+    "agent": "Agent",
+    "propertySpecialist": "Property Specialist"
+  },
+  "confirmDelete": "Delete {{name}}? This permanently removes their account and cannot be undone.",
+  "toasts": {
+    "declineFailed": "Failed to decline agent.",
+    "declinedSuccess": "Agent declined and removed.",
+    "deleteFailed": "Failed to delete agent.",
+    "deletedSuccess": "Agent deleted."
+  },
+  "addModal": {
+    "title": "Add New Agent",
+    "subtitle": "Fill in the details to add a new team member",
+    "closeAria": "Close modal",
+    "profilePhoto": "Profile Photo",
+    "uploadPhoto": "Upload Photo",
+    "firstName": "First Name *",
+    "firstNamePlaceholder": "Enter first name",
+    "lastName": "Last Name *",
+    "lastNamePlaceholder": "Enter last name",
+    "email": "Email Address *",
+    "phone": "Phone Number *",
+    "role": "Role *",
+    "rolePlaceholder": "Select role",
+    "location": "Location *",
+    "locationPlaceholder": "Buenos Aires, Argentina",
+    "teamLeader": "Team Leader",
+    "teamLeaderPlaceholder": "Select Team Leader",
+    "searchTeamLeadersPlaceholder": "Search team leaders...",
+    "noTeamLeadersFound": "No team leaders found.",
+    "noTeamLeaderOption": "— No team leader —",
+    "adminWarningTitle": "You're inviting a new Administrator",
+    "adminWarningBody": "Administrators have full access to all data, settings, and can invite or manage other admins. This action is logged.",
+    "adminConfirmLabel": "I understand and want to grant full Administrator access to this person.",
+    "adminConfirmRequired": "Confirm that this invite should grant full Administrator access.",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes about this agent...",
+    "cancel": "Cancel",
+    "sendInvite": "Send Invite",
+    "sendingInvite": "Sending invite…",
+    "success": {
+      "title": "Invitation created",
+      "emailSent": "An invitation email was sent to {{email}}.",
+      "emailNotSent": "Email delivery is not configured — share the link below with {{email}} manually.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "done": "Done"
+    }
+  },
+  "editModal": {
+    "title": "Edit Agent",
+    "subtitle": "Update {{name}}'s details",
+    "closeAria": "Close modal",
+    "profilePhoto": "Profile Photo",
+    "uploadPhoto": "Upload Photo",
+    "changePhoto": "Change Photo",
+    "remove": "Remove",
+    "fullName": "Full Name *",
+    "fullNamePlaceholder": "Enter full name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+54 11 1234-5678",
+    "location": "Location",
+    "locationPlaceholder": "Buenos Aires, Argentina",
+    "role": "Role *",
+    "rolePlaceholder": "Select role",
+    "adminRoleTooltip": "An Admin's role can't be changed from this screen.",
+    "teamLeader": "Team Leader",
+    "teamLeaderPlaceholder": "Select Team Leader",
+    "searchTeamLeadersPlaceholder": "Search team leaders...",
+    "noTeamLeadersFound": "No team leaders found.",
+    "noTeamLeaderOption": "— No team leader —",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes about this agent...",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "saving": "Saving…",
+    "toasts": {
+      "uploadPhotoFailed": "Failed to upload photo.",
+      "removePhotoFailed": "Failed to remove photo.",
+      "updateFailed": "Failed to update agent.",
+      "updated": "Agent updated."
+    }
+  },
+  "detail": {
+    "backToAgents": "Back to Agents",
+    "loadingAgent": "Loading agent…",
+    "notFound": "Agent not found or access denied.",
+    "selectPeriodAria": "Select reporting period",
+    "period": {
+      "currentMonth": "Current Month",
+      "lastMonth": "Last Month",
+      "thisQuarter": "This Quarter",
+      "thisYear": "This Year"
+    },
+    "stats": {
+      "totalListings": "Total Listings",
+      "totalRevenue": "Total Revenue",
+      "totalDeals": "Total Deals",
+      "openDeals": "Open Deals",
+      "totalEarnings": "Total Earnings"
+    },
+    "propertiesAssigned": "Properties Assigned",
+    "totalProperties_one": "{{count}} total property",
+    "totalProperties_other": "{{count}} total properties",
+    "searchPropertiesPlaceholder": "Search properties...",
+    "searchAssignedPropertiesAria": "Search assigned properties",
+    "columns": {
+      "listingId": "LISTING ID",
+      "propertyName": "PROPERTY NAME",
+      "type": "TYPE",
+      "location": "LOCATION",
+      "price": "PRICE",
+      "status": "STATUS"
+    },
+    "mobileLabels": {
+      "type": "Type",
+      "price": "Price",
+      "location": "Location"
+    },
+    "noPropertiesFound": "No properties found.",
+    "viewPublicListingTitle": "View public listing",
+    "viewListingAria": "View {{title}}",
+    "viewProperty": "View Property"
+  }
+}

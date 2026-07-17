@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   Plus,
@@ -35,22 +36,22 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 type AgentStatus = "Approved" | "Pending" | "Denied";
 type PeriodFilter = "this_week" | "this_month" | "last_month" | "all";
 
-const PERIOD_LABELS: Record<PeriodFilter, string> = {
-  this_week:  "This Week",
-  this_month: "This Month",
-  last_month: "Last Month",
-  all:        "All Time",
+// Displayed labels are translated via i18n (see PERIOD_I18N_KEY / STATUS_I18N_KEY
+// below); these values stay in stable English because they're compared against
+// directly and stored in component state.
+const PERIOD_I18N_KEY: Record<PeriodFilter, string> = {
+  this_week: "period.thisWeek",
+  this_month: "period.thisMonth",
+  last_month: "period.lastMonth",
+  all: "period.allTime",
 };
 
-const STATUS_FILTER_OPTIONS = (["All", "Approved", "Pending", "Denied"] as const).map((value) => ({
-  value,
-  label: value,
-}));
-
-const PERIOD_FILTER_OPTIONS = (Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((value) => ({
-  value,
-  label: PERIOD_LABELS[value],
-}));
+const STATUS_I18N_KEY: Record<AgentStatus | "All", string> = {
+  All: "status.all",
+  Approved: "status.approved",
+  Pending: "status.pending",
+  Denied: "status.denied",
+};
 
 function getPeriodBounds(period: PeriodFilter): { from: Date; to: Date } | null {
   if (period === "all") return null;
@@ -77,10 +78,10 @@ function mapStatus(status: AgentDto["status"]): AgentStatus {
   return "Denied";
 }
 
-function mapRole(role: AgentDto["role"]): string {
-  if (role === "ADMIN") return "Administrator";
-  if (role === "MANAGER") return "Manager";
-  return "Property Specialist";
+function mapRole(role: AgentDto["role"], t: (key: string) => string): string {
+  if (role === "ADMIN") return t("role.administrator");
+  if (role === "MANAGER") return t("role.manager");
+  return t("role.propertySpecialist");
 }
 
 function formatDate(iso: string): string {
@@ -132,14 +133,14 @@ const STATUS_STYLE: Record<AgentStatus, { bg: string; border: string; text: stri
   Denied:   { bg: "#fff5f5", border: "#f49e9e", text: "#fb2c36" },
 };
 
-function StatusBadge({ status }: { status: AgentStatus }) {
+function StatusBadge({ status, t }: { status: AgentStatus; t: (key: string) => string }) {
   const s = STATUS_STYLE[status];
   return (
     <span
       className="inline-flex items-center px-3 py-[7px] rounded-[8px] text-[14px]"
       style={{ backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.text, ...mont }}
     >
-      {status}
+      {t(STATUS_I18N_KEY[status])}
     </span>
   );
 }
@@ -156,6 +157,7 @@ type AgentActionsMenuProps = {
   onEdit: () => void;
   onDelete: () => void;
   variant?: "icon" | "full-width";
+  t: (key: string, opts?: Record<string, unknown>) => string;
 };
 
 function AgentActionsMenu({
@@ -168,11 +170,12 @@ function AgentActionsMenu({
   onEdit,
   onDelete,
   variant = "icon",
+  t,
 }: AgentActionsMenuProps) {
   if (!canEdit && !canDelete) {
     return (
       <span className="text-[14px] text-[#99a1af]" style={mont}>
-        No actions
+        {t("table.noActions")}
       </span>
     );
   }
@@ -181,8 +184,8 @@ function AgentActionsMenu({
     <div className="relative inline-block">
       <button
         type="button"
-        title="More actions"
-        aria-label={`More actions for ${agent.name}`}
+        title={t("table.moreActions")}
+        aria-label={t("table.moreActionsAria", { name: agent.name })}
         onClick={onToggle}
         className={
           variant === "full-width"
@@ -191,7 +194,7 @@ function AgentActionsMenu({
         }
       >
         <MoreVertical size={variant === "full-width" ? 17 : 14} />
-        {variant === "full-width" && "More Actions"}
+        {variant === "full-width" && t("table.moreActionsFullWidth")}
       </button>
 
       {isOpen && (
@@ -211,7 +214,7 @@ function AgentActionsMenu({
                 style={mont}
               >
                 <Pencil size={14} />
-                Edit
+                {t("table.edit")}
               </button>
             )}
             {canDelete && (
@@ -222,7 +225,7 @@ function AgentActionsMenu({
                 style={mont}
               >
                 <Trash2 size={14} />
-                Delete
+                {t("table.delete")}
               </button>
             )}
           </div>
@@ -239,6 +242,7 @@ type AgentsPageProps = {
 };
 
 export function AgentsPage({ role }: AgentsPageProps) {
+  const { t } = useTranslation("agents");
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "All">("All");
@@ -278,10 +282,10 @@ export function AgentsPage({ role }: AgentsPageProps) {
       const res = await fetch(`/api/dashboard/agents/${agentId}`, { method: "DELETE" });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.success) {
-        toast.error(data?.error ?? "Failed to decline agent.");
+        toast.error(data?.error ?? t("toasts.declineFailed"));
         return;
       }
-      toast.success("Agent declined and removed.");
+      toast.success(t("toasts.declinedSuccess"));
       await fetchAgents();
     } finally {
       setActioningId(null);
@@ -289,9 +293,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
   }
 
   async function handleDelete(agent: AgentDto) {
-    const confirmed = window.confirm(
-      `Delete ${agent.name}? This permanently removes their account and cannot be undone.`,
-    );
+    const confirmed = window.confirm(t("confirmDelete", { name: agent.name }));
     if (!confirmed) return;
 
     setActioningId(agent.id);
@@ -299,10 +301,10 @@ export function AgentsPage({ role }: AgentsPageProps) {
       const res = await fetch(`/api/dashboard/agents/${agent.id}`, { method: "DELETE" });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.success) {
-        toast.error(data?.error ?? "Failed to delete agent.");
+        toast.error(data?.error ?? t("toasts.deleteFailed"));
         return;
       }
-      toast.success("Agent deleted.");
+      toast.success(t("toasts.deletedSuccess"));
       await fetchAgents();
     } finally {
       setActioningId(null);
@@ -329,8 +331,8 @@ export function AgentsPage({ role }: AgentsPageProps) {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>Agents</h1>
-          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>Manage your team of property agents</p>
+          <h1 className="text-[18px] font-medium leading-7 text-[#0d2138] sm:text-[20px]" style={poppins}>{t("page.title")}</h1>
+          <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>{t("page.subtitle")}</p>
         </div>
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           {canViewInvitations && (
@@ -340,7 +342,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
               style={mont}
             >
               <Mail size={16} className="shrink-0" />
-              <span className="truncate">Invitations</span>
+              <span className="truncate">{t("actions.invitations")}</span>
             </Link>
           )}
           {canInvite && (
@@ -351,7 +353,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
               style={mont}
             >
               <Plus size={16} className="shrink-0" />
-              <span className="truncate">Add Agent</span>
+              <span className="truncate">{t("actions.addAgent")}</span>
             </button>
           )}
         </div>
@@ -360,10 +362,10 @@ export function AgentsPage({ role }: AgentsPageProps) {
       {/* Stat cards */}
 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 xl:grid-cols-4">
   <StatCard
-    label="Total Agents"
+    label={t("stats.totalAgents")}
     value={metrics ? String(metrics.total) : "—"}
-    trend={metrics && metrics.newThisMonth > 0 ? `${metrics.newThisMonth} new this month` : undefined}
-    note={metrics && metrics.newThisMonth === 0 ? "No new agents this month" : undefined}
+    trend={metrics && metrics.newThisMonth > 0 ? t("stats.newThisMonth", { count: metrics.newThisMonth }) : undefined}
+    note={metrics && metrics.newThisMonth === 0 ? t("stats.noNewAgentsThisMonth") : undefined}
     iconBg="#e7ebff"
     icon={
       <Medal
@@ -375,10 +377,10 @@ export function AgentsPage({ role }: AgentsPageProps) {
   />
 
   <StatCard
-    label="Active Deals"
+    label={t("stats.activeDeals")}
     value={metrics ? String(metrics.activeDeals) : "—"}
-    trend={metrics && metrics.activeDealsNewThisMonth > 0 ? `${metrics.activeDealsNewThisMonth} new this month` : undefined}
-    note={metrics && metrics.activeDealsNewThisMonth === 0 ? "Open opportunities" : undefined}
+    trend={metrics && metrics.activeDealsNewThisMonth > 0 ? t("stats.newThisMonth", { count: metrics.activeDealsNewThisMonth }) : undefined}
+    note={metrics && metrics.activeDealsNewThisMonth === 0 ? t("stats.openOpportunities") : undefined}
     iconBg="#e6faf3"
     icon={
       <Handshake
@@ -390,9 +392,9 @@ export function AgentsPage({ role }: AgentsPageProps) {
   />
 
   <StatCard
-    label="Total Revenue"
+    label={t("stats.totalRevenue")}
     value={!canViewRevenue ? "—" : metrics ? formatCurrency(metrics.totalRevenue) : "—"}
-    note={!canViewRevenue ? "Admin/Manager only" : "From closed-won opportunities"}
+    note={!canViewRevenue ? t("stats.adminManagerOnly") : t("stats.fromClosedWonOpportunities")}
     iconBg="#fff1c7"
     icon={
       <DollarSign
@@ -404,10 +406,10 @@ export function AgentsPage({ role }: AgentsPageProps) {
   />
 
   <StatCard
-    label="Total Listings"
+    label={t("stats.totalListings")}
     value={metrics ? String(metrics.totalListings) : "—"}
-    trend={metrics && metrics.totalListingsNewThisMonth > 0 ? `${metrics.totalListingsNewThisMonth} new this month` : undefined}
-    note={metrics && metrics.totalListingsNewThisMonth === 0 ? "All listings" : undefined}
+    trend={metrics && metrics.totalListingsNewThisMonth > 0 ? t("stats.newThisMonth", { count: metrics.totalListingsNewThisMonth }) : undefined}
+    note={metrics && metrics.totalListingsNewThisMonth === 0 ? t("stats.allListings") : undefined}
     iconBg="#fff2e8"
     icon={
       <Star
@@ -428,7 +430,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
               className="text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
               style={mont}
             >
-              Approve Agents
+              {t("table.title")}
             </h2>
 
             <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
@@ -442,7 +444,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search agents..."
+                  placeholder={t("table.searchPlaceholder")}
                   className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[12px]"
                   style={mont}
                 />
@@ -454,9 +456,12 @@ export function AgentsPage({ role }: AgentsPageProps) {
                 searchable={false}
                 value={statusFilter}
                 onChange={(next) => setStatusFilter(next as AgentStatus | "All")}
-                options={STATUS_FILTER_OPTIONS}
-                placeholder="All"
-                ariaLabel="Filter by status"
+                options={(["All", "Approved", "Pending", "Denied"] as const).map((value) => ({
+                  value,
+                  label: t(STATUS_I18N_KEY[value]),
+                }))}
+                placeholder={t("status.all")}
+                ariaLabel={t("table.filterByStatusAria")}
                 className="min-w-0 sm:min-w-[120px]"
               />
 
@@ -466,9 +471,12 @@ export function AgentsPage({ role }: AgentsPageProps) {
                 searchable={false}
                 value={period}
                 onChange={(next) => setPeriod(next as PeriodFilter)}
-                options={PERIOD_FILTER_OPTIONS}
-                placeholder="Period"
-                ariaLabel="Filter by period"
+                options={(Object.keys(PERIOD_I18N_KEY) as PeriodFilter[]).map((value) => ({
+                  value,
+                  label: t(PERIOD_I18N_KEY[value]),
+                }))}
+                placeholder={t("table.periodPlaceholder")}
+                ariaLabel={t("table.filterByPeriodAria")}
                 className="min-w-0 sm:min-w-[120px]"
               />
             </div>
@@ -481,24 +489,24 @@ export function AgentsPage({ role }: AgentsPageProps) {
       <thead>
         <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
           {[
-            "Agents",
-            "Role",
-            "Contact",
-            "Location",
-            "Sign Up Date",
-            "Status",
-            "Actions",
+            { key: "agents", label: t("table.columns.agents") },
+            { key: "role", label: t("table.columns.role") },
+            { key: "contact", label: t("table.columns.contact") },
+            { key: "location", label: t("table.columns.location") },
+            { key: "signUpDate", label: t("table.columns.signUpDate") },
+            { key: "status", label: t("table.columns.status") },
+            { key: "actions", label: t("table.columns.actions") },
           ].map((heading) => (
             <th
-              key={heading}
+              key={heading.key}
               className={`px-4 py-[10px] text-left text-[14px] font-medium text-[#6a7282] ${
-                heading === "Status" || heading === "Actions"
+                heading.key === "status" || heading.key === "actions"
                   ? "text-center"
                   : ""
               }`}
               style={mont}
             >
-              {heading}
+              {heading.label}
             </th>
           ))}
         </tr>
@@ -512,7 +520,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
               className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
               style={mont}
             >
-              Loading agents…
+              {t("table.loadingAgents")}
             </td>
           </tr>
         ) : (
@@ -563,7 +571,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     className="whitespace-nowrap text-[14px] font-medium text-[#6a7282]"
                     style={mont}
                   >
-                    {mapRole(agent.role)}
+                    {mapRole(agent.role, t)}
                   </span>
                 </td>
 
@@ -604,7 +612,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                 </td>
 
                 <td className="w-[144px] px-4 py-4">
-                  <StatusBadge status={mappedStatus} />
+                  <StatusBadge status={mappedStatus} t={t} />
                 </td>
 
                 <td className="w-[134px] px-4 py-4 text-center">
@@ -613,7 +621,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       className="text-[14px] text-[#99a1af]"
                       style={mont}
                     >
-                      Updating…
+                      {t("table.updating")}
                     </span>
                   ) : isActioned ? (
                     canEdit || canDelete ? (
@@ -626,21 +634,22 @@ export function AgentsPage({ role }: AgentsPageProps) {
                         onClose={() => setMenuOpenId(null)}
                         onEdit={() => { setMenuOpenId(null); setEditingAgent(agent); }}
                         onDelete={() => { setMenuOpenId(null); handleDelete(agent); }}
+                        t={t}
                       />
                     ) : (
                       <span
                         className="text-[14px] text-[#6a7282]"
                         style={mont}
                       >
-                        {mappedStatus}
+                        {t(STATUS_I18N_KEY[mappedStatus])}
                       </span>
                     )
                   ) : canApprove ? (
                     <div className="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        title="Approve"
-                        aria-label={`Approve ${agent.name}`}
+                        title={t("table.approve")}
+                        aria-label={t("table.approveAria", { name: agent.name })}
                         onClick={() => handleApprove(agent.id)}
                         className="flex size-8 items-center justify-center rounded-[8px] border border-[#7bf1a8] bg-white transition-colors hover:bg-[#f5fffa]"
                       >
@@ -649,8 +658,8 @@ export function AgentsPage({ role }: AgentsPageProps) {
 
                       <button
                         type="button"
-                        title="Deny"
-                        aria-label={`Deny ${agent.name}`}
+                        title={t("table.deny")}
+                        aria-label={t("table.denyAria", { name: agent.name })}
                         onClick={() => handleDeny(agent.id)}
                         className="flex size-8 items-center justify-center rounded-[8px] border border-[#ffa2a2] bg-white transition-colors hover:bg-[#fff5f5]"
                       >
@@ -678,7 +687,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
               className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
               style={mont}
             >
-              No agents found.
+              {t("table.noAgentsFound")}
             </td>
           </tr>
         )}
@@ -693,14 +702,14 @@ export function AgentsPage({ role }: AgentsPageProps) {
         className="rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-10 text-center text-[14px] text-[#6a7282]"
         style={mont}
       >
-        Loading agents…
+        {t("table.loadingAgents")}
       </div>
     ) : filtered.length === 0 ? (
       <div
         className="rounded-[14px] border border-[#e5e7eb] bg-white px-4 py-10 text-center text-[14px] text-[#6a7282]"
         style={mont}
       >
-        No agents found.
+        {t("table.noAgentsFound")}
       </div>
     ) : (
       <div className="flex flex-col gap-3">
@@ -750,13 +759,13 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       className="mt-1 truncate text-[14px] text-[#6a7282]"
                       style={mont}
                     >
-                      {mapRole(agent.role)}
+                      {mapRole(agent.role, t)}
                     </p>
                   </div>
                 </div>
 
                 <div className="shrink-0">
-                  <StatusBadge status={mappedStatus} />
+                  <StatusBadge status={mappedStatus} t={t} />
                 </div>
               </div>
 
@@ -766,7 +775,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                   className="text-[14px] text-[#99a1af]"
                   style={mont}
                 >
-                  Contact
+                  {t("table.contactLabel")}
                 </p>
 
                 <p
@@ -780,7 +789,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                   className="mt-1.5 text-[14px] text-[#6a7282]"
                   style={mont}
                 >
-                  {agent.phone ?? "Phone not available"}
+                  {agent.phone ?? t("table.phoneNotAvailable")}
                 </p>
               </div>
 
@@ -791,7 +800,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     className="text-[14px] text-[#99a1af]"
                     style={mont}
                   >
-                    Location
+                    {t("table.locationLabel")}
                   </p>
 
                   <p
@@ -807,7 +816,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     className="text-[14px] text-[#99a1af]"
                     style={mont}
                   >
-                    Sign Up Date
+                    {t("table.signUpDateLabel")}
                   </p>
 
                   <p
@@ -826,7 +835,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
                     style={mont}
                   >
-                    Updating…
+                    {t("table.updating")}
                   </div>
                 ) : isActioned ? (
                   canEdit || canDelete ? (
@@ -840,13 +849,14 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       onEdit={() => { setMenuOpenId(null); setEditingAgent(agent); }}
                       onDelete={() => { setMenuOpenId(null); handleDelete(agent); }}
                       variant="full-width"
+                      t={t}
                     />
                   ) : (
                     <div
                       className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] font-medium text-[#6a7282]"
                       style={mont}
                     >
-                      Agent {mappedStatus}
+                      {t("table.agentStatus", { status: t(STATUS_I18N_KEY[mappedStatus]) })}
                     </div>
                   )
                 ) : canApprove ? (
@@ -858,7 +868,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       style={mont}
                     >
                       <Check size={17} />
-                      Approve
+                      {t("table.approve")}
                     </button>
 
                     <button
@@ -868,7 +878,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                       style={mont}
                     >
                       <X size={17} />
-                      Deny
+                      {t("table.deny")}
                     </button>
                   </div>
                 ) : (
@@ -876,7 +886,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     className="flex h-11 items-center justify-center rounded-[10px] bg-[#f8fafc] text-[14px] text-[#99a1af]"
                     style={mont}
                   >
-                    No actions available
+                    {t("table.noActionsAvailable")}
                   </div>
                 )}
               </div>
@@ -893,7 +903,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
       className="text-center text-[14px] font-medium text-[#6a7282] sm:text-left sm:text-[12px]"
       style={mont}
     >
-      Showing {filtered.length} of {agents.length} agents
+      {t("table.showingCount", { filtered: filtered.length, total: agents.length })}
     </p>
   </div>
 </div>

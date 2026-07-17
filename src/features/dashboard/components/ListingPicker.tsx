@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, Search } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -54,11 +55,12 @@ export function ListingPicker({
   label,
   onSelect,
   excludeIds = [],
-  placeholder = "Select a listing…",
+  placeholder,
   disabled = false,
   className = "",
   tone = "listing",
 }: ListingPickerProps) {
+  const { t } = useTranslation("dashboard");
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ListingOption[]>([]);
@@ -185,7 +187,7 @@ export function ListingPicker({
         style={mont}
       >
         <span className={`truncate ${value ? "text-[#0d2138]" : "text-[#99a1af]"}`}>
-          {value ? label : placeholder}
+          {value ? label : (placeholder ?? t("listingPicker.placeholder"))}
         </span>
 
         <ChevronDown
@@ -223,7 +225,7 @@ export function ListingPicker({
                     setIsOpen(false);
                   }
                 }}
-                placeholder="Search listings..."
+                placeholder={t("listingPicker.searchPlaceholder")}
                 autoComplete="off"
                 className="h-7 w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] outline-none placeholder:text-[#99a1af]"
                 style={mont}
@@ -245,7 +247,7 @@ export function ListingPicker({
                   className="flex w-full items-center px-3.5 py-2.5 text-left text-[13px] text-[#6a7282] transition-colors hover:bg-[#f3f4f6]"
                   style={mont}
                 >
-                  — Clear selection —
+                  {t("listingPicker.clearSelection")}
                 </button>
               )}
 
@@ -254,14 +256,14 @@ export function ListingPicker({
                   className="px-3.5 py-2.5 text-[13px] text-[#6a7282]"
                   style={mont}
                 >
-                  Loading...
+                  {t("listingPicker.loading")}
                 </p>
               ) : filtered.length === 0 ? (
                 <p
                   className="px-3.5 py-2.5 text-[13px] text-[#6a7282]"
                   style={mont}
                 >
-                  No listings found.
+                  {t("listingPicker.emptyLabel")}
                 </p>
               ) : (
                 filtered.map((listing) => {
