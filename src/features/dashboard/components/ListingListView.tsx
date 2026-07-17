@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Search, Filter, ChevronDown, Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus } from "lucide-react";
+import { Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
@@ -79,62 +79,24 @@ export type ListingSelection = {
 
 type ListingListViewProps = {
   listings: DashboardListingDto[];
-  onFilterClick: () => void;
   actions: ListingRowActions;
   selection: ListingSelection;
 };
 
-export function ListingListView({ listings, onFilterClick, actions, selection }: ListingListViewProps) {
+export function ListingListView({ listings, actions, selection }: ListingListViewProps) {
   const selectedCount = listings.filter((listing) => selection.selectedIds.has(listing.id)).length;
   const allSelected = listings.length > 0 && selectedCount === listings.length;
   const someSelected = selectedCount > 0 && !allSelected;
 return (
   <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
-    {/* Header / controls */}
-    <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between lg:gap-3">
+    {/* Header */}
+    <div className="flex items-center p-4 sm:p-5">
       <h2
         className="text-[16px] font-semibold text-[#0d2138]"
         style={mont}
       >
         All Listings
       </h2>
-
-      <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center sm:gap-3 lg:w-auto">
-        {/* Search */}
-        <div className="col-span-2 flex h-9 w-full items-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 sm:w-[204px]">
-          <Search
-            size={16}
-            className="shrink-0 text-[#99a1af]"
-          />
-
-          <input
-            placeholder="Search listings..."
-            className="w-full bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af]"
-            style={mont}
-          />
-        </div>
-
-        {/* Filter */}
-        <button
-          type="button"
-          onClick={onFilterClick}
-          className="flex h-9 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 text-[14px] font-medium text-[#99a1af] transition-colors hover:bg-[#f3f4f6]"
-          style={mont}
-        >
-          Filter
-          <Filter size={16} />
-        </button>
-
-        {/* Date */}
-        <button
-          type="button"
-          className="flex h-9 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-4 text-[14px] font-medium text-[#99a1af]"
-          style={mont}
-        >
-          Last Month
-          <ChevronDown size={16} />
-        </button>
-      </div>
     </div>
 
     {/* Desktop table - same design */}

@@ -780,6 +780,29 @@ function statIcon(label: string): React.ReactNode {
   return statCatalog.find((s) => s.label === label)?.icon ?? null;
 }
 
+// AmenityKey -> translation key, so the DB-stored English enum values never
+// leak into the UI (see listingAmenities below).
+const AMENITY_LABEL_KEYS: Record<AmenityKey, string> = {
+  PARKING: "listingDetail:amenities.parking",
+  GARDEN: "listingDetail:amenities.garden",
+  POOL: "listingDetail:amenities.pool",
+  GYM: "listingDetail:amenities.gym",
+  BALCONY: "listingDetail:amenities.balcony",
+  ELEVATOR: "listingDetail:amenities.elevator",
+  SECURITY: "listingDetail:amenities.security",
+  FURNISHED: "listingDetail:amenities.furnished",
+  PET_FRIENDLY: "listingDetail:amenities.petFriendly",
+  CREDIT_APPROVED: "listingDetail:amenities.creditApproved",
+  INTERNET: "listingDetail:amenities.internet",
+  GAS: "listingDetail:amenities.gas",
+  RADIANT_FLOORS: "listingDetail:amenities.radiantFloors",
+  AIR_CONDITIONING: "listingDetail:amenities.airConditioning",
+  BARBECUE: "listingDetail:amenities.barbecue",
+  LAUNDRY: "listingDetail:amenities.laundry",
+  WATER: "listingDetail:amenities.water",
+  TENNIS_COURT: "listingDetail:amenities.tennisCourt",
+};
+
 // stat.label doubles as the internal key used to look up its icon above, so
 // it's kept in English as a stable identifier; this maps it to the
 // translated text actually shown to the user.
@@ -998,7 +1021,9 @@ export function SingleListingPageContent({
   const stats = buildStats(listing, t);
   const listingAmenities = listing.amenities.map((key) => ({
     key,
-    label: AMENITY_OPTIONS.find((opt) => opt.key === key)?.label ?? key,
+    label: t(AMENITY_LABEL_KEYS[key] ?? "", {
+      defaultValue: AMENITY_OPTIONS.find((opt) => opt.key === key)?.label ?? key,
+    }),
     icon: amenityIcons.find((item) => item.key === key)?.icon ?? <AmenityCheckIcon />,
   }));
 

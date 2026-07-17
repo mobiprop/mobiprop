@@ -29,6 +29,26 @@
     "videoPreview": "Video Preview",
     "onTheMap": "On the Map"
   },
+  "amenities": {
+    "parking": "Parking",
+    "garden": "Garden",
+    "pool": "Pool",
+    "gym": "Gym",
+    "balcony": "Balcony",
+    "elevator": "Elevator",
+    "security": "Security",
+    "furnished": "Furnished",
+    "petFriendly": "Pet Friendly",
+    "creditApproved": "Credit Approved",
+    "internet": "Internet",
+    "gas": "Gas",
+    "radiantFloors": "Radiant Floors",
+    "airConditioning": "Air Conditioning",
+    "barbecue": "Barbecue",
+    "laundry": "Laundry",
+    "water": "Water",
+    "tennisCourt": "Tennis Court"
+  },
   "stats": {
     "type": "Type",
     "price": "Price",

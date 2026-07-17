@@ -120,6 +120,64 @@ function escapeAttr(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// ── Simple-editor blocks ──────────────────────────────────────────────────
+// Non-technical marketers edit a campaign's message, banner image and CTA
+// button through plain text boxes (CampaignWizardModal's "Simple" tab)
+// instead of hand-editing HTML. Each block's raw value rides along
+// URL-encoded in the marker comment (same trick as PROPERTIES' `ids=`) so it
+// round-trips exactly regardless of what the rendered HTML looks like.
+
+export const MESSAGE_BLOCK_RE = /<!--MESSAGE:START text="([^"]*)"-->[\s\S]*?<!--MESSAGE:END-->/;
+
+export function buildMessageBlock(text: string): string {
+  const html = `<div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;margin-top:14px;">${escapeAttr(text).replace(/\n/g, "<br />")}</div>`;
+  return `<!--MESSAGE:START text="${encodeURIComponent(text)}"-->${html}<!--MESSAGE:END-->`;
+}
+
+export function parseMessageText(html: string): string | null {
+  const match = MESSAGE_BLOCK_RE.exec(html);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+export function replaceMessageBlock(html: string, text: string): string {
+  return html.replace(MESSAGE_BLOCK_RE, buildMessageBlock(text));
+}
+
+export const IMAGE_BLOCK_RE = /<!--IMAGE:START url="([^"]*)"-->[\s\S]*?<!--IMAGE:END-->/;
+
+export function buildImageBlock(url: string): string {
+  const html = url
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;"><tr>
+        <td><img src="${escapeAttr(url)}" width="536" alt="" style="display:block;width:100%;height:auto;border:0;border-radius:12px;" /></td>
+      </tr></table>`
+    : "";
+  return `<!--IMAGE:START url="${encodeURIComponent(url)}"-->${html}<!--IMAGE:END-->`;
+}
+
+export function parseImageUrl(html: string): string | null {
+  const match = IMAGE_BLOCK_RE.exec(html);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+export function replaceImageBlock(html: string, url: string): string {
+  return html.replace(IMAGE_BLOCK_RE, buildImageBlock(url));
+}
+
+export const CTA_BLOCK_RE = /<!--CTA:START label="([^"]*)" url="([^"]*)"-->[\s\S]*?<!--CTA:END-->/;
+
+export function buildCtaBlock(label: string, url: string): string {
+  return `<!--CTA:START label="${encodeURIComponent(label)}" url="${encodeURIComponent(url)}"-->${button(label, url)}<!--CTA:END-->`;
+}
+
+export function parseCta(html: string): { label: string; url: string } | null {
+  const match = CTA_BLOCK_RE.exec(html);
+  return match ? { label: decodeURIComponent(match[1]), url: decodeURIComponent(match[2]) } : null;
+}
+
+export function replaceCtaBlock(html: string, label: string, url: string): string {
+  return html.replace(CTA_BLOCK_RE, buildCtaBlock(label, url));
+}
+
 // ── Marketing layout (auth-email shell + compliance bar) ─────────────────────
 
 /** The unsubscribe/compliance bar every campaign carries — sits between the
@@ -165,7 +223,7 @@ function marketingLayout(opts: {
 
 const greeting = (text: string) =>
   `<div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;">Hi %first_name%,</div>
-   <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;margin-top:14px;">${text}</div>`;
+   ${buildMessageBlock(text)}`;
 
 // ── Templates ────────────────────────────────────────────────────────────────
 
@@ -187,8 +245,9 @@ export const MARKETING_TEMPLATES: MarketingTemplate[] = [
       bodyHtml: `${greeting(
         "We just added new properties that we think you'll love. Here are the highlights:",
       )}
+      ${buildImageBlock("")}
       <!--PROPERTIES:START ids=-->${propertiesPlaceholder()}<!--PROPERTIES:END-->
-      ${button("Browse All Listings", `${APP_URL}/listings`)}`,
+      ${buildCtaBlock("Browse All Listings", `${APP_URL}/listings`)}`,
     }),
   },
   {
@@ -208,6 +267,7 @@ export const MARKETING_TEMPLATES: MarketingTemplate[] = [
       bodyHtml: `${greeting(
         "[Write your market commentary here — trends, featured neighbourhoods, and advice for buyers and sellers this month.]",
       )}
+      ${buildImageBlock("")}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
         <td width="48%" style="background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;padding:18px 20px;">
           <div style="font-family:${FONT};font-size:12px;color:${BRAND.faint};">Average sale price</div>
@@ -221,7 +281,7 @@ export const MARKETING_TEMPLATES: MarketingTemplate[] = [
       </tr></table>
       <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${BRAND.heroFrom};margin-top:28px;">Featured this month</div>
       <!--PROPERTIES:START ids=-->${propertiesPlaceholder()}<!--PROPERTIES:END-->
-      ${button("Browse All Listings", `${APP_URL}/listings`)}`,
+      ${buildCtaBlock("Browse All Listings", `${APP_URL}/listings`)}`,
     }),
   },
   {
@@ -241,8 +301,9 @@ export const MARKETING_TEMPLATES: MarketingTemplate[] = [
       bodyHtml: `${greeting(
         "We have new properties that match what you were looking for. Take a look — and if you'd like to visit any of them, just reply to this email and we'll arrange it.",
       )}
+      ${buildImageBlock("")}
       <!--PROPERTIES:START ids=-->${propertiesPlaceholder()}<!--PROPERTIES:END-->
-      ${button("See All New Matches", `${APP_URL}/listings`)}`,
+      ${buildCtaBlock("See All New Matches", `${APP_URL}/listings`)}`,
     }),
   },
   {
@@ -260,7 +321,8 @@ export const MARKETING_TEMPLATES: MarketingTemplate[] = [
         subtitle: "[A short subtitle for the hero section.]",
       },
       bodyHtml: `${greeting("[Write your newsletter content here.]")}
-      ${button("Visit Ulrich Propiedades", APP_URL)}`,
+      ${buildImageBlock("")}
+      ${buildCtaBlock("Visit Ulrich Propiedades", APP_URL)}`,
     }),
   },
 ];
