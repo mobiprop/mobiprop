@@ -610,7 +610,6 @@ export function ListingsPage({ role }: ListingsPageProps) {
           <div className="min-w-0 overflow-hidden">
             <ListingListView
               listings={filtered}
-              onFilterClick={() => setShowFilter(true)}
               actions={rowActions}
               selection={{
                 selectedIds,

@@ -10,6 +10,12 @@ import {
   PROPERTIES_BLOCK_RE,
   parsePropertiesBlockIds,
   replacePropertiesBlock,
+  parseMessageText,
+  replaceMessageBlock,
+  parseImageUrl,
+  replaceImageBlock,
+  parseCta,
+  replaceCtaBlock,
   type EmailListingCard,
 } from "@/features/integrations/email-marketing-templates";
 import { useSendgridListsQuery } from "@/hooks/queries/useSendgridQuery";
@@ -101,6 +107,11 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   const [scheduleDate, setScheduleDate] = useState(campaign?.scheduledAt ? campaign.scheduledAt.slice(0, 10) : "");
   const [scheduleTime, setScheduleTime] = useState(campaign?.scheduledAt ? campaign.scheduledAt.slice(11, 16) : "");
   const [showPreview, setShowPreview] = useState(false);
+  // "Simple" is a plain-text-box editor (message, banner image link, CTA
+  // button) for non-technical staff; "html" is the original raw editor.
+  // Only offered when the template carries the marker blocks simple mode
+  // reads/writes — hand-written HTML without them just gets the raw editor.
+  const [editorMode, setEditorMode] = useState<"simple" | "html">("simple");
   const [testEmails, setTestEmails] = useState("");
   const [savedId, setSavedId] = useState<string | null>(campaign?.id ?? null);
   const [confirm, setConfirm] = useState<{ recipientCount: number; listName: string } | null>(null);
@@ -126,6 +137,23 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
   const busy = createMutation.isPending || updateMutation.isPending || sendMutation.isPending;
 
   const hasPropertiesBlock = PROPERTIES_BLOCK_RE.test(htmlBody);
+  const messageText = parseMessageText(htmlBody);
+  const imageUrl = parseImageUrl(htmlBody);
+  const cta = parseCta(htmlBody);
+  const hasSimpleFields = messageText !== null;
+
+  function updateMessage(text: string) {
+    setHtmlBody((body) => replaceMessageBlock(body, text));
+  }
+  function updateImageUrl(url: string) {
+    setHtmlBody((body) => replaceImageBlock(body, url));
+  }
+  function updateCtaLabel(label: string) {
+    setHtmlBody((body) => replaceCtaBlock(body, label, cta?.url ?? ""));
+  }
+  function updateCtaUrl(url: string) {
+    setHtmlBody((body) => replaceCtaBlock(body, cta?.label ?? "", url));
+  }
 
   // Reopening a draft: the featured-listing ids ride in the PROPERTIES marker —
   // rehydrate the picker chips (and refresh the cards' data) from them.
@@ -439,9 +467,27 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
               <Field label="Email Content" required>
                 <div className="overflow-hidden rounded-[10px] border border-[#e5e7eb]">
                   <div className="flex items-center justify-between border-b border-[#e5e7eb] bg-[#fafbfc] px-3 py-2">
-                    <span className="text-[11px] text-[#6a7282]" style={mont}>
-                      HTML — %first_name% is replaced per recipient; the unsubscribe footer is added automatically
-                    </span>
+                    {hasSimpleFields && !showPreview ? (
+                      <div className="flex items-center gap-1 rounded-[8px] bg-[#f3f4f6] p-0.5">
+                        {(["simple", "html"] as const).map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => setEditorMode(mode)}
+                            className={`rounded-[7px] px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                              editorMode === mode ? "bg-white text-[#1e4f86] shadow-sm" : "text-[#6a7282]"
+                            }`}
+                            style={mont}
+                          >
+                            {mode === "simple" ? "Simple" : "HTML"}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-[#6a7282]" style={mont}>
+                        HTML — %first_name% is replaced per recipient; the unsubscribe footer is added automatically
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => setShowPreview((v) => !v)}
@@ -449,7 +495,7 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                       style={mont}
                     >
                       {showPreview ? <Code size={12} /> : <Eye size={12} />}
-                      {showPreview ? "Edit HTML" : "Preview"}
+                      {showPreview ? (editorMode === "simple" && hasSimpleFields ? "Edit Content" : "Edit HTML") : "Preview"}
                     </button>
                   </div>
                   {showPreview ? (
@@ -459,6 +505,49 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
                       srcDoc={htmlBody.replace(/%first_name%/g, "María").replace(/%unsubscribe_url%/g, "#")}
                       className="h-[420px] w-full bg-white"
                     />
+                  ) : hasSimpleFields && editorMode === "simple" ? (
+                    <div className="flex flex-col gap-4 bg-white p-3.5">
+                      <Field label="Message">
+                        <textarea
+                          value={messageText ?? ""}
+                          onChange={(e) => updateMessage(e.target.value)}
+                          rows={4}
+                          className="w-full resize-y rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-3 text-[13px] leading-5 text-[#0d2138] focus:border-[#1e4f86] focus:outline-none"
+                          style={mont}
+                          placeholder="Write the message shown after the greeting…"
+                        />
+                      </Field>
+                      <Field label="Banner Image Link (optional)">
+                        <input
+                          value={imageUrl ?? ""}
+                          onChange={(e) => updateImageUrl(e.target.value)}
+                          placeholder="https://…  (paste an image link — no file uploads)"
+                          className={inputCls}
+                          style={mont}
+                        />
+                      </Field>
+                      {cta && (
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <Field label="Button Text">
+                            <input
+                              value={cta.label}
+                              onChange={(e) => updateCtaLabel(e.target.value)}
+                              className={inputCls}
+                              style={mont}
+                            />
+                          </Field>
+                          <Field label="Button Link">
+                            <input
+                              value={cta.url}
+                              onChange={(e) => updateCtaUrl(e.target.value)}
+                              placeholder="https://…"
+                              className={inputCls}
+                              style={mont}
+                            />
+                          </Field>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <textarea
                       value={htmlBody}

@@ -29,6 +29,26 @@
     "videoPreview": "Vista Previa del Video",
     "onTheMap": "En el Mapa"
   },
+  "amenities": {
+    "parking": "Cochera",
+    "garden": "Jardín",
+    "pool": "Pileta",
+    "gym": "Gimnasio",
+    "balcony": "Balcón",
+    "elevator": "Ascensor",
+    "security": "Seguridad",
+    "furnished": "Amoblado",
+    "petFriendly": "Admite Mascotas",
+    "creditApproved": "Crédito Aprobado",
+    "internet": "Internet",
+    "gas": "Gas",
+    "radiantFloors": "Piso Radiante",
+    "airConditioning": "Aire Acondicionado",
+    "barbecue": "Parrilla",
+    "laundry": "Lavadero",
+    "water": "Agua",
+    "tennisCourt": "Cancha de Tenis"
+  },
   "stats": {
     "type": "Tipo",
     "price": "Precio",
