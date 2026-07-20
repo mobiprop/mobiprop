@@ -1,8 +1,11 @@
 import "server-only";
 
+import { format } from "date-fns";
+
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
+import { sendTourCancelledEmail, sendTourConfirmedEmail, sendTourRescheduledEmail } from "@/lib/email";
 import {
   notifyTourRequested,
   notifyTourAssigned,
@@ -141,14 +144,13 @@ async function nextTourNumber(): Promise<string> {
   return `TUR-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
 }
 
-async function nextContactId(): Promise<string> {
-  const [row] = await prisma.$queryRaw<{ max: number | null }[]>`
-    SELECT MAX(CAST(SUBSTRING(contact_id FROM 5) AS INTEGER)) AS max FROM contacts
-  `;
-  // Must match contact-actions.ts's nextContactId() prefix ("CNT-") — this is
-  // a second, independent ID generator (find-or-create for the tour-booking
-  // flow) for the same Contact.contactId field.
-  return `CNT-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
+function formatTourDuration(minutes: number): string {
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+  }
+  if (minutes < 60) return `${minutes} minutes`;
+  return `${(minutes / 60).toFixed(1)} hours`;
 }
 
 // ── Include / DTO helpers ─────────────────────────────────────────────────────
@@ -186,13 +188,15 @@ async function toTourDto(
     submittedPhone: t.submittedPhone,
     submittedMessage: t.submittedMessage,
     contactId: t.contactId,
-    contact: {
-      id: t.contact.id,
-      contactId: t.contact.contactId,
-      fullName: `${t.contact.firstName} ${t.contact.lastName}`.trim(),
-      email: t.contact.email,
-      phone: t.contact.phone,
-    },
+    contact: t.contact
+      ? {
+          id: t.contact.id,
+          contactId: t.contact.contactId,
+          fullName: `${t.contact.firstName} ${t.contact.lastName}`.trim(),
+          email: t.contact.email,
+          phone: t.contact.phone,
+        }
+      : null,
     propertyId: t.propertyId,
     property: t.property
       ? {
@@ -249,55 +253,10 @@ async function tourRecordScope(profile: Profile): Promise<Prisma.TourWhereInput>
   return { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
 }
 
-// ── Contact find-or-create helper ─────────────────────────────────────────────
-
-async function findOrCreateContact(opts: {
-  name: string;
-  email?: string | null;
-  phone?: string | null;
-  createdById?: string | null;
-}): Promise<{ contactId: string; wasCreated: boolean }> {
-  const { name, email, phone, createdById } = opts;
-
-  // Try to match on email, then phone
-  if (email) {
-    const existing = await prisma.contact.findFirst({
-      where: { email, isDeleted: false },
-      select: { id: true },
-    });
-    if (existing) return { contactId: existing.id, wasCreated: false };
-  }
-  if (phone && !email) {
-    const existing = await prisma.contact.findFirst({
-      where: { phone, isDeleted: false },
-      select: { id: true },
-    });
-    if (existing) return { contactId: existing.id, wasCreated: false };
-  }
-
-  // Create new contact
-  const parts = name.trim().split(/\s+/);
-  const firstName = parts[0] ?? name;
-  const lastName = parts.slice(1).join(" ") || "";
-  const newId = await nextContactId();
-  const contact = await prisma.contact.create({
-    data: {
-      contactId: newId,
-      firstName,
-      lastName,
-      email: email || null,
-      phone: phone || null,
-      createdById: createdById ?? null,
-    },
-    select: { id: true },
-  });
-  return { contactId: contact.id, wasCreated: true };
-}
-
 // ── Find or reuse an existing open lead for this contact+property pair ─────────
 
 async function findOrCreateLead(opts: {
-  contactId: string;
+  contactId: string | null;
   propertyId?: string | null;
   agentId?: string | null;
   submittedName: string;
@@ -308,17 +267,32 @@ async function findOrCreateLead(opts: {
   const { contactId, propertyId, agentId, submittedName, submittedEmail, submittedPhone, createdById } = opts;
 
   // Look for an active (non-archived, non-converted, non-closed) lead for this
-  // contact+listing pair so we don't duplicate funnel entries.
-  const existing = await prisma.lead.findFirst({
-    where: {
-      contactId,
-      ...(propertyId ? { primaryListingId: propertyId } : {}),
-      isArchived: false,
-      lifecycleStatus: { notIn: ["CONVERTED", "CLOSED", "UNQUALIFIED"] },
-    },
-    orderBy: { createdAt: "desc" },
-    select: { id: true },
-  });
+  // contact+listing pair so we don't duplicate funnel entries. Without a
+  // contactId (the common case now — tours don't auto-create a Contact), fall
+  // back to matching on the submitted email/phone so we don't dedupe two
+  // different anonymous prospects against each other via a shared
+  // `contactId: null`; with neither, there's no reliable identity to match on
+  // so a new lead is always created.
+  const identityMatch = contactId
+    ? { contactId }
+    : submittedEmail
+      ? { contactId: null, submittedEmail }
+      : submittedPhone
+        ? { contactId: null, submittedPhone }
+        : null;
+
+  const existing = identityMatch
+    ? await prisma.lead.findFirst({
+        where: {
+          ...identityMatch,
+          ...(propertyId ? { primaryListingId: propertyId } : {}),
+          isArchived: false,
+          lifecycleStatus: { notIn: ["CONVERTED", "CLOSED", "UNQUALIFIED"] },
+        },
+        orderBy: { createdAt: "desc" },
+        select: { id: true },
+      })
+    : null;
   if (existing) return { leadId: existing.id, wasCreated: false };
 
   // Pull listing context so the lead isn't left ambiguous: source detail/url
@@ -501,19 +475,9 @@ export async function createTour(
     };
   }
 
-  // Find or create contact
-  let contactId = d.contactId;
-  let contactCreated = false;
-  if (!contactId) {
-    const result = await findOrCreateContact({
-      name: d.submittedName,
-      email: d.submittedEmail || null,
-      phone: d.submittedPhone || null,
-      createdById: gate.profile.id,
-    });
-    contactId = result.contactId;
-    contactCreated = result.wasCreated;
-  }
+  // No auto-created Contact here either — same rule as the public flow. Staff
+  // can still pass an explicit `contactId` if one was already picked.
+  const contactId = d.contactId ?? null;
 
   // Find or create lead
   let leadId = d.leadId;
@@ -557,7 +521,7 @@ export async function createTour(
     action: "TOUR_CREATED",
     entityType: "TOUR",
     entityId: row.id,
-    newValues: { tourNumber, source: d.source, contactCreated, leadCreated },
+    newValues: { tourNumber, source: d.source, leadCreated },
   });
 
   await notifyTourRequested({
@@ -805,6 +769,51 @@ export async function updateTourStatus(
   }
 
   const agentMap = await buildAgentMap([row.assignedAgentId]);
+
+  // Best-effort status emails to the prospect — never block the status
+  // transition itself if SendGrid has a hiccup or isn't configured.
+  const agentName = row.assignedAgentId ? (agentMap.get(row.assignedAgentId)?.fullName ?? null) : null;
+  try {
+    if (newStatus === TourStatus.CONFIRMED && row.submittedEmail) {
+      await sendTourConfirmedEmail({
+        to: row.submittedEmail,
+        submittedName: row.submittedName,
+        tourNumber: row.tourNumber,
+        scheduledAtLabel: format(row.scheduledAt, "EEEE, MMMM d, yyyy 'at' h:mm a"),
+        durationLabel: formatTourDuration(row.durationMinutes),
+        propertyTitle: row.property?.title ?? null,
+        propertyLocation: row.property?.location ?? null,
+        agentName,
+        confirmationNote: row.confirmationNote,
+      });
+    } else if (newStatus === TourStatus.RESCHEDULED && newScheduledAt && row.submittedEmail) {
+      await sendTourRescheduledEmail({
+        to: row.submittedEmail,
+        submittedName: row.submittedName,
+        tourNumber: row.tourNumber,
+        previousScheduledAtLabel: format(existing.scheduledAt, "EEEE, MMMM d, yyyy 'at' h:mm a"),
+        newScheduledAtLabel: format(newScheduledAt, "EEEE, MMMM d, yyyy 'at' h:mm a"),
+        durationLabel: formatTourDuration(row.durationMinutes),
+        propertyTitle: row.property?.title ?? null,
+        propertyLocation: row.property?.location ?? null,
+        agentName,
+        rescheduleNote: row.rescheduleNote,
+      });
+    } else if (newStatus === TourStatus.CANCELLED && row.submittedEmail) {
+      await sendTourCancelledEmail({
+        to: row.submittedEmail,
+        submittedName: row.submittedName,
+        tourNumber: row.tourNumber,
+        scheduledAtLabel: format(row.scheduledAt, "EEEE, MMMM d, yyyy 'at' h:mm a"),
+        propertyTitle: row.property?.title ?? null,
+        propertyLocation: row.property?.location ?? null,
+        cancellationReason: row.cancellationReason,
+      });
+    }
+  } catch (error) {
+    console.error("[email] failed to send tour status email", row.id, newStatus, error);
+  }
+
   return { ok: true, tour: await toTourDto(row, agentMap) };
 }
 
@@ -901,16 +910,10 @@ export async function requestPublicTour(
     };
   }
 
-  // Find or create contact
-  const { contactId, wasCreated: contactCreated } = await findOrCreateContact({
-    name: d.submittedName,
-    email: d.submittedEmail || null,
-    phone: d.submittedPhone || null,
-  });
-
-  // Find or create lead
+  // No Contact is created here — a tour request stays a prospect (Lead only)
+  // until staff explicitly convert it to an Opportunity.
   const { leadId, wasCreated: leadCreated } = await findOrCreateLead({
-    contactId,
+    contactId: null,
     propertyId: d.propertyId,
     agentId: assignedAgentId,
     submittedName: d.submittedName,
@@ -926,7 +929,7 @@ export async function requestPublicTour(
       submittedEmail: d.submittedEmail || null,
       submittedPhone: d.submittedPhone || null,
       submittedMessage: d.submittedMessage || null,
-      contactId,
+      contactId: null,
       propertyId: d.propertyId ?? null,
       leadId,
       assignedAgentId,
@@ -942,7 +945,7 @@ export async function requestPublicTour(
     action: "LEAD_TOUR_LINKED",
     entityType: "LEAD",
     entityId: leadId,
-    newValues: { tourId: tour.id, tourNumber, contactCreated, leadCreated },
+    newValues: { tourId: tour.id, tourNumber, leadCreated },
   });
   await logActivity({
     action: "TOUR_CREATED",
@@ -982,7 +985,8 @@ export async function requestPublicTour(
 
 export async function getMyTours(profileId: string): Promise<MyTourDto[]> {
   // Public users only see tours where their submitted email matches the profile
-  // email (identified by Supabase Auth). We join via the contact record.
+  // email (identified by Supabase Auth). Matched directly on the tour's own
+  // submitted-info snapshot — tours no longer require a linked Contact.
   const profile = await prisma.profile.findUnique({
     where: { id: profileId },
     select: { email: true },
@@ -991,7 +995,7 @@ export async function getMyTours(profileId: string): Promise<MyTourDto[]> {
 
   const rows = await prisma.tour.findMany({
     where: {
-      contact: { email: profile.email, isDeleted: false },
+      submittedEmail: { equals: profile.email, mode: "insensitive" },
     },
     orderBy: { scheduledAt: "desc" },
     include: {
@@ -1047,7 +1051,7 @@ export async function cancelMyTour(
   const tour = await prisma.tour.findFirst({
     where: {
       id: tourId,
-      contact: { email: profile.email, isDeleted: false },
+      submittedEmail: { equals: profile.email, mode: "insensitive" },
     },
     select: { id: true, status: true },
   });

@@ -2,12 +2,15 @@ import "server-only";
 
 import sgMail from "@sendgrid/mail";
 
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, APP_URL } from "@/lib/constants";
 import {
   renderInvitationEmail,
   renderMagicLinkEmail,
   renderOtpEmail,
   renderPasswordResetEmail,
+  renderTourCancelledEmail,
+  renderTourConfirmedEmail,
+  renderTourRescheduledEmail,
   renderWelcomeEmail,
 } from "@/lib/email-templates";
 
@@ -117,6 +120,59 @@ export async function sendPasswordResetEmail(params: {
     to: params.to,
     subject: `Reset your ${APP_NAME} password`,
     html: renderPasswordResetEmail(params),
+  });
+}
+
+export async function sendTourConfirmedEmail(params: {
+  to: string;
+  submittedName: string;
+  tourNumber: string;
+  scheduledAtLabel: string;
+  durationLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  agentName?: string | null;
+  confirmationNote?: string | null;
+}): Promise<SendResult> {
+  return sendEmail({
+    to: params.to,
+    subject: `Your tour is confirmed — ${APP_NAME}`,
+    html: renderTourConfirmedEmail({ ...params, ctaUrl: `${APP_URL}/profile` }),
+  });
+}
+
+export async function sendTourRescheduledEmail(params: {
+  to: string;
+  submittedName: string;
+  tourNumber: string;
+  previousScheduledAtLabel: string;
+  newScheduledAtLabel: string;
+  durationLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  agentName?: string | null;
+  rescheduleNote?: string | null;
+}): Promise<SendResult> {
+  return sendEmail({
+    to: params.to,
+    subject: `Your tour has a new time — ${APP_NAME}`,
+    html: renderTourRescheduledEmail({ ...params, ctaUrl: `${APP_URL}/profile` }),
+  });
+}
+
+export async function sendTourCancelledEmail(params: {
+  to: string;
+  submittedName: string;
+  tourNumber: string;
+  scheduledAtLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  cancellationReason?: string | null;
+}): Promise<SendResult> {
+  return sendEmail({
+    to: params.to,
+    subject: `Your tour has been cancelled — ${APP_NAME}`,
+    html: renderTourCancelledEmail({ ...params, ctaUrl: `${APP_URL}/listings` }),
   });
 }
 

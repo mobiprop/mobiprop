@@ -12,7 +12,7 @@ import {
   updateLeadSchema,
   assignLeadSchema,
   addLeadNoteSchema,
-  convertLeadSchema,
+  linkLeadConversionSchema,
   leadListFiltersSchema,
 } from "@/schemas/lead.schema";
 import type { LeadDto, LeadNoteDto, LeadActivityDto, LeadMetrics } from "./types/crm-dto";
@@ -27,13 +27,6 @@ async function nextLeadNumber(): Promise<string> {
     SELECT MAX(CAST(SUBSTRING(lead_number FROM 5) AS INTEGER)) AS max FROM leads
   `;
   return `LDR-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
-}
-
-async function nextOpportunityId(): Promise<string> {
-  const [row] = await prisma.$queryRaw<{ max: number | null }[]>`
-    SELECT MAX(CAST(SUBSTRING(opportunity_id FROM 5) AS INTEGER)) AS max FROM opportunities
-  `;
-  return `OPP-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
 }
 
 // ── Temperature suggestion ────────────────────────────────────────────────────
@@ -86,15 +79,17 @@ async function toLeadDto(l: LeadRow, agentMap?: Map<string, { id: string; fullNa
     id: l.id,
     leadNumber: l.leadNumber,
     contactId: l.contactId,
-    contact: {
-      id: l.contact.id,
-      contactId: l.contact.contactId,
-      fullName: `${l.contact.firstName} ${l.contact.lastName}`.trim(),
-      email: l.contact.email,
-      phone: l.contact.phone,
-      location: l.contact.location,
-      type: l.contact.type,
-    },
+    contact: l.contact
+      ? {
+          id: l.contact.id,
+          contactId: l.contact.contactId,
+          fullName: `${l.contact.firstName} ${l.contact.lastName}`.trim(),
+          email: l.contact.email,
+          phone: l.contact.phone,
+          location: l.contact.location,
+          type: l.contact.type,
+        }
+      : null,
     primaryListingId: l.primaryListingId,
     primaryListing: l.primaryListing
       ? {
@@ -605,58 +600,46 @@ export async function restoreLead(id: string): Promise<CrmActionResult<{ lead: L
 }
 
 // ── Convert to Opportunity ───────────────────────────────────────────────────
+//
+// The Opportunity itself is created beforehand through the standard
+// createOpportunity flow (same full form as the Opportunities page — staff add
+// the prospect as a real Contact there via its own "Add Contact" panel). This
+// just links the already-created Opportunity back onto the Lead and marks it
+// converted, so a Lead never needs a Contact of its own to get this far.
 
 export async function convertLead(id: string, body: unknown): Promise<CrmActionResult<{ lead: LeadDto; opportunityId: string }>> {
   const gate = await requirePermission("leads:convert");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
 
-  const parsed = convertLeadSchema.safeParse(body);
+  const parsed = linkLeadConversionSchema.safeParse(body);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 422 };
 
   const existing = await prisma.lead.findFirst({
     where: { id, ...leadRecordScope(gate.profile) },
-    select: { id: true, contactId: true, primaryListingId: true, assignedAgentId: true, submittedName: true, notes: true, convertedOpportunityId: true, isArchived: true },
+    select: { id: true, convertedOpportunityId: true, isArchived: true },
   });
   if (!existing) return { ok: false, error: "Lead not found", status: 404 };
   if (existing.convertedOpportunityId) return { ok: false, error: "Lead has already been converted", status: 409 };
   if (existing.isArchived) return { ok: false, error: "Cannot convert an archived lead", status: 409 };
 
-  const data = parsed.data;
-  const opportunityNumber = await nextOpportunityId();
+  const opportunity = await prisma.opportunity.findUnique({
+    where: { id: parsed.data.opportunityId },
+    select: { id: true },
+  });
+  if (!opportunity) return { ok: false, error: "Opportunity not found", status: 404 };
 
-  // Use an interactive transaction so convertedOpportunityId is set atomically
-  // with the opportunity creation — the previous array-form tx left it outside.
-  const { opportunity, lead } = await prisma.$transaction(async (tx) => {
-    const opp = await tx.opportunity.create({
-      data: {
-        opportunityId: opportunityNumber,
-        title: data.title ?? `Opportunity from ${existing.submittedName}`,
-        dealType: data.dealType ?? null,
-        dealSize: data.dealSize ?? null,
-        notes: data.notes ?? existing.notes ?? null,
-        assignedAgentId: existing.assignedAgentId ?? null,
-        createdById: gate.profile.id,
-        // A converted Lead's contact is the prospective buyer by definition.
-        participants: { create: [{ role: "BUYER", contactId: existing.contactId }] },
-        ...(existing.primaryListingId
-          ? { listings: { create: [{ propertyId: existing.primaryListingId }] } }
-          : {}),
-      },
-    });
-    const l = await tx.lead.update({
-      where: { id },
-      data: {
-        lifecycleStatus: LeadLifecycleStatus.CONVERTED,
-        convertedAt: new Date(),
-        convertedOpportunityId: opp.id,
-      },
-      include: leadInclude,
-    });
-    return { opportunity: opp, lead: l };
+  const lead = await prisma.lead.update({
+    where: { id },
+    data: {
+      lifecycleStatus: LeadLifecycleStatus.CONVERTED,
+      convertedAt: new Date(),
+      convertedOpportunityId: opportunity.id,
+    },
+    include: leadInclude,
   });
 
   await Promise.all([
-    prisma.leadActivity.create({ data: { leadId: id, actorId: gate.profile.id, type: "LEAD_CONVERTED", metadata: { opportunityId: opportunity.id, opportunityNumber } as Prisma.InputJsonValue } }),
+    prisma.leadActivity.create({ data: { leadId: id, actorId: gate.profile.id, type: "LEAD_CONVERTED", metadata: { opportunityId: opportunity.id } as Prisma.InputJsonValue } }),
     logActivity({ actorId: gate.profile.id, action: "LEAD_CONVERTED", entityType: "LEAD", entityId: id, newValues: { opportunityId: opportunity.id } }),
   ]);
 

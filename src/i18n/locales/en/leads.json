@@ -180,13 +180,9 @@
       "addNote": "Add Note"
     },
     "convertModal": {
-      "title": "Convert to Opportunity",
       "defaultTitle": "Opportunity from {{name}}",
-      "opportunityTitle": "Opportunity Title",
-      "notes": "Notes",
-      "cancel": "Cancel",
-      "convert": "Convert",
-      "convertError": "Failed to convert"
+      "convertError": "Failed to convert",
+      "linkFailed": "Opportunity created, but the lead couldn't be marked as converted. Link it manually from the lead."
     }
   },
   "addModal": {

@@ -242,7 +242,7 @@ body {
   letter-spacing: -0.16px;
 }
 .blog-article h2 {
-  font-family: "Poppins, sans-serif";
+  font-family: "Poppins", sans-serif;
   font-size: 28px;
   font-weight: 600;
   line-height: 36px;
@@ -251,7 +251,7 @@ body {
   margin: 1.2em 0 0.5em;
 }
 .blog-article h3 {
-  font-family: "Poppins, sans-serif";
+  font-family: "Poppins", sans-serif;
   font-size: 22px;
   font-weight: 600;
   line-height: 30px;

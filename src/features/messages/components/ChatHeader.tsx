@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Archive, ArchiveRestore, ArrowLeft, Star, Trash2 } from "lucide-react";
 
 import type { ConversationSummaryDto } from "@/features/messages/types/message-dto";
@@ -21,6 +22,7 @@ export function ChatHeader({
   onToggleArchive: () => void;
   onRequestDelete: () => void;
 }) {
+  const { t } = useTranslation("messages");
   return (
     <div
       className="
@@ -37,7 +39,7 @@ export function ChatHeader({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Back to conversation list"
+          aria-label={t("chatHeader.backAria")}
           className="
             flex size-9 shrink-0
             items-center justify-center
@@ -69,7 +71,7 @@ export function ChatHeader({
             className="truncate text-[13px] font-semibold leading-5 tracking-[-0.13px] text-[#0d2138] sm:text-[14.5px] sm:tracking-[-0.14px]"
             style={mont}
           >
-            {conversation.otherUser.fullName ?? "Unnamed"}
+            {conversation.otherUser.fullName ?? t("chatHeader.unnamed")}
           </p>
 
           <p
@@ -79,7 +81,7 @@ export function ChatHeader({
             style={mont}
           >
             <span className={`size-1.5 shrink-0 rounded-full ${isOnline ? "bg-[#00c950]" : "bg-[#d1d5dc]"}`} aria-hidden="true" />
-            <span role="status">{isOnline ? "Online" : "Offline"}</span>
+            <span role="status">{isOnline ? t("chatHeader.online") : t("chatHeader.offline")}</span>
           </p>
         </div>
       </div>
@@ -88,17 +90,17 @@ export function ChatHeader({
       <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
         <IconButton
           icon={<Star size={19} fill={conversation.isStarred ? "#f59e0b" : "none"} />}
-          label={conversation.isStarred ? "Unstar conversation" : "Star conversation"}
+          label={conversation.isStarred ? t("chatHeader.unstar") : t("chatHeader.star")}
           onClick={onToggleStar}
           tone="star"
           active={conversation.isStarred}
         />
         <IconButton
           icon={conversation.isArchived ? <ArchiveRestore size={19} /> : <Archive size={19} />}
-          label={conversation.isArchived ? "Restore to inbox" : "Archive conversation"}
+          label={conversation.isArchived ? t("chatHeader.restore") : t("chatHeader.archive")}
           onClick={onToggleArchive}
         />
-        <IconButton icon={<Trash2 size={19} />} label="Delete conversation" onClick={onRequestDelete} tone="danger" />
+        <IconButton icon={<Trash2 size={19} />} label={t("chatHeader.delete")} onClick={onRequestDelete} tone="danger" />
       </div>
     </div>
   );

@@ -1,0 +1,97 @@
+{
+  "page": {
+    "title": "Messages",
+    "subtitle": "Communicate with your team",
+    "sendFailed": "Failed to send. Please try again.",
+    "otherStaffFallback": "this staff member"
+  },
+  "emptyChat": {
+    "selectConversation": "Select a conversation",
+    "selectConversationHint": "Pick someone from your inbox on the left, or start a new conversation.",
+    "sayHello": "Say hello",
+    "sayHelloHint": "No messages yet — send the first one to get things started."
+  },
+  "deleteConversationModal": {
+    "title": "Delete conversation",
+    "body": "Your conversation with {{name}} will be removed from your inbox. {{name}} will still see the full conversation on their side — this only deletes it for you, and it isn't permanent: messaging them again brings the history back.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…"
+  },
+  "sidebar": {
+    "archived": "Archived",
+    "inbox": "Inbox",
+    "chatsCount_one": "{{count}} chat",
+    "chatsCount_other": "{{count}} chats",
+    "searchPlaceholder": "Search messages...",
+    "searchAria": "Search conversations",
+    "closePickerAria": "Close new conversation picker",
+    "startNewAria": "Start new conversation",
+    "startNewTitle": "Start new conversation",
+    "viewArchived": "View archived",
+    "backToInbox": "Back to inbox",
+    "noStaffFound": "No other staff members found",
+    "unnamed": "Unnamed",
+    "noMatches": "No matches",
+    "noMatchesHint": "Try a different name.",
+    "noArchivedChats": "No archived chats",
+    "archivedHint": "Anything you archive shows up here.",
+    "noConversations": "No conversations yet",
+    "noConversationsHint": "Start one with the + button above."
+  },
+  "conversationItem": {
+    "openAria": "Open conversation with {{name}}",
+    "openAriaUnread": "Open conversation with {{name}}, {{count}} unread",
+    "unnamed": "Unnamed",
+    "noMessagesYet": "No messages yet",
+    "starredAria": "Starred"
+  },
+  "chatHeader": {
+    "backAria": "Back to conversation list",
+    "online": "Online",
+    "offline": "Offline",
+    "unstar": "Unstar conversation",
+    "star": "Star conversation",
+    "restore": "Restore to inbox",
+    "archive": "Archive conversation",
+    "delete": "Delete conversation",
+    "unnamed": "Unnamed"
+  },
+  "attachmentCard": {
+    "viewImageAria": "View image {{name}}",
+    "downloadAria": "Download {{name}}",
+    "downloadTitle": "Download",
+    "previewAria": "Preview {{name}}",
+    "openInNewTabAria": "Open {{name}} in a new tab"
+  },
+  "messageBubble": {
+    "copied": "Copied",
+    "copyAria": "Copy message text",
+    "deleteAria": "Delete this message"
+  },
+  "attachmentPreview": {
+    "dialogAria": "{{name}} — attachment {{index}} of {{total}}",
+    "downloadAria": "Download attachment",
+    "closeAria": "Close preview",
+    "prevAria": "Previous attachment",
+    "nextAria": "Next attachment",
+    "noPreview": "No in-browser preview for this file type.",
+    "openInNewTab": "Open in new tab"
+  },
+  "composer": {
+    "offlineNotice": "You're offline — messages will fail to send until your connection is back.",
+    "attachFileAria": "Attach a file",
+    "attachImageAria": "Attach an image",
+    "messagePlaceholder": "Type your message...",
+    "messageAria": "Message",
+    "sendAria": "Send message",
+    "sending": "Sending…",
+    "send": "Send",
+    "uploading": "Uploading…",
+    "removeAria": "Remove {{name}}",
+    "removeTitle": "Remove attachment"
+  },
+  "presenceAvatar": {
+    "avatarAlt": "Avatar"
+  }
+}

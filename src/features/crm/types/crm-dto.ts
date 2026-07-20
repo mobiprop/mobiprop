@@ -142,8 +142,8 @@ export type LeadContactDto = {
 export type LeadDto = {
   id: string;
   leadNumber: string;
-  contactId: string;
-  contact: LeadContactDto;
+  contactId: string | null;
+  contact: LeadContactDto | null;
   primaryListingId: string | null;
   primaryListing: LeadListingSnapshotDto | null;
   assignedAgentId: string | null;
@@ -237,8 +237,8 @@ export type TourDto = {
   submittedEmail: string | null;
   submittedPhone: string | null;
   submittedMessage: string | null;
-  contactId: string;
-  contact: TourContactDto;
+  contactId: string | null;
+  contact: TourContactDto | null;
   propertyId: string | null;
   property: TourListingDto | null;
   leadId: string | null;

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { colorForId, initialsFor } from "@/features/messages/lib/format";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -13,12 +15,13 @@ export function Avatar({
   avatarUrl?: string | null;
   size?: number;
 }) {
+  const { t } = useTranslation("messages");
   if (avatarUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={avatarUrl}
-        alt={fullName ?? "Avatar"}
+        alt={fullName ?? t("presenceAvatar.avatarAlt")}
         className="shrink-0 rounded-full object-cover"
         style={{ width: size, height: size }}
       />

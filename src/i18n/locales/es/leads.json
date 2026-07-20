@@ -180,13 +180,9 @@
       "addNote": "Agregar Nota"
     },
     "convertModal": {
-      "title": "Convertir a Oportunidad",
       "defaultTitle": "Oportunidad de {{name}}",
-      "opportunityTitle": "Título de la Oportunidad",
-      "notes": "Notas",
-      "cancel": "Cancelar",
-      "convert": "Convertir",
-      "convertError": "Error al convertir"
+      "convertError": "Error al convertir",
+      "linkFailed": "La oportunidad se creó, pero el prospecto no pudo marcarse como convertido. Enlázalo manualmente desde el prospecto."
     }
   },
   "addModal": {

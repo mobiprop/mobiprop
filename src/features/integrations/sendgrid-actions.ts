@@ -492,10 +492,11 @@ async function upsertRecipientAndMemberships(params: {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
+  location?: string | null;
   source: string;
   crmContactId?: string | null;
   listDbId: string;
-  actorId: string;
+  actorId: string | null;
   updateExisting: boolean;
 }): Promise<{ recipientId: string; existed: boolean }> {
   const email = normalizeEmail(params.email);
@@ -511,6 +512,7 @@ async function upsertRecipientAndMemberships(params: {
           firstName: params.firstName ?? existing.firstName,
           lastName: params.lastName ?? existing.lastName,
           phone: params.phone ?? existing.phone,
+          location: params.location ?? existing.location,
           crmContactId: params.crmContactId ?? existing.crmContactId,
         },
       });
@@ -522,6 +524,7 @@ async function upsertRecipientAndMemberships(params: {
         firstName: params.firstName?.trim() || null,
         lastName: params.lastName?.trim() || null,
         phone: params.phone?.trim() || null,
+        location: params.location?.trim() || null,
         source: params.source,
         crmContactId: params.crmContactId ?? null,
       },
@@ -641,6 +644,67 @@ export async function removeMember(
     entityId: listDbId,
     oldValues: { recipientId },
   });
+  return { ok: true };
+}
+
+// ── Public website newsletter signup ────────────────────────────────────────
+// Unauthenticated: the public site's footer "Subscribe" form. No staff
+// permission gate — anyone can submit it, same as a contact form. Members
+// land in a dedicated "Website Subscribers" list (created on first use)
+// alongside the "All Contacts" master list, same as any other signup source.
+
+const WEBSITE_SUBSCRIBERS_LIST_NAME = "Website Subscribers";
+
+async function getOrCreateWebsiteSubscribersList(): Promise<string> {
+  const existing = await prisma.emailList.findFirst({
+    where: { name: WEBSITE_SUBSCRIBERS_LIST_NAME },
+    select: { id: true },
+  });
+  if (existing) return existing.id;
+
+  const list = await prisma.emailList.create({
+    data: {
+      listId: await nextListId(),
+      name: WEBSITE_SUBSCRIBERS_LIST_NAME,
+      description: "People who signed up from the public website's newsletter form.",
+    },
+  });
+  return list.id;
+}
+
+export async function subscribeToWebsiteNewsletter(input: {
+  name: string;
+  email: string;
+  phone?: string;
+  location?: string;
+}): Promise<ActionResult<object>> {
+  const name = input.name?.trim();
+  if (!name) return fail(400, "Name is required.");
+
+  const email = normalizeEmail(input.email ?? "");
+  if (!EMAIL_RE.test(email)) return fail(400, "Enter a valid email address.");
+
+  const listDbId = await getOrCreateWebsiteSubscribersList();
+
+  await upsertRecipientAndMemberships({
+    email,
+    firstName: name,
+    phone: input.phone,
+    location: input.location,
+    source: "website-footer",
+    listDbId,
+    actorId: null,
+    updateExisting: true,
+  });
+
+  await logActivity({
+    actorId: null,
+    action: "EMAIL_LIST_MEMBER_ADDED",
+    entityType: "EMAIL_LIST",
+    entityId: listDbId,
+    newValues: { email, via: "website-footer" },
+  });
+
   return { ok: true };
 }
 

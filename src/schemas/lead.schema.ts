@@ -88,14 +88,14 @@ export const addLeadNoteSchema = z.object({
 
 export type AddLeadNoteInput = z.infer<typeof addLeadNoteSchema>;
 
-export const convertLeadSchema = z.object({
-  title: z.string().min(1).max(300).optional(),
-  dealType: z.string().max(50).optional(),
-  dealSize: z.coerce.number().min(0).optional(),
-  notes: z.string().max(2000).optional(),
+// The Opportunity is created separately (via the standard createOpportunity
+// flow — same full form used on the Opportunities page); this just links the
+// already-created Opportunity back onto the Lead.
+export const linkLeadConversionSchema = z.object({
+  opportunityId: z.string().min(1),
 });
 
-export type ConvertLeadInput = z.infer<typeof convertLeadSchema>;
+export type LinkLeadConversionInput = z.infer<typeof linkLeadConversionSchema>;
 
 export const leadListFiltersSchema = z.object({
   search: z.string().optional(),

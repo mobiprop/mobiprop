@@ -264,13 +264,13 @@ export function ContractSourcePicker({
             )}
           </div>
 
-          {/* Signers */}
+          {/* Signers / associated participants */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-medium text-[#1f2937]" style={mont}>
-              {source === "TEMPLATE" ? t("contractSourcePicker.signer") : t("contractSourcePicker.signers")}
+              {source === "TEMPLATE" ? t("contractSourcePicker.signer") : t("contractSourcePicker.associatedParticipants")}
             </label>
             <p className="text-[11px] text-[#9ca3af]" style={mont}>
-              {source === "TEMPLATE" ? t("contractSourcePicker.signerHintTemplate") : t("contractSourcePicker.signerHintMultiple")}
+              {source === "TEMPLATE" ? t("contractSourcePicker.signerHintTemplate") : t("contractSourcePicker.signerHintCustomUpload")}
             </p>
 
             {eligibleParticipants.length === 0 ? (
@@ -328,7 +328,9 @@ export function ContractSourcePicker({
                   ? source === "TEMPLATE"
                     ? t("contractSourcePicker.incompleteNoDocumentTemplate")
                     : t("contractSourcePicker.incompleteNoDocumentUpload")
-                  : t("contractSourcePicker.incompleteNoSigner")}
+                  : source === "TEMPLATE"
+                    ? t("contractSourcePicker.incompleteNoSigner")
+                    : t("contractSourcePicker.incompleteNoParticipantUpload")}
               </p>
             </div>
           )}
@@ -338,7 +340,10 @@ export function ContractSourcePicker({
             <div className="flex flex-col divide-y divide-[#e5e7eb] rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc]">
               {[
                 [t("contractSourcePicker.reviewDocument"), documentName],
-                [t("contractSourcePicker.reviewSigners"), signerNames.join(", ")],
+                [
+                  source === "TEMPLATE" ? t("contractSourcePicker.reviewSigners") : t("contractSourcePicker.associatedParticipants"),
+                  signerNames.join(", "),
+                ],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-4 px-4 py-2.5">
                   <span className="shrink-0 text-[12px] text-[#6a7282]" style={mont}>{label}</span>

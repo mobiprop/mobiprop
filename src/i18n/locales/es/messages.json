@@ -1,0 +1,97 @@
+{
+  "page": {
+    "title": "Mensajes",
+    "subtitle": "Comunícate con tu equipo",
+    "sendFailed": "No se pudo enviar. Intenta de nuevo.",
+    "otherStaffFallback": "este miembro del equipo"
+  },
+  "emptyChat": {
+    "selectConversation": "Selecciona una conversación",
+    "selectConversationHint": "Elige a alguien de tu bandeja a la izquierda, o inicia una nueva conversación.",
+    "sayHello": "Saluda",
+    "sayHelloHint": "Aún no hay mensajes — envía el primero para comenzar."
+  },
+  "deleteConversationModal": {
+    "title": "Eliminar conversación",
+    "body": "Tu conversación con {{name}} se eliminará de tu bandeja. {{name}} seguirá viendo la conversación completa de su lado — esto solo la elimina para ti, y no es permanente: volver a escribirle recupera el historial.",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "deleting": "Eliminando…"
+  },
+  "sidebar": {
+    "archived": "Archivadas",
+    "inbox": "Bandeja",
+    "chatsCount_one": "{{count}} chat",
+    "chatsCount_other": "{{count}} chats",
+    "searchPlaceholder": "Buscar mensajes...",
+    "searchAria": "Buscar conversaciones",
+    "closePickerAria": "Cerrar selector de nueva conversación",
+    "startNewAria": "Iniciar nueva conversación",
+    "startNewTitle": "Iniciar nueva conversación",
+    "viewArchived": "Ver archivadas",
+    "backToInbox": "Volver a la bandeja",
+    "noStaffFound": "No se encontraron otros miembros del equipo",
+    "unnamed": "Sin nombre",
+    "noMatches": "Sin coincidencias",
+    "noMatchesHint": "Intenta con otro nombre.",
+    "noArchivedChats": "No hay chats archivados",
+    "archivedHint": "Todo lo que archives aparecerá aquí.",
+    "noConversations": "Aún no hay conversaciones",
+    "noConversationsHint": "Inicia una con el botón + de arriba."
+  },
+  "conversationItem": {
+    "openAria": "Abrir conversación con {{name}}",
+    "openAriaUnread": "Abrir conversación con {{name}}, {{count}} sin leer",
+    "unnamed": "Sin nombre",
+    "noMessagesYet": "Aún no hay mensajes",
+    "starredAria": "Destacada"
+  },
+  "chatHeader": {
+    "backAria": "Volver a la lista de conversaciones",
+    "online": "En línea",
+    "offline": "Desconectado",
+    "unstar": "Quitar destacado",
+    "star": "Destacar conversación",
+    "restore": "Restaurar a la bandeja",
+    "archive": "Archivar conversación",
+    "delete": "Eliminar conversación",
+    "unnamed": "Sin nombre"
+  },
+  "attachmentCard": {
+    "viewImageAria": "Ver imagen {{name}}",
+    "downloadAria": "Descargar {{name}}",
+    "downloadTitle": "Descargar",
+    "previewAria": "Vista previa de {{name}}",
+    "openInNewTabAria": "Abrir {{name}} en una nueva pestaña"
+  },
+  "messageBubble": {
+    "copied": "Copiado",
+    "copyAria": "Copiar texto del mensaje",
+    "deleteAria": "Eliminar este mensaje"
+  },
+  "attachmentPreview": {
+    "dialogAria": "{{name}} — archivo adjunto {{index}} de {{total}}",
+    "downloadAria": "Descargar archivo adjunto",
+    "closeAria": "Cerrar vista previa",
+    "prevAria": "Archivo adjunto anterior",
+    "nextAria": "Siguiente archivo adjunto",
+    "noPreview": "No hay vista previa disponible para este tipo de archivo.",
+    "openInNewTab": "Abrir en una nueva pestaña"
+  },
+  "composer": {
+    "offlineNotice": "Estás sin conexión — los mensajes no se podrán enviar hasta que vuelva la conexión.",
+    "attachFileAria": "Adjuntar un archivo",
+    "attachImageAria": "Adjuntar una imagen",
+    "messagePlaceholder": "Escribe tu mensaje...",
+    "messageAria": "Mensaje",
+    "sendAria": "Enviar mensaje",
+    "sending": "Enviando…",
+    "send": "Enviar",
+    "uploading": "Subiendo…",
+    "removeAria": "Quitar {{name}}",
+    "removeTitle": "Quitar archivo adjunto"
+  },
+  "presenceAvatar": {
+    "avatarAlt": "Avatar"
+  }
+}

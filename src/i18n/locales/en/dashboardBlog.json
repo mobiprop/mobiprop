@@ -43,7 +43,13 @@
       "edit": "Edit",
       "delete": "Delete"
     },
-    "deleteConfirm": "Delete \"{{title}}\"? This cannot be undone.",
+    "deleteModal": {
+      "title": "Delete Post",
+      "body": "\"{{title}}\" will be permanently deleted. This cannot be undone.",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleting": "Deleting…"
+    },
     "toasts": {
       "postUpdated": "Post updated",
       "updateFailed": "Failed to update post",

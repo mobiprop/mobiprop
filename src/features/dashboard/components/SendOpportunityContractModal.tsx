@@ -5,7 +5,7 @@ import { X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-import { useSendForSignatureMutation } from "@/hooks/mutations/useDocusignMutations";
+import { useSendForSignatureMutation, useAttachSignedContractMutation } from "@/hooks/mutations/useDocusignMutations";
 import { uploadDocusignDocument } from "@/lib/client-upload";
 import type { DocusignTemplateSummary } from "@/lib/docusign";
 import { ContractSourcePicker, type ContractParticipantOption, type ContractSelection } from "./ContractSourcePicker";
@@ -51,6 +51,7 @@ export function SendOpportunityContractModal({
   const [submitting, setSubmitting] = useState(false);
 
   const sendMutation = useSendForSignatureMutation();
+  const attachMutation = useAttachSignedContractMutation();
 
   async function handleSend() {
     if (!selection || submitting) return;
@@ -66,23 +67,32 @@ export function SendOpportunityContractModal({
           propertyReference: propertyReference ?? undefined,
           opportunityId,
         });
+        toast.success(t("sendContractModal.toasts.sent"));
       } else {
         // Upload only now, at send time — cancelling earlier leaves no file behind.
+        // A custom upload is assumed already signed outside the system, so it's
+        // just attached as a completed contract — no DocuSign envelope, no
+        // signature request, no emails.
         const uploaded = await uploadDocusignDocument(selection.file);
-        await sendMutation.mutateAsync({
-          source: "CUSTOM_UPLOAD",
+        await attachMutation.mutateAsync({
           documentStoragePath: uploaded.storagePath,
           documentFileName: uploaded.fileName,
           recipients: selection.recipients,
           propertyReference: propertyReference ?? undefined,
           opportunityId,
         });
+        toast.success(t("sendContractModal.toasts.attached"));
       }
-      toast.success(t("sendContractModal.toasts.sent"));
       onSent();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("sendContractModal.toasts.sendFailed"));
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : selection.source === "TEMPLATE"
+            ? t("sendContractModal.toasts.sendFailed")
+            : t("sendContractModal.toasts.attachFailed"),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +158,13 @@ export function SendOpportunityContractModal({
             className="h-10 px-5 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60"
             style={mont}
           >
-            {submitting ? t("sendContractModal.sending") : t("sendContractModal.send")}
+            {selection?.source === "CUSTOM_UPLOAD"
+              ? submitting
+                ? t("sendContractModal.attaching")
+                : t("sendContractModal.attach")
+              : submitting
+                ? t("sendContractModal.sending")
+                : t("sendContractModal.send")}
           </button>
         </div>
       </div>

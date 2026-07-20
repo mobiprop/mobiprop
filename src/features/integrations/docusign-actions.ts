@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "crypto";
+
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { EnvelopeStatus, EnvelopeSource, EnvelopeRecipientRole } from "@/generated/prisma/enums";
@@ -461,6 +463,98 @@ export async function sendCustomContractForSignature(
   });
 
   void notifyEnvelopeSent({
+    envelopeId: envelope.id,
+    templateName: envelope.templateName,
+    recipientName: envelope.recipientName,
+    assignedAgentId: envelopeOwnerId(envelope),
+    actorId: gate.profile.id,
+  });
+
+  const agentMap = await buildAgentMap([envelope.sentById]);
+  return { ok: true, envelope: toEnvelopeDto(envelope, agentMap) };
+}
+
+// ── Attach already-signed contract ──────────────────────────────────────────
+// A custom upload is assumed to be a document that was already signed outside
+// the system (e.g. a scanned physical contract) — unlike
+// sendCustomContractForSignature, this never touches the DocuSign API, sends
+// no signature request, and requires no DocuSign configuration. The envelope
+// row is created directly as COMPLETED so it shows up alongside real
+// DocuSign envelopes in "My Contracts" / the Opportunity's document list.
+
+export type AttachSignedContractInput = {
+  documentStoragePath: string;
+  documentFileName: string;
+  recipients: CustomContractRecipientInput[];
+  propertyReference?: string;
+  opportunityId?: string;
+};
+
+export async function attachSignedContract(
+  input: AttachSignedContractInput,
+): Promise<ActionResult<{ envelope: DocusignEnvelopeDto }>> {
+  const gate = await requirePermission("docusign:send");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  if (input.opportunityId) {
+    const accessError = await assertOpportunityAccess(input.opportunityId, gate.profile);
+    if (accessError) return accessError;
+  }
+
+  const recipients = input.recipients
+    .map((r) => ({ ...r, name: r.name.trim(), email: r.email.trim(), roleLabel: r.roleLabel?.trim() || undefined }))
+    .filter((r) => r.name && r.email);
+  if (recipients.length === 0) {
+    return { ok: false, error: "At least one participant is required.", status: 400 };
+  }
+
+  if (!input.documentStoragePath || !input.documentFileName) {
+    return { ok: false, error: "An uploaded document is required.", status: 400 };
+  }
+  let uploaded;
+  try {
+    uploaded = await readUploadedDocusignDocument(input.documentStoragePath);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Failed to read the uploaded document.", status: 400 };
+  }
+
+  const now = new Date();
+  const primary = recipients[0];
+
+  const envelope = await prisma.docusignEnvelope.create({
+    data: {
+      docusignEnvelopeId: `local-${randomUUID()}`,
+      source: EnvelopeSource.CUSTOM_UPLOAD,
+      templateId: null,
+      templateName: input.documentFileName,
+      documentFileName: input.documentFileName,
+      documentStoragePath: input.documentStoragePath,
+      documentUrl: uploaded.url,
+      documentMimeType: uploaded.mimeType,
+      status: EnvelopeStatus.COMPLETED,
+      recipientName: primary.name,
+      recipientEmail: primary.email,
+      propertyReference: input.propertyReference || null,
+      opportunityId: input.opportunityId || null,
+      sentById: gate.profile.id,
+      sentAt: now,
+      completedAt: now,
+      recipients: {
+        create: recipients.map((r) => ({ name: r.name, email: r.email, role: r.role, roleLabel: r.roleLabel ?? null })),
+      },
+    },
+    include: envelopeInclude,
+  });
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "DOCUSIGN_ENVELOPE_SENT",
+    entityType: "DOCUSIGN_ENVELOPE",
+    entityId: envelope.id,
+    newValues: { documentFileName: envelope.documentFileName, recipientCount: recipients.length, alreadySigned: true },
+  });
+
+  void notifyEnvelopeCompleted({
     envelopeId: envelope.id,
     templateName: envelope.templateName,
     recipientName: envelope.recipientName,

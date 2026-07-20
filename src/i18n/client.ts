@@ -31,6 +31,7 @@ import enSendgrid from "./locales/en/sendgrid.json";
 import enIntegrations from "./locales/en/integrations.json";
 import enLocations from "./locales/en/locations.json";
 import enDashboardBlog from "./locales/en/dashboardBlog.json";
+import enMessages from "./locales/en/messages.json";
 
 import esCommon from "./locales/es/common.json";
 import esNavigation from "./locales/es/navigation.json";
@@ -60,6 +61,7 @@ import esSendgrid from "./locales/es/sendgrid.json";
 import esIntegrations from "./locales/es/integrations.json";
 import esLocations from "./locales/es/locations.json";
 import esDashboardBlog from "./locales/es/dashboardBlog.json";
+import esMessages from "./locales/es/messages.json";
 
 const resources = {
   en: {
@@ -91,6 +93,7 @@ const resources = {
     integrations: enIntegrations,
     locations: enLocations,
     dashboardBlog: enDashboardBlog,
+    messages: enMessages,
   },
   es: {
     common: esCommon,
@@ -121,6 +124,7 @@ const resources = {
     integrations: esIntegrations,
     locations: esLocations,
     dashboardBlog: esDashboardBlog,
+    messages: esMessages,
   },
 };
 
@@ -129,7 +133,7 @@ if (!i18next.isInitialized) {
     resources,
     lng: DEFAULT_LANGUAGE,
     fallbackLng: "es",
-    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth", "agents", "contacts", "dashboardListings", "leads", "opportunities", "docusign", "sendgrid", "integrations", "locations", "dashboardBlog"],
+    ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth", "agents", "contacts", "dashboardListings", "leads", "opportunities", "docusign", "sendgrid", "integrations", "locations", "dashboardBlog", "messages"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     returnEmptyString: false,

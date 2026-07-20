@@ -359,6 +359,178 @@ export function renderWelcomeEmail(params: { name?: string; ctaUrl?: string }): 
 }
 
 /* ------------------------------------------------------------------ */
+/* Tour confirmed — same brand shell as the auth emails above           */
+/* ------------------------------------------------------------------ */
+
+function detailRow(label: string, value: string, isLast: boolean): string {
+  return `<tr>
+    <td style="padding:14px 20px;${isLast ? "" : `border-bottom:1px solid ${BRAND.cardBorder};`}">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:${FONT};font-size:13px;color:${BRAND.muted};width:110px;" valign="top">${label}</td>
+        <td style="font-family:${FONT};font-size:14px;font-weight:600;color:${BRAND.text};">${value}</td>
+      </tr></table>
+    </td>
+  </tr>`;
+}
+
+function detailCard(rows: Array<[string, string]>): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;overflow:hidden;">
+    ${rows.map(([label, value], i) => detailRow(label, value, i === rows.length - 1)).join("")}
+  </table>`;
+}
+
+function agentNoteBox(label: string, note: string): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;"><tr>
+      <td style="background-color:#ffffff;border:1px solid ${BRAND.cardBorder};border-radius:12px;padding:16px 20px;font-family:${FONT};font-size:13px;color:${BRAND.text};line-height:1.6;">
+        <span style="color:${BRAND.link};font-weight:600;">${label}:</span> ${note}
+      </td>
+    </tr></table>`;
+}
+
+export function renderTourConfirmedEmail(params: {
+  submittedName: string;
+  tourNumber: string;
+  /** Pre-formatted, e.g. "Monday, July 20, 2026 at 6:00 PM". */
+  scheduledAtLabel: string;
+  /** Pre-formatted, e.g. "1 hour". */
+  durationLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  agentName?: string | null;
+  confirmationNote?: string | null;
+  /** "My Tours" (profile page) URL. */
+  ctaUrl: string;
+}): string {
+  const { submittedName, tourNumber, scheduledAtLabel, durationLabel, propertyTitle, propertyLocation, agentName, confirmationNote, ctaUrl } = params;
+
+  const rows: Array<[string, string]> = [
+    ...(propertyTitle ? [["Property", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
+    ["Date & Time", scheduledAtLabel],
+    ["Duration", durationLabel],
+    ...(agentName ? [["Agent", agentName] as [string, string]] : []),
+    ["Reference", tourNumber],
+  ];
+
+  const card = detailCard(rows);
+  const note = confirmationNote ? agentNoteBox("Note from your agent", confirmationNote) : "";
+
+  const body = `
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hi <strong>${submittedName}</strong>, your property tour has been confirmed. Here are the details:</div>
+    ${card}
+    ${note}
+    ${button("View My Tours", ctaUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Need to reschedule or cancel? You can manage this tour from your account.</div>`;
+
+  return layout({
+    preheader: `Your tour${propertyTitle ? ` for ${propertyTitle}` : ""} is confirmed`,
+    hero: {
+      icon: "icon-check.png",
+      eyebrow: "Tour confirmed",
+      title: "Your Tour is Confirmed!",
+      subtitle: `We'll see you on <strong style="color:#ffffff;">${scheduledAtLabel}</strong>.`,
+    },
+    bodyHtml: body,
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Tour rescheduled                                                     */
+/* ------------------------------------------------------------------ */
+
+export function renderTourRescheduledEmail(params: {
+  submittedName: string;
+  tourNumber: string;
+  /** Pre-formatted previous date/time. */
+  previousScheduledAtLabel: string;
+  /** Pre-formatted new date/time. */
+  newScheduledAtLabel: string;
+  durationLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  agentName?: string | null;
+  rescheduleNote?: string | null;
+  ctaUrl: string;
+}): string {
+  const {
+    submittedName, tourNumber, previousScheduledAtLabel, newScheduledAtLabel, durationLabel,
+    propertyTitle, propertyLocation, agentName, rescheduleNote, ctaUrl,
+  } = params;
+
+  const rows: Array<[string, string]> = [
+    ...(propertyTitle ? [["Property", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
+    ["Previous Time", `<span style="text-decoration:line-through;color:${BRAND.faint};font-weight:400;">${previousScheduledAtLabel}</span>`],
+    ["New Date & Time", newScheduledAtLabel],
+    ["Duration", durationLabel],
+    ...(agentName ? [["Agent", agentName] as [string, string]] : []),
+    ["Reference", tourNumber],
+  ];
+
+  const note = rescheduleNote ? agentNoteBox("Note from your agent", rescheduleNote) : "";
+
+  const body = `
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hi <strong>${submittedName}</strong>, your property tour has been rescheduled. Here are the updated details:</div>
+    ${detailCard(rows)}
+    ${note}
+    ${button("View My Tours", ctaUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Can't make the new time? You can manage this tour from your account.</div>`;
+
+  return layout({
+    preheader: `Your tour${propertyTitle ? ` for ${propertyTitle}` : ""} has been rescheduled`,
+    hero: {
+      icon: "icon-check.png",
+      eyebrow: "Tour rescheduled",
+      title: "Your Tour Has a New Time",
+      subtitle: `We'll see you on <strong style="color:#ffffff;">${newScheduledAtLabel}</strong>.`,
+    },
+    bodyHtml: body,
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Tour cancelled                                                       */
+/* ------------------------------------------------------------------ */
+
+export function renderTourCancelledEmail(params: {
+  submittedName: string;
+  tourNumber: string;
+  /** Pre-formatted date/time of the cancelled tour. */
+  scheduledAtLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  cancellationReason?: string | null;
+  /** "Browse listings" URL. */
+  ctaUrl: string;
+}): string {
+  const { submittedName, tourNumber, scheduledAtLabel, propertyTitle, propertyLocation, cancellationReason, ctaUrl } = params;
+
+  const rows: Array<[string, string]> = [
+    ...(propertyTitle ? [["Property", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
+    ["Was Scheduled For", scheduledAtLabel],
+    ["Reference", tourNumber],
+  ];
+
+  const note = cancellationReason ? agentNoteBox("Reason", cancellationReason) : "";
+
+  const body = `
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hi <strong>${submittedName}</strong>, your property tour has been cancelled.</div>
+    ${detailCard(rows)}
+    ${note}
+    ${button("Browse Properties", ctaUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Want to book another time? Visit the listing page to schedule a new tour.</div>`;
+
+  return layout({
+    preheader: `Your tour${propertyTitle ? ` for ${propertyTitle}` : ""} has been cancelled`,
+    hero: {
+      icon: "icon-shield.png",
+      eyebrow: "Tour cancelled",
+      title: "Your Tour Was Cancelled",
+      subtitle: `Your visit originally scheduled for <strong style="color:#ffffff;">${scheduledAtLabel}</strong> has been cancelled.`,
+    },
+    bodyHtml: body,
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Team invitation (restyled to the shared brand layout)               */
 /* ------------------------------------------------------------------ */
 

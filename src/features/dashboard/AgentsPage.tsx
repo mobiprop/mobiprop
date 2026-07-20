@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -81,7 +82,7 @@ function mapStatus(status: AgentDto["status"]): AgentStatus {
 function mapRole(role: AgentDto["role"], t: (key: string) => string): string {
   if (role === "ADMIN") return t("role.administrator");
   if (role === "MANAGER") return t("role.manager");
-  return t("role.propertySpecialist");
+  return t("role.agent");
 }
 
 function formatDate(iso: string): string {
@@ -172,6 +173,63 @@ function AgentActionsMenu({
   variant = "icon",
   t,
 }: AgentActionsMenuProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 160 });
+
+  // Rendered via a portal to `document.body` and positioned with `fixed`
+  // coordinates computed from the trigger button — the table/card wrappers
+  // use `overflow-hidden` for rounded corners, which clipped this menu
+  // whenever it was absolutely positioned inside them (worst near the last
+  // row, where there's no room below before the container's edge).
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    const button = buttonRef.current;
+    if (!button) return;
+
+    function updatePosition() {
+      if (!button) return;
+      const rect = button.getBoundingClientRect();
+      const menuWidth = variant === "full-width" ? rect.width : 160;
+      const menuHeight = (canEdit ? 1 : 0) * 40 + (canDelete ? 1 : 0) * 40 + 8;
+      const gap = 4;
+      const padding = 8;
+
+      let left = variant === "full-width" ? rect.left : rect.right - menuWidth;
+      let top = rect.bottom + gap;
+      if (left < padding) left = padding;
+      if (left + menuWidth > window.innerWidth - padding) left = window.innerWidth - menuWidth - padding;
+      if (top + menuHeight > window.innerHeight - padding) top = rect.top - menuHeight - gap;
+      setPosition({ top, left, width: menuWidth });
+    }
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [isOpen, variant, canEdit, canDelete]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleOutsideClick(event: MouseEvent) {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      onClose();
+    }
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, onClose]);
+
   if (!canEdit && !canDelete) {
     return (
       <span className="text-[14px] text-[#99a1af]" style={mont}>
@@ -181,8 +239,9 @@ function AgentActionsMenu({
   }
 
   return (
-    <div className="relative inline-block">
+    <>
       <button
+        ref={buttonRef}
         type="button"
         title={t("table.moreActions")}
         aria-label={t("table.moreActionsAria", { name: agent.name })}
@@ -197,14 +256,13 @@ function AgentActionsMenu({
         {variant === "full-width" && t("table.moreActionsFullWidth")}
       </button>
 
-      {isOpen && (
-        <>
-          {/* Click-outside catcher — sits behind the menu, closes it on click. */}
-          <div className="fixed inset-0 z-40" onClick={onClose} />
+      {isOpen &&
+        createPortal(
           <div
-            className={`absolute z-50 mt-1 w-40 overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg ${
-              variant === "full-width" ? "left-0 right-0" : "right-0"
-            }`}
+            ref={menuRef}
+            role="menu"
+            className="fixed z-[9999] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg"
+            style={{ top: position.top, left: position.left, width: position.width }}
           >
             {canEdit && (
               <button
@@ -228,10 +286,10 @@ function AgentActionsMenu({
                 {t("table.delete")}
               </button>
             )}
-          </div>
-        </>
-      )}
-    </div>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 

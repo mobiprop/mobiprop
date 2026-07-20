@@ -12,5 +12,12 @@ export default async function DashboardLeadDetailPage({
 }) {
   const { leadId } = await params;
   const profile = await requireDashboardAccess("leads:view");
-  return <LeadDetailPage leadId={leadId} role={profile.role} />;
+  return (
+    <LeadDetailPage
+      leadId={leadId}
+      role={profile.role}
+      currentUserId={profile.id}
+      currentUserName={profile.fullName ?? profile.email}
+    />
+  );
 }

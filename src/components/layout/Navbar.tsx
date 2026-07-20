@@ -97,7 +97,7 @@ function ProfileMenu({ user }: { user: NavUser }) {
               <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.phone}</p>
             )}
           </div>
-          <Link href="/profile" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
+          <Link href={user.canAccessDashboard ? "/dashboard/settings" : "/profile"} onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
             My Profile
           </Link>
           {user.canAccessDashboard && (
@@ -290,7 +290,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
               )}
             </div>
           </div>
-          <Link href="/profile" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>
+          <Link href={user.canAccessDashboard ? "/dashboard/settings" : "/profile"} onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>
             My Profile
           </Link>
           {user.canAccessDashboard && (

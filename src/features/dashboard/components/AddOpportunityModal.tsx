@@ -17,6 +17,7 @@ import {
   useVoidEnvelopeMutation,
   useResendEnvelopeMutation,
   useSendForSignatureMutation,
+  useAttachSignedContractMutation,
 } from "@/hooks/mutations/useDocusignMutations";
 import { uploadDocusignDocument } from "@/lib/client-upload";
 import { SearchableSelect } from "./SearchableSelect";
@@ -74,6 +75,8 @@ export type OpportunityFormValues = {
 type AddOpportunityModalProps = {
   mode?: "create" | "edit";
   initial?: OpportunityDto;
+  /** Create-mode-only defaults — ignored once `initial` is set (edit mode). Used by the Lead → Opportunity conversion flow. */
+  prefill?: OpportunityPrefill;
   onClose: () => void;
   /**
    * Saves the opportunity and resolves to the persisted record (or null on
@@ -143,9 +146,36 @@ function newListingRowKey() {
   return `listing-${listingRowKeySeq}`;
 }
 
-function listingRowsFromInitial(initial?: OpportunityDto): ListingFormRow[] {
-  if (!initial || initial.listings.length === 0) return [{ key: newListingRowKey(), propertyId: "", propertyLabel: "" }];
-  return initial.listings.map((l) => ({ key: newListingRowKey(), propertyId: l.propertyId, propertyLabel: l.propertyTitle }));
+function listingRowsFromInitial(initial?: OpportunityDto, prefill?: OpportunityPrefill): ListingFormRow[] {
+  if (initial) {
+    if (initial.listings.length === 0) return [{ key: newListingRowKey(), propertyId: "", propertyLabel: "" }];
+    return initial.listings.map((l) => ({ key: newListingRowKey(), propertyId: l.propertyId, propertyLabel: l.propertyTitle }));
+  }
+  if (prefill?.propertyId) {
+    return [{ key: newListingRowKey(), propertyId: prefill.propertyId, propertyLabel: prefill.propertyLabel ?? "" }];
+  }
+  return [{ key: newListingRowKey(), propertyId: "", propertyLabel: "" }];
+}
+
+// Seeds the modal for the Lead → Opportunity conversion flow: the prospect
+// isn't a Contact yet, so this pre-fills either the "add a new contact" panel
+// (the common case) or an already-resolved contact, and opens that panel by
+// default so staff land straight on "review & confirm this as a contact."
+export type OpportunityPrefill = {
+  title?: string;
+  assignedAgentId?: string;
+  notes?: string;
+  propertyId?: string;
+  propertyLabel?: string;
+  newContact?: { firstName: string; lastName: string; email?: string; phone?: string };
+  existingContact?: { id: string; label: string; email?: string };
+};
+
+function initialParticipantPanel(initial?: OpportunityDto, prefill?: OpportunityPrefill): "none" | "existing" | "new" {
+  if (initial) return "none";
+  if (prefill?.existingContact) return "existing";
+  if (prefill?.newContact) return "new";
+  return "none";
 }
 
 function fmtDate(iso: string) {
@@ -166,7 +196,7 @@ function fmtPreview(amount: number | null) {
   return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
-export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmit, isSaving, lockedAgent, role }: AddOpportunityModalProps) {
+export function AddOpportunityModal({ mode = "create", initial, prefill, onClose, onSubmit, isSaving, lockedAgent, role }: AddOpportunityModalProps) {
   const { t } = useTranslation("opportunities");
   const ROLE_LABELS: Record<OpportunityParticipantRole, string> = {
     BUYER: t("addModal.participantsSection.roles.BUYER"),
@@ -182,24 +212,26 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   const STAGE_OPTIONS = STAGE_VALUES.map((value) => ({ value, label: t(`dashboard:status.${value}`) }));
   const STATUS_OPTIONS = STATUS_VALUES.map((value) => ({ value, label: t(`dashboard:status.${value}`) }));
 
-  const [title, setTitle] = useState(initial?.title ?? "");
+  const [title, setTitle] = useState(initial?.title ?? prefill?.title ?? "");
   const [participants, setParticipants] = useState<ParticipantFormRow[]>(() => participantsFromInitial(initial));
   const [participantsError, setParticipantsError] = useState<string | null>(null);
-  const [participantPanel, setParticipantPanel] = useState<"none" | "existing" | "new">("none");
+  const [participantPanel, setParticipantPanel] = useState<"none" | "existing" | "new">(() =>
+    initialParticipantPanel(initial, prefill),
+  );
 
   // "Add Existing Contact as Participant" panel
   const [existingRole, setExistingRole] = useState<OpportunityParticipantRole>("BUYER");
-  const [existingContactId, setExistingContactId] = useState("");
-  const [existingContactLabel, setExistingContactLabel] = useState("");
-  const [existingContactEmail, setExistingContactEmail] = useState("");
+  const [existingContactId, setExistingContactId] = useState(!initial ? (prefill?.existingContact?.id ?? "") : "");
+  const [existingContactLabel, setExistingContactLabel] = useState(!initial ? (prefill?.existingContact?.label ?? "") : "");
+  const [existingContactEmail, setExistingContactEmail] = useState(!initial ? (prefill?.existingContact?.email ?? "") : "");
   const [existingCompanyName, setExistingCompanyName] = useState("");
   const [existingCompanyEmail, setExistingCompanyEmail] = useState("");
 
   // "Add Contact" panel
-  const [ncFirstName, setNcFirstName] = useState("");
-  const [ncLastName, setNcLastName] = useState("");
-  const [ncEmail, setNcEmail] = useState("");
-  const [ncPhone, setNcPhone] = useState("");
+  const [ncFirstName, setNcFirstName] = useState(!initial ? (prefill?.newContact?.firstName ?? "") : "");
+  const [ncLastName, setNcLastName] = useState(!initial ? (prefill?.newContact?.lastName ?? "") : "");
+  const [ncEmail, setNcEmail] = useState(!initial ? (prefill?.newContact?.email ?? "") : "");
+  const [ncPhone, setNcPhone] = useState(!initial ? (prefill?.newContact?.phone ?? "") : "");
   const [ncType, setNcType] = useState<ContactType>(ContactType.BUYER);
   const [ncAddAsParticipant, setNcAddAsParticipant] = useState(true);
   const [ncRole, setNcRole] = useState<OpportunityParticipantRole>("BUYER");
@@ -215,16 +247,16 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   const [probability, setProbability] = useState(initial?.probability ?? 50);
   const [stage, setStage] = useState<OpportunityStage>(initial?.stage ?? OpportunityStage.QUALIFICATION);
   const [expectedCloseAt, setExpectedCloseAt] = useState(initial?.expectedCloseAt?.slice(0, 10) ?? "");
-  const [listingRows, setListingRows] = useState<ListingFormRow[]>(() => listingRowsFromInitial(initial));
+  const [listingRows, setListingRows] = useState<ListingFormRow[]>(() => listingRowsFromInitial(initial, prefill));
   const [status, setStatus] = useState<OpportunityStatus>(initial?.status ?? OpportunityStatus.OPEN);
-  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? lockedAgent?.id ?? "");
+  const [assignedAgentId, setAssignedAgentId] = useState(initial?.assignedAgentId ?? prefill?.assignedAgentId ?? lockedAgent?.id ?? "");
   const [agentCommissionValue, setAgentCommissionValue] = useState(
     initial?.agentCommissionValue != null ? String(initial.agentCommissionValue) : "",
   );
   const [agentCommissionUnit, setAgentCommissionUnit] = useState<"%" | "$">(
     (initial?.agentCommissionUnit as "%" | "$") ?? "%",
   );
-  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? prefill?.notes ?? "");
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -247,6 +279,7 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
   const voidMutation = useVoidEnvelopeMutation();
   const resendMutation = useResendEnvelopeMutation();
   const sendMutation = useSendForSignatureMutation();
+  const attachSignedMutation = useAttachSignedContractMutation();
   const allEnvelopes = envelopesData?.envelopes ?? [];
   const linkedEnvelopes = initial ? allEnvelopes.filter((e) => e.opportunityId === initial.id) : [];
   const availableEnvelopes = initial ? allEnvelopes.filter((e) => !e.opportunityId) : [];
@@ -515,20 +548,23 @@ export function AddOpportunityModal({ mode = "create", initial, onClose, onSubmi
               propertyReference,
               opportunityId: saved.id,
             });
+            toast.success(t("addModal.toasts.createdAndSent"));
           } else {
+            // A custom upload is assumed already signed outside the system, so
+            // it's just attached as a completed contract — no DocuSign
+            // envelope, no signature request, no emails.
             const uploaded = await uploadDocusignDocument(contractSelection.file);
-            await sendMutation.mutateAsync({
-              source: "CUSTOM_UPLOAD",
+            await attachSignedMutation.mutateAsync({
               documentStoragePath: uploaded.storagePath,
               documentFileName: uploaded.fileName,
               recipients: contractSelection.recipients,
               propertyReference,
               opportunityId: saved.id,
             });
+            toast.success(t("addModal.toasts.createdAndAttached"));
           }
-          toast.success(t("addModal.toasts.createdAndSent"));
         } catch {
-          toast.error(t("addModal.toasts.sendFailed"));
+          toast.error(contractSelection.source === "TEMPLATE" ? t("addModal.toasts.sendFailed") : t("addModal.toasts.attachFailed"));
           onClose();
           return;
         }

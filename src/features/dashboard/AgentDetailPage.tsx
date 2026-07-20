@@ -55,7 +55,7 @@ function formatPrice(salePrice: number | null, rentPrice: number | null): string
 function mapRole(role: "ADMIN" | "MANAGER" | "AGENT", t: (key: string) => string): string {
   if (role === "ADMIN") return t("role.administrator");
   if (role === "MANAGER") return t("role.manager");
-  return t("role.propertySpecialist");
+  return t("role.agent");
 }
 
 // ── Badge components ──────────────────────────────────────────────────────────

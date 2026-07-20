@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import type { CreateLeadInput, UpdateLeadInput, AssignLeadInput, AddLeadNoteInput, ConvertLeadInput } from "@/schemas/lead.schema";
+import type { CreateLeadInput, UpdateLeadInput, AssignLeadInput, AddLeadNoteInput, LinkLeadConversionInput } from "@/schemas/lead.schema";
 
 // ── Create ────────────────────────────────────────────────────────────────────
 
@@ -139,7 +139,7 @@ export function useRestoreLeadMutation() {
 export function useConvertLeadMutation(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: ConvertLeadInput) => {
+    mutationFn: async (input: LinkLeadConversionInput) => {
       const res = await fetch(`/api/dashboard/leads/${id}/convert`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

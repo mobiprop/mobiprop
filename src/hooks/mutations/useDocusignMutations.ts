@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import type { DocusignEnvelopeDto, DocusignSettingsDto, SendForSignatureInput, SendCustomContractInput } from "@/features/integrations/docusign-actions";
+import type { DocusignEnvelopeDto, DocusignSettingsDto, SendForSignatureInput, SendCustomContractInput, AttachSignedContractInput } from "@/features/integrations/docusign-actions";
 
 type SendEnvelopeBody = ({ source: "TEMPLATE" } & SendForSignatureInput) | ({ source: "CUSTOM_UPLOAD" } & SendCustomContractInput);
 
@@ -22,6 +22,27 @@ export function useSendForSignatureMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: postSend,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.docusignEnvelopes() }),
+  });
+}
+
+async function postAttachSigned(body: AttachSignedContractInput): Promise<{ envelope: DocusignEnvelopeDto }> {
+  const res = await fetch("/api/dashboard/docusign/envelopes/attach", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to attach document");
+  return data;
+}
+
+/** Custom upload assumed already signed outside the system — attaches it as a
+ * completed contract with no DocuSign envelope, no signature request, no emails. */
+export function useAttachSignedContractMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: postAttachSigned,
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.docusignEnvelopes() }),
   });
 }

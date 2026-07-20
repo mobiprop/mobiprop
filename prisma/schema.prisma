@@ -582,8 +582,8 @@ model Tour {
   submittedPhone   String? @map("submitted_phone")
   submittedMessage String? @map("submitted_message")
 
-  contactId String  @map("contact_id")
-  contact   Contact @relation(fields: [contactId], references: [id])
+  contactId String?  @map("contact_id")
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   propertyId String?   @map("property_id")
   property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
@@ -667,8 +667,8 @@ model Lead {
   id         String @id @default(cuid())
   leadNumber String @unique @map("lead_number")
 
-  contactId String  @map("contact_id")
-  contact   Contact @relation(fields: [contactId], references: [id])
+  contactId String?  @map("contact_id")
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   primaryListingId String?   @map("primary_listing_id")
   primaryListing   Property? @relation("LeadPrimaryListing", fields: [primaryListingId], references: [id], onDelete: SetNull)
@@ -1097,6 +1097,9 @@ model EmailRecipient {
   firstName        String?              @map("first_name")
   lastName         String?              @map("last_name")
   phone            String?
+  // Free-text city/area — captured from the public website's newsletter
+  // signup form (footer "Subscribe"); not asked anywhere else.
+  location         String?
   source           String?
   status           EmailRecipientStatus @default(SUBSCRIBED)
   unsubscribedAt   DateTime?            @map("unsubscribed_at")

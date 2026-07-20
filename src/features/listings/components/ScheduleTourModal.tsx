@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useRequestTourMutation, TourConflictError } from "@/hooks/mutations/useTourMutations";
 import { CalendarPanel } from "@/features/dashboard/components/CalendarPanel";
 import { TimePanel } from "@/features/dashboard/components/TimePanel";
+import { SearchableSelect } from "@/features/dashboard/components/SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -266,18 +267,19 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
               {/* Duration */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.durationLabel")}</label>
-                <select
-                  className="h-11 px-3 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] bg-white outline-none focus:border-[#1e4f86] cursor-pointer"
-                  style={mont}
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                >
-                  <option value={30}>{t("tourModal.form.duration30")}</option>
-                  <option value={45}>{t("tourModal.form.duration45")}</option>
-                  <option value={60}>{t("tourModal.form.duration60")}</option>
-                  <option value={90}>{t("tourModal.form.duration90")}</option>
-                  <option value={120}>{t("tourModal.form.duration120")}</option>
-                </select>
+                <SearchableSelect
+                  searchable={false}
+                  value={String(duration)}
+                  onChange={(v) => setDuration(Number(v))}
+                  placeholder={t("tourModal.form.durationLabel")}
+                  options={[
+                    { value: "30", label: t("tourModal.form.duration30") },
+                    { value: "45", label: t("tourModal.form.duration45") },
+                    { value: "60", label: t("tourModal.form.duration60") },
+                    { value: "90", label: t("tourModal.form.duration90") },
+                    { value: "120", label: t("tourModal.form.duration120") },
+                  ]}
+                />
               </div>
 
               {/* Message */}

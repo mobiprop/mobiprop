@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -16,6 +17,9 @@ export function DeleteConversationConfirmModal({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation("messages");
+  const body = t("deleteConversationModal.body", { name: otherName });
+  const parts = body.split(otherName);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
       <div className="absolute inset-0 bg-black/40" />
@@ -32,13 +36,15 @@ export function DeleteConversationConfirmModal({
           </span>
           <div className="flex flex-col gap-1.5">
             <p id="delete-conversation-title" className="text-[16px] font-semibold text-[#0d2138]" style={mont}>
-              Delete conversation
+              {t("deleteConversationModal.title")}
             </p>
             <p className="text-[13px] leading-5 text-[#6a7282]" style={mont}>
-              Your conversation with <span className="font-semibold text-[#0d2138]">{otherName}</span> will be
-              removed from your inbox. <span className="font-semibold text-[#0d2138]">{otherName}</span> will still
-              see the full conversation on their side — this only deletes it for you, and it isn&apos;t permanent:
-              messaging them again brings the history back.
+              {parts.map((part, i) => (
+                <span key={i}>
+                  {part}
+                  {i < parts.length - 1 && <span className="font-semibold text-[#0d2138]">{otherName}</span>}
+                </span>
+              ))}
             </p>
           </div>
           <div className="flex w-full gap-3 pt-1">
@@ -48,7 +54,7 @@ export function DeleteConversationConfirmModal({
               className="h-10 flex-1 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] text-[13px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
               style={mont}
             >
-              Cancel
+              {t("deleteConversationModal.cancel")}
             </button>
             <button
               type="button"
@@ -57,7 +63,7 @@ export function DeleteConversationConfirmModal({
               className="h-10 flex-1 rounded-[10px] bg-[#fb2c36] text-[13px] font-medium text-white transition-colors hover:bg-[#e0262f] disabled:cursor-not-allowed disabled:opacity-60"
               style={mont}
             >
-              {isDeleting ? "Deleting…" : "Delete"}
+              {isDeleting ? t("deleteConversationModal.deleting") : t("deleteConversationModal.delete")}
             </button>
           </div>
         </div>
