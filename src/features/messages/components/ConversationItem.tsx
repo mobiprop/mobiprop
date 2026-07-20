@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { useIsStaffOnline } from "@/features/messages/online-staff-store";
 import { formatListTimestamp } from "@/features/messages/lib/format";
 import type { ConversationSummaryDto } from "@/features/messages/types/message-dto";
@@ -15,15 +17,21 @@ export function ConversationItem({
   isActive: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation("messages");
   const online = useIsStaffOnline(conversation.otherUser.id);
   const hasUnread = conversation.unreadCount > 0;
+  const name = conversation.otherUser.fullName ?? t("conversationItem.unnamed");
 
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-current={isActive}
-      aria-label={`Open conversation with ${conversation.otherUser.fullName ?? "Unnamed"}${hasUnread ? `, ${conversation.unreadCount} unread` : ""}`}
+      aria-label={
+        hasUnread
+          ? t("conversationItem.openAriaUnread", { name, count: conversation.unreadCount })
+          : t("conversationItem.openAria", { name })
+      }
       className={`
         relative flex min-h-[72px] w-full
         items-center gap-3
@@ -51,7 +59,7 @@ export function ConversationItem({
             }`}
             style={mont}
           >
-            {conversation.otherUser.fullName ?? "Unnamed"}
+            {name}
           </span>
 
           <span className="shrink-0 text-[10px] font-normal tracking-[-0.11px] text-[#99a1af] sm:text-[11px]" style={mont}>
@@ -66,7 +74,7 @@ export function ConversationItem({
             }`}
             style={mont}
           >
-            {conversation.lastMessagePreview || "No messages yet"}
+            {conversation.lastMessagePreview || t("conversationItem.noMessagesYet")}
           </p>
 
           {hasUnread && (
@@ -77,7 +85,7 @@ export function ConversationItem({
             </div>
           )}
           {conversation.isStarred && !hasUnread && (
-            <span className="shrink-0 text-[#f59e0b]" aria-label="Starred">
+            <span className="shrink-0 text-[#f59e0b]" aria-label={t("conversationItem.starredAria")}>
               ★
             </span>
           )}

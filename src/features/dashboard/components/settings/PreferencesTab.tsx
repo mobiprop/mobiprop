@@ -7,6 +7,7 @@ import { Save } from "lucide-react";
 import { updateLocalePreferences } from "@/features/profile/actions";
 import { resolvePreferences } from "@/features/profile/preferences";
 import { syncSiteLanguageFromPreference } from "@/i18n/client";
+import { isSupportedLanguage } from "@/i18n/config";
 import type { Profile } from "@/generated/prisma/client";
 import { SearchableSelect } from "../SearchableSelect";
 
@@ -42,12 +43,17 @@ type PreferencesTabProps = {
 export function PreferencesTab({
   profile,
 }: PreferencesTabProps) {
-  const { t } = useTranslation("dashboardSettings");
+  const { t, i18n } = useTranslation("dashboardSettings");
   const initialPreferences =
     resolvePreferences(profile).locale;
 
+  // The dashboard's actual displayed language is driven by the cookie-backed
+  // i18n instance (see I18nProvider), not the saved DB preference — those two
+  // can drift apart (e.g. a never-saved default, or a switch via the navbar
+  // toggle that doesn't persist to the profile). Seed the dropdown from what
+  // is actually on screen so it never contradicts the UI around it.
   const [language, setLanguage] = useState(
-    initialPreferences.language,
+    isSupportedLanguage(i18n.language) ? i18n.language : initialPreferences.language,
   );
 
   const [timezone, setTimezone] = useState(

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Download, ExternalLink, FileText } from "lucide-react";
 
 import { formatFileSize } from "@/features/messages/lib/format";
@@ -15,10 +16,11 @@ export function AttachmentCard({
   isOwn: boolean;
   onPreview: () => void;
 }) {
+  const { t } = useTranslation("messages");
   if (attachment.mimeType.startsWith("image/")) {
     return (
       <div className="group/att relative inline-block max-w-[260px]">
-        <button type="button" onClick={onPreview} className="block overflow-hidden rounded-[8px]" aria-label={`View image ${attachment.fileName}`}>
+        <button type="button" onClick={onPreview} className="block overflow-hidden rounded-[8px]" aria-label={t("attachmentCard.viewImageAria", { name: attachment.fileName })}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={attachment.url}
@@ -32,8 +34,8 @@ export function AttachmentCard({
           target="_blank"
           rel="noreferrer"
           onClick={(event) => event.stopPropagation()}
-          aria-label={`Download ${attachment.fileName}`}
-          title="Download"
+          aria-label={t("attachmentCard.downloadAria", { name: attachment.fileName })}
+          title={t("attachmentCard.downloadTitle")}
           className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover/att:opacity-100"
         >
           <Download size={14} />
@@ -72,7 +74,7 @@ export function AttachmentCard({
       <button
         type="button"
         onClick={onPreview}
-        aria-label={`Preview ${attachment.fileName}`}
+        aria-label={t("attachmentCard.previewAria", { name: attachment.fileName })}
         className={`flex w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left transition-colors ${cardTone}`}
       >
         {content}
@@ -85,7 +87,7 @@ export function AttachmentCard({
       href={attachment.url}
       target="_blank"
       rel="noreferrer"
-      aria-label={`Open ${attachment.fileName} in a new tab`}
+      aria-label={t("attachmentCard.openInNewTabAria", { name: attachment.fileName })}
       className={`flex items-center gap-2 rounded-[10px] px-3 py-2 transition-colors ${cardTone}`}
     >
       {content}

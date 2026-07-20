@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ArchiveRestore, Inbox, MessagesSquare, Plus, Search, SearchX } from "lucide-react";
 
 import type { ConversationSummaryDto } from "@/features/messages/types/message-dto";
@@ -55,6 +56,7 @@ export function ConversationSidebar({
   onSelectConversation: (conversationId: string) => void;
   hidden: boolean;
 }) {
+  const { t } = useTranslation("messages");
   return (
     <div
       className={`
@@ -68,11 +70,11 @@ export function ConversationSidebar({
       {/* Panel header */}
       <div className="flex shrink-0 items-center justify-between px-4 pb-1 pt-4 sm:px-5">
         <h2 className="text-[14px] font-semibold text-[#0d2138] sm:text-[15px]" style={poppins}>
-          {showArchived ? "Archived" : "Inbox"}
+          {showArchived ? t("sidebar.archived") : t("sidebar.inbox")}
         </h2>
         {!showArchived && conversations.length > 0 && (
           <span className="text-[11px] font-medium text-[#99a1af]" style={mont}>
-            {conversations.length} {conversations.length === 1 ? "chat" : "chats"}
+            {t("sidebar.chatsCount", { count: conversations.length })}
           </span>
         )}
       </div>
@@ -85,8 +87,8 @@ export function ConversationSidebar({
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search messages..."
-            aria-label="Search conversations"
+            placeholder={t("sidebar.searchPlaceholder")}
+            aria-label={t("sidebar.searchAria")}
             className="
               h-full w-full rounded-[10px]
               border border-[#e5e7eb]
@@ -105,8 +107,8 @@ export function ConversationSidebar({
 
         <button
           type="button"
-          aria-label={pickerOpen ? "Close new conversation picker" : "Start new conversation"}
-          title="Start new conversation"
+          aria-label={pickerOpen ? t("sidebar.closePickerAria") : t("sidebar.startNewAria")}
+          title={t("sidebar.startNewTitle")}
           onClick={onTogglePicker}
           className={`flex size-9 shrink-0 items-center justify-center rounded-[10px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 ${
             pickerOpen ? "bg-[#1e4f86] text-white" : "bg-[#f8fafc] text-[#6a7282] hover:bg-[#eef2f6]"
@@ -125,7 +127,7 @@ export function ConversationSidebar({
           style={mont}
         >
           <ArchiveRestore size={13} />
-          {showArchived ? "Back to inbox" : "View archived"}
+          {showArchived ? t("sidebar.backToInbox") : t("sidebar.viewArchived")}
         </button>
       </div>
 
@@ -135,7 +137,7 @@ export function ConversationSidebar({
           {staffDirectory.length === 0 ? (
             <div className="flex h-40 flex-col items-center justify-center gap-2 px-4 text-center">
               <p className="text-[12px] text-[#99a1af]" style={mont}>
-                No other staff members found
+                {t("sidebar.noStaffFound")}
               </p>
             </div>
           ) : (
@@ -149,10 +151,10 @@ export function ConversationSidebar({
                 <Avatar fullName={staff.fullName} id={staff.id} avatarUrl={staff.avatarUrl} size={40} />
                 <div className="flex min-w-0 flex-col">
                   <span className="truncate text-[13px] font-semibold text-[#0d2138]" style={mont}>
-                    {staff.fullName ?? "Unnamed"}
+                    {staff.fullName ?? t("sidebar.unnamed")}
                   </span>
-                  <span className="text-[11px] capitalize text-[#99a1af]" style={mont}>
-                    {staff.role.toLowerCase()}
+                  <span className="text-[11px] text-[#99a1af]" style={mont}>
+                    {t(`dashboard:roles.${staff.role}`, { defaultValue: staff.role })}
                   </span>
                 </div>
               </button>
@@ -180,10 +182,10 @@ export function ConversationSidebar({
                     <SearchX size={20} className="text-[#99a1af]" />
                   </span>
                   <p className="text-[12px] font-medium text-[#0d2138]" style={mont}>
-                    No matches
+                    {t("sidebar.noMatches")}
                   </p>
                   <p className="text-[11px] text-[#99a1af]" style={mont}>
-                    Try a different name.
+                    {t("sidebar.noMatchesHint")}
                   </p>
                 </div>
               )}
@@ -198,10 +200,10 @@ export function ConversationSidebar({
                     )}
                   </span>
                   <p className="text-[12px] font-medium text-[#0d2138]" style={mont}>
-                    {showArchived ? "No archived chats" : "No conversations yet"}
+                    {showArchived ? t("sidebar.noArchivedChats") : t("sidebar.noConversations")}
                   </p>
                   <p className="text-[11px] text-[#99a1af]" style={mont}>
-                    {showArchived ? "Anything you archive shows up here." : "Start one with the + button above."}
+                    {showArchived ? t("sidebar.archivedHint") : t("sidebar.noConversationsHint")}
                   </p>
                 </div>
               )}

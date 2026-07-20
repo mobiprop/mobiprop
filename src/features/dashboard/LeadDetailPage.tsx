@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Activity,
   Archive,
@@ -44,13 +45,16 @@ import {
   useRestoreLeadMutation,
   useUpdateLeadMutation,
 } from "@/hooks/mutations/useLeadMutations";
+import { useCreateOpportunityMutation } from "@/hooks/mutations/useCrmMutations";
 import type {
   LeadActivityDto,
   LeadDto,
+  OpportunityDto,
 } from "@/features/crm/types/crm-dto";
 import { scoreColor } from "./LeadsPage";
 import { LeadTourSection } from "./components/LeadTourSection";
 import { SearchableSelect } from "./components/SearchableSelect";
+import { AddOpportunityModal, type OpportunityFormValues, type OpportunityPrefill } from "./components/AddOpportunityModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -432,138 +436,125 @@ function NotesSection({
   );
 }
 
-function ConvertModal({
-  leadId,
-  leadName,
+// Lead → Opportunity conversion. The Opportunity is built with the same full
+// creation form used on the Opportunities page — a lead's prospect isn't a
+// Contact yet, so the form's "Add Contact" panel is pre-opened with the
+// lead's submitted info, and staff confirm/create it as a real Contact there.
+// Only once that Opportunity exists does the Lead get linked + marked converted.
+function ConvertToOpportunityModal({
+  lead,
+  role,
+  lockedAgent,
   onClose,
 }: {
-  leadId: string;
-  leadName: string;
+  lead: LeadDetailView;
+  role: Role;
+  lockedAgent: { id: string; name: string } | null;
   onClose: () => void;
 }) {
   const { t } = useTranslation("leads");
-  const [title, setTitle] = useState(t("detail.convertModal.defaultTitle", { name: leadName }));
-  const [notes, setNotes] = useState("");
-  const [error, setError] = useState("");
-  const convert = useConvertLeadMutation(leadId);
+  const createOpportunity = useCreateOpportunityMutation();
+  const linkConversion = useConvertLeadMutation(lead.id);
 
-  async function handleConvert() {
-    setError("");
+  const prefill: OpportunityPrefill = useMemo(() => {
+    const contact = lead.contact;
+    const nameParts = lead.submittedName.trim().split(/\s+/);
+    return {
+      title: t("detail.convertModal.defaultTitle", { name: lead.submittedName }),
+      assignedAgentId: lead.assignedAgentId ?? undefined,
+      notes: lead.notes ?? undefined,
+      propertyId: lead.primaryListing?.id,
+      propertyLabel: lead.primaryListing?.title ?? undefined,
+      existingContact: contact?.id
+        ? {
+            id: contact.id,
+            label: contact.fullName ?? [contact.firstName, contact.lastName].filter(Boolean).join(" "),
+            email: contact.email ?? undefined,
+          }
+        : undefined,
+      newContact: contact?.id
+        ? undefined
+        : {
+            firstName: nameParts[0] ?? lead.submittedName,
+            lastName: nameParts.slice(1).join(" "),
+            email: lead.submittedEmail ?? undefined,
+            phone: lead.submittedPhone ?? undefined,
+          },
+    };
+  }, [lead, t]);
+
+  async function handleSubmit(values: OpportunityFormValues): Promise<OpportunityDto | null> {
+    const payload = {
+      title: values.title || "Untitled Opportunity",
+      participants: values.participants.map((row) =>
+        row.role === "AGENCY"
+          ? { role: row.role, companyName: row.companyName.trim() }
+          : { role: row.role, contactId: row.contactId },
+      ),
+      propertyIds: values.propertyIds,
+      dealType: values.dealType,
+      dealSize: values.dealSize ? Number(values.dealSize) : undefined,
+      stage: values.stage,
+      status: values.status,
+      probability: values.probability,
+      commission: values.commission ? Number(values.commission) : undefined,
+      commissionUnit: values.commissionUnit,
+      paymentTerms: values.paymentTerms || undefined,
+      contractStart: values.contractStart || undefined,
+      contractEnd: values.contractEnd || undefined,
+      expectedCloseAt: values.expectedCloseAt || undefined,
+      assignedAgentId: values.assignedAgentId || undefined,
+      agentCommissionValue: values.agentCommissionValue ? Number(values.agentCommissionValue) : undefined,
+      agentCommissionUnit: values.agentCommissionUnit,
+      notes: values.notes || undefined,
+    };
+
+    let opportunity: OpportunityDto;
+    try {
+      const result = await createOpportunity.mutateAsync(payload);
+      opportunity = result.opportunity;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("detail.convertModal.convertError"));
+      return null;
+    }
 
     try {
-      await convert.mutateAsync({
-        title: title.trim(),
-        notes: notes.trim() || undefined,
-      });
-      onClose();
-    } catch (errorValue) {
-      setError(
-        errorValue instanceof Error
-          ? errorValue.message
-          : t("detail.convertModal.convertError"),
-      );
+      await linkConversion.mutateAsync({ opportunityId: opportunity.id });
+    } catch {
+      // The Opportunity already exists at this point — surface the link
+      // failure separately instead of losing it or duplicating the Opportunity
+      // on retry.
+      toast.error(t("detail.convertModal.linkFailed"));
     }
+
+    return opportunity;
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-black/40" />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="convert-modal-title"
-        className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-[480px] flex-col overflow-hidden rounded-[16px] bg-white shadow-xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="border-b border-[#e5e7eb] px-4 py-4 sm:px-6 sm:py-5">
-          <p
-            id="convert-modal-title"
-            className="text-[16px] font-semibold text-[#0d2138]"
-            style={mont}
-          >
-            {t("detail.convertModal.title")}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 py-5 sm:px-6">
-          <div className="flex flex-col gap-1.5">
-            <label
-              className="text-[14px] font-medium text-[#1f2937]"
-              style={mont}
-            >
-              {t("detail.convertModal.opportunityTitle")}
-            </label>
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              className="h-10 rounded-[10px] border border-[#e5e7eb] px-3.5 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86]"
-              style={mont}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label
-              className="text-[14px] font-medium text-[#1f2937]"
-              style={mont}
-            >
-              {t("detail.convertModal.notes")}
-            </label>
-            <textarea
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              rows={3}
-              className="resize-none rounded-[10px] border border-[#e5e7eb] px-3 py-2.5 text-[14px] text-[#0d2138] outline-none transition-colors focus:border-[#1e4f86]"
-              style={mont}
-            />
-          </div>
-
-          {error && (
-            <p className="text-[14px] text-[#dc2626]" style={mont}>
-              {error}
-            </p>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-10 rounded-[10px] border border-[#e5e7eb] text-[14px] text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
-              style={mont}
-            >
-              {t("detail.convertModal.cancel")}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleConvert}
-              disabled={convert.isPending || !title.trim()}
-              className="flex h-10 items-center justify-center gap-1.5 rounded-[10px] bg-[#1e4f86] text-[14px] text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60"
-              style={mont}
-            >
-              {convert.isPending && (
-                <Loader2 size={13} className="animate-spin" />
-              )}
-              {t("detail.convertModal.convert")}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AddOpportunityModal
+      mode="create"
+      prefill={prefill}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      isSaving={createOpportunity.isPending || linkConversion.isPending}
+      lockedAgent={lockedAgent}
+      role={role}
+    />
   );
 }
 
 type LeadDetailPageProps = {
   leadId: string;
   role: Role;
+  currentUserId: string;
+  currentUserName: string;
 };
 
 export function LeadDetailPage({
   leadId,
   role,
+  currentUserId,
+  currentUserName,
 }: LeadDetailPageProps) {
   const { t } = useTranslation("leads");
   const router = useRouter();
@@ -622,8 +613,14 @@ export function LeadDetailPage({
   const canArchive = hasPermission(role, "leads:archive");
   const canConvert =
     hasPermission(role, "leads:convert") &&
+    hasPermission(role, "opportunities:create") &&
     !lead.isArchived &&
     !lead.convertedOpportunityId;
+  // Roles without agents:view (AGENT) can't pick another agent — matches
+  // AddOpportunityModal's own lockedAgent convention on the Opportunities page.
+  const lockedAgent = hasPermission(role, "agents:view")
+    ? null
+    : { id: currentUserId, name: currentUserName };
 
   function updateTemperature(value: LeadTemperature) {
     update.mutate(
@@ -1084,9 +1081,10 @@ export function LeadDetailPage({
       </div>
 
       {showConvert && (
-        <ConvertModal
-          leadId={lead.id}
-          leadName={lead.submittedName || contactName || "Lead"}
+        <ConvertToOpportunityModal
+          lead={lead}
+          role={role}
+          lockedAgent={lockedAgent}
           onClose={() => setShowConvert(false)}
         />
       )}

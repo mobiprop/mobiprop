@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import {
   Area,
@@ -43,55 +44,55 @@ import type { ChartGranularity, MetricCard, SaleOperation, SaleRow } from "./typ
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
-const DATE_RANGE_LABEL: Record<DashboardDateRange, string> = {
-  LAST_WEEK: "Last Week",
-  "60_DAYS": "Last 60 Days",
-  "90_DAYS": "Last 90 Days",
-  CUSTOM: "Custom Range",
+const DATE_RANGE_LABEL_KEY: Record<DashboardDateRange, string> = {
+  LAST_WEEK: "overview.dateRanges.lastWeek",
+  "60_DAYS": "overview.dateRanges.last60Days",
+  "90_DAYS": "overview.dateRanges.last90Days",
+  CUSTOM: "overview.dateRanges.custom",
 };
 
-const DATE_RANGE_OPTIONS = (["LAST_WEEK", "60_DAYS", "90_DAYS", "CUSTOM"] as const).map((value) => ({
-  value,
-  label: DATE_RANGE_LABEL[value],
-}));
+const DATE_RANGE_VALUES = ["LAST_WEEK", "60_DAYS", "90_DAYS", "CUSTOM"] as const;
+const SALES_DATE_RANGE_VALUES = ["LAST_WEEK", "60_DAYS", "90_DAYS"] as const;
 
-const SALES_DATE_RANGE_OPTIONS = (["LAST_WEEK", "60_DAYS", "90_DAYS"] as const).map((value) => ({
-  value,
-  label: DATE_RANGE_LABEL[value],
-}));
-
-const OPERATION_FILTER_OPTIONS = [
-  { value: "All", label: "All" },
-  { value: "Rent", label: "Rent" },
-  { value: "Sale", label: "Sale" },
-  { value: "Sale & Rent", label: "Sale & Rent" },
-];
+const OPERATION_FILTER_VALUES = ["All", "Rent", "Sale", "Sale & Rent"] as const;
 
 // ── Metric card ───────────────────────────────────────────────────────────────
 
 function MetricIcon({ card }: { card: MetricCard }) {
-  const label = card.label.toLowerCase();
+  const key = card.key;
 
-  if (label.includes("listing") || label.includes("propiedades")) {
+  if (key === "listings" || key === "my-listings") {
     return <Building2 size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
   }
 
-  if (label.includes("lost")) {
+  if (key === "lost") {
     return <TrendingDown size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
   }
 
-  if (label.includes("won") || label.includes("ganadas") || label.includes("abiertas")) {
+  if (key === "won" || key === "my-won" || key === "my-open") {
     return <TrendingUp size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
   }
 
-  if (label.includes("revenue") || label.includes("comisión")) {
+  if (key === "revenue" || key === "my-commission") {
     return <DollarSign size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
   }
 
   return <Building2 size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
 }
 
+const METRIC_LABEL_KEY: Record<string, string> = {
+  listings: "overview.metrics.listings",
+  lost: "overview.metrics.lost",
+  won: "overview.metrics.won",
+  revenue: "overview.metrics.revenue",
+  "my-listings": "overview.metrics.myListings",
+  "my-open": "overview.metrics.myOpen",
+  "my-won": "overview.metrics.myWon",
+  "my-commission": "overview.metrics.myCommission",
+};
+
 function MetricCardView({ card }: { card: MetricCard }) {
+  const { t } = useTranslation("dashboard");
   const isUp = card.trendDirection === "up";
   const chartData = card.sparkline.map((value, index) => ({ index, value }));
 
@@ -99,7 +100,7 @@ function MetricCardView({ card }: { card: MetricCard }) {
     <div className="min-w-0 flex-1 rounded-[16px] border border-[#f3f4f6] bg-white p-[18px]">
       <div className="mb-2 flex items-start justify-between">
         <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>
-          {card.label}
+          {t(METRIC_LABEL_KEY[card.key] ?? card.label, { defaultValue: card.label })}
         </p>
 
         <span
@@ -181,6 +182,7 @@ const OPERATION_STYLE: Record<SaleOperation, { bg: string; text: string }> = {
 };
 
 function OperationBadge({ operation }: { operation: SaleOperation }) {
+  const { t } = useTranslation("dashboard");
   const style = OPERATION_STYLE[operation];
 
   return (
@@ -188,7 +190,7 @@ function OperationBadge({ operation }: { operation: SaleOperation }) {
       className="inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-medium"
       style={{ backgroundColor: style.bg, color: style.text, ...mont }}
     >
-      {operation}
+      {t(OPERATION_LABEL_KEY[operation])}
     </span>
   );
 }
@@ -196,6 +198,7 @@ function OperationBadge({ operation }: { operation: SaleOperation }) {
 // ── Sale actions dropdown ─────────────────────────────────────────────────────
 
 function SaleActions({ row }: { row: SaleRow }) {
+  const { t } = useTranslation("dashboard");
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -277,7 +280,7 @@ function SaleActions({ row }: { row: SaleRow }) {
       <button
         ref={buttonRef}
         type="button"
-        aria-label={`Open options for ${row.agentName}`}
+        aria-label={t("overview.openOptionsFor", { name: row.agentName })}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={toggleMenu}
@@ -291,7 +294,7 @@ function SaleActions({ row }: { row: SaleRow }) {
           <div
             ref={menuRef}
             role="menu"
-            aria-label={`Actions for ${row.agentName}`}
+            aria-label={t("overview.actionsFor", { name: row.agentName })}
             className="fixed z-[100] w-[205px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white text-left shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
             style={{ top: position.top, left: position.left }}
           >
@@ -304,7 +307,7 @@ function SaleActions({ row }: { row: SaleRow }) {
               style={mont}
             >
               <UserRound size={18} className="shrink-0 text-[#64748b]" />
-              <span>View Agent Profile</span>
+              <span>{t("overview.viewAgentProfile")}</span>
             </button>
 
             <button
@@ -315,7 +318,7 @@ function SaleActions({ row }: { row: SaleRow }) {
               style={mont}
             >
               <SquarePen size={18} className="shrink-0 text-[#64748b]" />
-              <span>Edit</span>
+              <span>{t("overview.edit")}</span>
             </button>
           </div>,
           document.body,
@@ -338,6 +341,7 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  const { t } = useTranslation("dashboard");
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -426,7 +430,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
             </div>
             <div className="flex flex-col">
               <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
-                Revenue
+                {t("overview.tooltip.revenue")}
               </span>
               <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
                 US${revenue.toLocaleString("en-US")}
@@ -458,7 +462,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
             </div>
             <div className="flex flex-col">
               <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
-                Open Opportunities
+                {t("overview.tooltip.openOpportunities")}
               </span>
               <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
                 US${openOpportunities.toLocaleString("en-US")}
@@ -474,7 +478,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       {/* Footer */}
       <div className="flex items-center justify-between">
         <span className="text-[14px] font-medium text-[#6a7282]" style={mont}>
-          Gap
+          {t("overview.tooltip.gap")}
         </span>
         <span
           className={`text-[15px] font-bold ${gap >= 0 ? "text-[#059669]" : "text-[#ef4444]"
@@ -507,7 +511,21 @@ function csvCell(value: string | number): string {
   return `"${String(value).replace(/"/g, '""')}"`;
 }
 
+const CHART_TAB_LABEL_KEY: Record<(typeof CHART_TABS)[number], string> = {
+  Monthly: "overview.chartTabs.monthly",
+  Weekly: "overview.chartTabs.weekly",
+  Daily: "overview.chartTabs.daily",
+};
+
+const OPERATION_LABEL_KEY: Record<"All" | SaleOperation, string> = {
+  All: "overview.totalSales.operations.all",
+  Rent: "overview.totalSales.operations.rent",
+  Sale: "overview.totalSales.operations.sale",
+  "Sale & Rent": "overview.totalSales.operations.saleAndRent",
+};
+
 export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProps) {
+  const { t } = useTranslation("dashboard");
   const router = useRouter();
 
   const { dateRange, customDateRange, setDateRange, setCustomDateRange } = useDashboardStore(
@@ -530,6 +548,19 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
   const [operationFilter, setOperationFilter] = useState<"All" | SaleOperation>("All");
 
   const canAddListing = role !== "USER";
+
+  const dateRangeOptions = useMemo(
+    () => DATE_RANGE_VALUES.map((value) => ({ value, label: t(DATE_RANGE_LABEL_KEY[value]) })),
+    [t],
+  );
+  const salesDateRangeOptions = useMemo(
+    () => SALES_DATE_RANGE_VALUES.map((value) => ({ value, label: t(DATE_RANGE_LABEL_KEY[value]) })),
+    [t],
+  );
+  const operationFilterOptions = useMemo(
+    () => OPERATION_FILTER_VALUES.map((value) => ({ value, label: t(OPERATION_LABEL_KEY[value]) })),
+    [t],
+  );
 
   useEffect(() => {
     const frameId = requestAnimationFrame(() => setMounted(true));
@@ -595,11 +626,11 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <h1 className="text-[18px] font-medium text-[#0d2138] sm:text-[20px]" style={poppins}>
-            Dashboard
+            {t("overview.title")}
           </h1>
 
           <p className="mt-1 text-[12px] font-medium leading-5 text-[#6a7282] sm:text-[14px]" style={mont}>
-            {firstName ? `Bienvenido ${firstName}!` : "Bienvenido!"} Este es tu resumen de hoy.
+            {firstName ? t("overview.greeting", { name: firstName }) : t("overview.greetingNoName")}
           </p>
         </div>
 
@@ -617,8 +648,8 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 setDateRange(value);
               }
             }}
-            options={DATE_RANGE_OPTIONS}
-            placeholder="Select range"
+            options={dateRangeOptions}
+            placeholder={t("overview.selectRange")}
             className="col-span-2 sm:col-span-1 sm:w-[180px]"
           />
 
@@ -627,14 +658,14 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               <DatePickerField
                 value={customFrom}
                 onChange={setCustomFrom}
-                placeholder="From"
+                placeholder={t("overview.from")}
                 className="sm:w-[140px]"
               />
               <span className="text-[#99a1af]">–</span>
               <DatePickerField
                 value={customTo}
                 onChange={setCustomTo}
-                placeholder="To"
+                placeholder={t("overview.to")}
                 className="sm:w-[140px]"
               />
               <button
@@ -644,7 +675,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 className="h-10 shrink-0 rounded-[10px] bg-[#1e4f86] px-3 text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-50 sm:text-[14px]"
                 style={mont}
               >
-                Apply
+                {t("overview.apply")}
               </button>
             </div>
           )}
@@ -657,7 +688,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               style={mont}
             >
               <Plus size={16} />
-              Add Listing
+              {t("overview.addListing")}
             </button>
           )}
         </div>
@@ -677,21 +708,21 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
           <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <h2 className="mb-3 text-[14px] font-semibold leading-5 text-[#0d2138]" style={mont}>
-                Open Opportunities / Revenue
+                {t("overview.chartTitle")}
               </h2>
 
               <div className="mb-1 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div className="flex items-center gap-1.5">
                   <span className="size-1.5 shrink-0 rounded-full bg-[#ff3545]" />
                   <span className="text-[10px] font-medium text-[#6a7282]" style={mont}>
-                    Revenue
+                    {t("overview.tooltip.revenue")}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   <span className="size-1.5 shrink-0 rounded-full bg-[#ff6b00]" />
                   <span className="text-[10px] font-medium text-[#6a7282]" style={mont}>
-                    Open Opportunities
+                    {t("overview.tooltip.openOpportunities")}
                   </span>
                 </div>
               </div>
@@ -702,7 +733,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 type="button"
                 onClick={() => chartQuery.refetch()}
                 className="flex size-7 shrink-0 items-center justify-center text-[#99a1af]"
-                aria-label="Refresh chart"
+                aria-label={t("overview.refreshChart")}
               >
                 {chartQuery.isFetching ? (
                   <Loader2 size={12} className="animate-spin" />
@@ -721,7 +752,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                       }`}
                     style={mont}
                   >
-                    <span className="block truncate">{tab}</span>
+                    <span className="block truncate">{t(CHART_TAB_LABEL_KEY[tab])}</span>
                   </button>
                 ))}
               </div>
@@ -791,7 +822,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
 
             {mounted && !chartQuery.isLoading && chartData.length === 0 && (
               <div className="flex h-full items-center justify-center text-[12px] text-[#99a1af]" style={mont}>
-                No hay datos para este período.
+                {t("overview.noChartData")}
               </div>
             )}
           </div>
@@ -801,7 +832,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
         <div className="w-full min-w-0 shrink-0 rounded-[14px] border border-[#f3f4f6] bg-white p-4 lg:w-[292px]">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-[14px] font-semibold text-[#0d2138]" style={mont}>
-              Locations
+              {t("overview.locations.title")}
             </h2>
 
             <button
@@ -811,20 +842,20 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               style={mont}
             >
               <Plus size={13} strokeWidth={1.7} />
-              Add Location
+              {t("overview.locations.addLocation")}
             </button>
           </div>
 
           <div className="flex flex-col">
             {locationsQuery.isLoading && (
               <p className="py-3 text-center text-[12px] text-[#99a1af]" style={mont}>
-                Cargando…
+                {t("overview.locations.loading")}
               </p>
             )}
 
             {!locationsQuery.isLoading && locations.length === 0 && (
               <p className="py-3 text-center text-[12px] text-[#99a1af]" style={mont}>
-                No hay locations todavía.
+                {t("overview.locations.empty")}
               </p>
             )}
 
@@ -851,7 +882,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
         {/* Header */}
         <div className="border-b border-[#f3f4f6] p-4 sm:p-5">
           <h2 className="mb-4 text-[14px] font-semibold text-[#0d2138] sm:mb-0 sm:text-[16px]" style={mont}>
-            Total Sales
+            {t("overview.totalSales.title")}
           </h2>
 
           <div className="grid grid-cols-2 gap-2.5 sm:mt-4 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
@@ -862,7 +893,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search sales..."
+                placeholder={t("overview.totalSales.searchPlaceholder")}
                 className="min-w-0 flex-1 bg-transparent text-[14px] text-[#2b3038] outline-none placeholder:text-[#99a1af] sm:text-[12px]"
                 style={mont}
               />
@@ -874,8 +905,8 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               searchable={false}
               value={operationFilter}
               onChange={(next) => setOperationFilter(next as "All" | SaleOperation)}
-              options={OPERATION_FILTER_OPTIONS}
-              placeholder="All"
+              options={operationFilterOptions}
+              placeholder={t("overview.totalSales.operations.all")}
               className="sm:w-[140px]"
             />
 
@@ -885,8 +916,8 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               searchable={false}
               value={dateRange === "CUSTOM" ? "60_DAYS" : dateRange}
               onChange={(next) => setDateRange(next as DashboardDateRange)}
-              options={SALES_DATE_RANGE_OPTIONS}
-              placeholder="Select range"
+              options={salesDateRangeOptions}
+              placeholder={t("overview.selectRange")}
               className="sm:w-[150px]"
             />
 
@@ -899,7 +930,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               style={mont}
             >
               <Plus size={16} />
-              <span>Export</span>
+              <span>{t("overview.totalSales.export")}</span>
             </button>
           </div>
         </div>
@@ -909,7 +940,15 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
           <table className="w-full min-w-[760px]">
             <thead>
               <tr className="bg-[#f9fafb] text-left">
-                {["Agent Name", "Listing ID", "Opportunity ID", "Operation Type", "Date", "Revenue", ""].map(
+                {[
+                  t("overview.totalSales.columns.agentName"),
+                  t("overview.totalSales.columns.listingId"),
+                  t("overview.totalSales.columns.opportunityId"),
+                  t("overview.totalSales.columns.operationType"),
+                  t("overview.totalSales.columns.date"),
+                  t("overview.totalSales.columns.revenue"),
+                  "",
+                ].map(
                   (heading, index) => (
                     <th
                       key={`${heading}-${index}`}
@@ -986,7 +1025,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               {!salesQuery.isLoading && filteredSales.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    {allSales.length === 0 ? "No sales in this period yet." : "No sales match your search."}
+                    {allSales.length === 0 ? t("overview.totalSales.emptyNoSales") : t("overview.totalSales.emptyNoMatches")}
                   </td>
                 </tr>
               )}
@@ -1004,7 +1043,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
 
           {!salesQuery.isLoading && filteredSales.length === 0 && (
             <p className="py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-              {allSales.length === 0 ? "No sales in this period yet." : "No sales match your search."}
+              {allSales.length === 0 ? t("overview.totalSales.emptyNoSales") : t("overview.totalSales.emptyNoMatches")}
             </p>
           )}
 
@@ -1045,7 +1084,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               <div className="mt-4 grid grid-cols-2 gap-2.5">
                 <div className="min-w-0 rounded-[10px] bg-[#f8fafc] p-3">
                   <p className="text-[14px] text-[#99a1af]" style={mont}>
-                    Listing ID
+                    {t("overview.totalSales.columns.listingId")}
                   </p>
                   <p className="mt-1.5 truncate text-[14px] font-medium text-[#4b5563]" style={mont}>
                     {row.listingId ?? "—"}
@@ -1054,7 +1093,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
 
                 <div className="min-w-0 rounded-[10px] bg-[#f8fafc] p-3">
                   <p className="text-[14px] text-[#99a1af]" style={mont}>
-                    Opportunity ID
+                    {t("overview.totalSales.columns.opportunityId")}
                   </p>
                   <p className="mt-1.5 truncate text-[14px] font-medium text-[#4b5563]" style={mont}>
                     {row.opportunityId}
@@ -1065,14 +1104,14 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#f3f4f6] pt-4">
                 <div>
                   <p className="mb-2 text-[14px] text-[#99a1af]" style={mont}>
-                    Operation Type
+                    {t("overview.totalSales.columns.operationType")}
                   </p>
                   <OperationBadge operation={row.operation} />
                 </div>
 
                 <div className="text-right">
                   <p className="text-[14px] text-[#99a1af]" style={mont}>
-                    Revenue
+                    {t("overview.totalSales.columns.revenue")}
                   </p>
                   <p className="mt-1.5 text-[14px] font-semibold text-[#1e4f86]" style={mont}>
                     ${row.revenue.toLocaleString("en-US")}
@@ -1086,7 +1125,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
         {/* Footer */}
         <div className="border-t border-[#f3f4f6] bg-white px-4 py-4 sm:px-5 sm:py-3">
           <p className="text-center text-[14px] font-medium text-[#6a7282] sm:text-left sm:text-[12px]" style={mont}>
-            Showing {filteredSales.length} of {allSales.length} results
+            {t("overview.totalSales.showingResults", { shown: filteredSales.length, total: allSales.length })}
           </p>
         </div>
       </div>

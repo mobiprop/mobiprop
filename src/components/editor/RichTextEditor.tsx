@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditor, useEditorState, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import { toast } from "sonner";
 import {
   Bold,
   Italic,
@@ -17,9 +18,12 @@ import {
   Link2,
   Link2Off,
   ImagePlus,
+  Loader2,
   Undo2,
   Redo2,
 } from "lucide-react";
+
+import { uploadBlogCover } from "@/lib/blog-cover-upload";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -86,10 +90,24 @@ function Toolbar({ editor }: { editor: Editor }) {
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   };
 
-  const addImage = () => {
-    const url = window.prompt("Image URL");
-    if (url) editor.chain().focus().setImage({ src: url }).run();
-  };
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  async function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadBlogCover(file);
+      editor.chain().focus().setImage({ src: url }).run();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+    }
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-[#e5e7eb] bg-[#fafbfc] px-2 py-1.5">
@@ -126,8 +144,19 @@ function Toolbar({ editor }: { editor: Editor }) {
       <ToolbarButton label="Remove link" disabled={!state.link} onClick={() => editor.chain().focus().unsetLink().run()}>
         <Link2Off className="size-4" />
       </ToolbarButton>
-      <ToolbarButton label="Insert image by URL" onClick={addImage}>
-        <ImagePlus className="size-4" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleImageFileChange}
+      />
+      <ToolbarButton
+        label="Insert image"
+        disabled={uploadingImage}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {uploadingImage ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
       </ToolbarButton>
       <span className="mx-1 h-5 w-px bg-[#e5e7eb]" />
       <ToolbarButton label="Undo" disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()}>

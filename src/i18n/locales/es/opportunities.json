@@ -217,6 +217,8 @@
     "toasts": {
       "createdAndSent": "Oportunidad creada y contrato enviado",
       "sendFailed": "Oportunidad creada, pero el envío del contrato falló. Puedes reintentar desde la Oportunidad.",
+      "createdAndAttached": "Oportunidad creada y documento adjuntado",
+      "attachFailed": "Oportunidad creada, pero no se pudo adjuntar el documento. Puedes reintentar desde la Oportunidad.",
       "updated": "Oportunidad actualizada",
       "created": "Oportunidad creada",
       "saveFailed": "No se pudo guardar la oportunidad"
@@ -229,16 +231,20 @@
     "cancel": "Cancelar",
     "sending": "Enviando…",
     "send": "Enviar para Firma",
+    "attaching": "Adjuntando…",
+    "attach": "Adjuntar Documento Firmado",
     "toasts": {
       "sent": "Sobre enviado con éxito",
-      "sendFailed": "No se pudo enviar el sobre"
+      "sendFailed": "No se pudo enviar el sobre",
+      "attached": "Documento adjuntado con éxito",
+      "attachFailed": "No se pudo adjuntar el documento"
     }
   },
   "contractSourcePicker": {
     "tabs": {
       "noContract": "Sin Contrato",
       "template": "Usar Plantilla de DocuSign",
-      "customUpload": "Subir Documento de Contrato Personalizado"
+      "customUpload": "Contrato Personalizado"
     },
     "document": "Documento",
     "selectTemplatePlaceholder": "Selecciona una plantilla…",
@@ -248,8 +254,10 @@
     "uploadHint": "PDF, DOC, DOCX hasta 10MB — se sube al enviar",
     "signer": "Firmante",
     "signers": "Firmantes",
+    "associatedParticipants": "Participantes Asociados",
     "signerHintTemplate": "Una Plantilla de DocuSign solo puede enviarse a un firmante.",
     "signerHintMultiple": "Selecciona a todos los que deban firmar.",
+    "signerHintCustomUpload": "Este documento se trata como ya firmado — selecciona con quién está asociado. No se enviará ninguna solicitud de firma ni correo.",
     "noParticipants": "No hay participantes con correo electrónico registrado. Agrega primero un participante con correo.",
     "noEmailOnFile": "Sin correo registrado",
     "participantRoles": {
@@ -260,6 +268,7 @@
     "incompleteNoDocumentTemplate": "Selecciona una plantilla para incluir este contrato, o cambia a Sin Contrato.",
     "incompleteNoDocumentUpload": "Sube un documento para incluir este contrato, o cambia a Sin Contrato.",
     "incompleteNoSigner": "Selecciona al menos un firmante arriba — de lo contrario este contrato no se enviará.",
+    "incompleteNoParticipantUpload": "Selecciona al menos un participante asociado arriba.",
     "reviewDocument": "Documento",
     "reviewSigners": "Firmantes",
     "fileTypeError": "Solo se admiten archivos PDF, DOC y DOCX.",

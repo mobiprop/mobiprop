@@ -51,7 +51,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
   async function handleLogout() {
     await createClient().auth.signOut();
     await signOut();
-    window.location.href = "/login";
+    window.location.href = "/";
   }
 
   // Route change par sidebar close

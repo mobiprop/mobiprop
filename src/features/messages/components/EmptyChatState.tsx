@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { MessageCircle, MessagesSquare } from "lucide-react";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 export function EmptyChatState({ variant }: { variant: "no-conversation" | "no-messages" }) {
+  const { t } = useTranslation("messages");
   const isNoConversation = variant === "no-conversation";
 
   return (
@@ -17,12 +19,12 @@ export function EmptyChatState({ variant }: { variant: "no-conversation" | "no-m
       </span>
       <div className="flex flex-col gap-1">
         <p className="text-[14px] font-semibold text-[#0d2138] sm:text-[15px]" style={poppins}>
-          {isNoConversation ? "Select a conversation" : "Say hello"}
+          {isNoConversation ? t("emptyChat.selectConversation") : t("emptyChat.sayHello")}
         </p>
         <p className="max-w-[280px] text-[12px] leading-5 text-[#6a7282] sm:text-[13px]" style={mont}>
           {isNoConversation
-            ? "Pick someone from your inbox on the left, or start a new conversation."
-            : "No messages yet — send the first one to get things started."}
+            ? t("emptyChat.selectConversationHint")
+            : t("emptyChat.sayHelloHint")}
         </p>
       </div>
     </div>

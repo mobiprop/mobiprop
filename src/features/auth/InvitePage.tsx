@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import { AuthRightPanel } from "./components/AuthRightPanel";
 import { AuthBanner } from "./components/AuthBanner";
@@ -114,6 +115,7 @@ const inputBase =
 // ── Dead-end screen (invalid / expired / accepted / revoked / error) ───────────
 
 function DeadEndScreen({ title, message }: { title: string; message: string }) {
+  const { t } = useTranslation("auth");
   return (
     <div className="min-h-screen bg-[#f9fafb] flex w-full">
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
@@ -127,7 +129,7 @@ function DeadEndScreen({ title, message }: { title: string; message: string }) {
               {message}
             </p>
             <Link href="/dashboard-login" className="inline-flex items-center justify-center bg-[#1e4f86] text-white text-[16px] font-medium rounded-[12px] px-6 py-[12px] hover:bg-[#1b487a] transition-colors" style={mont}>
-              Go to staff login
+              {t("invite.goToStaffLogin")}
             </Link>
           </div>
         </div>
@@ -145,26 +147,22 @@ type ValidateResponse =
 
 type ViewState = "loading" | "form" | "success" | "error" | ValidateResponse;
 
-const REASON_COPY: Record<"INVALID" | "EXPIRED" | "ACCEPTED" | "REVOKED", { title: string; message: string }> = {
-  INVALID: {
-    title: "Invitation unavailable",
-    message: "This invitation link is invalid. Please check the link or ask your administrator for a new one.",
-  },
-  EXPIRED: {
-    title: "Invitation expired",
-    message: "This invitation link has expired. Please ask your administrator to send a new invitation.",
-  },
-  ACCEPTED: {
-    title: "Invitation already used",
-    message: "This invitation has already been accepted. If this is your account, sign in instead.",
-  },
-  REVOKED: {
-    title: "Invitation revoked",
-    message: "This invitation has been revoked. Please contact your administrator.",
-  },
+const REASON_KEY: Record<"INVALID" | "EXPIRED" | "ACCEPTED" | "REVOKED", { title: string; message: string }> = {
+  INVALID: { title: "invite.reasons.invalidTitle", message: "invite.reasons.invalidMessage" },
+  EXPIRED: { title: "invite.reasons.expiredTitle", message: "invite.reasons.expiredMessage" },
+  ACCEPTED: { title: "invite.reasons.acceptedTitle", message: "invite.reasons.acceptedMessage" },
+  REVOKED: { title: "invite.reasons.revokedTitle", message: "invite.reasons.revokedMessage" },
 };
 
+function roleLabel(role: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
+  const key = role.toLowerCase();
+  if (key === "admin") return t("agents:role.administrator");
+  if (key === "manager") return t("agents:role.manager");
+  return t("agents:role.agent");
+}
+
 export function InvitePageContent({ token }: { token: string }) {
+  const { t } = useTranslation(["auth", "agents"]);
   const router = useRouter();
   const [state, setState] = useState<ViewState>("loading");
   const [firstName, setFirstName] = useState("");
@@ -223,7 +221,7 @@ export function InvitePageContent({ token }: { token: string }) {
 
       if (!data.success) {
         setIsSubmitting(false);
-        flashBanner({ type: "error", title: "Couldn't create your account", message: data.error });
+        flashBanner({ type: "error", title: t("invite.couldntCreateAccountTitle"), message: data.error });
         return;
       }
 
@@ -234,7 +232,7 @@ export function InvitePageContent({ token }: { token: string }) {
       }, 1500);
     } catch {
       setIsSubmitting(false);
-      flashBanner({ type: "error", title: "Something went wrong", message: "Please check your connection and try again." });
+      flashBanner({ type: "error", title: t("invite.somethingWentWrongTitle"), message: t("invite.somethingWentWrongMessage") });
     }
   };
 
@@ -247,7 +245,7 @@ export function InvitePageContent({ token }: { token: string }) {
           <div className="flex flex-1 items-center justify-center px-6">
             <div className="flex flex-col items-center gap-3">
               <IconSpinner />
-              <p className="text-[14px] text-[#6a7282]" style={mont}>Checking your invitation…</p>
+              <p className="text-[14px] text-[#6a7282]" style={mont}>{t("invite.checkingInvitation")}</p>
             </div>
           </div>
         </div>
@@ -260,8 +258,8 @@ export function InvitePageContent({ token }: { token: string }) {
   if (state === "error") {
     return (
       <DeadEndScreen
-        title="Something went wrong"
-        message="We couldn't check this invitation right now. Please refresh the page and try again."
+        title={t("invite.genericErrorTitle")}
+        message={t("invite.genericErrorMessage")}
       />
     );
   }
@@ -276,10 +274,10 @@ export function InvitePageContent({ token }: { token: string }) {
             <div className="flex flex-col items-center text-center gap-3 max-w-[400px]">
               <IconCheck />
               <h1 className="text-[24px] leading-[28px] text-[#0d0d12]" style={{ ...poppins, fontWeight: 600 }}>
-                Account created
+                {t("invite.successTitle")}
               </h1>
               <p className="text-[16px] leading-[24px] text-[#666d80]" style={{ ...mont, fontWeight: 400 }}>
-                Taking you to your dashboard…
+                {t("invite.successMessage")}
               </p>
             </div>
           </div>
@@ -291,8 +289,8 @@ export function InvitePageContent({ token }: { token: string }) {
 
   // Invalid / expired / accepted / revoked
   if (typeof state === "object" && !state.valid) {
-    const copy = REASON_COPY[state.reason];
-    return <DeadEndScreen title={copy.title} message={copy.message} />;
+    const copy = REASON_KEY[state.reason];
+    return <DeadEndScreen title={t(copy.title)} message={t(copy.message)} />;
   }
 
   // Valid invite — show the registration form
@@ -310,57 +308,57 @@ export function InvitePageContent({ token }: { token: string }) {
             {/* Heading */}
             <div className="mb-[24px]">
               <h1 className="text-[24px] leading-[28px] tracking-[-0.24px] text-[#0d0d12] mb-[2px]" style={{ ...poppins, fontWeight: 600 }}>
-                Create New Account
+                {t("invite.heading")}
               </h1>
               <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#666d80]" style={{ ...poppins, fontWeight: 400 }}>
-                You&apos;ve been invited as {role.charAt(0) + role.slice(1).toLowerCase()}. Enter your details to sign up.
+                {t("invite.subtitle", { role: roleLabel(role, t) })}
               </p>
             </div>
 
             <div className="flex flex-col gap-5">
               <div className="grid grid-cols-2 gap-4">
-                <Field label="First Name">
+                <Field label={t("invite.firstNameLabel")}>
                   <div className={inputWrap}>
                     <IconUser />
-                    <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t("invite.firstNamePlaceholder")} className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                   </div>
                 </Field>
 
-                <Field label="Last Name">
+                <Field label={t("invite.lastNameLabel")}>
                   <div className={inputWrap}>
                     <IconUser />
-                    <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t("invite.lastNamePlaceholder")} className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                   </div>
                 </Field>
               </div>
 
               <div className="flex flex-col gap-5">
-                <Field label="Email Address">
+                <Field label={t("invite.emailLabel")}>
                   <div className={`${inputWrap} bg-[#f3f4f6] focus-within:border-[#dfe1e7]`}>
                     <IconEnvelope />
                     <input value={email} readOnly disabled className={`${inputBase} text-[#6a7282] cursor-not-allowed`} style={{ ...mont, fontWeight: 400 }} />
                   </div>
                 </Field>
 
-                <Field label="Phone Number" required={false}>
+                <Field label={t("invite.phoneLabel")} required={false}>
                   <div className={inputWrap}>
                     <IconPhone />
-                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter your phone number" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("invite.phonePlaceholder")} className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                   </div>
                 </Field>
 
-                <Field label="Password">
+                <Field label={t("invite.passwordLabel")}>
                   <div className={inputWrap}>
                     <IconLock />
-                    <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("invite.passwordPlaceholder")} className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="shrink-0"><IconEye visible={showPassword} /></button>
                   </div>
                 </Field>
 
-                <Field label="Confirm Password">
+                <Field label={t("invite.confirmPasswordLabel")}>
                   <div className={inputWrap}>
                     <IconLock />
-                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter your password" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t("invite.confirmPasswordPlaceholder")} className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="shrink-0"><IconEye visible={showConfirm} /></button>
                   </div>
                 </Field>
@@ -374,13 +372,13 @@ export function InvitePageContent({ token }: { token: string }) {
                 className="w-full bg-[#1e4f86] border border-[#1b487a] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] px-2 py-[14px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:bg-[#b9c8d9] disabled:border-[#b9c8d9]"
                 style={mont}
               >
-                {isSubmitting ? "Please wait…" : "Create account"}
+                {isSubmitting ? t("invite.submitting") : t("invite.submitButton")}
               </button>
 
               {/* Bottom link */}
               <p className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] text-center" style={{ ...mont, fontWeight: 400 }}>
-                Already have an account?{" "}
-                <Link href="/dashboard-login" className="font-medium text-[#1e4f86] hover:underline" style={mont}>Sign In</Link>
+                {t("invite.alreadyHaveAccount")}{" "}
+                <Link href="/dashboard-login" className="font-medium text-[#1e4f86] hover:underline" style={mont}>{t("invite.signIn")}</Link>
               </p>
             </div>
           </div>
@@ -391,7 +389,7 @@ export function InvitePageContent({ token }: { token: string }) {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:w-full max-sm:text-center max-sm:text-[12px] max-sm:leading-[18px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    © 2026 Ulrich Propiedades
+    {t("footer.copyright")}
   </span>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />
@@ -401,7 +399,7 @@ export function InvitePageContent({ token }: { token: string }) {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Privacy
+    {t("footer.privacy")}
   </Link>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
@@ -411,7 +409,7 @@ export function InvitePageContent({ token }: { token: string }) {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Terms
+    {t("footer.terms")}
   </Link>
 </div>
       </div>

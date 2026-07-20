@@ -217,6 +217,8 @@
     "toasts": {
       "createdAndSent": "Opportunity created and contract sent",
       "sendFailed": "Opportunity created, but contract sending failed. You can retry from the Opportunity.",
+      "createdAndAttached": "Opportunity created and document attached",
+      "attachFailed": "Opportunity created, but attaching the document failed. You can retry from the Opportunity.",
       "updated": "Opportunity updated",
       "created": "Opportunity created",
       "saveFailed": "Failed to save opportunity"
@@ -229,16 +231,20 @@
     "cancel": "Cancel",
     "sending": "Sending…",
     "send": "Send for Signature",
+    "attaching": "Attaching…",
+    "attach": "Attach Signed Document",
     "toasts": {
       "sent": "Envelope sent successfully",
-      "sendFailed": "Failed to send envelope"
+      "sendFailed": "Failed to send envelope",
+      "attached": "Document attached successfully",
+      "attachFailed": "Failed to attach document"
     }
   },
   "contractSourcePicker": {
     "tabs": {
       "noContract": "No Contract",
       "template": "Use DocuSign Template",
-      "customUpload": "Upload Custom Contract Document"
+      "customUpload": "Custom Contract"
     },
     "document": "Document",
     "selectTemplatePlaceholder": "Select a template…",
@@ -248,8 +254,10 @@
     "uploadHint": "PDF, DOC, DOCX up to 10MB — uploaded when sent",
     "signer": "Signer",
     "signers": "Signers",
+    "associatedParticipants": "Associated Participants",
     "signerHintTemplate": "A DocuSign Template can only go to one signer.",
     "signerHintMultiple": "Select everyone who needs to sign.",
+    "signerHintCustomUpload": "This document is treated as already signed — select who it's associated with. No signature request or email will be sent.",
     "noParticipants": "No participants with an email on file. Add a participant with an email first.",
     "noEmailOnFile": "No email on file",
     "participantRoles": {
@@ -260,6 +268,7 @@
     "incompleteNoDocumentTemplate": "Select a template to include this contract, or switch to No Contract.",
     "incompleteNoDocumentUpload": "Upload a document to include this contract, or switch to No Contract.",
     "incompleteNoSigner": "Select at least one signer above — otherwise this contract won't be sent.",
+    "incompleteNoParticipantUpload": "Select at least one associated participant above.",
     "reviewDocument": "Document",
     "reviewSigners": "Signers",
     "fileTypeError": "Only PDF, DOC, and DOCX files are supported.",

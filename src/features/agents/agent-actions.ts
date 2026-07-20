@@ -130,8 +130,6 @@ export async function listAgents(): Promise<ListAgentsResult> {
     scopeIds === null ? {} : { OR: [{ assignedAgentId: { in: scopeIds } }, { createdById: { in: scopeIds } }] };
   const rosterWhere: Prisma.ProfileWhereInput = {
     role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
-    // Exclude the caller themselves so admins don't see themselves in the "approve" list
-    NOT: { id: auth.profile.id },
     ...(scopeIds === null ? {} : { teamLeaderId: auth.profile.id }),
   };
 

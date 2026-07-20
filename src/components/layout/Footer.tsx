@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
+import { NewsletterSubscribeModal } from "./NewsletterSubscribeModal";
 
 const footerBg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/footerbackground.webp";
@@ -97,6 +99,8 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 export function Footer() {
   const { t } = useTranslation(["footer", "navigation"]);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const [footerEmail, setFooterEmail] = useState("");
 
   return (
     <footer className="relative bg-[#0d2138] overflow-hidden">
@@ -129,15 +133,24 @@ export function Footer() {
           {t("newsletterSubtext")}
         </p>
 
-        <div className="relative bg-[#f5f7fa] min-h-[56px] rounded-[100px] w-full">
+        <form
+          className="relative bg-[#f5f7fa] min-h-[56px] rounded-[100px] w-full"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSubscribeOpen(true);
+          }}
+        >
           <input
             type="email"
             placeholder={t("emailPlaceholder")}
+            value={footerEmail}
+            onChange={(e) => setFooterEmail(e.target.value)}
             className="h-[56px] w-full bg-transparent pl-5 sm:pl-6 pr-[122px] sm:pr-[150px] text-[14px] sm:text-[16px] text-[#717784] outline-none rounded-[100px] tracking-[-0.16px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           />
 
           <button
+            type="submit"
             className="absolute right-[6px] top-1/2 -translate-y-1/2 h-[44px] w-[112px] sm:w-[131px] overflow-hidden rounded-[100px] text-[14px] sm:text-[16px] font-medium text-white flex items-center justify-center tracking-[-0.01em]"
             style={{
               fontFamily: "Montserrat, sans-serif",
@@ -158,7 +171,7 @@ export function Footer() {
 
             <span className="relative z-10">{t("subscribe")}</span>
           </button>
-        </div>
+        </form>
       </div>
     </div>
 
@@ -252,6 +265,13 @@ export function Footer() {
     </p>
   </div>
 </div>
+
+      {subscribeOpen && (
+        <NewsletterSubscribeModal
+          initialEmail={footerEmail}
+          onClose={() => setSubscribeOpen(false)}
+        />
+      )}
     </footer>
   );
 }

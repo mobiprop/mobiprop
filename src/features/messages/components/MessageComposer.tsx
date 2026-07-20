@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, FileText, ImageIcon, Loader2, Paperclip, Send, WifiOff, X } from "lucide-react";
 
 import { formatFileSize } from "@/features/messages/lib/format";
@@ -12,6 +13,7 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 const MAX_TEXTAREA_HEIGHT = 120;
 
 function PendingAttachmentCard({ file, uploading, onRemove }: { file: File; uploading: boolean; onRemove: () => void }) {
+  const { t } = useTranslation("messages");
   const previewUrl = useMemo(() => (file.type.startsWith("image/") ? URL.createObjectURL(file) : null), [file]);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ function PendingAttachmentCard({ file, uploading, onRemove }: { file: File; uplo
         {uploading ? (
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-medium text-[#1e4f86]" style={mont}>
             <Loader2 size={10} className="animate-spin" />
-            Uploading…
+            {t("composer.uploading")}
           </span>
         ) : (
           <span className="shrink-0 text-[11px] text-[#99a1af]" style={mont}>
@@ -52,8 +54,8 @@ function PendingAttachmentCard({ file, uploading, onRemove }: { file: File; uplo
         type="button"
         onClick={onRemove}
         disabled={uploading}
-        aria-label={`Remove ${file.name}`}
-        title="Remove attachment"
+        aria-label={t("composer.removeAria", { name: file.name })}
+        title={t("composer.removeTitle")}
         className="flex size-7 shrink-0 items-center justify-center rounded-[8px] text-[#6a7282] transition-colors hover:bg-red-50 hover:text-[#e7000b] disabled:cursor-not-allowed disabled:opacity-50"
       >
         <X size={14} />
@@ -81,6 +83,7 @@ export function MessageComposer({
   sending: boolean;
   sendError: string | null;
 }) {
+  const { t } = useTranslation("messages");
   const isOnline = useIsOnline();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -100,7 +103,7 @@ export function MessageComposer({
       {!isOnline && (
         <div className="mb-2.5 flex items-center gap-2 rounded-[10px] bg-[#fff7e6] px-3 py-2 text-[11px] font-medium text-[#a16207]" style={mont}>
           <WifiOff size={14} className="shrink-0" />
-          You&apos;re offline — messages will fail to send until your connection is back.
+          {t("composer.offlineNotice")}
         </div>
       )}
 
@@ -150,8 +153,8 @@ export function MessageComposer({
         <div className="flex min-w-0 flex-1 items-end rounded-[16px] border border-[#dfe3e8] bg-[#f8fafc] px-2 py-1.5 transition-colors focus-within:border-[#1e4f86]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#1e4f86]/15 sm:px-2.5">
           <button
             type="button"
-            aria-label="Attach a file"
-            title="Attach a file"
+            aria-label={t("composer.attachFileAria")}
+            title={t("composer.attachFileAria")}
             disabled={sending}
             onClick={() => fileInputRef.current?.click()}
             className="flex size-8 shrink-0 items-center justify-center self-end rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#eef2f6] disabled:cursor-not-allowed disabled:opacity-50"
@@ -161,8 +164,8 @@ export function MessageComposer({
 
           <button
             type="button"
-            aria-label="Attach an image"
-            title="Attach an image"
+            aria-label={t("composer.attachImageAria")}
+            title={t("composer.attachImageAria")}
             disabled={sending}
             onClick={() => imageInputRef.current?.click()}
             className="flex size-8 shrink-0 items-center justify-center self-end rounded-[8px] text-[#6a7282] transition-colors hover:bg-[#eef2f6] disabled:cursor-not-allowed disabled:opacity-50"
@@ -175,8 +178,8 @@ export function MessageComposer({
             rows={1}
             value={draft}
             onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="Type your message..."
-            aria-label="Message"
+            placeholder={t("composer.messagePlaceholder")}
+            aria-label={t("composer.messageAria")}
             className="min-h-[32px] min-w-0 flex-1 resize-none bg-transparent px-2 py-1.5 text-[12px] leading-5 text-[#0d2138] outline-none placeholder:text-[#99a1af] sm:text-[13px]"
             style={{ ...poppins, maxHeight: MAX_TEXTAREA_HEIGHT }}
             onKeyDown={(event) => {
@@ -191,7 +194,7 @@ export function MessageComposer({
         <button
           type="button"
           disabled={!canSend}
-          aria-label="Send message"
+          aria-label={t("composer.sendAria")}
           onClick={onSend}
           className="
             flex h-11 shrink-0
@@ -213,7 +216,7 @@ export function MessageComposer({
           style={mont}
         >
           {sending ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} strokeWidth={1.8} />}
-          <span className="hidden text-[13.5px] font-semibold sm:inline">{sending ? "Sending…" : "Send"}</span>
+          <span className="hidden text-[13.5px] font-semibold sm:inline">{sending ? t("composer.sending") : t("composer.send")}</span>
         </button>
       </div>
     </div>

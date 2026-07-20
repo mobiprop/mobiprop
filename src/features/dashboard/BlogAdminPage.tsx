@@ -18,6 +18,7 @@ import {
   Newspaper,
   MoreVertical,
   FolderCog,
+  AlertTriangle,
 } from "lucide-react";
 
 import { hasPermission, type Role } from "@/lib/permissions";
@@ -214,6 +215,76 @@ function RowMenu({
   );
 }
 
+// ── Delete confirmation modal ─────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  post,
+  isDeleting,
+  onCancel,
+  onConfirm,
+  t,
+}: {
+  post: BlogPostDto;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative bg-white rounded-[16px] w-full max-w-[420px] p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="size-12 rounded-full bg-[#fff1f2] flex items-center justify-center">
+            <AlertTriangle size={22} className="text-[#fb2c36]" />
+          </span>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[16px] font-semibold text-[#0d2138]" style={mont}>
+              {t("adminPage.deleteModal.title")}
+            </p>
+            <p className="text-[13px] text-[#6a7282] leading-5" style={mont}>
+              {(() => {
+                const body = t("adminPage.deleteModal.body", { title: post.title });
+                const idx = body.indexOf(post.title);
+                if (idx === -1) return body;
+                return (
+                  <>
+                    {body.slice(0, idx)}
+                    <span className="font-semibold text-[#0d2138]">{post.title}</span>
+                    {body.slice(idx + post.title.length)}
+                  </>
+                );
+              })()}
+            </p>
+          </div>
+          <div className="flex gap-3 w-full pt-1">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 h-10 border border-[#e5e7eb] rounded-[10px] text-[13px] font-medium text-[#6b7280] bg-[#f8fafc] hover:bg-[#f3f4f6] transition-colors"
+              style={mont}
+            >
+              {t("adminPage.deleteModal.cancel")}
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={onConfirm}
+              className="flex-1 h-10 bg-[#fb2c36] rounded-[10px] text-[13px] font-medium text-white hover:bg-[#e0262f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              style={mont}
+            >
+              {isDeleting ? t("adminPage.deleteModal.deleting") : t("adminPage.deleteModal.delete")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function BlogAdminPage({ role }: { role: Role }) {
@@ -230,6 +301,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<BlogPostDto | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState<BlogPostDto | null>(null);
   const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
 
   const filters = useMemo(
@@ -311,12 +383,20 @@ export function BlogAdminPage({ role }: { role: Role }) {
   }
 
   function handleDelete(post: BlogPostDto) {
-    if (!window.confirm(t("adminPage.deleteConfirm", { title: post.title }))) return;
+    setConfirmingDelete(post);
+  }
+
+  function handleConfirmDelete() {
+    if (!confirmingDelete) return;
+    const post = confirmingDelete;
     setDeletingId(post.id);
     deleteMutation.mutate(post.id, {
       onSuccess: () => toast.success(t("adminPage.toasts.postDeleted")),
       onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.deleteFailed")),
-      onSettled: () => setDeletingId(null),
+      onSettled: () => {
+        setDeletingId(null);
+        setConfirmingDelete(null);
+      },
     });
   }
 
@@ -529,6 +609,16 @@ export function BlogAdminPage({ role }: { role: Role }) {
           canUpdate={canUpdate}
           canDelete={canDelete}
           onClose={() => setManageCategoriesOpen(false)}
+        />
+      )}
+
+      {confirmingDelete && (
+        <DeleteConfirmModal
+          post={confirmingDelete}
+          isDeleting={deletingId === confirmingDelete.id}
+          onCancel={() => setConfirmingDelete(null)}
+          onConfirm={handleConfirmDelete}
+          t={t}
         />
       )}
     </div>

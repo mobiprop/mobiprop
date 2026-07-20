@@ -8,5 +8,23 @@
   "officeAddressLine1": "Tortugas Country Club,",
   "officeAddressLine2": "Buenos Aires, Argentina, 1667",
   "contactHeading": "Contactanos",
-  "copyright": "Ulrich Propiedades © 2026. Todos los derechos reservados."
+  "copyright": "Ulrich Propiedades © 2026. Todos los derechos reservados.",
+  "subscribeModal": {
+    "title": "Suscribite a nuestro newsletter",
+    "subtitle": "Recibí las últimas propiedades y novedades del mercado en tu correo.",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Ingresá tu nombre",
+    "emailLabel": "Correo Electrónico",
+    "emailPlaceholder": "Ingresá tu correo electrónico",
+    "phoneLabel": "Número de Teléfono",
+    "phonePlaceholder": "Ingresá tu número de teléfono",
+    "locationLabel": "Ubicación",
+    "locationPlaceholder": "ej. Buenos Aires",
+    "submit": "Suscribirme",
+    "submitting": "Suscribiendo…",
+    "success": "¡Listo, ya estás suscripto! Gracias por sumarte.",
+    "errorGeneric": "Algo salió mal. Por favor, intentá de nuevo.",
+    "nameRequired": "Por favor ingresá tu nombre.",
+    "emailRequired": "Por favor ingresá un correo electrónico válido."
+  }
 }

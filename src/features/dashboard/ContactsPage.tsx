@@ -128,7 +128,7 @@ function TypeBadge({ type, t }: { type: ContactType; t: (key: string) => string 
   const s = TYPE_STYLE[type] ?? TYPE_STYLE.BUYER;
   return (
     <span
-      className="inline-flex items-center justify-center w-[76px] px-3 py-1 rounded-[6px] text-[14px] font-medium"
+      className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded-[6px] text-[14px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
       {TYPE_I18N_KEY[type] ? t(TYPE_I18N_KEY[type]) : type}

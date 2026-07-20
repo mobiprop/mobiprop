@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -122,6 +123,10 @@ export function ListingsPage({ role }: ListingsPageProps) {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [showBulkAssign, setShowBulkAssign] = useState(false);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const highlightSlug = searchParams.get("highlight");
+
   const { data, isLoading, isError } = useDashboardListingsQuery();
   const statusMutation = useListingStatusMutation();
   const featuredMutation = useListingFeaturedMutation();
@@ -137,6 +142,16 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
   const listings = useMemo(() => data?.listings ?? [], [data]);
   const metrics = data?.metrics;
+
+  // Opened via the global search (⌘K) picking a listing — jump straight into
+  // editing it instead of just landing on the filtered list.
+  useEffect(() => {
+    if (!highlightSlug) return;
+    const match = listings.find((listing) => listing.slug === highlightSlug);
+    if (!match) return;
+    if (canUpdate) setEditListing(match);
+    router.replace("/dashboard/listings");
+  }, [highlightSlug, listings, canUpdate, router]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();

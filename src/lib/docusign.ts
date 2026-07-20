@@ -189,12 +189,28 @@ export async function getTemplatePageImage(templateId: string, maxWidth = 400): 
   return { contentType, buffer };
 }
 
-/** The template's first signer role name — required to fill `templateRoles` when creating an envelope. */
+/**
+ * The template's single signer role name — required to fill `templateRoles`
+ * when creating an envelope. Our flow only ever collects one recipient (see
+ * ContractSourcePicker's "A DocuSign Template can only go to one signer"),
+ * so a template must have exactly one role defined. Silently sending only
+ * the first role while a template had others configured left those other
+ * roles on DocuSign's side falling back to whatever recipient was saved as
+ * their default in the template editor — inviting unintended people to sign
+ * without any of our UI ever mentioning them.
+ */
 async function getFirstTemplateRoleName(templateId: string): Promise<string> {
   const data = await docusignFetch<{ signers?: { roleName?: string }[] }>(
     `/templates/${templateId}/recipients`,
   );
-  const roleName = data.signers?.[0]?.roleName;
+  const signers = data.signers ?? [];
+  if (signers.length === 0) throw new Error("This DocuSign template has no signer role configured.");
+  if (signers.length > 1) {
+    throw new Error(
+      "This DocuSign template has more than one signer role configured. Templates used here must have exactly one role, or other recipients configured on the template will also be asked to sign. Edit the template in DocuSign to remove the extra role(s), or use a single-role template.",
+    );
+  }
+  const roleName = signers[0]?.roleName;
   if (!roleName) throw new Error("This DocuSign template has no signer role configured.");
   return roleName;
 }

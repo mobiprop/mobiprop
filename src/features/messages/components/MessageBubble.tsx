@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, Copy, Trash2 } from "lucide-react";
 
 import { formatBubbleTimestamp } from "@/features/messages/lib/format";
@@ -29,6 +30,7 @@ export function MessageBubble({
   onDelete: (messageId: string) => void;
   onPreviewAttachment: (attachmentId: string) => void;
 }) {
+  const { t } = useTranslation("messages");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -60,8 +62,8 @@ export function MessageBubble({
         {message.body.length > 0 && (
           <button
             type="button"
-            aria-label={copied ? "Copied" : "Copy message text"}
-            title={copied ? "Copied" : "Copy message text"}
+            aria-label={copied ? t("messageBubble.copied") : t("messageBubble.copyAria")}
+            title={copied ? t("messageBubble.copied") : t("messageBubble.copyAria")}
             onClick={handleCopy}
             className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#99a1af] transition-colors hover:bg-[#f3f4f6] hover:text-[#0d2138]"
           >
@@ -71,8 +73,8 @@ export function MessageBubble({
         {isOwn && (
           <button
             type="button"
-            aria-label="Delete this message"
-            title="Delete this message"
+            aria-label={t("messageBubble.deleteAria")}
+            title={t("messageBubble.deleteAria")}
             onClick={() => onDelete(message.id)}
             className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#99a1af] transition-colors hover:bg-red-50 hover:text-[#e7000b]"
           >

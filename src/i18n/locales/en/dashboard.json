@@ -224,5 +224,76 @@
     "saving": "Saving...",
     "saveChanges": "Save Changes",
     "addLocation": "Add Location"
+  },
+  "overview": {
+    "title": "Dashboard",
+    "greeting": "Welcome {{name}}! Here's your summary for today.",
+    "greetingNoName": "Welcome! Here's your summary for today.",
+    "dateRanges": {
+      "lastWeek": "Last Week",
+      "last60Days": "Last 60 Days",
+      "last90Days": "Last 90 Days",
+      "custom": "Custom Range"
+    },
+    "selectRange": "Select range",
+    "from": "From",
+    "to": "To",
+    "apply": "Apply",
+    "addListing": "Add Listing",
+    "metrics": {
+      "listings": "Amount of Listings",
+      "lost": "Lost Opportunities",
+      "won": "Won Opportunities",
+      "revenue": "Revenue",
+      "myListings": "My Listings",
+      "myOpen": "Open Opportunities",
+      "myWon": "Won Opportunities",
+      "myCommission": "My Commission"
+    },
+    "openOptionsFor": "Open options for {{name}}",
+    "actionsFor": "Actions for {{name}}",
+    "viewAgentProfile": "View Agent Profile",
+    "edit": "Edit",
+    "tooltip": {
+      "revenue": "Revenue",
+      "openOpportunities": "Open Opportunities",
+      "gap": "Gap"
+    },
+    "chartTitle": "Open Opportunities / Revenue",
+    "refreshChart": "Refresh chart",
+    "chartTabs": {
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "daily": "Daily"
+    },
+    "noChartData": "No data for this period.",
+    "locations": {
+      "title": "Locations",
+      "addLocation": "Add Location",
+      "loading": "Loading…",
+      "empty": "No locations yet."
+    },
+    "totalSales": {
+      "title": "Total Sales",
+      "searchPlaceholder": "Search sales...",
+      "export": "Export",
+      "columns": {
+        "agentName": "Agent Name",
+        "listingId": "Listing ID",
+        "opportunityId": "Opportunity ID",
+        "operationType": "Operation Type",
+        "date": "Date",
+        "revenue": "Revenue"
+      },
+      "operations": {
+        "all": "All",
+        "rent": "Rent",
+        "sale": "Sale",
+        "saleAndRent": "Sale & Rent"
+      },
+      "emptyNoSales": "No sales in this period yet.",
+      "emptyNoMatches": "No sales match your search.",
+      "showingResults": "Showing {{shown}} of {{total}} results"
+    }
   }
 }

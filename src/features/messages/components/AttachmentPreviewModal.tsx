@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { Download, FileText, X } from "lucide-react";
 import type { MessageAttachmentDto } from "../types/message-dto";
 
@@ -23,6 +24,7 @@ export function AttachmentPreviewModal({
   startIndex: number | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("messages");
   const open = startIndex !== null;
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -66,7 +68,7 @@ export function AttachmentPreviewModal({
       className="fixed inset-0 z-[100] flex flex-col bg-black/90 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label={`${current.fileName} — attachment ${index + 1} of ${attachments.length}`}
+      aria-label={t("attachmentPreview.dialogAria", { name: current.fileName, index: index + 1, total: attachments.length })}
       onClick={onClose}
     >
       {/* Top bar */}
@@ -88,8 +90,8 @@ export function AttachmentPreviewModal({
             download={current.fileName}
             target="_blank"
             rel="noreferrer"
-            aria-label="Download attachment"
-            title="Download attachment"
+            aria-label={t("attachmentPreview.downloadAria")}
+            title={t("attachmentPreview.downloadAria")}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
           >
             <Download size={18} />
@@ -97,8 +99,8 @@ export function AttachmentPreviewModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close preview"
-            title="Close preview"
+            aria-label={t("attachmentPreview.closeAria")}
+            title={t("attachmentPreview.closeAria")}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
           >
             <X size={20} />
@@ -124,7 +126,7 @@ export function AttachmentPreviewModal({
           <button
             type="button"
             onClick={() => go(-1)}
-            aria-label="Previous attachment"
+            aria-label={t("attachmentPreview.prevAria")}
             className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 sm:left-4"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -151,7 +153,7 @@ export function AttachmentPreviewModal({
           <div className="flex flex-col items-center gap-3 text-white">
             <FileText size={48} className="text-white/70" />
             <p className="text-[13px]" style={mont}>
-              No in-browser preview for this file type.
+              {t("attachmentPreview.noPreview")}
             </p>
             <a
               href={current.url}
@@ -160,7 +162,7 @@ export function AttachmentPreviewModal({
               className="rounded-[10px] bg-white/10 px-4 py-2 text-[12px] font-medium transition-colors hover:bg-white/20"
               style={mont}
             >
-              Open in new tab
+              {t("attachmentPreview.openInNewTab")}
             </a>
           </div>
         )}
@@ -169,7 +171,7 @@ export function AttachmentPreviewModal({
           <button
             type="button"
             onClick={() => go(1)}
-            aria-label="Next attachment"
+            aria-label={t("attachmentPreview.nextAria")}
             className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 sm:right-4"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

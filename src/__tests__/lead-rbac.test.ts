@@ -9,8 +9,10 @@
  *      scope for any staff role today. These tests pin that behavior; the scope helper
  *      itself stays in place for any role that might lack `leads:view_all` in the future.
  *   3. The CONVERTED guard in updateLead.
- *   4. convertLead concurrent-conversion idempotency (double-guard path).
- *   5. convertLead transaction atomicity (convertedOpportunityId inside tx).
+ *   4. convertLead double-conversion / archived guards.
+ *   5. convertLead links an already-created Opportunity (no longer creates one itself —
+ *      Opportunity creation now happens through the standard createOpportunity flow,
+ *      convertLead just records convertedOpportunityId on the Lead).
  *   6. AGENT self-assignment-only enforcement on createLead.
  *   7. updateAgentStatus activity log.
  *   8. Global search excludes soft-deleted contacts.
@@ -351,10 +353,10 @@ describe("updateLead — CONVERTED guard", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. convertLead — transaction atomicity and double-conversion guard
+// 5. convertLead — links an existing Opportunity, double-conversion guard
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe("convertLead — atomicity and idempotency", () => {
+describe("convertLead — links opportunity and guards", () => {
   const convertedLead = {
     ...LEAD_ASSIGNED_TO_A,
     lifecycleStatus: "CONVERTED",
@@ -362,29 +364,33 @@ describe("convertLead — atomicity and idempotency", () => {
     convertedOpportunityId: "opp-1",
   };
 
-  it("creates opportunity and updates lead including convertedOpportunityId inside one transaction", async () => {
+  it("links the lead to an already-created opportunity and marks it converted", async () => {
     grantAs(PROFILES.admin);
-    // The pre-check findFirst
     (db.lead.findFirst as MockFn).mockResolvedValue(LEAD_ASSIGNED_TO_A);
-
-    const createdOpp = { id: "opp-1", opportunityId: "OPP-0001" };
-    (db.$queryRaw as MockFn).mockResolvedValue([{ max: 0 }]);
-    (db.opportunity.create as MockFn).mockResolvedValue(createdOpp);
+    (db.opportunity.findUnique as MockFn).mockResolvedValue({ id: "opp-1" });
     (db.lead.update as MockFn).mockResolvedValue(convertedLead);
     (db.leadActivity.create as MockFn).mockResolvedValue({});
     (db.profile.findMany as MockFn).mockResolvedValue([]);
 
-    const res = await convertLead("lead-1", { title: "Test Opp" });
+    const res = await convertLead("lead-1", { opportunityId: "opp-1" });
     expect(res.ok).toBe(true);
 
-    // Verify $transaction was called with an async callback (interactive form).
-    expect(db.$transaction).toHaveBeenCalledOnce();
-    const [txArg] = (db.$transaction as MockFn).mock.calls[0];
-    expect(typeof txArg).toBe("function");
-
-    // Verify convertedOpportunityId was included in the lead.update call.
+    // No opportunity is created here anymore — just a plain lead update.
+    expect(db.opportunity.create).not.toHaveBeenCalled();
     const updateCall = (db.lead.update as MockFn).mock.calls[0];
     expect(updateCall[0].data.convertedOpportunityId).toBe("opp-1");
+    expect(updateCall[0].data.lifecycleStatus).toBe("CONVERTED");
+  });
+
+  it("returns 404 when the opportunity doesn't exist", async () => {
+    grantAs(PROFILES.admin);
+    (db.lead.findFirst as MockFn).mockResolvedValue(LEAD_ASSIGNED_TO_A);
+    (db.opportunity.findUnique as MockFn).mockResolvedValue(null);
+
+    const res = await convertLead("lead-1", { opportunityId: "missing-opp" });
+    expect(res.ok).toBe(false);
+    expect((res as { status: number }).status).toBe(404);
+    expect(db.lead.update).not.toHaveBeenCalled();
   });
 
   it("blocks second conversion (already-converted guard)", async () => {
@@ -395,12 +401,11 @@ describe("convertLead — atomicity and idempotency", () => {
       convertedOpportunityId: "opp-existing",
     });
 
-    const res = await convertLead("lead-1", {});
+    const res = await convertLead("lead-1", { opportunityId: "opp-1" });
     expect(res.ok).toBe(false);
     expect((res as { status: number }).status).toBe(409);
     expect((res as { error: string }).error).toMatch(/already been converted/i);
-    // $transaction must NOT have been called.
-    expect(db.$transaction).not.toHaveBeenCalled();
+    expect(db.opportunity.findUnique).not.toHaveBeenCalled();
   });
 
   it("blocks conversion of archived lead", async () => {
@@ -411,58 +416,10 @@ describe("convertLead — atomicity and idempotency", () => {
       convertedOpportunityId: null,
     });
 
-    const res = await convertLead("lead-1", {});
+    const res = await convertLead("lead-1", { opportunityId: "opp-1" });
     expect(res.ok).toBe(false);
     expect((res as { status: number }).status).toBe(409);
-    expect(db.$transaction).not.toHaveBeenCalled();
-  });
-
-  it("simulates concurrent conversion — second call denied at pre-check", async () => {
-    // Real DB uses Postgres serializable isolation to prevent double-creation.
-    // At the application layer the guard is: findFirst → check convertedOpportunityId.
-    // Simulate: first request is mid-transaction, second request hits the DB
-    // after the first committed → second findFirst returns the already-converted lead.
-    grantAs(PROFILES.admin);
-    (db.$queryRaw as MockFn).mockResolvedValue([{ max: 0 }]);
-    (db.leadActivity.create as MockFn).mockResolvedValue({});
-    (db.profile.findMany as MockFn).mockResolvedValue([]);
-
-    let firstCallResolve: () => void;
-    const firstCallGate = new Promise<void>((r) => { firstCallResolve = r; });
-
-    // First call: findFirst returns unconverted, then waits at $transaction.
-    let findFirstCallCount = 0;
-    (db.lead.findFirst as MockFn).mockImplementation(() => {
-      findFirstCallCount++;
-      if (findFirstCallCount === 1) return Promise.resolve(LEAD_ASSIGNED_TO_A);
-      // Second call sees the already-converted lead.
-      return Promise.resolve({ ...LEAD_ASSIGNED_TO_A, convertedOpportunityId: "opp-1" });
-    });
-
-    (db.$transaction as MockFn).mockImplementation(async (fn: (tx: PrismaMock) => Promise<unknown>) => {
-      // Simulate latency so second call can arrive.
-      await firstCallGate;
-      const opp = { id: "opp-1", opportunityId: "OPP-0001" };
-      (db.opportunity.create as MockFn).mockResolvedValue(opp);
-      (db.lead.update as MockFn).mockResolvedValue({ ...LEAD_ASSIGNED_TO_A, convertedOpportunityId: "opp-1", lifecycleStatus: "CONVERTED" });
-      return fn(db);
-    });
-
-    // Launch both calls concurrently.
-    const [r1, r2] = await Promise.all([
-      convertLead("lead-1", { title: "Opp A" }),
-      // Release the gate so the first transaction can complete.
-      (async () => { firstCallResolve!(); return convertLead("lead-1", { title: "Opp B" }); })(),
-    ]);
-
-    // Exactly one must succeed, the other must be rejected.
-    const results = [r1, r2];
-    const successes = results.filter((r) => r.ok);
-    const failures = results.filter((r) => !r.ok);
-
-    expect(successes).toHaveLength(1);
-    expect(failures).toHaveLength(1);
-    expect((failures[0] as { status: number }).status).toBe(409);
+    expect(db.opportunity.findUnique).not.toHaveBeenCalled();
   });
 });
 

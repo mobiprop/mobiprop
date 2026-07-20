@@ -43,7 +43,13 @@
       "edit": "Editar",
       "delete": "Eliminar"
     },
-    "deleteConfirm": "¿Eliminar \"{{title}}\"? Esto no se puede deshacer.",
+    "deleteModal": {
+      "title": "Eliminar publicación",
+      "body": "\"{{title}}\" se eliminará de forma permanente. Esto no se puede deshacer.",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "deleting": "Eliminando…"
+    },
     "toasts": {
       "postUpdated": "Publicación actualizada",
       "updateFailed": "No se pudo actualizar la publicación",

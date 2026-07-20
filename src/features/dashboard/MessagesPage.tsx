@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useMessageThreadsQuery, useMessageThreadQuery, useMessageableStaffQuery } from "@/hooks/queries/useMessagesQuery";
 import {
@@ -47,6 +48,7 @@ function ThreadLoadingSkeleton() {
 }
 
 export function MessagesPage({ currentUserId }: { currentUserId: string }) {
+  const { t } = useTranslation("messages");
   // The user's explicit selection. When null, the first conversation in the
   // list is used instead (derived below) — no "auto-select on load" effect
   // needed, which would otherwise cause a setState-during-effect render.
@@ -162,7 +164,7 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
       setDraft("");
       setPendingFiles([]);
     } catch (error) {
-      setSendError(error instanceof Error ? error.message : "Failed to send. Please try again.");
+      setSendError(error instanceof Error ? error.message : t("page.sendFailed"));
     } finally {
       setSending(false);
     }
@@ -193,11 +195,11 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
           className="text-[18px] font-medium leading-7 tracking-[-0.18px] text-[#0d2138] sm:text-[20px] sm:leading-8 sm:tracking-[-0.2px]"
           style={poppins}
         >
-          Messages
+          {t("page.title")}
         </h1>
 
         <p className="text-[12px] font-medium leading-5 tracking-[-0.12px] text-[#6a7282] sm:text-[14px] sm:tracking-[-0.14px]" style={mont}>
-          Communicate with your team
+          {t("page.subtitle")}
         </p>
       </div>
 
@@ -296,7 +298,7 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
 
       {confirmingDelete && activeConversation && (
         <DeleteConversationConfirmModal
-          otherName={activeConversation.otherUser.fullName ?? "this staff member"}
+          otherName={activeConversation.otherUser.fullName ?? t("page.otherStaffFallback")}
           isDeleting={deleteConversation.isPending}
           onCancel={() => setConfirmingDelete(false)}
           onConfirm={handleConfirmDelete}
