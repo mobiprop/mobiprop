@@ -62,3 +62,22 @@ export function useDeleteBlogMutation() {
     onSuccess: () => invalidateBlog(qc),
   });
 }
+
+async function patchBlogFeatured({ id, isFeatured }: { id: string; isFeatured: boolean }): Promise<{ post: BlogPostDto }> {
+  const res = await fetch(`/api/dashboard/blog/${id}/featured`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isFeatured }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to update featured post");
+  return data;
+}
+
+export function useToggleBlogFeaturedMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: patchBlogFeatured,
+    onSuccess: () => invalidateBlog(qc),
+  });
+}

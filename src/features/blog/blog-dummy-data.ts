@@ -39,6 +39,7 @@ export const DUMMY_BLOG_POSTS: BlogPostDto[] = SEED.map((s, i) => {
     author: s.author,
     tags: [],
     status: s.status,
+    isFeatured: false,
     scheduledAt: null,
     publishedAt: s.status === BlogStatus.PUBLISHED ? iso : null,
     createdById: null,

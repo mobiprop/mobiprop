@@ -37,6 +37,8 @@
       "updated": "Actualizado"
     },
     "uncategorized": "Sin categoría",
+    "featureAria": "Destacar esta publicación en la página del blog",
+    "unfeatureAria": "Quitar esta publicación del lugar destacado",
     "rowMenu": {
       "actionsTitle": "Acciones",
       "actionsAria": "Abrir acciones para {{label}}",
@@ -58,7 +60,10 @@
       "draftSaved": "Borrador guardado",
       "createFailed": "No se pudo crear la publicación",
       "postDeleted": "Publicación eliminada",
-      "deleteFailed": "No se pudo eliminar la publicación"
+      "deleteFailed": "No se pudo eliminar la publicación",
+      "featured": "Publicación fijada en la parte superior del blog",
+      "unfeatured": "Publicación quitada del lugar destacado",
+      "featuredFailed": "No se pudo actualizar la publicación destacada"
     }
   },
   "editorModal": {

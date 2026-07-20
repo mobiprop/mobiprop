@@ -11,6 +11,7 @@ export type BlogPostDto = {
   author: string;
   tags: string[];
   status: BlogStatus;
+  isFeatured: boolean;
   scheduledAt: string | null;
   publishedAt: string | null;
   createdById: string | null;
