@@ -19,6 +19,7 @@ import {
   MoreVertical,
   FolderCog,
   AlertTriangle,
+  Star,
 } from "lucide-react";
 
 import { hasPermission, type Role } from "@/lib/permissions";
@@ -28,6 +29,7 @@ import {
   useCreateBlogMutation,
   useUpdateBlogMutation,
   useDeleteBlogMutation,
+  useToggleBlogFeaturedMutation,
 } from "@/hooks/mutations/useBlogMutations";
 import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 import { BlogEditorModal, type BlogFormValues } from "./components/BlogEditorModal";
@@ -315,6 +317,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
   const createMutation = useCreateBlogMutation();
   const updateMutation = useUpdateBlogMutation();
   const deleteMutation = useDeleteBlogMutation();
+  const featuredMutation = useToggleBlogFeaturedMutation();
 
   const posts = data?.posts ?? [];
   const metrics = metricsData?.metrics;
@@ -384,6 +387,17 @@ export function BlogAdminPage({ role }: { role: Role }) {
 
   function handleDelete(post: BlogPostDto) {
     setConfirmingDelete(post);
+  }
+
+  function handleToggleFeatured(post: BlogPostDto) {
+    featuredMutation.mutate(
+      { id: post.id, isFeatured: !post.isFeatured },
+      {
+        onSuccess: () =>
+          toast.success(post.isFeatured ? t("adminPage.toasts.unfeatured") : t("adminPage.toasts.featured")),
+        onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.featuredFailed")),
+      },
+    );
   }
 
   function handleConfirmDelete() {
@@ -536,6 +550,21 @@ export function BlogAdminPage({ role }: { role: Role }) {
                   <tr key={post.id} className="border-b border-[#f0f0f0] last:border-0 hover:bg-[#fafbfc]">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
+                        {canPublish && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFeatured(post)}
+                            disabled={featuredMutation.isPending}
+                            title={post.isFeatured ? t("adminPage.unfeatureAria") : t("adminPage.featureAria")}
+                            className="shrink-0 rounded-[6px] p-1 text-[#d1d5db] transition-colors hover:bg-[#fffbeb] hover:text-[#f59e0b] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Star
+                              className="size-4"
+                              fill={post.isFeatured ? "#f59e0b" : "none"}
+                              color={post.isFeatured ? "#f59e0b" : "currentColor"}
+                            />
+                          </button>
+                        )}
                         <div className="size-11 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
                           {post.coverImageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element

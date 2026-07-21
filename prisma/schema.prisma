@@ -798,6 +798,10 @@ model BlogPost {
   author        String
   tags          String[]   @default([])
   status        BlogStatus @default(DRAFT)
+  // Manually pinned to the hero slot on the public /blog page, ahead of
+  // publish-date ordering. Only one post is ever featured at a time — setting
+  // this on one post clears it on every other (see toggleBlogFeatured).
+  isFeatured    Boolean    @default(false) @map("is_featured")
   // Target publish date/time while status is SCHEDULED; a lazy check on read
   // promotes SCHEDULED -> PUBLISHED once this is in the past (see blog-actions.ts).
   scheduledAt   DateTime?  @map("scheduled_at")
@@ -808,6 +812,7 @@ model BlogPost {
 
   @@index([status, publishedAt], map: "blog_posts_status_published_idx")
   @@index([category], map: "blog_posts_category_idx")
+  @@index([isFeatured], map: "blog_posts_is_featured_idx")
   @@map("blog_posts")
 }
 

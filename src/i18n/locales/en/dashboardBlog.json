@@ -37,6 +37,8 @@
       "updated": "Updated"
     },
     "uncategorized": "Uncategorized",
+    "featureAria": "Feature this post on the blog page",
+    "unfeatureAria": "Remove this post from the blog page's featured spot",
     "rowMenu": {
       "actionsTitle": "Actions",
       "actionsAria": "Open actions for {{label}}",
@@ -58,7 +60,10 @@
       "draftSaved": "Draft saved",
       "createFailed": "Failed to create post",
       "postDeleted": "Post deleted",
-      "deleteFailed": "Failed to delete post"
+      "deleteFailed": "Failed to delete post",
+      "featured": "Post pinned to the top of the blog page",
+      "unfeatured": "Post removed from the featured spot",
+      "featuredFailed": "Failed to update the featured post"
     }
   },
   "editorModal": {

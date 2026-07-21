@@ -24,6 +24,7 @@ type BlogRow = {
   author: string;
   tags: string[];
   status: BlogStatus;
+  isFeatured: boolean;
   scheduledAt: Date | null;
   publishedAt: Date | null;
   createdById: string | null;
@@ -43,6 +44,7 @@ function toDto(p: BlogRow): BlogPostDto {
     author: p.author,
     tags: p.tags,
     status: p.status,
+    isFeatured: p.isFeatured,
     scheduledAt: p.scheduledAt?.toISOString() ?? null,
     publishedAt: p.publishedAt?.toISOString() ?? null,
     createdById: p.createdById,
@@ -75,6 +77,12 @@ async function promoteDuePosts(): Promise<void> {
 // Newest first: published date, then creation date as a tiebreaker.
 const PUBLISHED_ORDER = [{ publishedAt: "desc" as const }, { createdAt: "desc" as const }];
 
+// Same as PUBLISHED_ORDER, but the manually pinned post (if any) sorts first
+// regardless of its publish date — used only by getPublishedBlogPosts, whose
+// first result becomes the /blog page's hero. Falls back to newest-first when
+// nothing is pinned, preserving the previous "newest = featured" behavior.
+const PUBLISHED_ORDER_FEATURED_FIRST = [{ isFeatured: "desc" as const }, ...PUBLISHED_ORDER];
+
 export type PublishedBlogList = {
   posts: BlogPostDto[];
   total: number;
@@ -98,7 +106,7 @@ export async function getPublishedBlogPosts({
     const [rows, total] = await Promise.all([
       prisma.blogPost.findMany({
         where,
-        orderBy: PUBLISHED_ORDER,
+        orderBy: PUBLISHED_ORDER_FEATURED_FIRST,
         skip: (safePage - 1) * pageSize,
         take: pageSize,
       }),

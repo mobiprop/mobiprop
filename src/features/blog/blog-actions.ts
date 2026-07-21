@@ -64,6 +64,7 @@ type BlogPostRow = {
   author: string;
   tags: string[];
   status: BlogStatus;
+  isFeatured: boolean;
   scheduledAt: Date | null;
   publishedAt: Date | null;
   createdById: string | null;
@@ -83,6 +84,7 @@ function toBlogDto(p: BlogPostRow): BlogPostDto {
     author: p.author,
     tags: p.tags,
     status: p.status,
+    isFeatured: p.isFeatured,
     scheduledAt: p.scheduledAt?.toISOString() ?? null,
     publishedAt: p.publishedAt?.toISOString() ?? null,
     createdById: p.createdById,
@@ -379,6 +381,44 @@ export async function deleteBlogPost(id: string): Promise<BlogActionResult<{ id:
   revalidatePublicBlog(existing.slug);
 
   return { ok: true, id };
+}
+
+// ── Featured ──────────────────────────────────────────────────────────────────
+// Only one post is ever featured at a time (it's a single hero slot on the
+// public blog page) — setting isFeatured=true on one post clears it on every
+// other post in the same transaction, rather than requiring the caller to
+// find-and-unset the previous one first.
+
+export async function toggleBlogFeatured(
+  id: string,
+  isFeatured: boolean,
+): Promise<BlogActionResult<{ post: BlogPostDto }>> {
+  const gate = await requirePermission("blog:publish");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const existing = await prisma.blogPost.findUnique({ where: { id } });
+  if (!existing) return { ok: false, error: "Blog post not found", status: 404 };
+
+  const [, post] = await prisma.$transaction([
+    prisma.blogPost.updateMany({
+      where: { isFeatured: true, id: { not: id } },
+      data: { isFeatured: false },
+    }),
+    prisma.blogPost.update({ where: { id }, data: { isFeatured } }),
+  ]);
+
+  await logActivity({
+    actorId: gate.profile.id,
+    action: "BLOG_POST_FEATURED_CHANGED",
+    entityType: "BLOG_POST",
+    entityId: id,
+    oldValues: { isFeatured: existing.isFeatured },
+    newValues: { isFeatured: post.isFeatured },
+  });
+
+  revalidatePublicBlog(post.slug);
+
+  return { ok: true, post: toBlogDto(post) };
 }
 
 // ── Cover upload ticket ───────────────────────────────────────────────────────
