@@ -279,9 +279,10 @@ model Property {
   operationType     PropertyOperationType @map("operation_type")
   salePrice         Decimal?              @map("sale_price") @db.Decimal(14, 2)
   rentPrice         Decimal?              @map("rent_price") @db.Decimal(14, 2)
-  // Currency the prices above are denominated in. Governs both salePrice and
-  // rentPrice — a listing is priced in one currency, not mixed.
-  currency          Currency              @default(USD)
+  // Independent currencies — a SALE_AND_RENT listing can legitimately be
+  // priced for sale in USD and for rent in ARS (or any other combination).
+  saleCurrency      Currency              @default(USD) @map("sale_currency")
+  rentCurrency      Currency              @default(USD) @map("rent_currency")
   location          String
   // Operational area (curated Locations sector). Kept alongside `location`
   // (free-text display string, still the source for public search/cards).

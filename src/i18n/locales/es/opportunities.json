@@ -161,13 +161,17 @@
     "currency": "Moneda",
     "closeConfirm": {
       "title": "Confirmar tipo de cambio",
-      "description": "Este trato está en ARS. Ingresá el valor del Dólar Blue \"venta\" a fijar — se usa para convertir la comisión de este trato a USD en el panel y no puede cambiarse una vez confirmado.",
+      "description": "Este trato está en ARS. Ingresá el valor del Dólar Blue \"venta\" a fijar — se usa para convertir la comisión de este trato a USD en el panel. Podés corregirlo después desde Editar si hace falta.",
       "rateLabel": "Dólar Blue (venta)",
       "fetching": "Buscando el valor de hoy…",
       "fetchFailed": "No se pudo obtener el valor de hoy automáticamente — ingresalo manualmente.",
       "invalidRate": "Ingresá un tipo de cambio válido mayor a 0.",
       "cancel": "Cancelar",
       "confirm": "Confirmar y Cerrar Trato"
+    },
+    "lockedRate": {
+      "label": "Tipo de cambio fijado (Dólar Blue venta)",
+      "help": "Este trato ya está cerrado — su comisión se convirtió a USD usando este valor. Cambialo solo para corregir un error; la fecha de cierre no se modifica."
     },
     "rentalPeriod": {
       "title": "Período del contrato de alquiler",

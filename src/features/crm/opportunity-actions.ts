@@ -391,18 +391,32 @@ export async function updateOpportunity(
   }
 
   const statusChanging = fields.status !== undefined && fields.status !== existing.status;
+  const resolvedCurrency = fields.currency ?? existing.currency;
+
   let closeFields: { closedAt: Date; exchangeRate: number | null } | null = null;
   if (statusChanging && fields.status === OpportunityStatus.CLOSED_WON) {
-    const resolved = await resolveClosedWonFields(fields.currency ?? existing.currency, exchangeRateOverride);
+    const resolved = await resolveClosedWonFields(resolvedCurrency, exchangeRateOverride);
     if ("error" in resolved) return { ok: false, error: resolved.error, status: 422 };
     closeFields = resolved;
   }
+
+  // Correcting an already-locked rate (not a fresh close) — e.g. the rate
+  // fetched/entered at close time turns out to be wrong. Only the rate
+  // changes; closedAt is left exactly as it was.
+  const rateCorrection =
+    !statusChanging &&
+    existing.status === OpportunityStatus.CLOSED_WON &&
+    resolvedCurrency === Currency.ARS &&
+    exchangeRateOverride !== undefined
+      ? exchangeRateOverride
+      : null;
 
   const opp = await prisma.opportunity.update({
     where: { id },
     data: {
       ...fields,
       ...(closeFields ?? {}),
+      ...(rateCorrection !== null ? { exchangeRate: rateCorrection } : {}),
       contractStart: contractStart !== undefined ? (contractStart ? new Date(contractStart) : null) : undefined,
       contractEnd: contractEnd !== undefined ? (contractEnd ? new Date(contractEnd) : null) : undefined,
       expectedCloseAt: expectedCloseAt !== undefined ? (expectedCloseAt ? new Date(expectedCloseAt) : null) : undefined,

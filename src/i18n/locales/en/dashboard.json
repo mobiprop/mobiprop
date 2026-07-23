@@ -259,8 +259,7 @@
     "tooltip": {
       "revenue": "Gross Revenue",
       "revenueNet": "Net Revenue",
-      "openOpportunities": "Open Opportunities",
-      "gap": "Gap"
+      "openOpportunities": "Open Opportunities"
     },
     "chartTitle": "Open Opportunities / Revenue",
     "refreshChart": "Refresh chart",

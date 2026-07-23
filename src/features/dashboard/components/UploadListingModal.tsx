@@ -137,7 +137,8 @@ type ListingFormValues = {
   operationType: PropertyOperationType;
   salePrice: string;
   rentPrice: string;
-  currency: Currency;
+  saleCurrency: Currency;
+  rentCurrency: Currency;
   locationId: string;
   location: string;
   fullAddress: string;
@@ -166,7 +167,8 @@ const EMPTY_VALUES: ListingFormValues = {
   operationType: PropertyOperationType.SALE,
   salePrice: "",
   rentPrice: "",
-  currency: Currency.USD,
+  saleCurrency: Currency.USD,
+  rentCurrency: Currency.USD,
   locationId: "",
   location: "",
   fullAddress: "",
@@ -196,7 +198,8 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     operationType: listing.operationType,
     salePrice: listing.salePrice?.toString() ?? "",
     rentPrice: listing.rentPrice?.toString() ?? "",
-    currency: listing.currency,
+    saleCurrency: listing.saleCurrency,
+    rentCurrency: listing.rentCurrency,
     locationId: listing.locationId ?? "",
     location: listing.location,
     fullAddress: listing.fullAddress,
@@ -264,7 +267,8 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.operationType !== listing.operationType) diff.operationType = parsed.operationType;
   if (parsed.salePrice !== (listing.salePrice ?? undefined)) diff.salePrice = parsed.salePrice;
   if (parsed.rentPrice !== (listing.rentPrice ?? undefined)) diff.rentPrice = parsed.rentPrice;
-  if (parsed.currency !== listing.currency) diff.currency = parsed.currency;
+  if (parsed.saleCurrency !== listing.saleCurrency) diff.saleCurrency = parsed.saleCurrency;
+  if (parsed.rentCurrency !== listing.rentCurrency) diff.rentCurrency = parsed.rentCurrency;
   if (parsed.locationId !== (listing.locationId ?? "")) diff.locationId = parsed.locationId;
   if (parsed.location !== listing.location) diff.location = parsed.location;
   if (parsed.fullAddress !== listing.fullAddress) diff.fullAddress = parsed.fullAddress;
@@ -293,11 +297,14 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.yearBuilt !== (listing.yearBuilt ?? undefined)) diff.yearBuilt = parsed.yearBuilt;
   if (parsed.description !== listing.description) diff.description = parsed.description;
 
-  // operationType change: always include both prices so the server's
-  // conditional price validation (requires relevant prices) can run.
+  // operationType change: always include both prices (and their currencies)
+  // so the server's conditional price validation (requires relevant prices)
+  // can run.
   if (diff.operationType !== undefined) {
     diff.salePrice = parsed.salePrice;
     diff.rentPrice = parsed.rentPrice;
+    diff.saleCurrency = parsed.saleCurrency;
+    diff.rentCurrency = parsed.rentCurrency;
   }
 
   const origAmenities = [...listing.amenities].sort().join(",");
@@ -329,6 +336,34 @@ function FieldError({ message }: { message?: string }) {
 
 function borderClass(hasError: boolean) {
   return hasError ? "border-[#e7000b]" : "border-[#d7dde5]";
+}
+
+/** Compact inline USD/ARS toggle — one per price field, since sale and rent can differ. */
+function CurrencyToggle({
+  value,
+  onChange,
+}: {
+  value: Currency;
+  onChange: (next: Currency) => void;
+}) {
+  return (
+    <div className="flex shrink-0 rounded-lg border border-[#d7dde5] p-0.5">
+      {Object.values(Currency).map((c) => (
+        <button
+          key={c}
+          type="button"
+          aria-pressed={value === c}
+          onClick={() => onChange(c)}
+          className={`rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors ${
+            value === c ? "bg-[#1e4f86] text-white" : "text-[#6a7282] hover:bg-[#f3f4f6]"
+          }`}
+          style={mont}
+        >
+          {c}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function Toggle({
@@ -465,7 +500,8 @@ export function UploadListingModal({
   const isFeatured = watch("isFeatured");
   const type = watch("type");
   const status = watch("status");
-  const currency = watch("currency");
+  const saleCurrency = watch("saleCurrency");
+  const rentCurrency = watch("rentCurrency");
   const locationId = watch("locationId");
   const fullAddress = watch("fullAddress");
   const assignedAgentId = watch("assignedAgentId");
@@ -1029,26 +1065,6 @@ export function UploadListingModal({
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 flex-col gap-2 sm:max-w-55">
-                    <label htmlFor="listing-currency" className={labelClass} style={mont}>
-                      {t("uploadModal.fields.currency")} <span className="text-[#e7000b]">*</span>
-                    </label>
-
-                    <SearchableSelect
-                      id="listing-currency"
-                      value={currency}
-                      onChange={(next) =>
-                        setValue("currency", next as Currency, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })
-                      }
-                      options={Object.values(Currency).map((value) => ({ value, label: value }))}
-                      placeholder={t("uploadModal.fields.currency")}
-                      searchable={false}
-                    />
-                  </div>
-
                   <div
                     className={
                       hasSale && hasRent
@@ -1058,13 +1074,22 @@ export function UploadListingModal({
                   >
                     {hasSale && (
                       <div className="flex min-w-0 flex-col gap-2">
-                        <label
-                          htmlFor="listing-sale-price"
-                          className={labelClass}
-                          style={mont}
-                        >
-                          {t("uploadModal.fields.salePrice")} <span className="text-[#e7000b]">*</span>
-                        </label>
+                        <div className="flex items-center justify-between gap-2">
+                          <label
+                            htmlFor="listing-sale-price"
+                            className={labelClass}
+                            style={mont}
+                          >
+                            {t("uploadModal.fields.salePrice")} <span className="text-[#e7000b]">*</span>
+                          </label>
+
+                          <CurrencyToggle
+                            value={saleCurrency}
+                            onChange={(next) =>
+                              setValue("saleCurrency", next, { shouldDirty: true, shouldValidate: true })
+                            }
+                          />
+                        </div>
 
                         <input
                           id="listing-sale-price"
@@ -1085,13 +1110,22 @@ export function UploadListingModal({
 
                     {hasRent && (
                       <div className="flex min-w-0 flex-col gap-2">
-                        <label
-                          htmlFor="listing-rent-price"
-                          className={labelClass}
-                          style={mont}
-                        >
-                          {t("uploadModal.fields.rentPrice")} <span className="text-[#e7000b]">*</span>
-                        </label>
+                        <div className="flex items-center justify-between gap-2">
+                          <label
+                            htmlFor="listing-rent-price"
+                            className={labelClass}
+                            style={mont}
+                          >
+                            {t("uploadModal.fields.rentPrice")} <span className="text-[#e7000b]">*</span>
+                          </label>
+
+                          <CurrencyToggle
+                            value={rentCurrency}
+                            onChange={(next) =>
+                              setValue("rentCurrency", next, { shouldDirty: true, shouldValidate: true })
+                            }
+                          />
+                        </div>
 
                         <input
                           id="listing-rent-price"

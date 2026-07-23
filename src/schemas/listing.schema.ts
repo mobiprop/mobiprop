@@ -130,9 +130,10 @@ export const listingBaseSchema = z.object({
   operationType: z.enum(PropertyOperationType, { error: "Operation type is required" }),
   salePrice: optionalPrice,
   rentPrice: optionalPrice,
-  // Governs both salePrice and rentPrice — a listing is priced in one
-  // currency, not mixed.
-  currency: z.enum(Currency).default(Currency.USD),
+  // Independent — a SALE_AND_RENT listing can be priced for sale and for
+  // rent in different currencies (e.g. sale in USD, rent in ARS).
+  saleCurrency: z.enum(Currency).default(Currency.USD),
+  rentCurrency: z.enum(Currency).default(Currency.USD),
   // Must reference a real row in the dashboard's Locations sector — set
   // together with `location` (display text) by the form's location picker.
   locationId: z.string().trim().min(1, "Location is required"),
@@ -213,7 +214,8 @@ export const updateListingSchema = listingBaseSchema
   .extend({
     isFeatured: z.boolean().optional(),
     amenities: z.array(z.enum(AMENITY_KEYS)).optional(),
-    currency: z.enum(Currency).optional(),
+    saleCurrency: z.enum(Currency).optional(),
+    rentCurrency: z.enum(Currency).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.operationType) {
@@ -238,7 +240,7 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 // Field groups used by the modal to validate one step at a time
 // (react-hook-form `trigger(...)` before allowing Next Step).
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
-  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "currency", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId", "ownerContactId"],
+  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "saleCurrency", "rentCurrency", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId", "ownerContactId"],
   1: [
     "bedrooms",
     "bathrooms",

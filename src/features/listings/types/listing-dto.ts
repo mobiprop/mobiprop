@@ -34,8 +34,9 @@ export type DashboardListingDto = {
   operationType: PropertyOperationType;
   salePrice: number | null;
   rentPrice: number | null;
-  /** Governs both salePrice and rentPrice — a listing is priced in one currency. */
-  currency: Currency;
+  /** Independent — sale and rent can be priced in different currencies. */
+  saleCurrency: Currency;
+  rentCurrency: Currency;
   location: string;
   locationId: string | null;
   fullAddress: string;
@@ -82,8 +83,9 @@ export type PublicListingDto = {
   operationType: PropertyOperationType;
   salePrice: number | null;
   rentPrice: number | null;
-  /** Governs both salePrice and rentPrice — a listing is priced in one currency. */
-  currency: Currency;
+  /** Independent — sale and rent can be priced in different currencies. */
+  saleCurrency: Currency;
+  rentCurrency: Currency;
   location: string;
   fullAddress: string;
   city: string | null;

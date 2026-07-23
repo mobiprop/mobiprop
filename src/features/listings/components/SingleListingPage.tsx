@@ -829,8 +829,8 @@ function buildStats(listing: PublicListingDto, t: TFunction) {
     stats.push({ label, value, copy, icon: statIcon(label) });
 
   push("Type", operationTypeLabel(t, listing.operationType));
-  if (listing.salePrice !== null) push("Price", formatSalePrice(listing.salePrice, listing.currency));
-  else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice, listing.currency, t));
+  if (listing.salePrice !== null) push("Price", formatSalePrice(listing.salePrice, listing.saleCurrency));
+  else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice, listing.rentCurrency, t));
   if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
   if (listing.bathrooms !== null) push("Baths", String(listing.bathrooms));
   if (listing.totalAreaM2 !== null) push("Size", `${listing.totalAreaM2.toLocaleString("en-US")} m²`);
@@ -1233,7 +1233,7 @@ export function SingleListingPageContent({
                     letterSpacing: "-0.24px",
                   }}
                 >
-                  {formatSalePrice(listing.salePrice, listing.currency)}
+                  {formatSalePrice(listing.salePrice, listing.saleCurrency)}
                 </span>
               </div>
             ) : null}
@@ -1261,7 +1261,7 @@ export function SingleListingPageContent({
                     letterSpacing: "-0.24px",
                   }}
                 >
-                  {formatRentPrice(listing.rentPrice, listing.currency, t)}
+                  {formatRentPrice(listing.rentPrice, listing.rentCurrency, t)}
                 </span>
               </div>
             ) : null}

@@ -58,11 +58,16 @@ const PRICE_FORMATTERS: Record<Currency, Intl.NumberFormat> = {
   ARS: new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }),
 };
 
-/** "USD $450,000" / "ARS $1.200/mo" / "USD $450,000 · USD $1,200/mo" depending on operation. */
+/** "USD $450,000" / "ARS $1.200/mo" / "USD $450,000 · ARS $1.200/mo" depending on operation — sale and rent can be priced in different currencies. */
 export function formatListingPrice(listing: DashboardListingDto): string {
-  const fmt = PRICE_FORMATTERS[listing.currency];
-  const sale = listing.salePrice !== null ? `${listing.currency} $${fmt.format(listing.salePrice)}` : null;
-  const rent = listing.rentPrice !== null ? `${listing.currency} $${fmt.format(listing.rentPrice)}/mo` : null;
+  const sale =
+    listing.salePrice !== null
+      ? `${listing.saleCurrency} $${PRICE_FORMATTERS[listing.saleCurrency].format(listing.salePrice)}`
+      : null;
+  const rent =
+    listing.rentPrice !== null
+      ? `${listing.rentCurrency} $${PRICE_FORMATTERS[listing.rentCurrency].format(listing.rentPrice)}/mo`
+      : null;
   if (sale && rent) return `${sale} · ${rent}`;
   return sale ?? rent ?? "—";
 }

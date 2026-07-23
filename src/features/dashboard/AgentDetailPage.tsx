@@ -55,10 +55,14 @@ const PRICE_FORMATTERS: Record<Currency, Intl.NumberFormat> = {
   ARS: new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }),
 };
 
-function formatPrice(salePrice: number | null, rentPrice: number | null, currency: Currency): string {
-  const fmt = PRICE_FORMATTERS[currency];
-  const sale = salePrice !== null ? `${currency} $${fmt.format(salePrice)}` : null;
-  const rent = rentPrice !== null ? `${currency} $${fmt.format(rentPrice)}/mo` : null;
+function formatPrice(
+  salePrice: number | null,
+  rentPrice: number | null,
+  saleCurrency: Currency,
+  rentCurrency: Currency,
+): string {
+  const sale = salePrice !== null ? `${saleCurrency} $${PRICE_FORMATTERS[saleCurrency].format(salePrice)}` : null;
+  const rent = rentPrice !== null ? `${rentCurrency} $${PRICE_FORMATTERS[rentCurrency].format(rentPrice)}/mo` : null;
   if (sale && rent) return `${sale} · ${rent}`;
   return sale ?? rent ?? "—";
 }
@@ -183,7 +187,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         TYPE_LABELS[property.type as PropertyType],
         property.location,
         STATUS_LABELS[property.status as PropertyStatus],
-        formatPrice(property.salePrice, property.rentPrice, property.currency),
+        formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency),
       ].some((value) => value.toLowerCase().includes(normalizedSearch)),
     );
   }, [agent, normalizedSearch]);
@@ -565,7 +569,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="whitespace-nowrap text-[14px] font-medium text-[#0d2138]"
                         style={mont}
                       >
-                        {formatPrice(property.salePrice, property.rentPrice, property.currency)}
+                        {formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency)}
                       </span>
                     </td>
 
@@ -661,7 +665,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="mt-2 truncate text-[14px] font-semibold text-[#0d2138]"
                         style={mont}
                       >
-                        {formatPrice(property.salePrice, property.rentPrice, property.currency)}
+                        {formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency)}
                       </p>
                     </div>
                   </div>

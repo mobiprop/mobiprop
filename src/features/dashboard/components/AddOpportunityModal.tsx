@@ -247,6 +247,9 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const [dealType, setDealType] = useState<"Rent" | "Sale">(initial?.dealType === "Rent" ? "Rent" : "Sale");
   const [dealSize, setDealSize] = useState(initial?.dealSize != null ? String(initial.dealSize) : "");
   const [currency, setCurrency] = useState<Currency>(initial?.currency ?? Currency.USD);
+  const [lockedRateInput, setLockedRateInput] = useState(
+    initial?.exchangeRate != null ? String(initial.exchangeRate) : "",
+  );
   const [contractStart, setContractStart] = useState(initial?.contractStart?.slice(0, 10) ?? "");
   const [contractEnd, setContractEnd] = useState(initial?.contractEnd?.slice(0, 10) ?? "");
   const [commission, setCommission] = useState(initial?.commission != null ? String(initial.commission) : "");
@@ -507,6 +510,12 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     status === OpportunityStatus.CLOSED_WON &&
     initial?.status !== OpportunityStatus.CLOSED_WON;
 
+  // Deal is already closed — no confirmation dialog fires again (that only
+  // happens on the fresh OPEN -> CLOSED_WON transition), but the locked rate
+  // can still be corrected directly here if it turns out to be wrong.
+  const showRateCorrection =
+    mode === "edit" && currency === Currency.ARS && initial?.status === OpportunityStatus.CLOSED_WON;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting || isSaving) return;
@@ -567,6 +576,16 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   }
 
   async function doSubmit(exchangeRateOverride?: number) {
+    // A fresh-close override (from the confirmation dialog) always wins; a
+    // rate typed into the correction field only applies if it actually changed.
+    let effectiveOverride = exchangeRateOverride;
+    if (effectiveOverride === undefined && showRateCorrection) {
+      const corrected = Number(lockedRateInput);
+      if (corrected > 0 && corrected !== initial?.exchangeRate) {
+        effectiveOverride = corrected;
+      }
+    }
+
     setSubmitting(true);
     try {
       const saved = await onSubmit({
@@ -575,7 +594,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
         dealType,
         dealSize,
         currency,
-        exchangeRateOverride,
+        exchangeRateOverride: effectiveOverride,
         contractStart,
         contractEnd,
         commission,
@@ -1070,6 +1089,25 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
               />
             </div>
           </div>
+
+          {showRateCorrection && (
+            <div className="flex flex-col gap-1.5 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
+              <label className={labelClass} style={mont}>{t("addModal.lockedRate.label")}</label>
+              <div className="relative max-w-[220px]">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>ARS $</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={lockedRateInput}
+                  onChange={(e) => setLockedRateInput(e.target.value)}
+                  className="h-10 w-full pl-[46px] pr-3 border border-[#e5e7eb] rounded-[10px] bg-white text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86] transition-colors"
+                  style={mont}
+                />
+              </div>
+              <p className="text-[11px] text-[#6a7282]" style={mont}>{t("addModal.lockedRate.help")}</p>
+            </div>
+          )}
 
           {/* Rental contract period — only for rentals */}
           {isRental && (

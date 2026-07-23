@@ -41,7 +41,7 @@ type StatsProperty = {
   type: PropertyType;
   status: PropertyStatus;
   salePrice: { toString(): string } | null;
-  currency: Currency;
+  saleCurrency: Currency;
   totalAreaM2: number | null;
   assignedAgentId: string | null;
   createdAt: Date;
@@ -139,7 +139,7 @@ function buildLocationDtos(
     const perM2 = matched
       .filter((p) => p.salePrice != null && p.totalAreaM2 && p.totalAreaM2 > 0)
       .map((p) => {
-        const usdPrice = toUsd(Number(p.salePrice), p.currency, liveRate);
+        const usdPrice = toUsd(Number(p.salePrice), p.saleCurrency, liveRate);
         return usdPrice === null ? null : usdPrice / (p.totalAreaM2 as number);
       })
       .filter((v): v is number => v !== null);
@@ -220,7 +220,7 @@ export async function listLocationsWithStats(): Promise<
       type: true,
       status: true,
       salePrice: true,
-      currency: true,
+      saleCurrency: true,
       totalAreaM2: true,
       assignedAgentId: true,
       createdAt: true,

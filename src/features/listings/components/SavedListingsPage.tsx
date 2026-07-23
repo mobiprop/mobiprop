@@ -22,7 +22,8 @@ type SavedListing = {
   operationType: string;
   salePrice: number | null;
   rentPrice: number | null;
-  currency: Currency;
+  saleCurrency: Currency;
+  rentCurrency: Currency;
   bedrooms: number | null;
   bathrooms: number | null;
   totalAreaM2: number | null;
@@ -97,7 +98,8 @@ function SavedCard({
     {
       salePrice: listing.salePrice,
       rentPrice: listing.rentPrice,
-      currency: listing.currency,
+      saleCurrency: listing.saleCurrency,
+      rentCurrency: listing.rentCurrency,
       operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
     } as Parameters<typeof listingDisplayPrice>[0],
     t,

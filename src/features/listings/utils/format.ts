@@ -49,10 +49,10 @@ export function formatRentPrice(value: number, currency: Currency, t: TFunction)
 /** Primary display price: sale price first, rent price (with /mo) otherwise. */
 export function listingDisplayPrice(listing: PublicListingDto, t: TFunction): string {
   if (listing.salePrice !== null && listing.operationType !== "RENT") {
-    return formatSalePrice(listing.salePrice, listing.currency);
+    return formatSalePrice(listing.salePrice, listing.saleCurrency);
   }
-  if (listing.rentPrice !== null) return formatRentPrice(listing.rentPrice, listing.currency, t);
-  if (listing.salePrice !== null) return formatSalePrice(listing.salePrice, listing.currency);
+  if (listing.rentPrice !== null) return formatRentPrice(listing.rentPrice, listing.rentCurrency, t);
+  if (listing.salePrice !== null) return formatSalePrice(listing.salePrice, listing.saleCurrency);
   return t("listings:card.priceOnRequest");
 }
 

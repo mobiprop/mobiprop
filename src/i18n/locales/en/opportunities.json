@@ -161,13 +161,17 @@
     "currency": "Currency",
     "closeConfirm": {
       "title": "Confirm exchange rate",
-      "description": "This deal is in ARS. Enter the Dólar Blue \"venta\" rate to lock in — it's used to convert this deal's commission to USD on the dashboard and can never be changed once confirmed.",
+      "description": "This deal is in ARS. Enter the Dólar Blue \"venta\" rate to lock in — it's used to convert this deal's commission to USD on the dashboard. You can still correct it later from Edit if needed.",
       "rateLabel": "Dólar Blue (venta)",
       "fetching": "Fetching today's rate…",
       "fetchFailed": "Couldn't fetch today's rate automatically — enter it manually.",
       "invalidRate": "Enter a valid exchange rate greater than 0.",
       "cancel": "Cancel",
       "confirm": "Confirm & Close Deal"
+    },
+    "lockedRate": {
+      "label": "Locked exchange rate (Dólar Blue venta)",
+      "help": "This deal is already closed — its commission was converted to USD using this rate. Change it only to correct a mistake; the closing date won't move."
     },
     "rentalPeriod": {
       "title": "Rental contract period",

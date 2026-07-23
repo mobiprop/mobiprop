@@ -259,8 +259,7 @@
     "tooltip": {
       "revenue": "Ingresos Brutos",
       "revenueNet": "Ingresos Netos",
-      "openOpportunities": "Oportunidades Abiertas",
-      "gap": "Diferencia"
+      "openOpportunities": "Oportunidades Abiertas"
     },
     "chartTitle": "Oportunidades Abiertas / Ingresos",
     "refreshChart": "Actualizar gráfico",

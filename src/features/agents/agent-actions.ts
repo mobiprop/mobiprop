@@ -485,7 +485,8 @@ export type AssignedPropertySummary = {
   location: string;
   salePrice: number | null;
   rentPrice: number | null;
-  currency: Currency;
+  saleCurrency: Currency;
+  rentCurrency: Currency;
 };
 
 export type AgentDetailDto = AgentDto & {
@@ -575,7 +576,8 @@ export async function getAgentDetail(
         location: true,
         salePrice: true,
         rentPrice: true,
-        currency: true,
+        saleCurrency: true,
+        rentCurrency: true,
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -634,7 +636,8 @@ export async function getAgentDetail(
       location: p.location,
       salePrice: p.salePrice === null ? null : Number(p.salePrice),
       rentPrice: p.rentPrice === null ? null : Number(p.rentPrice),
-      currency: p.currency,
+      saleCurrency: p.saleCurrency,
+      rentCurrency: p.rentCurrency,
     })),
   };
 
