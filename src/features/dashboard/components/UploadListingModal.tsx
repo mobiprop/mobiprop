@@ -72,7 +72,7 @@ import {
   useReorderListingImagesMutation,
 } from "@/hooks/mutations/useUpdateListingMutation";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
-import type { ListingInput } from "@/schemas/listing.schema";
+import type { ListingInput, UpdateListingInput } from "@/schemas/listing.schema";
 import { LocationPickerInput } from "./LocationPickerInput";
 import { PlaceAutocompleteInput } from "@/components/maps/PlaceAutocompleteInput";
 
@@ -256,10 +256,13 @@ type UploadListingModalProps = {
  * Returns only the fields that changed vs the saved listing.
  * Sending a minimal diff avoids unnecessary DB writes and geocode calls.
  * When operationType changes we always include both prices so the server's
- * conditional price validation has them available.
+ * conditional price validation has them available — and explicitly null out
+ * whichever price the new operation type no longer needs (rather than
+ * silently keeping the old value from a since-hidden, still-registered
+ * form field).
  */
-function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Partial<ListingInput> {
-  const diff: Partial<ListingInput> = {};
+function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Partial<UpdateListingInput> {
+  const diff: Partial<UpdateListingInput> = {};
 
   if (parsed.title !== listing.title) diff.title = parsed.title;
   if (parsed.type !== listing.type) diff.type = parsed.type;
@@ -299,10 +302,19 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
 
   // operationType change: always include both prices (and their currencies)
   // so the server's conditional price validation (requires relevant prices)
-  // can run.
+  // can run. Explicitly null out whichever price the new operation type no
+  // longer needs — its form field is now hidden but still registered, so it
+  // can otherwise hold a stale leftover value from before the toggle.
   if (diff.operationType !== undefined) {
-    diff.salePrice = parsed.salePrice;
-    diff.rentPrice = parsed.rentPrice;
+    const needsSale =
+      parsed.operationType === PropertyOperationType.SALE ||
+      parsed.operationType === PropertyOperationType.SALE_AND_RENT;
+    const needsRent =
+      parsed.operationType === PropertyOperationType.RENT ||
+      parsed.operationType === PropertyOperationType.SALE_AND_RENT;
+
+    diff.salePrice = needsSale ? parsed.salePrice : null;
+    diff.rentPrice = needsRent ? parsed.rentPrice : null;
     diff.saleCurrency = parsed.saleCurrency;
     diff.rentCurrency = parsed.rentCurrency;
   }

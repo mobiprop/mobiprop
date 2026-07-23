@@ -106,6 +106,15 @@ const optionalPrice = z.preprocess(
   z.number().positive("Price must be greater than 0").optional(),
 );
 
+// Update-only variant: distinguishes "field omitted, don't touch it" (undefined)
+// from "explicitly clear this price" (null) — e.g. switching a listing from
+// SALE_AND_RENT back to SALE-only must actually null out rentPrice in the DB,
+// not just leave the previous value in place.
+const clearablePrice = z.preprocess(
+  (value) => (value === "" || value === undefined ? undefined : value === null ? null : Number(value)),
+  z.union([z.number().positive("Price must be greater than 0"), z.null()]).optional(),
+);
+
 const optionalArea = (label: string) =>
   z.preprocess(
     (value) => (value === "" || value === null || value === undefined ? undefined : Number(value)),
@@ -185,7 +194,7 @@ export const listingBaseSchema = z.object({
 // Prices are conditionally required based on the operation type (the UI shows
 // Sale Price / Rent Price / both accordingly).
 function validatePrices(
-  data: { operationType: PropertyOperationType; salePrice?: number; rentPrice?: number },
+  data: { operationType: PropertyOperationType; salePrice?: number | null; rentPrice?: number | null },
   ctx: z.RefinementCtx,
 ) {
   const needsSale =
@@ -195,10 +204,10 @@ function validatePrices(
     data.operationType === PropertyOperationType.RENT ||
     data.operationType === PropertyOperationType.SALE_AND_RENT;
 
-  if (needsSale && data.salePrice === undefined) {
+  if (needsSale && data.salePrice == null) {
     ctx.addIssue({ code: "custom", path: ["salePrice"], message: "Sale price is required" });
   }
-  if (needsRent && data.rentPrice === undefined) {
+  if (needsRent && data.rentPrice == null) {
     ctx.addIssue({ code: "custom", path: ["rentPrice"], message: "Rent price is required" });
   }
 }
@@ -216,6 +225,8 @@ export const updateListingSchema = listingBaseSchema
     amenities: z.array(z.enum(AMENITY_KEYS)).optional(),
     saleCurrency: z.enum(Currency).optional(),
     rentCurrency: z.enum(Currency).optional(),
+    salePrice: clearablePrice,
+    rentPrice: clearablePrice,
   })
   .superRefine((data, ctx) => {
     if (data.operationType) {
