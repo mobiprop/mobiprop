@@ -17,7 +17,7 @@ import { logActivity } from "@/lib/activity-log";
 import { resolveCompanyRevenueUsd, resolveAgentEarningsUsd } from "@/lib/commission";
 import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { uploadAvatar, removeAvatar } from "@/lib/supabase/storage";
-import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
+import { OpportunityStatus, UserRole, UserStatus, type Currency } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
 
 export type AgentDto = {
@@ -485,6 +485,7 @@ export type AssignedPropertySummary = {
   location: string;
   salePrice: number | null;
   rentPrice: number | null;
+  currency: Currency;
 };
 
 export type AgentDetailDto = AgentDto & {
@@ -574,6 +575,7 @@ export async function getAgentDetail(
         location: true,
         salePrice: true,
         rentPrice: true,
+        currency: true,
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -632,6 +634,7 @@ export async function getAgentDetail(
       location: p.location,
       salePrice: p.salePrice === null ? null : Number(p.salePrice),
       rentPrice: p.rentPrice === null ? null : Number(p.rentPrice),
+      currency: p.currency,
     })),
   };
 

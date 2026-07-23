@@ -64,6 +64,7 @@ const leadInclude = {
       status: true,
       salePrice: true,
       rentPrice: true,
+      currency: true,
       images: { select: { url: true, isCover: true }, orderBy: { sortOrder: "asc" as const } },
     },
   },
@@ -104,6 +105,7 @@ async function toLeadDto(l: LeadRow, agentMap?: Map<string, { id: string; fullNa
           status: l.primaryListing.status,
           salePrice: l.primaryListing.salePrice ? Number(l.primaryListing.salePrice) : null,
           rentPrice: l.primaryListing.rentPrice ? Number(l.primaryListing.rentPrice) : null,
+          currency: l.primaryListing.currency,
         }
       : null,
     assignedAgentId: l.assignedAgentId,

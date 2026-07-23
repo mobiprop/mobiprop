@@ -126,6 +126,7 @@ export type LeadListingSnapshotDto = {
   status: string;
   salePrice: number | null;
   rentPrice: number | null;
+  currency: Currency;
 };
 
 export type LeadAgentDto = {

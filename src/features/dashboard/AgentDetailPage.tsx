@@ -27,7 +27,7 @@ import {
   TYPE_BADGE,
   STATUS_BADGE,
 } from "./listings-data";
-import type { PropertyType, PropertyStatus } from "@/generated/prisma/enums";
+import type { PropertyType, PropertyStatus, Currency } from "@/generated/prisma/enums";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
@@ -43,11 +43,22 @@ const PERIOD_I18N_KEY: Record<AgentDetailPeriod, string> = {
 
 const PERIOD_OPTIONS = Object.keys(PERIOD_I18N_KEY) as AgentDetailPeriod[];
 
-const priceFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+// totalRevenue/totalEarnings are already USD-normalized aggregates (see
+// resolveCompanyRevenueUsd/resolveAgentEarningsUsd) — plain USD formatting,
+// no per-listing currency prefix needed.
+const usdFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
-function formatPrice(salePrice: number | null, rentPrice: number | null): string {
-  const sale = salePrice !== null ? `$${priceFormat.format(salePrice)}` : null;
-  const rent = rentPrice !== null ? `$${priceFormat.format(rentPrice)}/mo` : null;
+// Grouping only — currency code is prefixed separately so USD and ARS always
+// read unambiguously (e.g. "ARS $900.000" / "USD $900,000").
+const PRICE_FORMATTERS: Record<Currency, Intl.NumberFormat> = {
+  USD: new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }),
+  ARS: new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }),
+};
+
+function formatPrice(salePrice: number | null, rentPrice: number | null, currency: Currency): string {
+  const fmt = PRICE_FORMATTERS[currency];
+  const sale = salePrice !== null ? `${currency} $${fmt.format(salePrice)}` : null;
+  const rent = rentPrice !== null ? `${currency} $${fmt.format(rentPrice)}/mo` : null;
   if (sale && rent) return `${sale} · ${rent}`;
   return sale ?? rent ?? "—";
 }
@@ -172,7 +183,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         TYPE_LABELS[property.type as PropertyType],
         property.location,
         STATUS_LABELS[property.status as PropertyStatus],
-        formatPrice(property.salePrice, property.rentPrice),
+        formatPrice(property.salePrice, property.rentPrice, property.currency),
       ].some((value) => value.toLowerCase().includes(normalizedSearch)),
     );
   }, [agent, normalizedSearch]);
@@ -399,7 +410,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                 className="text-[#10b981]"
               />
             }
-            value={`$${priceFormat.format(agent.totalRevenue)}`}
+            value={`$${usdFormat.format(agent.totalRevenue)}`}
             label={t("detail.stats.totalRevenue")}
           />
 
@@ -438,7 +449,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                 className="text-[#a855f7]"
               />
             }
-            value={`$${priceFormat.format(agent.totalEarnings)}`}
+            value={`$${usdFormat.format(agent.totalEarnings)}`}
             label={t("detail.stats.totalEarnings")}
           />
         </section>
@@ -554,7 +565,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="whitespace-nowrap text-[14px] font-medium text-[#0d2138]"
                         style={mont}
                       >
-                        {formatPrice(property.salePrice, property.rentPrice)}
+                        {formatPrice(property.salePrice, property.rentPrice, property.currency)}
                       </span>
                     </td>
 
@@ -650,7 +661,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="mt-2 truncate text-[14px] font-semibold text-[#0d2138]"
                         style={mont}
                       >
-                        {formatPrice(property.salePrice, property.rentPrice)}
+                        {formatPrice(property.salePrice, property.rentPrice, property.currency)}
                       </p>
                     </div>
                   </div>

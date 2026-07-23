@@ -5,7 +5,7 @@ import { requirePermission } from "@/lib/require-permission";
 import { requireUser } from "@/lib/require-user";
 import { logActivity } from "@/lib/activity-log";
 import { geocodeAddress } from "@/lib/maps";
-import { resolveCompanyRevenueUsd } from "@/lib/commission";
+import { resolveCompanyRevenueUsd, toUsd } from "@/lib/commission";
 import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import type { Currency } from "@/generated/prisma/enums";
 import { PropertyType, PropertyStatus, OpportunityStatus } from "@/generated/prisma/enums";
@@ -41,6 +41,7 @@ type StatsProperty = {
   type: PropertyType;
   status: PropertyStatus;
   salePrice: { toString(): string } | null;
+  currency: Currency;
   totalAreaM2: number | null;
   assignedAgentId: string | null;
   createdAt: Date;
@@ -131,15 +132,18 @@ function buildLocationDtos(
         .filter((id): id is string => Boolean(id) && activeProfileIds.has(id!)),
     ).size;
 
-    const withPriceAndArea = matched.filter((p) => p.salePrice != null && p.totalAreaM2);
-    const avgPricePerM2 = withPriceAndArea.length
-      ? Math.round(
-          withPriceAndArea.reduce((sum, p) => {
-            const sqm = p.totalAreaM2 ?? 0;
-            return sum + (sqm > 0 ? Number(p.salePrice) / sqm : 0);
-          }, 0) / withPriceAndArea.length,
-        )
-      : 0;
+    // USD-normalized like every other dashboard aggregate — a location mixing
+    // USD and ARS listings must not average their raw sale prices together.
+    // A still-unconvertible ARS listing (no locked rate, live-rate fetch
+    // failed) is excluded from the average rather than guessed.
+    const perM2 = matched
+      .filter((p) => p.salePrice != null && p.totalAreaM2 && p.totalAreaM2 > 0)
+      .map((p) => {
+        const usdPrice = toUsd(Number(p.salePrice), p.currency, liveRate);
+        return usdPrice === null ? null : usdPrice / (p.totalAreaM2 as number);
+      })
+      .filter((v): v is number => v !== null);
+    const avgPricePerM2 = perM2.length ? Math.round(perM2.reduce((sum, v) => sum + v, 0) / perM2.length) : 0;
 
     const revenue =
       opportunities
@@ -216,6 +220,7 @@ export async function listLocationsWithStats(): Promise<
       type: true,
       status: true,
       salePrice: true,
+      currency: true,
       totalAreaM2: true,
       assignedAgentId: true,
       createdAt: true,
