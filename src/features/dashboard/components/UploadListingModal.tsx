@@ -47,6 +47,7 @@ import {
   PropertyStatus,
   PropertyType,
   ContactType,
+  Currency,
 } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { QuickAddContactModal } from "./QuickAddContactModal";
@@ -136,6 +137,7 @@ type ListingFormValues = {
   operationType: PropertyOperationType;
   salePrice: string;
   rentPrice: string;
+  currency: Currency;
   locationId: string;
   location: string;
   fullAddress: string;
@@ -164,6 +166,7 @@ const EMPTY_VALUES: ListingFormValues = {
   operationType: PropertyOperationType.SALE,
   salePrice: "",
   rentPrice: "",
+  currency: Currency.USD,
   locationId: "",
   location: "",
   fullAddress: "",
@@ -193,6 +196,7 @@ function valuesFromListing(listing: DashboardListingDto): ListingFormValues {
     operationType: listing.operationType,
     salePrice: listing.salePrice?.toString() ?? "",
     rentPrice: listing.rentPrice?.toString() ?? "",
+    currency: listing.currency,
     locationId: listing.locationId ?? "",
     location: listing.location,
     fullAddress: listing.fullAddress,
@@ -260,6 +264,7 @@ function buildUpdateDiff(listing: DashboardListingDto, parsed: ListingInput): Pa
   if (parsed.operationType !== listing.operationType) diff.operationType = parsed.operationType;
   if (parsed.salePrice !== (listing.salePrice ?? undefined)) diff.salePrice = parsed.salePrice;
   if (parsed.rentPrice !== (listing.rentPrice ?? undefined)) diff.rentPrice = parsed.rentPrice;
+  if (parsed.currency !== listing.currency) diff.currency = parsed.currency;
   if (parsed.locationId !== (listing.locationId ?? "")) diff.locationId = parsed.locationId;
   if (parsed.location !== listing.location) diff.location = parsed.location;
   if (parsed.fullAddress !== listing.fullAddress) diff.fullAddress = parsed.fullAddress;
@@ -460,6 +465,7 @@ export function UploadListingModal({
   const isFeatured = watch("isFeatured");
   const type = watch("type");
   const status = watch("status");
+  const currency = watch("currency");
   const locationId = watch("locationId");
   const fullAddress = watch("fullAddress");
   const assignedAgentId = watch("assignedAgentId");
@@ -1021,6 +1027,26 @@ export function UploadListingModal({
                         );
                       })}
                     </div>
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-2 sm:max-w-55">
+                    <label htmlFor="listing-currency" className={labelClass} style={mont}>
+                      {t("uploadModal.fields.currency")} <span className="text-[#e7000b]">*</span>
+                    </label>
+
+                    <SearchableSelect
+                      id="listing-currency"
+                      value={currency}
+                      onChange={(next) =>
+                        setValue("currency", next as Currency, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
+                      options={Object.values(Currency).map((value) => ({ value, label: value }))}
+                      placeholder={t("uploadModal.fields.currency")}
+                      searchable={false}
+                    />
                   </div>
 
                   <div

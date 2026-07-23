@@ -5,6 +5,8 @@ export type MetricCard = {
   label: string;
   value: string;
   sub?: string;
+  /** Net revenue (gross minus the agent's cut) — only set on the "revenue" card. */
+  netValue?: string;
   trendValue: string;
   trendText: string;
   trendDirection: TrendDirection;
@@ -15,7 +17,14 @@ export type MetricCard = {
 
 export type ChartGranularity = "monthly" | "weekly" | "daily";
 
-export type ChartPoint = { label: string; revenue: number; openOpportunities: number };
+export type ChartPoint = {
+  label: string;
+  /** Gross company commission for CLOSED_WON deals in this bucket. */
+  revenue: number;
+  /** revenue minus the agent's cut — what the company actually keeps. */
+  revenueNet: number;
+  openOpportunities: number;
+};
 
 export type LocationRow = { name: string; count: number };
 

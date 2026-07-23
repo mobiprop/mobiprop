@@ -195,6 +195,7 @@
       "operationType": "Tipo de Operación",
       "salePrice": "Precio de Venta",
       "rentPrice": "Precio de Alquiler",
+      "currency": "Moneda",
       "location": "Ubicación",
       "searchLocations": "Buscar ubicaciones...",
       "addLocation": "+ Agregar Ubicación",

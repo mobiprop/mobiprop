@@ -18,7 +18,12 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { hasPermission } from "@/lib/permissions";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
-import { resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
+import {
+  resolveCompanyRevenueUsd,
+  resolveAgentEarningsUsd,
+  resolveNetCompanyRevenueUsd,
+} from "@/lib/commission";
+import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { OpportunityStatus, PropertyStatus, PropertyOperationType } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import type {
@@ -176,7 +181,13 @@ export async function getDashboardMetrics(
   const opportunityWhere: Prisma.OpportunityWhereInput = {
     AND: [
       await opportunityScope(profile),
-      { OR: [{ createdAt: { gte: prevStart, lte: end } }, { updatedAt: { gte: prevStart, lte: end } }] },
+      {
+        OR: [
+          { createdAt: { gte: prevStart, lte: end } },
+          { updatedAt: { gte: prevStart, lte: end } },
+          { closedAt: { gte: prevStart, lte: end } },
+        ],
+      },
     ],
   };
 
@@ -185,7 +196,7 @@ export async function getDashboardMetrics(
       ? { status: PropertyStatus.ACTIVE }
       : { status: PropertyStatus.ACTIVE, assignedAgentId: { in: scopeIds } };
 
-  const [listingsTotal, listingRows, opportunityRows] = await Promise.all([
+  const [listingsTotal, listingRows, opportunityRows, liveRate] = await Promise.all([
     prisma.property.count({ where: propertyWhere }),
     prisma.property.findMany({
       where: { ...propertyWhere, createdAt: { gte: prevStart, lte: end } },
@@ -195,9 +206,11 @@ export async function getDashboardMetrics(
       where: opportunityWhere,
       select: {
         status: true, dealSize: true, commission: true, commissionUnit: true,
-        agentCommissionValue: true, agentCommissionUnit: true, createdAt: true, updatedAt: true,
+        agentCommissionValue: true, agentCommissionUnit: true, currency: true, exchangeRate: true,
+        createdAt: true, updatedAt: true, closedAt: true,
       },
     }),
+    getDolarBlueVenta(),
   ]);
 
   const inWindow = (d: Date) => d >= start && d <= end;
@@ -210,9 +223,13 @@ export async function getDashboardMetrics(
   const openInPrevWindow = opportunityRows.filter(
     (o) => o.status === OpportunityStatus.OPEN && inPrevWindow(o.createdAt),
   );
-  const wonInWindow = opportunityRows.filter((o) => o.status === OpportunityStatus.CLOSED_WON && inWindow(o.updatedAt));
+  // CLOSED_WON deals window on closedAt (the date the rate was locked), not
+  // updatedAt — a later unrelated edit shouldn't move a deal's reporting date.
+  const wonInWindow = opportunityRows.filter(
+    (o) => o.status === OpportunityStatus.CLOSED_WON && o.closedAt && inWindow(o.closedAt),
+  );
   const wonInPrevWindow = opportunityRows.filter(
-    (o) => o.status === OpportunityStatus.CLOSED_WON && inPrevWindow(o.updatedAt),
+    (o) => o.status === OpportunityStatus.CLOSED_WON && o.closedAt && inPrevWindow(o.closedAt),
   );
   const lostInWindow = opportunityRows.filter((o) => o.status === OpportunityStatus.CLOSED_LOST && inWindow(o.updatedAt));
   const lostInPrevWindow = opportunityRows.filter(
@@ -220,15 +237,22 @@ export async function getDashboardMetrics(
   );
 
   // "Revenue" = the company's resolved commission (Commission Amount), never the
-  // full deal size. Agent's "Mi Comisión" = their own resolved agent commission.
-  const sumRevenue = (rows: typeof opportunityRows) => rows.reduce((s, o) => s + resolveCompanyRevenue(o), 0);
-  const sumAgentEarnings = (rows: typeof opportunityRows) => rows.reduce((s, o) => s + resolveAgentEarnings(o), 0);
+  // full deal size, always normalized to USD. Agent's "Mi Comisión" = their own
+  // resolved agent commission, also USD. An ARS deal that can't be converted
+  // (no locked rate and the live-rate fetch failed) is excluded, not guessed.
+  const sumRevenue = (rows: typeof opportunityRows) =>
+    rows.reduce((s, o) => s + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0);
+  const sumNetRevenue = (rows: typeof opportunityRows) =>
+    rows.reduce((s, o) => s + (resolveNetCompanyRevenueUsd(o, liveRate) ?? 0), 0);
+  const sumAgentEarnings = (rows: typeof opportunityRows) =>
+    rows.reduce((s, o) => s + (resolveAgentEarningsUsd(o, liveRate) ?? 0), 0);
 
   let metrics: MetricCard[];
 
   if (isCompanyView) {
     const revenueWindow = sumRevenue(wonInWindow);
     const revenuePrevWindow = sumRevenue(wonInPrevWindow);
+    const netRevenueWindow = sumNetRevenue(wonInWindow);
 
     metrics = [
       {
@@ -257,17 +281,18 @@ export async function getDashboardMetrics(
         sub: fmtMoney(revenueWindow),
         iconBg: "#d1fae5",
         iconColor: "#059669",
-        sparkline: sparklineFromDates(wonInWindow.map((o) => o.updatedAt), start, end),
+        sparkline: sparklineFromDates(wonInWindow.map((o) => o.closedAt ?? o.updatedAt), start, end),
         ...trendFrom(wonInWindow.length, wonInPrevWindow.length),
       },
       {
         key: "revenue",
         label: "Revenue",
         value: fmtMoney(revenueWindow),
+        netValue: fmtMoney(netRevenueWindow),
         iconBg: "#fef3c7",
         iconColor: "#d97706",
         sparkline: sparklineFromValues(
-          wonInWindow.map((o) => ({ date: o.updatedAt, value: resolveCompanyRevenue(o) })),
+          wonInWindow.map((o) => ({ date: o.closedAt ?? o.updatedAt, value: resolveCompanyRevenueUsd(o, liveRate) ?? 0 })),
           start,
           end,
         ),
@@ -303,7 +328,7 @@ export async function getDashboardMetrics(
         value: String(wonInWindow.length),
         iconBg: "#d1fae5",
         iconColor: "#059669",
-        sparkline: sparklineFromDates(wonInWindow.map((o) => o.updatedAt), start, end),
+        sparkline: sparklineFromDates(wonInWindow.map((o) => o.closedAt ?? o.updatedAt), start, end),
         ...trendFrom(wonInWindow.length, wonInPrevWindow.length),
       },
       {
@@ -313,7 +338,7 @@ export async function getDashboardMetrics(
         iconBg: "#fef3c7",
         iconColor: "#d97706",
         sparkline: sparklineFromValues(
-          wonInWindow.map((o) => ({ date: o.updatedAt, value: resolveAgentEarnings(o) })),
+          wonInWindow.map((o) => ({ date: o.closedAt ?? o.updatedAt, value: resolveAgentEarningsUsd(o, liveRate) ?? 0 })),
           start,
           end,
         ),
@@ -359,25 +384,58 @@ export async function getRevenueChart(
   const granularity = input.granularity ?? "monthly";
 
   const scope = await opportunityScope(gate.profile);
-  const rows = await prisma.opportunity.findMany({
-    where: {
-      AND: [
-        scope,
-        { OR: [{ createdAt: { gte: start, lte: end } }, { updatedAt: { gte: start, lte: end } }] },
-      ],
-    },
-    select: { status: true, dealSize: true, commission: true, commissionUnit: true, createdAt: true, updatedAt: true },
-  });
+  const [rows, liveRate] = await Promise.all([
+    prisma.opportunity.findMany({
+      where: {
+        AND: [
+          scope,
+          {
+            OR: [
+              { createdAt: { gte: start, lte: end } },
+              { updatedAt: { gte: start, lte: end } },
+              { closedAt: { gte: start, lte: end } },
+            ],
+          },
+        ],
+      },
+      select: {
+        status: true,
+        dealSize: true,
+        commission: true,
+        commissionUnit: true,
+        agentCommissionValue: true,
+        agentCommissionUnit: true,
+        currency: true,
+        exchangeRate: true,
+        createdAt: true,
+        updatedAt: true,
+        closedAt: true,
+      },
+    }),
+    getDolarBlueVenta(),
+  ]);
 
   const chart: ChartPoint[] = buildBuckets(start, end, granularity).map(({ label, bucketStart, bucketEnd }) => {
-    // Both series are revenue (resolved company commission), not deal size.
-    const revenue = rows
-      .filter((o) => o.status === OpportunityStatus.CLOSED_WON && o.updatedAt >= bucketStart && o.updatedAt <= bucketEnd)
-      .reduce((s, o) => s + resolveCompanyRevenue(o), 0);
+    // Both series are revenue (resolved company commission, USD-normalized),
+    // not deal size. CLOSED_WON buckets on closedAt (when the rate locked).
+    const wonInBucket = rows.filter(
+      (o) =>
+        o.status === OpportunityStatus.CLOSED_WON &&
+        o.closedAt &&
+        o.closedAt >= bucketStart &&
+        o.closedAt <= bucketEnd,
+    );
+    const revenue = wonInBucket.reduce((s, o) => s + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0);
+    const revenueNet = wonInBucket.reduce((s, o) => s + (resolveNetCompanyRevenueUsd(o, liveRate) ?? 0), 0);
     const openOpportunities = rows
       .filter((o) => o.status === OpportunityStatus.OPEN && o.createdAt >= bucketStart && o.createdAt <= bucketEnd)
-      .reduce((s, o) => s + resolveCompanyRevenue(o), 0);
-    return { label, revenue: Math.round(revenue), openOpportunities: Math.round(openOpportunities) };
+      .reduce((s, o) => s + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0);
+    return {
+      label,
+      revenue: Math.round(revenue),
+      revenueNet: Math.round(revenueNet),
+      openOpportunities: Math.round(openOpportunities),
+    };
   });
 
   return { ok: true, chart };
@@ -400,21 +458,27 @@ export async function getSalesByAgent(
   const { start, end } = resolveDateRange(input);
 
   const scope = await opportunityScope(gate.profile);
-  const rows = await prisma.opportunity.findMany({
-    where: {
-      AND: [scope, { status: OpportunityStatus.CLOSED_WON }, { updatedAt: { gte: start, lte: end } }],
-    },
-    select: {
-      opportunityId: true,
-      dealSize: true,
-      commission: true,
-      commissionUnit: true,
-      updatedAt: true,
-      assignedAgentId: true,
-      listings: { take: 1, select: { property: { select: { listingId: true, operationType: true } } } },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+  const [rows, liveRate] = await Promise.all([
+    prisma.opportunity.findMany({
+      where: {
+        AND: [scope, { status: OpportunityStatus.CLOSED_WON }, { closedAt: { gte: start, lte: end } }],
+      },
+      select: {
+        opportunityId: true,
+        dealSize: true,
+        commission: true,
+        commissionUnit: true,
+        currency: true,
+        exchangeRate: true,
+        updatedAt: true,
+        closedAt: true,
+        assignedAgentId: true,
+        listings: { take: 1, select: { property: { select: { listingId: true, operationType: true } } } },
+      },
+      orderBy: { closedAt: "desc" },
+    }),
+    getDolarBlueVenta(),
+  ]);
 
   const agentIds = [...new Set(rows.map((r) => r.assignedAgentId).filter((id): id is string => Boolean(id)))];
   const agents = agentIds.length
@@ -431,8 +495,8 @@ export async function getSalesByAgent(
       agentName: agent ? agent.fullName ?? agent.email.split("@")[0] : "Unassigned",
       listingId: property?.listingId ?? null,
       operation: OPERATION_LABEL[property?.operationType ?? PropertyOperationType.SALE],
-      date: r.updatedAt.toISOString(),
-      revenue: resolveCompanyRevenue(r),
+      date: (r.closedAt ?? r.updatedAt).toISOString(),
+      revenue: resolveCompanyRevenueUsd(r, liveRate) ?? 0,
     };
   });
 

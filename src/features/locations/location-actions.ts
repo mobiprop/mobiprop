@@ -5,7 +5,9 @@ import { requirePermission } from "@/lib/require-permission";
 import { requireUser } from "@/lib/require-user";
 import { logActivity } from "@/lib/activity-log";
 import { geocodeAddress } from "@/lib/maps";
-import { resolveCompanyRevenue } from "@/lib/commission";
+import { resolveCompanyRevenueUsd } from "@/lib/commission";
+import { getDolarBlueVenta } from "@/lib/exchange-rate";
+import type { Currency } from "@/generated/prisma/enums";
 import { PropertyType, PropertyStatus, OpportunityStatus } from "@/generated/prisma/enums";
 import { createLocationSchema, updateLocationSchema } from "@/schemas/location.schema";
 import type { CreateLocationInput, UpdateLocationInput } from "@/schemas/location.schema";
@@ -51,6 +53,8 @@ type StatsOpportunity = {
   dealSize: unknown;
   commission: unknown;
   commissionUnit: string | null;
+  currency: Currency;
+  exchangeRate: unknown;
   listings: { propertyId: string }[];
 };
 
@@ -83,6 +87,7 @@ function activityDescriptionFor(kind: LocationActivityKind): string {
 }
 
 function buildLocationDtos(
+  liveRate: number | null,
   locations: {
     id: string;
     locationId: string;
@@ -139,7 +144,7 @@ function buildLocationDtos(
     const revenue =
       opportunities
         .filter((o) => o.listings.some((l) => matchedIds.has(l.propertyId)))
-        .reduce((sum, o) => sum + resolveCompanyRevenue(o), 0) / 1_000_000;
+        .reduce((sum, o) => sum + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0) / 1_000_000;
 
     const thisMonthCount = matched.filter((p) => p.createdAt >= thisMonthStart).length;
     const lastMonthCount = matched.filter(
@@ -220,13 +225,20 @@ export async function listLocationsWithStats(): Promise<
   const propertyIds = properties.map((p) => p.id);
   const agentIds = [...new Set(properties.map((p) => p.assignedAgentId).filter((id): id is string => Boolean(id)))];
 
-  const [opportunities, activityLogs, activeProfiles] = await Promise.all([
+  const [opportunities, activityLogs, activeProfiles, liveRate] = await Promise.all([
     propertyIds.length
       ? prisma.opportunity.findMany({
           // Revenue counts only closed-won deals — matches the documented rule
           // (resolved commission on a Closed Won opportunity), not open/lost value.
           where: { listings: { some: { propertyId: { in: propertyIds } } }, status: OpportunityStatus.CLOSED_WON },
-          select: { dealSize: true, commission: true, commissionUnit: true, listings: { select: { propertyId: true } } },
+          select: {
+            dealSize: true,
+            commission: true,
+            commissionUnit: true,
+            currency: true,
+            exchangeRate: true,
+            listings: { select: { propertyId: true } },
+          },
         })
       : Promise.resolve([]),
     propertyIds.length
@@ -239,13 +251,14 @@ export async function listLocationsWithStats(): Promise<
     agentIds.length
       ? prisma.profile.findMany({ where: { id: { in: agentIds }, status: "ACTIVE" }, select: { id: true } })
       : Promise.resolve([]),
+    getDolarBlueVenta(),
   ]);
 
   const activeProfileIds = new Set(activeProfiles.map((p) => p.id));
 
   return {
     ok: true,
-    locations: buildLocationDtos(locations, properties, opportunities, activityLogs, activeProfileIds),
+    locations: buildLocationDtos(liveRate, locations, properties, opportunities, activityLogs, activeProfileIds),
   };
 }
 
@@ -299,7 +312,7 @@ export async function createLocation(
     newValues: { locationId: location.locationId, name: location.name, region: location.region },
   });
 
-  const [dto] = buildLocationDtos([location], [], [], [], new Set());
+  const [dto] = buildLocationDtos(null, [location], [], [], [], new Set());
   return { ok: true, location: dto };
 }
 
@@ -347,7 +360,7 @@ export async function updateLocation(
     newValues: { name: location.name, region: location.region, address: location.address },
   });
 
-  const [dto] = buildLocationDtos([location], [], [], [], new Set());
+  const [dto] = buildLocationDtos(null, [location], [], [], [], new Set());
   return { ok: true, location: dto };
 }
 

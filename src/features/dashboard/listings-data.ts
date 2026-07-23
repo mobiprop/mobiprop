@@ -5,6 +5,7 @@ import type {
   PropertyOperationType,
   PropertyStatus,
   PropertyType,
+  Currency,
 } from "@/generated/prisma/enums";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 
@@ -50,12 +51,18 @@ export const STATUS_BADGE: Record<PropertyStatus, { bg: string; text: string }> 
 
 export const FALLBACK_LISTING_IMAGE = "/assets/figma-temp/UserProfile/prop-0.png";
 
-const priceFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+// Grouping only — currency code is prefixed separately so USD and ARS always
+// read unambiguously (e.g. "ARS $900.000" / "USD $900,000").
+const PRICE_FORMATTERS: Record<Currency, Intl.NumberFormat> = {
+  USD: new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }),
+  ARS: new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }),
+};
 
-/** "$450,000" / "$1,200/mo" / "$450,000 · $1,200/mo" depending on operation. */
+/** "USD $450,000" / "ARS $1.200/mo" / "USD $450,000 · USD $1,200/mo" depending on operation. */
 export function formatListingPrice(listing: DashboardListingDto): string {
-  const sale = listing.salePrice !== null ? `$${priceFormat.format(listing.salePrice)}` : null;
-  const rent = listing.rentPrice !== null ? `$${priceFormat.format(listing.rentPrice)}/mo` : null;
+  const fmt = PRICE_FORMATTERS[listing.currency];
+  const sale = listing.salePrice !== null ? `${listing.currency} $${fmt.format(listing.salePrice)}` : null;
+  const rent = listing.rentPrice !== null ? `${listing.currency} $${fmt.format(listing.rentPrice)}/mo` : null;
   if (sale && rent) return `${sale} · ${rent}`;
   return sale ?? rent ?? "—";
 }

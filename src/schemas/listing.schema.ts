@@ -4,6 +4,7 @@ import {
   PropertyOperationType,
   PropertyStatus,
   PropertyType,
+  Currency,
 } from "@/generated/prisma/enums";
 
 // Canonical amenity catalog. Keys must match the rows seeded by the
@@ -129,6 +130,9 @@ export const listingBaseSchema = z.object({
   operationType: z.enum(PropertyOperationType, { error: "Operation type is required" }),
   salePrice: optionalPrice,
   rentPrice: optionalPrice,
+  // Governs both salePrice and rentPrice — a listing is priced in one
+  // currency, not mixed.
+  currency: z.enum(Currency).default(Currency.USD),
   // Must reference a real row in the dashboard's Locations sector — set
   // together with `location` (display text) by the form's location picker.
   locationId: z.string().trim().min(1, "Location is required"),
@@ -209,6 +213,7 @@ export const updateListingSchema = listingBaseSchema
   .extend({
     isFeatured: z.boolean().optional(),
     amenities: z.array(z.enum(AMENITY_KEYS)).optional(),
+    currency: z.enum(Currency).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.operationType) {
@@ -233,7 +238,7 @@ export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 // Field groups used by the modal to validate one step at a time
 // (react-hook-form `trigger(...)` before allowing Next Step).
 export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
-  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId", "ownerContactId"],
+  0: ["title", "type", "status", "operationType", "salePrice", "rentPrice", "currency", "locationId", "location", "fullAddress", "isFeatured", "assignedAgentId", "ownerContactId"],
   1: [
     "bedrooms",
     "bathrooms",

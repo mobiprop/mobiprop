@@ -14,7 +14,8 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
-import { resolveCompanyRevenue, resolveAgentEarnings } from "@/lib/commission";
+import { resolveCompanyRevenueUsd, resolveAgentEarningsUsd } from "@/lib/commission";
+import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { uploadAvatar, removeAvatar } from "@/lib/supabase/storage";
 import { OpportunityStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
@@ -73,21 +74,42 @@ function toAgentDto(p: ProfileWithTeamLeader, totalEarnings: number): AgentDto {
   };
 }
 
-/** Sums each agent's computed commission earnings across their CLOSED_WON opportunities. */
-async function buildEarningsByAgent(): Promise<Map<string, number>> {
-  const rows = await prisma.opportunity.findMany({
+/** Rows behind each agent's CLOSED_WON commission earnings — fetched separately from the USD conversion so both can run in parallel with the live rate lookup. */
+function fetchAgentEarningsRows() {
+  return prisma.opportunity.findMany({
     where: { status: OpportunityStatus.CLOSED_WON, assignedAgentId: { not: null }, isDeleted: false },
-    select: { assignedAgentId: true, dealSize: true, commission: true, commissionUnit: true, agentCommissionValue: true, agentCommissionUnit: true },
+    select: {
+      assignedAgentId: true,
+      dealSize: true,
+      commission: true,
+      commissionUnit: true,
+      agentCommissionValue: true,
+      agentCommissionUnit: true,
+      currency: true,
+      exchangeRate: true,
+    },
   });
+}
 
+/** Sums each agent's computed commission earnings (USD-normalized) across their CLOSED_WON opportunities. */
+function buildEarningsByAgent(
+  rows: Awaited<ReturnType<typeof fetchAgentEarningsRows>>,
+  liveRate: number | null,
+): Map<string, number> {
   const earnings = new Map<string, number>();
   for (const row of rows) {
     if (!row.assignedAgentId) continue;
-    const amount = resolveAgentEarnings(row);
+    const amount = resolveAgentEarningsUsd(row, liveRate);
     if (!amount) continue;
     earnings.set(row.assignedAgentId, (earnings.get(row.assignedAgentId) ?? 0) + amount);
   }
   return earnings;
+}
+
+/** Convenience wrapper for call sites that just need the map for one profile, not a parallelized page load. */
+async function loadEarningsByAgent(): Promise<Map<string, number>> {
+  const [rows, liveRate] = await Promise.all([fetchAgentEarningsRows(), getDolarBlueVenta()]);
+  return buildEarningsByAgent(rows, liveRate);
 }
 
 export type AgentMetrics = {
@@ -133,8 +155,17 @@ export async function listAgents(): Promise<ListAgentsResult> {
     ...(scopeIds === null ? {} : { teamLeaderId: auth.profile.id }),
   };
 
-  const [profiles, newThisMonth, activeDeals, activeDealsNewThisMonth, wonRevenueRows, totalListings, totalListingsNewThisMonth, earningsByAgent] =
-    await Promise.all([
+  const [
+    profiles,
+    newThisMonth,
+    activeDeals,
+    activeDealsNewThisMonth,
+    wonRevenueRows,
+    totalListings,
+    totalListingsNewThisMonth,
+    earningsRows,
+    liveRate,
+  ] = await Promise.all([
       prisma.profile.findMany({
         where: rosterWhere,
         orderBy: { createdAt: "desc" },
@@ -164,13 +195,15 @@ export async function listAgents(): Promise<ListAgentsResult> {
       // rows, not a DB _sum of dealSize.
       prisma.opportunity.findMany({
         where: { status: OpportunityStatus.CLOSED_WON, isDeleted: false, ...opportunityOwnerScope },
-        select: { dealSize: true, commission: true, commissionUnit: true },
+        select: { dealSize: true, commission: true, commissionUnit: true, currency: true, exchangeRate: true },
       }),
       prisma.property.count({ where: propertyOwnerScope }),
       prisma.property.count({ where: { createdAt: { gte: startOfMonth }, ...propertyOwnerScope } }),
-      buildEarningsByAgent(),
+      fetchAgentEarningsRows(),
+      getDolarBlueVenta(),
     ]);
 
+  const earningsByAgent = buildEarningsByAgent(earningsRows, liveRate);
   const agents: AgentDto[] = profiles.map((p) => toAgentDto(p, earningsByAgent.get(p.id) ?? 0));
 
   const metrics: AgentMetrics = {
@@ -181,7 +214,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
     newThisMonth,
     activeDeals,
     activeDealsNewThisMonth,
-    totalRevenue: wonRevenueRows.reduce((s, o) => s + resolveCompanyRevenue(o), 0),
+    totalRevenue: wonRevenueRows.reduce((s, o) => s + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0),
     totalListings,
     totalListingsNewThisMonth,
   };
@@ -327,7 +360,7 @@ export async function updateAgent(
     },
   });
 
-  const earningsByAgent = await buildEarningsByAgent();
+  const earningsByAgent = await loadEarningsByAgent();
 
   return {
     ok: true,
@@ -377,7 +410,7 @@ export async function updateAgentAvatar(agentId: string, file: File): Promise<Up
     newValues: { avatarUrl: updated.avatarUrl },
   });
 
-  const earningsByAgent = await buildEarningsByAgent();
+  const earningsByAgent = await loadEarningsByAgent();
   return { ok: true, agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0) };
 }
 
@@ -408,7 +441,7 @@ export async function removeAgentAvatar(agentId: string): Promise<UpdateAgentRes
     newValues: { avatarUrl: null },
   });
 
-  const earningsByAgent = await buildEarningsByAgent();
+  const earningsByAgent = await loadEarningsByAgent();
   return { ok: true, agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0) };
 }
 
@@ -528,7 +561,7 @@ export async function getAgentDetail(
 
   const { start, end } = resolvePeriodBounds(period);
 
-  const [properties, totalDeals, openDeals, wonOpportunities] = await Promise.all([
+  const [properties, totalDeals, openDeals, wonOpportunities, liveRate] = await Promise.all([
     prisma.property.findMany({
       where: { assignedAgentId: agentId },
       select: {
@@ -561,25 +594,27 @@ export async function getAgentDetail(
     // see ulrich-claude-code-project-context.md §17) — a deal counts the moment it's
     // won, regardless of whether its Contract is signed yet. "Total Revenue" is the
     // resolved company commission; "Total Earnings" is the resolved agent commission.
-    // No dedicated "closed at" column exists, so `updatedAt` is used as the proxy
-    // for close date — same convention as the main dashboard's revenue queries
-    // (dashboard-actions.ts).
+    // Both USD-normalized — see resolveCompanyRevenueUsd/resolveAgentEarningsUsd.
+    // Windows on closedAt (stamped once, the first time status becomes
+    // CLOSED_WON), same convention as the main dashboard (dashboard-actions.ts).
     prisma.opportunity.findMany({
       where: {
         assignedAgentId: agentId,
         status: OpportunityStatus.CLOSED_WON,
         isDeleted: false,
-        updatedAt: { gte: start, lte: end },
+        closedAt: { gte: start, lte: end },
       },
       select: {
         dealSize: true, commission: true, commissionUnit: true,
         agentCommissionValue: true, agentCommissionUnit: true,
+        currency: true, exchangeRate: true,
       },
     }),
+    getDolarBlueVenta(),
   ]);
 
-  const totalRevenue = wonOpportunities.reduce((sum, o) => sum + resolveCompanyRevenue(o), 0);
-  const totalEarnings = wonOpportunities.reduce((sum, o) => sum + resolveAgentEarnings(o), 0);
+  const totalRevenue = wonOpportunities.reduce((sum, o) => sum + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0);
+  const totalEarnings = wonOpportunities.reduce((sum, o) => sum + (resolveAgentEarningsUsd(o, liveRate) ?? 0), 0);
 
   const agent: AgentDetailDto = {
     ...toAgentDto(profile, totalEarnings),

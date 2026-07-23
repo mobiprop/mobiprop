@@ -83,6 +83,7 @@ export async function getSavedListings() {
         operationType: p.operationType as string,
         salePrice: p.salePrice ? Number(p.salePrice) : null,
         rentPrice: p.rentPrice ? Number(p.rentPrice) : null,
+        currency: p.currency,
         bedrooms: p.bedrooms,
         bathrooms: p.bathrooms,
         totalAreaM2: p.totalAreaM2,

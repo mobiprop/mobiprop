@@ -6,6 +6,7 @@ import type {
   PropertyOperationType,
   PropertyStatus,
   PropertyType,
+  Currency,
 } from "@/generated/prisma/enums";
 import type { AmenityKey } from "@/schemas/listing.schema";
 
@@ -33,6 +34,8 @@ export type DashboardListingDto = {
   operationType: PropertyOperationType;
   salePrice: number | null;
   rentPrice: number | null;
+  /** Governs both salePrice and rentPrice — a listing is priced in one currency. */
+  currency: Currency;
   location: string;
   locationId: string | null;
   fullAddress: string;
@@ -79,6 +82,8 @@ export type PublicListingDto = {
   operationType: PropertyOperationType;
   salePrice: number | null;
   rentPrice: number | null;
+  /** Governs both salePrice and rentPrice — a listing is priced in one currency. */
+  currency: Currency;
   location: string;
   fullAddress: string;
   city: string | null;

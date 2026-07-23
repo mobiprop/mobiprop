@@ -5,7 +5,7 @@ import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, FileSi
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-import { ContactType, OpportunityStage, OpportunityStatus, EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
+import { ContactType, OpportunityStage, OpportunityStatus, Currency, EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
 import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
 import { computeCommissionAmount } from "@/lib/commission";
 import { hasPermission, type Role } from "@/lib/permissions";
@@ -56,6 +56,9 @@ export type OpportunityFormValues = {
   participants: ParticipantFormRow[];
   dealType: "Rent" | "Sale";
   dealSize: string;
+  currency: Currency;
+  /** Only meaningful when this submission closes an ARS deal — the confirmed rate to lock in. */
+  exchangeRateOverride?: number;
   contractStart: string;
   contractEnd: string;
   commission: string;
@@ -99,6 +102,10 @@ const labelClass = "text-[12px] font-medium text-[#1f2937]";
 const COMMISSION_UNIT_OPTIONS = [
   { value: "%", label: "%" },
   { value: "$", label: "$" },
+];
+const CURRENCY_OPTIONS = [
+  { value: Currency.USD, label: "USD" },
+  { value: Currency.ARS, label: "ARS" },
 ];
 const STAGE_VALUES: OpportunityStage[] = [
   OpportunityStage.QUALIFICATION,
@@ -191,9 +198,9 @@ const ENVELOPE_STATUS_BADGE: Record<EnvelopeStatus, { bg: string; text: string; 
   VOIDED: { bg: "#f3f4f6", text: "#6a7282", dot: "#9ca3af", label: "Voided" },
 };
 
-function fmtPreview(amount: number | null) {
+function fmtPreview(amount: number | null, currency: Currency) {
   if (amount === null) return null;
-  return `≈ $${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  return `≈ ${currency} $${amount.toLocaleString(currency === Currency.ARS ? "es-AR" : "en-US", { maximumFractionDigits: 0 })}`;
 }
 
 export function AddOpportunityModal({ mode = "create", initial, prefill, onClose, onSubmit, isSaving, lockedAgent, role }: AddOpportunityModalProps) {
@@ -239,6 +246,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const createContactMutation = useCreateContactMutation();
   const [dealType, setDealType] = useState<"Rent" | "Sale">(initial?.dealType === "Rent" ? "Rent" : "Sale");
   const [dealSize, setDealSize] = useState(initial?.dealSize != null ? String(initial.dealSize) : "");
+  const [currency, setCurrency] = useState<Currency>(initial?.currency ?? Currency.USD);
   const [contractStart, setContractStart] = useState(initial?.contractStart?.slice(0, 10) ?? "");
   const [contractEnd, setContractEnd] = useState(initial?.contractEnd?.slice(0, 10) ?? "");
   const [commission, setCommission] = useState(initial?.commission != null ? String(initial.commission) : "");
@@ -333,6 +341,13 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   // instead of silently dropping what the user typed.
   const [isDirty, setIsDirty] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
+  // Closing an ARS deal (status -> CLOSED_WON for the first time) pauses
+  // submission for a one-time, permanently-locked exchange rate confirmation.
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [fetchingRate, setFetchingRate] = useState(false);
+  const [rateFetchFailed, setRateFetchFailed] = useState(false);
+  const [rateInput, setRateInput] = useState("");
   const mountedRef = useRef(false);
   useEffect(() => {
     if (!mountedRef.current) {
@@ -341,7 +356,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     }
     setIsDirty(true);
   }, [
-    title, participants, dealType, dealSize, contractStart, contractEnd,
+    title, participants, dealType, dealSize, currency, contractStart, contractEnd,
     commission, commissionUnit, paymentTerms, probability, stage, expectedCloseAt,
     listingRows, status, assignedAgentId, agentCommissionValue, agentCommissionUnit, notes,
   ]);
@@ -375,10 +390,14 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     () => computeCommissionAmount(Number(dealSize) || null, Number(commission) || null, commissionUnit),
     [dealSize, commission, commissionUnit],
   );
-  const commissionPreview = useMemo(() => fmtPreview(commissionAmount), [commissionAmount]);
+  const commissionPreview = useMemo(() => fmtPreview(commissionAmount, currency), [commissionAmount, currency]);
   const agentCommissionPreview = useMemo(
-    () => fmtPreview(computeCommissionAmount(commissionAmount, Number(agentCommissionValue) || null, agentCommissionUnit)),
-    [commissionAmount, agentCommissionValue, agentCommissionUnit],
+    () =>
+      fmtPreview(
+        computeCommissionAmount(commissionAmount, Number(agentCommissionValue) || null, agentCommissionUnit),
+        currency,
+      ),
+    [commissionAmount, agentCommissionValue, agentCommissionUnit, currency],
   );
 
   function removeParticipant(key: string) {
@@ -481,6 +500,13 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     setListingRows((rows) => rows.filter((r) => r.key !== key));
   }
 
+  // Transitioning into CLOSED_WON for the first time, on an ARS deal —
+  // the exact case that needs a locked-in exchange rate.
+  const isClosingArsDeal =
+    currency === Currency.ARS &&
+    status === OpportunityStatus.CLOSED_WON &&
+    initial?.status !== OpportunityStatus.CLOSED_WON;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting || isSaving) return;
@@ -505,6 +531,42 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     }
     setContractError(null);
 
+    if (isClosingArsDeal) {
+      setShowCloseConfirm(true);
+      setRateFetchFailed(false);
+      setFetchingRate(true);
+      try {
+        const res = await fetch("/api/dashboard/exchange-rate");
+        const data = await res.json();
+        if (typeof data.rate === "number" && data.rate > 0) {
+          setRateInput(String(data.rate));
+        } else {
+          setRateInput("");
+          setRateFetchFailed(true);
+        }
+      } catch {
+        setRateInput("");
+        setRateFetchFailed(true);
+      } finally {
+        setFetchingRate(false);
+      }
+      return;
+    }
+
+    await doSubmit();
+  }
+
+  async function confirmCloseAndSubmit() {
+    const rate = Number(rateInput);
+    if (!rate || rate <= 0) {
+      toast.error(t("addModal.closeConfirm.invalidRate"));
+      return;
+    }
+    setShowCloseConfirm(false);
+    await doSubmit(rate);
+  }
+
+  async function doSubmit(exchangeRateOverride?: number) {
     setSubmitting(true);
     try {
       const saved = await onSubmit({
@@ -512,6 +574,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
         participants,
         dealType,
         dealSize,
+        currency,
+        exchangeRateOverride,
         contractStart,
         contractEnd,
         commission,
@@ -596,6 +660,65 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
             <X size={18} />
           </button>
         </div>
+
+        {showCloseConfirm && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowCloseConfirm(false)}>
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              className="flex w-full max-w-[420px] flex-col gap-4 rounded-[16px] bg-white p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col gap-1">
+                <p className="text-[15px] font-semibold text-[#0d2138]" style={mont}>{t("addModal.closeConfirm.title")}</p>
+                <p className="text-[13px] leading-5 text-[#6a7282]" style={mont}>{t("addModal.closeConfirm.description")}</p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className={labelClass} style={mont}>{t("addModal.closeConfirm.rateLabel")}</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>ARS $</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={rateInput}
+                    onChange={(e) => setRateInput(e.target.value)}
+                    disabled={fetchingRate}
+                    className="h-10 w-full pl-[46px] pr-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] outline-none focus:border-[#1e4f86] transition-colors disabled:bg-[#f8fafc]"
+                    style={mont}
+                  />
+                </div>
+                {fetchingRate && (
+                  <p className="text-[12px] text-[#6a7282]" style={mont}>{t("addModal.closeConfirm.fetching")}</p>
+                )}
+                {!fetchingRate && rateFetchFailed && (
+                  <p className="text-[12px] text-[#b45309]" style={mont}>{t("addModal.closeConfirm.fetchFailed")}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCloseConfirm(false)}
+                  className="flex-1 h-10 rounded-[10px] border border-[#e5e7eb] bg-white text-[13px] font-medium text-[#6b7280] transition-colors hover:bg-[#f3f4f6]"
+                  style={mont}
+                >
+                  {t("addModal.closeConfirm.cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmCloseAndSubmit}
+                  disabled={fetchingRate || submitting || isSaving}
+                  className="flex-1 h-10 rounded-[10px] bg-[#1e4f86] text-[13px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-50"
+                  style={mont}
+                >
+                  {t("addModal.closeConfirm.confirm")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showDiscardConfirm && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDiscardConfirm(false)}>
@@ -915,8 +1038,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
             </button>
           </div>
 
-          {/* Deal type / size */}
-          <div className="grid grid-cols-2 gap-5">
+          {/* Deal type / size / currency */}
+          <div className="grid grid-cols-3 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className={labelClass} style={mont}>{t("addModal.dealType")}</label>
               <SearchableSelect
@@ -934,6 +1057,17 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]" style={mont}>$</span>
                 <input required type="number" value={dealSize} onChange={(e) => setDealSize(e.target.value)} placeholder={t("addModal.dealSizePlaceholder")} className="h-10 w-full pl-7 pr-3 border border-[#e5e7eb] rounded-[10px] text-[12px] text-[#0d2138] placeholder:text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
               </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass} style={mont}>{t("addModal.currency")}</label>
+              <SearchableSelect
+                size="sm"
+                searchable={false}
+                value={currency}
+                onChange={(next) => setCurrency(next as Currency)}
+                options={CURRENCY_OPTIONS}
+                placeholder={t("addModal.currency")}
+              />
             </div>
           </div>
 

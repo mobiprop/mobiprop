@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { queryKeys } from "@/lib/query-keys";
 import Link from "next/link";
-import type { PropertyType } from "@/generated/prisma/enums";
+import type { PropertyType, Currency } from "@/generated/prisma/enums";
 import {
   formatArea,
   formatBaths,
@@ -22,6 +22,7 @@ type SavedListing = {
   operationType: string;
   salePrice: number | null;
   rentPrice: number | null;
+  currency: Currency;
   bedrooms: number | null;
   bathrooms: number | null;
   totalAreaM2: number | null;
@@ -96,6 +97,7 @@ function SavedCard({
     {
       salePrice: listing.salePrice,
       rentPrice: listing.rentPrice,
+      currency: listing.currency,
       operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
     } as Parameters<typeof listingDisplayPrice>[0],
     t,

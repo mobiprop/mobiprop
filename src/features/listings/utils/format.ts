@@ -1,7 +1,7 @@
 // Display formatting shared by the public listing cards/pages. Client-safe.
 
 import type { TFunction } from "i18next";
-import type { PropertyType } from "@/generated/prisma/enums";
+import type { PropertyType, Currency } from "@/generated/prisma/enums";
 import type { PublicListingDto } from "../types/listing-dto";
 
 /** English fallback labels — used where no translator is available (dashboard/admin views). */
@@ -26,27 +26,33 @@ export function propertyTypeLabel(type: PropertyType, t: TFunction): string {
   return t(PROPERTY_TYPE_LABEL_KEYS[type]);
 }
 
-const priceFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
+// Grouping only — the currency code is prefixed separately below so both
+// USD and ARS always read unambiguously (e.g. "ARS $900.000" / "USD $900,000"),
+// since a bare "$" doesn't distinguish them.
+const GROUP_FORMATTERS: Record<Currency, Intl.NumberFormat> = {
+  USD: new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }),
+  ARS: new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }),
+};
 
-export function formatSalePrice(value: number): string {
-  return priceFormatter.format(value);
+function formatMoney(value: number, currency: Currency): string {
+  return `${currency} $${GROUP_FORMATTERS[currency].format(value)}`;
 }
 
-export function formatRentPrice(value: number, t: TFunction): string {
-  return `${priceFormatter.format(value)}${t("listings:card.perMonthSuffix")}`;
+export function formatSalePrice(value: number, currency: Currency): string {
+  return formatMoney(value, currency);
+}
+
+export function formatRentPrice(value: number, currency: Currency, t: TFunction): string {
+  return `${formatMoney(value, currency)}${t("listings:card.perMonthSuffix")}`;
 }
 
 /** Primary display price: sale price first, rent price (with /mo) otherwise. */
 export function listingDisplayPrice(listing: PublicListingDto, t: TFunction): string {
   if (listing.salePrice !== null && listing.operationType !== "RENT") {
-    return formatSalePrice(listing.salePrice);
+    return formatSalePrice(listing.salePrice, listing.currency);
   }
-  if (listing.rentPrice !== null) return formatRentPrice(listing.rentPrice, t);
-  if (listing.salePrice !== null) return formatSalePrice(listing.salePrice);
+  if (listing.rentPrice !== null) return formatRentPrice(listing.rentPrice, listing.currency, t);
+  if (listing.salePrice !== null) return formatSalePrice(listing.salePrice, listing.currency);
   return t("listings:card.priceOnRequest");
 }
 

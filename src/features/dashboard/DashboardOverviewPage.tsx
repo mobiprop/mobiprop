@@ -111,17 +111,38 @@ function MetricCardView({ card }: { card: MetricCard }) {
         </span>
       </div>
 
-      <div className="mb-1 flex items-baseline gap-2">
-        <span className="text-[24px] font-semibold text-[#0d2138]" style={poppins}>
-          {card.value}
-        </span>
-
-        {card.sub && (
-          <span className="text-[14px] font-medium text-[#6a7282]" style={mont}>
-            {card.sub}
+      {card.netValue ? (
+        <div className="mb-1 flex flex-col gap-1">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[20px] font-semibold text-[#0d2138]" style={poppins}>
+              {card.value}
+            </span>
+            <span className="text-[11px] font-medium text-[#99a1af]" style={mont}>
+              {t("overview.metrics.grossLabel")}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[20px] font-semibold text-[#059669]" style={poppins}>
+              {card.netValue}
+            </span>
+            <span className="text-[11px] font-medium text-[#99a1af]" style={mont}>
+              {t("overview.metrics.netLabel")}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-1 flex items-baseline gap-2">
+          <span className="text-[24px] font-semibold text-[#0d2138]" style={poppins}>
+            {card.value}
           </span>
-        )}
-      </div>
+
+          {card.sub && (
+            <span className="text-[14px] font-medium text-[#6a7282]" style={mont}>
+              {card.sub}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="mb-4 flex items-center gap-1">
         {isUp ? (
@@ -350,6 +371,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const oppsItem = payload.find((x) => x.dataKey === "openOpportunities");
 
   const revenue = revenueItem ? Number(revenueItem.value) : 0;
+  const revenueNet = Number(revenueItem?.payload?.revenueNet ?? 0);
   const openOpportunities = oppsItem ? Number(oppsItem.value) : 0;
 
   const gap = openOpportunities - revenue;
@@ -438,6 +460,26 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
             </div>
           </div>
           <span className="h-2 w-2 rounded-full bg-[#ff3545] shrink-0" />
+        </div>
+
+        {/* Net Revenue */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#ecfdf5]">
+              <span className="text-[15px] font-bold text-[#059669]" style={poppins}>
+                $
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
+                {t("overview.tooltip.revenueNet")}
+              </span>
+              <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
+                US${revenueNet.toLocaleString("en-US")}
+              </span>
+            </div>
+          </div>
+          <span className="h-2 w-2 rounded-full bg-[#059669] shrink-0" />
         </div>
 
         {/* Open Opportunities */}

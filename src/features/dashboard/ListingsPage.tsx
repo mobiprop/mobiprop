@@ -20,7 +20,11 @@ import {
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
-import { PropertyStatus, PropertyType } from "@/generated/prisma/enums";
+import {
+  PropertyStatus,
+  PropertyType,
+  type PropertyOperationType,
+} from "@/generated/prisma/enums";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import { useDashboardListingsQuery } from "@/hooks/queries/useDashboardListingsQuery";
 import {
@@ -34,7 +38,11 @@ import {
   type ListingRowActions,
 } from "./components/ListingListView";
 import { ListingGridView } from "./components/ListingGridView";
-import { ListingFilterModal } from "./components/ListingFilterModal";
+import {
+  ListingFilterModal,
+  DEFAULT_LISTING_FILTER_VALUES,
+  type ListingFilterValues,
+} from "./components/ListingFilterModal";
 import { UploadListingModal } from "./components/UploadListingModal";
 import { SearchableSelect } from "./components/SearchableSelect";
 import { BulkActionsBar } from "./components/BulkActionsBar";
@@ -42,6 +50,26 @@ import { BulkAssignAgentModal } from "./components/BulkAssignAgentModal";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
+
+// Maps the ListingFilterModal's checkbox labels to the real Prisma enum
+// values so its selections can actually be applied to `listings`.
+const FILTER_OPERATION_TYPE: Record<string, PropertyOperationType> = {
+  Sale: "SALE",
+  Rent: "RENT",
+  Both: "SALE_AND_RENT",
+};
+const FILTER_PROPERTY_TYPE: Record<string, PropertyType> = {
+  Apartment: "APARTMENT",
+  House: "HOUSE",
+  Commercial: "COMMERCIAL_OFFICE",
+  Land: "LOT",
+};
+const FILTER_STATUS: Record<string, PropertyStatus> = {
+  Active: "ACTIVE",
+  Paused: "PAUSED",
+  Rented: "RENTED",
+  Sold: "SOLD",
+};
 
 type ViewMode = "list" | "grid";
 
@@ -119,6 +147,9 @@ export function ListingsPage({ role }: ListingsPageProps) {
     "All",
   );
   const [typeFilter, setTypeFilter] = useState<PropertyType | "All">("All");
+  const [advancedFilters, setAdvancedFilters] = useState<ListingFilterValues>(
+    DEFAULT_LISTING_FILTER_VALUES,
+  );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [showBulkAssign, setShowBulkAssign] = useState(false);
@@ -155,6 +186,15 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const minPrice = advancedFilters.minPrice ? Number(advancedFilters.minPrice) : null;
+    const maxPrice = advancedFilters.maxPrice ? Number(advancedFilters.maxPrice) : null;
+    const wantedOperationTypes = advancedFilters.operationTypes.map(
+      (label) => FILTER_OPERATION_TYPE[label],
+    );
+    const wantedPropertyTypes = advancedFilters.propertyTypes.map(
+      (label) => FILTER_PROPERTY_TYPE[label],
+    );
+    const wantedStatuses = advancedFilters.statuses.map((label) => FILTER_STATUS[label]);
 
     return listings.filter((listing) => {
       const matchesSearch =
@@ -168,17 +208,62 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
       const matchesType = typeFilter === "All" || listing.type === typeFilter;
 
-      return matchesSearch && matchesStatus && matchesType;
+      const matchesOperationType =
+        wantedOperationTypes.length === 0 ||
+        wantedOperationTypes.includes(listing.operationType);
+
+      const matchesPropertyType =
+        wantedPropertyTypes.length === 0 || wantedPropertyTypes.includes(listing.type);
+
+      const matchesAdvancedStatus =
+        wantedStatuses.length === 0 || wantedStatuses.includes(listing.status);
+
+      const prices = [listing.salePrice, listing.rentPrice].filter(
+        (price): price is number => price !== null,
+      );
+      const matchesPrice =
+        (minPrice === null && maxPrice === null) ||
+        prices.some(
+          (price) =>
+            (minPrice === null || price >= minPrice) &&
+            (maxPrice === null || price <= maxPrice),
+        );
+
+      const matchesBedrooms =
+        advancedFilters.bedrooms === "Any" ||
+        (advancedFilters.bedrooms === "4+"
+          ? (listing.bedrooms ?? 0) >= 4
+          : listing.bedrooms === Number(advancedFilters.bedrooms));
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesType &&
+        matchesOperationType &&
+        matchesPropertyType &&
+        matchesAdvancedStatus &&
+        matchesPrice &&
+        matchesBedrooms
+      );
     });
-  }, [listings, search, statusFilter, typeFilter]);
+  }, [listings, search, statusFilter, typeFilter, advancedFilters]);
 
   const hasActiveFilters =
-    search.trim().length > 0 || statusFilter !== "All" || typeFilter !== "All";
+    search.trim().length > 0 ||
+    statusFilter !== "All" ||
+    typeFilter !== "All" ||
+    advancedFilters.operationTypes.length > 0 ||
+    advancedFilters.propertyTypes.length > 0 ||
+    advancedFilters.statuses.length > 0 ||
+    advancedFilters.minPrice !== "" ||
+    advancedFilters.maxPrice !== "" ||
+    advancedFilters.bedrooms !== "Any";
 
   function clearFilters() {
     setSearch("");
     setStatusFilter("All");
     setTypeFilter("All");
+    setAdvancedFilters(DEFAULT_LISTING_FILTER_VALUES);
   }
 
   async function handleToggleStatus(listing: DashboardListingDto) {
@@ -657,7 +742,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
         {showFilter && (
           <ListingFilterModal
             resultCount={filtered.length}
-            onApply={() => setShowFilter(false)}
+            initialValues={advancedFilters}
+            onApply={(values) => {
+              setAdvancedFilters(values);
+              setShowFilter(false);
+            }}
             onClose={() => setShowFilter(false)}
           />
         )}

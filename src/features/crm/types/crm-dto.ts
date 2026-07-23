@@ -1,4 +1,4 @@
-import type { ContactType, OpportunityStage, OpportunityStatus, LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus } from "@/generated/prisma/enums";
+import type { ContactType, OpportunityStage, OpportunityStatus, Currency, LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus } from "@/generated/prisma/enums";
 export type { LeadSource, LeadTemperature, LeadLifecycleStatus, TourStatus };
 
 // ── Contact ───────────────────────────────────────────────────────────────────
@@ -73,6 +73,8 @@ export type OpportunityDto = {
   listings: OpportunityListingDto[];
   dealType: string | null;
   dealSize: number | null;
+  /** Currency dealSize/commission are denominated in — independent of any linked listing's currency. */
+  currency: Currency;
   stage: OpportunityStage;
   status: OpportunityStatus;
   probability: number;
@@ -84,6 +86,10 @@ export type OpportunityDto = {
   contractStart: string | null;
   contractEnd: string | null;
   expectedCloseAt: string | null;
+  /** Stamped once, the first time status became CLOSED_WON. */
+  closedAt: string | null;
+  /** Dólar Blue "venta" rate locked in at closedAt, for ARS deals only. */
+  exchangeRate: number | null;
   agentCommissionValue: number | null;
   agentCommissionUnit: string | null;
   /** Computed the same way as commissionAmount, against dealSize. */

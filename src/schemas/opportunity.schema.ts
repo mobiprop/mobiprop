@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
+import { OpportunityStage, OpportunityStatus, Currency } from "@/generated/prisma/enums";
 
 // BUYER/SELLER rows link a real Contact; AGENCY rows (a co-broking real
 // estate company) are just a free-text name — no Contact record needed.
@@ -39,6 +39,9 @@ export const createOpportunitySchema = z.object({
   propertyIds: z.array(z.string().trim().min(1)).optional(),
   dealType: z.enum(["Rent", "Sale"]).optional(),
   dealSize: z.coerce.number().positive().optional(),
+  // Currency dealSize/commission are entered in — independent of any linked
+  // listing's currency, since dealSize is a manually-typed figure.
+  currency: z.nativeEnum(Currency).default(Currency.USD),
   stage: z.nativeEnum(OpportunityStage).default(OpportunityStage.QUALIFICATION),
   status: z.nativeEnum(OpportunityStatus).default(OpportunityStatus.OPEN),
   probability: z.coerce.number().int().min(0).max(100).default(50),
@@ -68,5 +71,10 @@ export const updateOpportunitySchema = createOpportunitySchema.partial().extend(
   stage: z.nativeEnum(OpportunityStage).optional(),
   status: z.nativeEnum(OpportunityStatus).optional(),
   probability: z.coerce.number().int().min(0).max(100).optional(),
+  currency: z.nativeEnum(Currency).optional(),
+  // Only consumed when this update closes an ARS-currency deal (status
+  // transitioning into CLOSED_WON) — lets the closer override the
+  // auto-fetched Dólar Blue rate before it's locked in permanently.
+  exchangeRateOverride: z.coerce.number().positive().optional(),
 });
 export type UpdateOpportunityInput = z.infer<typeof updateOpportunitySchema>;

@@ -245,6 +245,8 @@
       "lost": "Lost Opportunities",
       "won": "Won Opportunities",
       "revenue": "Revenue",
+      "grossLabel": "Gross",
+      "netLabel": "Net",
       "myListings": "My Listings",
       "myOpen": "Open Opportunities",
       "myWon": "Won Opportunities",
@@ -255,7 +257,8 @@
     "viewAgentProfile": "View Agent Profile",
     "edit": "Edit",
     "tooltip": {
-      "revenue": "Revenue",
+      "revenue": "Gross Revenue",
+      "revenueNet": "Net Revenue",
       "openOpportunities": "Open Opportunities",
       "gap": "Gap"
     },

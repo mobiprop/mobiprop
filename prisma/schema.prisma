@@ -279,6 +279,9 @@ model Property {
   operationType     PropertyOperationType @map("operation_type")
   salePrice         Decimal?              @map("sale_price") @db.Decimal(14, 2)
   rentPrice         Decimal?              @map("rent_price") @db.Decimal(14, 2)
+  // Currency the prices above are denominated in. Governs both salePrice and
+  // rentPrice — a listing is priced in one currency, not mixed.
+  currency          Currency              @default(USD)
   location          String
   // Operational area (curated Locations sector). Kept alongside `location`
   // (free-text display string, still the source for public search/cards).
@@ -445,6 +448,11 @@ enum OpportunityStatus {
   CLOSED_LOST
 }
 
+enum Currency {
+  USD
+  ARS
+}
+
 // CRM contact — a buyer, seller, or both. Linked to properties via the
 // ContactProperty join table and to pipeline records via opportunities.
 model Contact {
@@ -498,6 +506,9 @@ model Opportunity {
   title                String
   dealType             String?           @map("deal_type")
   dealSize             Decimal?          @map("deal_size") @db.Decimal(14, 2)
+  // Currency dealSize/commission are denominated in. Independent of any
+  // linked listing's currency — dealSize is a manually-typed figure.
+  currency             Currency          @default(USD)
   stage                OpportunityStage  @default(QUALIFICATION)
   status               OpportunityStatus @default(OPEN)
   probability          Int               @default(50)
@@ -507,6 +518,14 @@ model Opportunity {
   contractStart        DateTime?         @map("contract_start")
   contractEnd          DateTime?         @map("contract_end")
   expectedCloseAt      DateTime?         @map("expected_close_at")
+  // Stamped once, the first time status transitions into CLOSED_WON. Never
+  // touched again afterward — the source of truth for "when this deal closed"
+  // (replaces using updatedAt as a fragile stand-in).
+  closedAt             DateTime?         @map("closed_at")
+  // Dólar Blue "venta" rate locked in at closedAt, for ARS-currency deals only.
+  // Frozen permanently so later rate movement never retroactively changes a
+  // closed deal's USD figures.
+  exchangeRate         Decimal?          @map("exchange_rate") @db.Decimal(10, 4)
   agentCommissionValue Decimal?          @map("agent_commission_value") @db.Decimal(14, 2)
   agentCommissionUnit  String?           @map("agent_commission_unit")
   notes                String?

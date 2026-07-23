@@ -1,3 +1,5 @@
+import type { Currency } from "@/generated/prisma/enums";
+
 /**
  * Resolves a commission entry (amount + unit) against a deal size into a
  * concrete dollar figure — "7% of a $500,000 deal" becomes $35,000, while a
@@ -54,4 +56,81 @@ export function resolveAgentEarnings(o: {
 }): number {
   const companyRevenue = resolveCompanyRevenue(o);
   return computeCommissionAmount(companyRevenue || null, toNum(o.agentCommissionValue), o.agentCommissionUnit) ?? 0;
+}
+
+/**
+ * Net company revenue ($) for one opportunity — the resolved company
+ * commission (gross, see resolveCompanyRevenue) minus whatever cut goes to
+ * the agent (resolveAgentEarnings). This is what the company actually keeps.
+ */
+export function resolveNetCompanyRevenue(o: {
+  dealSize: unknown;
+  commission: unknown;
+  commissionUnit: string | null;
+  agentCommissionValue: unknown;
+  agentCommissionUnit: string | null;
+}): number {
+  return resolveCompanyRevenue(o) - resolveAgentEarnings(o);
+}
+
+// ── USD-normalized dashboard figures ────────────────────────────────────────
+// Every dashboard rollup must stay USD-only, even though individual deals can
+// be entered in ARS. USD amounts pass through unchanged. ARS amounts convert
+// using the deal's own frozen `exchangeRate` (set once, at the moment it was
+// marked CLOSED_WON) when present, or the caller-supplied `liveRate` (a
+// same-request snapshot of today's rate) for ARS deals that are still OPEN
+// and haven't locked a rate yet. Returns null when neither is available —
+// callers must exclude that figure from a sum rather than guess.
+
+export function toUsd(amountNative: number, currency: Currency, rate: number | null): number | null {
+  if (currency === "USD") return amountNative;
+  if (!rate) return null;
+  return amountNative / rate;
+}
+
+function resolveRate(o: { currency: Currency; exchangeRate: unknown }, liveRate: number | null): number | null {
+  return toNum(o.exchangeRate) ?? liveRate;
+}
+
+export function resolveCompanyRevenueUsd(
+  o: {
+    dealSize: unknown;
+    commission: unknown;
+    commissionUnit: string | null;
+    currency: Currency;
+    exchangeRate: unknown;
+  },
+  liveRate: number | null,
+): number | null {
+  return toUsd(resolveCompanyRevenue(o), o.currency, resolveRate(o, liveRate));
+}
+
+export function resolveAgentEarningsUsd(
+  o: {
+    dealSize: unknown;
+    commission: unknown;
+    commissionUnit: string | null;
+    agentCommissionValue: unknown;
+    agentCommissionUnit: string | null;
+    currency: Currency;
+    exchangeRate: unknown;
+  },
+  liveRate: number | null,
+): number | null {
+  return toUsd(resolveAgentEarnings(o), o.currency, resolveRate(o, liveRate));
+}
+
+export function resolveNetCompanyRevenueUsd(
+  o: {
+    dealSize: unknown;
+    commission: unknown;
+    commissionUnit: string | null;
+    agentCommissionValue: unknown;
+    agentCommissionUnit: string | null;
+    currency: Currency;
+    exchangeRate: unknown;
+  },
+  liveRate: number | null,
+): number | null {
+  return toUsd(resolveNetCompanyRevenue(o), o.currency, resolveRate(o, liveRate));
 }

@@ -2,13 +2,14 @@ import "server-only";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
-import { OpportunityStage, OpportunityStatus, OpportunityParticipantRole } from "@/generated/prisma/enums";
+import { OpportunityStage, OpportunityStatus, OpportunityParticipantRole, Currency } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
-import { computeCommissionAmount, resolveCompanyRevenue } from "@/lib/commission";
+import { computeCommissionAmount, resolveCompanyRevenueUsd, toUsd } from "@/lib/commission";
+import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
 import type { CreateOpportunityInput, UpdateOpportunityInput, ParticipantInput } from "@/schemas/opportunity.schema";
@@ -40,6 +41,29 @@ async function nextOpportunityId(): Promise<string> {
   return `OPP-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
 }
 
+// ── Closing a deal ────────────────────────────────────────────────────────────
+
+/**
+ * Resolves the fields to stamp when an Opportunity transitions into
+ * CLOSED_WON: `closedAt` (always) and, for ARS deals, the Dólar Blue "venta"
+ * rate to lock in permanently (the override if the closer supplied one,
+ * otherwise a fresh fetch). USD deals need no rate. Returns an error message
+ * if an ARS deal can't get a rate from either source — closing must not
+ * silently produce an unconvertible dashboard figure.
+ */
+async function resolveClosedWonFields(
+  currency: Currency,
+  exchangeRateOverride: number | undefined,
+): Promise<{ closedAt: Date; exchangeRate: number | null } | { error: string }> {
+  if (currency === Currency.USD) return { closedAt: new Date(), exchangeRate: null };
+
+  const rate = exchangeRateOverride ?? (await getDolarBlueVenta());
+  if (!rate) {
+    return { error: "Could not determine today's exchange rate. Enter one manually to close this deal." };
+  }
+  return { closedAt: new Date(), exchangeRate: rate };
+}
+
 // ── DTO mapping ───────────────────────────────────────────────────────────────
 
 type ParticipantWithRelations = {
@@ -58,11 +82,11 @@ type OpportunityListingWithRelations = {
 
 type OppWithRelations = {
   id: string; opportunityId: string; title: string;
-  dealType: string | null; dealSize: unknown;
+  dealType: string | null; dealSize: unknown; currency: Currency;
   stage: OpportunityStage; status: OpportunityStatus;
   probability: number; commission: unknown; commissionUnit: string | null;
   paymentTerms: string | null; contractStart: Date | null; contractEnd: Date | null;
-  expectedCloseAt: Date | null;
+  expectedCloseAt: Date | null; closedAt: Date | null; exchangeRate: unknown;
   agentCommissionValue: unknown; agentCommissionUnit: string | null;
   notes: string | null;
   assignedAgentId: string | null; createdById: string | null;
@@ -107,6 +131,7 @@ function toOpportunityDto(
     listings: o.listings.map(toOpportunityListingDto),
     dealType: o.dealType,
     dealSize,
+    currency: o.currency,
     stage: o.stage,
     status: o.status,
     probability: o.probability,
@@ -117,6 +142,8 @@ function toOpportunityDto(
     contractStart: o.contractStart?.toISOString() ?? null,
     contractEnd: o.contractEnd?.toISOString() ?? null,
     expectedCloseAt: o.expectedCloseAt?.toISOString() ?? null,
+    closedAt: o.closedAt?.toISOString() ?? null,
+    exchangeRate: o.exchangeRate !== null ? Number(o.exchangeRate) : null,
     agentCommissionValue,
     agentCommissionUnit: o.agentCommissionUnit,
     agentCommissionAmount: computeCommissionAmount(dealSize, agentCommissionValue, o.agentCommissionUnit),
@@ -155,10 +182,18 @@ export async function listOpportunities(): Promise<
 
   const agentMap = await buildAgentMap(rows.map((r) => r.assignedAgentId));
   const dtos = rows.map((r) => toOpportunityDto(r, agentMap));
-  const totalValue = dtos.reduce((sum, o) => sum + (o.dealSize ?? 0), 0);
+
+  // Both are USD-normalized dashboard rollups — dealSize/revenue can be
+  // entered in ARS per-deal, but these summary stats must stay single-currency.
+  const liveRate = await getDolarBlueVenta();
+  const totalValue = rows.reduce((sum, r) => {
+    const dealSize = r.dealSize !== null ? Number(r.dealSize) : null;
+    if (dealSize === null) return sum;
+    return sum + (toUsd(dealSize, r.currency, r.exchangeRate !== null ? Number(r.exchangeRate) : liveRate) ?? 0);
+  }, 0);
   const totalRevenue = rows
     .filter((r) => r.status === OpportunityStatus.CLOSED_WON)
-    .reduce((sum, r) => sum + resolveCompanyRevenue(r), 0);
+    .reduce((sum, r) => sum + (resolveCompanyRevenueUsd(r, liveRate) ?? 0), 0);
 
   return {
     ok: true,
@@ -254,11 +289,22 @@ export async function createOpportunity(
   const listingError = await validateListingProperties(propertyIds ?? []);
   if (listingError) return { ok: false, error: listingError, status: 422 };
 
+  // Edge case: a deal created directly as CLOSED_WON (not the normal flow —
+  // new opportunities start OPEN and close later via updateOpportunity, which
+  // has the full close-confirmation UI) still needs its rate locked in.
+  let closeFields: { closedAt: Date; exchangeRate: number | null } | null = null;
+  if (fields.status === OpportunityStatus.CLOSED_WON) {
+    const resolved = await resolveClosedWonFields(fields.currency, undefined);
+    if ("error" in resolved) return { ok: false, error: resolved.error, status: 422 };
+    closeFields = resolved;
+  }
+
   const opportunityId = await nextOpportunityId();
 
   const opp = await prisma.opportunity.create({
     data: {
       ...fields,
+      ...(closeFields ?? {}),
       opportunityId,
       // Agents can't see/choose other agents — force self-assignment so the deal
       // is always attributed to its creator. ADMIN/MANAGER (agents:view) keep
@@ -305,7 +351,16 @@ export async function updateOpportunity(
 
   const existing = await prisma.opportunity.findUnique({
     where: { id },
-    select: { isDeleted: true, assignedAgentId: true, createdById: true, title: true, stage: true, status: true, dealSize: true },
+    select: {
+      isDeleted: true,
+      assignedAgentId: true,
+      createdById: true,
+      title: true,
+      stage: true,
+      status: true,
+      dealSize: true,
+      currency: true,
+    },
   });
   if (!existing || existing.isDeleted) return { ok: false, error: "Opportunity not found.", status: 404 };
   const scopeIds = await resolveOwnerScopeIds(gate.profile);
@@ -323,7 +378,8 @@ export async function updateOpportunity(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input", status: 400 };
   }
 
-  const { participants, propertyIds, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
+  const { participants, propertyIds, contractStart, contractEnd, expectedCloseAt, exchangeRateOverride, ...fields } =
+    parsed.data;
 
   if (participants !== undefined) {
     const contactError = await validateParticipantContacts(participants);
@@ -334,10 +390,19 @@ export async function updateOpportunity(
     if (listingError) return { ok: false, error: listingError, status: 422 };
   }
 
+  const statusChanging = fields.status !== undefined && fields.status !== existing.status;
+  let closeFields: { closedAt: Date; exchangeRate: number | null } | null = null;
+  if (statusChanging && fields.status === OpportunityStatus.CLOSED_WON) {
+    const resolved = await resolveClosedWonFields(fields.currency ?? existing.currency, exchangeRateOverride);
+    if ("error" in resolved) return { ok: false, error: resolved.error, status: 422 };
+    closeFields = resolved;
+  }
+
   const opp = await prisma.opportunity.update({
     where: { id },
     data: {
       ...fields,
+      ...(closeFields ?? {}),
       contractStart: contractStart !== undefined ? (contractStart ? new Date(contractStart) : null) : undefined,
       contractEnd: contractEnd !== undefined ? (contractEnd ? new Date(contractEnd) : null) : undefined,
       expectedCloseAt: expectedCloseAt !== undefined ? (expectedCloseAt ? new Date(expectedCloseAt) : null) : undefined,

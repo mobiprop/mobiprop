@@ -11,6 +11,7 @@ import {
 
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
+import type { Currency } from "@/generated/prisma/enums";
 import type { OpportunityDto } from "@/features/crm/types/crm-dto";
 import { useDashboardOpportunitiesQuery } from "@/hooks/queries/useDashboardOpportunitiesQuery";
 import {
@@ -219,6 +220,12 @@ function fmt(n: number | null) {
   return `$${n.toLocaleString("en-US")}`;
 }
 
+/** Per-deal figure prefixed with its own currency — dealSize is native-currency, unlike the USD-only dashboard aggregates. */
+function fmtWithCurrency(n: number | null, currency: Currency) {
+  if (n === null) return "—";
+  return `${currency} $${n.toLocaleString(currency === "ARS" ? "es-AR" : "en-US")}`;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function OpportunitiesPage({
@@ -309,6 +316,8 @@ export function OpportunitiesPage({
       propertyIds: values.propertyIds,
       dealType: values.dealType,
       dealSize: values.dealSize ? Number(values.dealSize) : undefined,
+      currency: values.currency,
+      exchangeRateOverride: values.exchangeRateOverride,
       stage: values.stage,
       status: values.status,
       probability: values.probability,
@@ -475,7 +484,7 @@ export function OpportunitiesPage({
                       <span className="text-[14px] text-[#6a7282]" style={mont}>{participantsLabel(opp)}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{fmt(opp.dealSize)}</span>
+                      <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{fmtWithCurrency(opp.dealSize, opp.currency)}</span>
                     </td>
                     <td className="px-5 py-4">
                       <ProbabilityBar value={opp.probability} />

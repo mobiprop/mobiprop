@@ -17,6 +17,15 @@ export type ListingFilterValues = {
   statuses: string[];
 };
 
+export const DEFAULT_LISTING_FILTER_VALUES: ListingFilterValues = {
+  operationTypes: [],
+  propertyTypes: [],
+  minPrice: "",
+  maxPrice: "",
+  bedrooms: "Any",
+  statuses: [],
+};
+
 // Displayed labels are translated via the *_I18N_KEY maps below; these
 // values stay in stable English because they're compared against directly
 // in component state.
@@ -51,6 +60,7 @@ const STATUS_I18N_KEY: Record<string, string> = {
 
 type ListingFilterModalProps = {
   resultCount: number;
+  initialValues?: ListingFilterValues;
   onApply: (filters: ListingFilterValues) => void;
   onClose: () => void;
 };
@@ -100,18 +110,21 @@ function CheckboxRow({
 
 export function ListingFilterModal({
   resultCount,
+  initialValues = DEFAULT_LISTING_FILTER_VALUES,
   onApply,
   onClose,
 }: ListingFilterModalProps) {
   const { t } = useTranslation("dashboardListings");
-  const [operationTypes, setOperationTypes] = useState<string[]>([
-    "Sale",
-  ]);
-  const [propertyTypes, setPropertyTypes] = useState<string[]>([]);
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [bedrooms, setBedrooms] = useState("Any");
-  const [statuses, setStatuses] = useState<string[]>([]);
+  const [operationTypes, setOperationTypes] = useState<string[]>(
+    initialValues.operationTypes,
+  );
+  const [propertyTypes, setPropertyTypes] = useState<string[]>(
+    initialValues.propertyTypes,
+  );
+  const [minPrice, setMinPrice] = useState(initialValues.minPrice);
+  const [maxPrice, setMaxPrice] = useState(initialValues.maxPrice);
+  const [bedrooms, setBedrooms] = useState(initialValues.bedrooms);
+  const [statuses, setStatuses] = useState<string[]>(initialValues.statuses);
 
   function toggle(
     list: string[],

@@ -195,6 +195,7 @@
       "operationType": "Operation Type",
       "salePrice": "Sale Price",
       "rentPrice": "Rent Price",
+      "currency": "Currency",
       "location": "Location",
       "searchLocations": "Search locations...",
       "addLocation": "+ Add Location",
