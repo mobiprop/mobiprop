@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { deleteListing, updateListing } from "@/features/listings/listing-actions";
+import { withApiErrorHandling } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
@@ -10,7 +11,7 @@ type Context = { params: Promise<{ id: string }> };
  * Staff: update listing fields/amenities. Authorization + record-level access
  * (AGENT → own/assigned only) enforced inside updateListing.
  */
-export async function PATCH(request: Request, { params }: Context) {
+export const PATCH = withApiErrorHandling("listings.update", async (request: Request, { params }: Context) => {
   const { id } = await params;
   const body = await request.json().catch(() => null);
 
@@ -20,10 +21,10 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});
 
 /** ADMIN only (listings:delete): hard delete a listing and its stored images. */
-export async function DELETE(_request: Request, { params }: Context) {
+export const DELETE = withApiErrorHandling("listings.delete", async (_request: Request, { params }: Context) => {
   const { id } = await params;
 
   const result = await deleteListing(id);
@@ -32,4 +33,4 @@ export async function DELETE(_request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

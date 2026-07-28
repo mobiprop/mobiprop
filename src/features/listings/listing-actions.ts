@@ -646,173 +646,178 @@ export async function updateListing(
   }
   const data = parsed.data;
 
-  const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
-  if (!existing) return notFound();
-  if (!(await canManageRecord(profile, existing))) return forbidden();
+  try {
+    const existing = await prisma.property.findUnique({ where: { id }, include: listingInclude });
+    if (!existing) return notFound();
+    if (!(await canManageRecord(profile, existing))) return forbidden();
 
-  if (
-    data.status !== undefined &&
-    data.status !== existing.status &&
-    !hasPermission(profile.role, "listings:pause")
-  ) {
-    return { ok: false, error: "You don't have permission to change listing status.", status: 403 };
-  }
-  if (
-    data.isFeatured !== undefined &&
-    data.isFeatured !== existing.isFeatured &&
-    !hasPermission(profile.role, "listings:feature")
-  ) {
-    return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
-  }
-
-  if (data.locationId !== undefined && data.locationId !== existing.locationId) {
-    const locationError = await validateLocationId(data.locationId);
-    if (locationError) return locationError;
-  }
-
-  const {
-    amenities,
-    assignedAgentId: assignedAgentIdInput,
-    videoUrl: videoUrlInput,
-    ownerContactId: ownerContactIdInput,
-    ...fields
-  } = data;
-
-  // "" means "clear the video" — store null rather than an empty string.
-  const videoUrl = videoUrlInput === undefined ? undefined : videoUrlInput === "" ? null : videoUrlInput;
-
-  let assignedAgentId: string | null | undefined;
-  if (assignedAgentIdInput !== undefined && assignedAgentIdInput !== (existing.assignedAgentId ?? "")) {
-    if (!hasPermission(profile.role, "listings:assign")) {
-      return { ok: false, error: "You don't have permission to assign a listing agent.", status: 403 };
+    if (
+      data.status !== undefined &&
+      data.status !== existing.status &&
+      !hasPermission(profile.role, "listings:pause")
+    ) {
+      return { ok: false, error: "You don't have permission to change listing status.", status: 403 };
     }
-    if (assignedAgentIdInput === "") {
-      assignedAgentId = null;
-    } else {
-      const assigneeError = await validateAssignee(assignedAgentIdInput);
-      if (assigneeError) return assigneeError;
-      assignedAgentId = assignedAgentIdInput;
+    if (
+      data.isFeatured !== undefined &&
+      data.isFeatured !== existing.isFeatured &&
+      !hasPermission(profile.role, "listings:feature")
+    ) {
+      return { ok: false, error: "You don't have permission to feature listings.", status: 403 };
     }
-  }
 
-  const existingOwnerContactId = existing.contacts[0]?.contact.id ?? "";
-  let ownerContactChanged = false;
-  if (ownerContactIdInput !== undefined && ownerContactIdInput !== existingOwnerContactId) {
-    if (ownerContactIdInput) {
-      const ownerError = await validateOwnerContact(ownerContactIdInput);
-      if (ownerError) return ownerError;
+    if (data.locationId !== undefined && data.locationId !== existing.locationId) {
+      const locationError = await validateLocationId(data.locationId);
+      if (locationError) return locationError;
     }
-    ownerContactChanged = true;
-  }
 
-  // Re-geocode when the address changed (best-effort, never blocks the save).
-  const addressChanged =
-    (data.fullAddress !== undefined && data.fullAddress !== existing.fullAddress) ||
-    (data.location !== undefined && data.location !== existing.location);
-  const coords = addressChanged
-    ? await geocodeAddress(
-        `${data.fullAddress ?? existing.fullAddress}, ${data.location ?? existing.location}`,
-      )
-    : null;
+    const {
+      amenities,
+      assignedAgentId: assignedAgentIdInput,
+      videoUrl: videoUrlInput,
+      ownerContactId: ownerContactIdInput,
+      ...fields
+    } = data;
 
-  let property = await prisma.property.update({
-    where: { id },
-    data: {
-      ...fields,
-      ...(assignedAgentId !== undefined ? { assignedAgentId } : {}),
-      ...(videoUrl !== undefined ? { videoUrl } : {}),
-      ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
-      updatedById: profile.id,
-      ...(data.status === PropertyStatus.ACTIVE && !existing.publishedAt
-        ? { publishedAt: new Date() }
-        : {}),
-      ...(amenities !== undefined
-        ? {
-            amenities: {
-              deleteMany: {},
-              create: amenities.map((key) => ({ amenity: { connect: { key } } })),
-            },
-          }
-        : {}),
-    },
-    include: listingInclude,
-  });
+    // "" means "clear the video" — store null rather than an empty string.
+    const videoUrl = videoUrlInput === undefined ? undefined : videoUrlInput === "" ? null : videoUrlInput;
 
-  if (ownerContactChanged) {
-    await syncOwnerContact(id, ownerContactIdInput || null);
+    let assignedAgentId: string | null | undefined;
+    if (assignedAgentIdInput !== undefined && assignedAgentIdInput !== (existing.assignedAgentId ?? "")) {
+      if (!hasPermission(profile.role, "listings:assign")) {
+        return { ok: false, error: "You don't have permission to assign a listing agent.", status: 403 };
+      }
+      if (assignedAgentIdInput === "") {
+        assignedAgentId = null;
+      } else {
+        const assigneeError = await validateAssignee(assignedAgentIdInput);
+        if (assigneeError) return assigneeError;
+        assignedAgentId = assignedAgentIdInput;
+      }
+    }
+
+    const existingOwnerContactId = existing.contacts[0]?.contact.id ?? "";
+    let ownerContactChanged = false;
+    if (ownerContactIdInput !== undefined && ownerContactIdInput !== existingOwnerContactId) {
+      if (ownerContactIdInput) {
+        const ownerError = await validateOwnerContact(ownerContactIdInput);
+        if (ownerError) return ownerError;
+      }
+      ownerContactChanged = true;
+    }
+
+    // Re-geocode when the address changed (best-effort, never blocks the save).
+    const addressChanged =
+      (data.fullAddress !== undefined && data.fullAddress !== existing.fullAddress) ||
+      (data.location !== undefined && data.location !== existing.location);
+    const coords = addressChanged
+      ? await geocodeAddress(
+          `${data.fullAddress ?? existing.fullAddress}, ${data.location ?? existing.location}`,
+        )
+      : null;
+
+    let property = await prisma.property.update({
+      where: { id },
+      data: {
+        ...fields,
+        ...(assignedAgentId !== undefined ? { assignedAgentId } : {}),
+        ...(videoUrl !== undefined ? { videoUrl } : {}),
+        ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
+        updatedById: profile.id,
+        ...(data.status === PropertyStatus.ACTIVE && !existing.publishedAt
+          ? { publishedAt: new Date() }
+          : {}),
+        ...(amenities !== undefined
+          ? {
+              amenities: {
+                deleteMany: {},
+                create: amenities.map((key) => ({ amenity: { connect: { key } } })),
+              },
+            }
+          : {}),
+      },
+      include: listingInclude,
+    });
+
+    if (ownerContactChanged) {
+      await syncOwnerContact(id, ownerContactIdInput || null);
+      await logActivity({
+        actorId: profile.id,
+        action: ownerContactIdInput ? "CONTACT_PROPERTY_LINKED" : "CONTACT_PROPERTY_UNLINKED",
+        entityType: "CONTACT",
+        entityId: ownerContactIdInput || existingOwnerContactId,
+        oldValues: { propertyId: id, ownerContactId: existingOwnerContactId || null },
+        newValues: { propertyId: id, ownerContactId: ownerContactIdInput || null },
+      });
+      property = await prisma.property.findUniqueOrThrow({ where: { id }, include: listingInclude });
+    }
+
+    // Log only the fields that actually changed (audit requires old vs new).
+    const oldValues: Record<string, unknown> = {};
+    const newValues: Record<string, unknown> = {};
+    for (const key of Object.keys(fields) as (keyof typeof fields)[]) {
+      const before = existing[key];
+      const after = property[key];
+      const normalize = (v: unknown) => (v instanceof Date ? v.toISOString() : v?.toString() ?? null);
+      if (normalize(before) !== normalize(after)) {
+        oldValues[key] = normalize(before);
+        newValues[key] = normalize(after);
+      }
+    }
+    if (assignedAgentId !== undefined && assignedAgentId !== existing.assignedAgentId) {
+      oldValues.assignedAgentId = existing.assignedAgentId;
+      newValues.assignedAgentId = assignedAgentId;
+    }
+    if (videoUrl !== undefined && videoUrl !== existing.videoUrl) {
+      oldValues.videoUrl = existing.videoUrl;
+      newValues.videoUrl = videoUrl;
+    }
+    if (amenities !== undefined) {
+      const beforeKeys = existing.amenities.map((a) => a.amenity.key).sort();
+      const afterKeys = [...amenities].sort();
+      if (beforeKeys.join(",") !== afterKeys.join(",")) {
+        oldValues.amenities = beforeKeys;
+        newValues.amenities = afterKeys;
+      }
+    }
+
     await logActivity({
       actorId: profile.id,
-      action: ownerContactIdInput ? "CONTACT_PROPERTY_LINKED" : "CONTACT_PROPERTY_UNLINKED",
-      entityType: "CONTACT",
-      entityId: ownerContactIdInput || existingOwnerContactId,
-      oldValues: { propertyId: id, ownerContactId: existingOwnerContactId || null },
-      newValues: { propertyId: id, ownerContactId: ownerContactIdInput || null },
+      action: "PROPERTY_UPDATED",
+      entityType: "PROPERTY",
+      entityId: property.id,
+      oldValues: oldValues as Prisma.InputJsonValue,
+      newValues: newValues as Prisma.InputJsonValue,
     });
-    property = await prisma.property.findUniqueOrThrow({ where: { id }, include: listingInclude });
-  }
 
-  // Log only the fields that actually changed (audit requires old vs new).
-  const oldValues: Record<string, unknown> = {};
-  const newValues: Record<string, unknown> = {};
-  for (const key of Object.keys(fields) as (keyof typeof fields)[]) {
-    const before = existing[key];
-    const after = property[key];
-    const normalize = (v: unknown) => (v instanceof Date ? v.toISOString() : v?.toString() ?? null);
-    if (normalize(before) !== normalize(after)) {
-      oldValues[key] = normalize(before);
-      newValues[key] = normalize(after);
+    if (oldValues.status !== undefined) {
+      await notifyListingStatusChanged({
+        propertyId: property.id,
+        title: property.title,
+        listingId: property.listingId,
+        status: String(property.status),
+        actorId: profile.id,
+        actorName: profile.fullName ?? profile.email,
+      });
     }
-  }
-  if (assignedAgentId !== undefined && assignedAgentId !== existing.assignedAgentId) {
-    oldValues.assignedAgentId = existing.assignedAgentId;
-    newValues.assignedAgentId = assignedAgentId;
-  }
-  if (videoUrl !== undefined && videoUrl !== existing.videoUrl) {
-    oldValues.videoUrl = existing.videoUrl;
-    newValues.videoUrl = videoUrl;
-  }
-  if (amenities !== undefined) {
-    const beforeKeys = existing.amenities.map((a) => a.amenity.key).sort();
-    const afterKeys = [...amenities].sort();
-    if (beforeKeys.join(",") !== afterKeys.join(",")) {
-      oldValues.amenities = beforeKeys;
-      newValues.amenities = afterKeys;
+
+    // Best-effort: notify the agent when the listing's assigned agent changes.
+    if (
+      property.assignedAgentId &&
+      property.assignedAgentId !== existing.assignedAgentId
+    ) {
+      await notifyListingAssigned({
+        propertyId: property.id,
+        assignedAgentId: property.assignedAgentId,
+        actorId: profile.id,
+      });
     }
+
+    return { ok: true, listing: toDashboardDto(property) };
+  } catch (error) {
+    console.error("[listings] update failed", error);
+    return { ok: false, error: "Failed to update listing. Please try again.", status: 500 };
   }
-
-  await logActivity({
-    actorId: profile.id,
-    action: "PROPERTY_UPDATED",
-    entityType: "PROPERTY",
-    entityId: property.id,
-    oldValues: oldValues as Prisma.InputJsonValue,
-    newValues: newValues as Prisma.InputJsonValue,
-  });
-
-  if (oldValues.status !== undefined) {
-    await notifyListingStatusChanged({
-      propertyId: property.id,
-      title: property.title,
-      listingId: property.listingId,
-      status: String(property.status),
-      actorId: profile.id,
-      actorName: profile.fullName ?? profile.email,
-    });
-  }
-
-  // Best-effort: notify the agent when the listing's assigned agent changes.
-  if (
-    property.assignedAgentId &&
-    property.assignedAgentId !== existing.assignedAgentId
-  ) {
-    await notifyListingAssigned({
-      propertyId: property.id,
-      assignedAgentId: property.assignedAgentId,
-      actorId: profile.id,
-    });
-  }
-
-  return { ok: true, listing: toDashboardDto(property) };
 }
 
 // ── Status (pause/activate/sold/rented) ───────────────────────────────────────
@@ -1063,10 +1068,17 @@ export async function setListingCoverImage(
     return { ok: false, error: "Image not found.", status: 404 };
   }
 
-  await prisma.$transaction([
-    prisma.propertyImage.updateMany({ where: { propertyId: id }, data: { isCover: false } }),
-    prisma.propertyImage.update({ where: { id: imageId }, data: { isCover: true } }),
-  ]);
+  // Interactive transaction with explicit sequential awaits — not the
+  // batch-array `$transaction([a, b])` form. A transaction pins every
+  // operation to one shared connection, and the array form has been observed
+  // dispatching its operations concurrently on that connection (node-postgres
+  // then logs "Calling client.query() when the client is already executing a
+  // query"). Awaiting one at a time inside the callback guarantees they never
+  // overlap.
+  await prisma.$transaction(async (tx) => {
+    await tx.propertyImage.updateMany({ where: { propertyId: id }, data: { isCover: false } });
+    await tx.propertyImage.update({ where: { id: imageId }, data: { isCover: true } });
+  });
 
   await logActivity({
     actorId: profile.id,
@@ -1103,11 +1115,13 @@ export async function reorderListingImages(
     return { ok: false, error: "Image order must include every image exactly once.", status: 400 };
   }
 
-  await prisma.$transaction(
-    imageIds.map((imageId, index) =>
-      prisma.propertyImage.update({ where: { id: imageId }, data: { sortOrder: index } }),
-    ),
-  );
+  // Interactive transaction, sequential awaits — see the comment in
+  // setListingCoverImage above for why not the batch-array `$transaction([...])` form.
+  await prisma.$transaction(async (tx) => {
+    for (const [index, imageId] of imageIds.entries()) {
+      await tx.propertyImage.update({ where: { id: imageId }, data: { sortOrder: index } });
+    }
+  });
 
   await logActivity({
     actorId: profile.id,

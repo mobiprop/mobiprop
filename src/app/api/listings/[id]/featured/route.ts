@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { setListingFeatured } from "@/features/listings/listing-actions";
+import { withApiErrorHandling } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
 type Context = { params: Promise<{ id: string }> };
 
 /** ADMIN/MANAGER (listings:feature): toggle the featured flag. */
-export async function PATCH(request: Request, { params }: Context) {
+export const PATCH = withApiErrorHandling("listings.featured", async (request: Request, { params }: Context) => {
   const { id } = await params;
   const body = await request.json().catch(() => null);
 
@@ -17,4 +18,4 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});

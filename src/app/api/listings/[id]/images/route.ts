@@ -6,6 +6,7 @@ import {
   setListingCoverImage,
   reorderListingImages,
 } from "@/features/listings/listing-actions";
+import { withApiErrorHandling } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,7 @@ type Context = { params: Promise<{ id: string }> };
  * POST /api/listings/[id]/images/uploads. The bytes never pass through this
  * function, so there is no request-body size limit.
  */
-export async function POST(request: Request, { params }: Context) {
+export const POST = withApiErrorHandling("listings.images.add", async (request: Request, { params }: Context) => {
   const { id } = await params;
   const body = await request.json().catch(() => null);
 
@@ -27,10 +28,10 @@ export async function POST(request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});
 
 /** Staff (listings:uploadImages): remove one image. Body: { imageId }. */
-export async function DELETE(request: Request, { params }: Context) {
+export const DELETE = withApiErrorHandling("listings.images.remove", async (request: Request, { params }: Context) => {
   const { id } = await params;
   const body = await request.json().catch(() => null);
   const imageId = typeof body?.imageId === "string" ? body.imageId : null;
@@ -44,10 +45,10 @@ export async function DELETE(request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});
 
 /** Staff (listings:uploadImages): set the cover image. Body: { imageId }. */
-export async function PATCH(request: Request, { params }: Context) {
+export const PATCH = withApiErrorHandling("listings.images.setCover", async (request: Request, { params }: Context) => {
   const { id } = await params;
   const body = await request.json().catch(() => null);
   const imageId = typeof body?.imageId === "string" ? body.imageId : null;
@@ -61,10 +62,10 @@ export async function PATCH(request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});
 
 /** Staff (listings:uploadImages): persist a new image order. Body: { imageIds: string[] }. */
-export async function PUT(request: Request, { params }: Context) {
+export const PUT = withApiErrorHandling("listings.images.reorder", async (request: Request, { params }: Context) => {
   const { id } = await params;
   const body = await request.json().catch(() => null);
   const imageIds =
@@ -81,4 +82,4 @@ export async function PUT(request: Request, { params }: Context) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});

@@ -13,6 +13,7 @@ import {
 } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ZodError } from "zod";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -732,15 +733,17 @@ export function UploadListingModal({
       return;
     }
 
-    // Parse again after resolver to get coerced (numeric) values.
-    const parsed = createListingSchema.parse(values);
-
     // The mutations resize + convert each image to WebP in the browser and
     // upload it straight to storage via signed URLs, then send only small JSON
     // to the API — so there's no request-body size limit on the upload.
     const newFiles = newImages.map((i) => i.file);
 
     try {
+      // Parse again after resolver to get coerced (numeric) values. Runs
+      // inside the try so a mismatch here surfaces as a toast instead of an
+      // unhandled promise rejection with no user-visible feedback.
+      const parsed = createListingSchema.parse(values);
+
       if (isEdit && listing) {
         const diff = buildUpdateDiff(listing, parsed);
         const hasFieldChanges = Object.keys(diff).length > 0;
@@ -826,10 +829,26 @@ export function UploadListingModal({
 
       onClose();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("uploadModal.errors.somethingWentWrong"),
-      );
+      if (error instanceof ZodError) {
+        toast.error(error.issues[0]?.message ?? t("uploadModal.errors.somethingWentWrong"));
+      } else {
+        toast.error(
+          error instanceof Error ? error.message : t("uploadModal.errors.somethingWentWrong"),
+        );
+      }
     }
+  }, (formErrors) => {
+    // handleSubmit's validation runs against every field, not just the
+    // current step's — so a leftover invalid field on a step the user already
+    // passed (e.g. a legacy listing missing a now-required field) otherwise
+    // fails silently: no network call, no toast, the Save button just does
+    // nothing. Jump to the first step with an error and say so.
+    const erroredFields = Object.keys(formErrors);
+    const stepWithError = STEPS.findIndex((_, index) =>
+      (LISTING_STEP_FIELDS[index] ?? []).some((field) => erroredFields.includes(field)),
+    );
+    if (stepWithError !== -1) setStep(stepWithError);
+    toast.error(t("uploadModal.errors.fixHighlightedFields"));
   });
 
   const stepHasErrors = useMemo(

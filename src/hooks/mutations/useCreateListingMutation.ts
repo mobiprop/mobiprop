@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
 import { uploadImagesForNewListing } from "@/lib/client-upload";
+import { fallbackErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/http-error";
 import type { ListingInput } from "@/schemas/listing.schema";
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 
@@ -19,15 +20,20 @@ async function createListing({
   // Images upload straight to storage; only this small JSON hits the function.
   const { propertyId, descriptors } = await uploadImagesForNewListing(images);
 
-  const response = await fetch("/api/listings", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data, propertyId, images: descriptors, coverIndex }),
-  });
+  let response: Response;
+  try {
+    response = await fetch("/api/listings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data, propertyId, images: descriptors, coverIndex }),
+    });
+  } catch {
+    throw new Error(NETWORK_ERROR_MESSAGE);
+  }
   const body = await response.json().catch(() => null);
 
   if (!response.ok || !body?.success) {
-    throw new Error(body?.error ?? "Failed to create listing");
+    throw new Error(body?.error ?? fallbackErrorMessage(response.status));
   }
   return body;
 }

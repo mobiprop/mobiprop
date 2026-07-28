@@ -5,6 +5,7 @@ import {
   listPublicListings,
   type PublicListingFilters,
 } from "@/features/listings/listing-actions";
+import { withApiErrorHandling } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ function numberParam(params: URLSearchParams, key: string): number | undefined {
  * Public: ACTIVE listings with safe fields only (no auth required). Supports
  * the public search filters; internal/CRM fields are never returned.
  */
-export async function GET(request: Request) {
+export const GET = withApiErrorHandling("listings.publicList", async (request: Request) => {
   const params = new URL(request.url).searchParams;
 
   const filters: PublicListingFilters = {
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
 
   const result = await listPublicListings(filters);
   return NextResponse.json({ success: true, listings: result.listings, total: result.total });
-}
+});
 
 /**
  * Staff: create a listing. JSON body — `data` is the listing fields, `images`
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
  * so there is no request-body size limit. Authorization is enforced inside
  * createListing via requirePermission("listings:create").
  */
-export async function POST(request: Request) {
+export const POST = withApiErrorHandling("listings.create", async (request: Request) => {
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
@@ -70,4 +71,4 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ success: true, listing: result.listing });
-}
+});
