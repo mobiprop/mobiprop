@@ -306,6 +306,12 @@ export function AgentsPage({ role }: AgentsPageProps) {
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "All">("All");
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [period, setPeriod] = useState<PeriodFilter>("all");
+  // Keyed by `${agent.id}:${layout}` — the desktop table and the mobile cards
+  // both render an AgentActionsMenu per agent and both stay mounted (only CSS
+  // hides one). Keying by agent.id alone opened both portals at once, and the
+  // hidden twin's outside-click listener fired `onClose` on the mousedown that
+  // preceded the real Edit/Delete click, unmounting the button before React's
+  // onClick could run — the menu just closed and nothing happened.
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editingAgent, setEditingAgent] = useState<AgentDto | null>(null);
 
@@ -685,10 +691,14 @@ export function AgentsPage({ role }: AgentsPageProps) {
                     canEdit || canDelete ? (
                       <AgentActionsMenu
                         agent={agent}
-                        isOpen={menuOpenId === agent.id}
+                        isOpen={menuOpenId === `${agent.id}:desktop`}
                         canEdit={canEdit}
                         canDelete={canDelete}
-                        onToggle={() => setMenuOpenId(menuOpenId === agent.id ? null : agent.id)}
+                        onToggle={() =>
+                          setMenuOpenId(
+                            menuOpenId === `${agent.id}:desktop` ? null : `${agent.id}:desktop`,
+                          )
+                        }
                         onClose={() => setMenuOpenId(null)}
                         onEdit={() => { setMenuOpenId(null); setEditingAgent(agent); }}
                         onDelete={() => { setMenuOpenId(null); handleDelete(agent); }}
@@ -899,10 +909,14 @@ export function AgentsPage({ role }: AgentsPageProps) {
                   canEdit || canDelete ? (
                     <AgentActionsMenu
                       agent={agent}
-                      isOpen={menuOpenId === agent.id}
+                      isOpen={menuOpenId === `${agent.id}:mobile`}
                       canEdit={canEdit}
                       canDelete={canDelete}
-                      onToggle={() => setMenuOpenId(menuOpenId === agent.id ? null : agent.id)}
+                      onToggle={() =>
+                        setMenuOpenId(
+                          menuOpenId === `${agent.id}:mobile` ? null : `${agent.id}:mobile`,
+                        )
+                      }
                       onClose={() => setMenuOpenId(null)}
                       onEdit={() => { setMenuOpenId(null); setEditingAgent(agent); }}
                       onDelete={() => { setMenuOpenId(null); handleDelete(agent); }}
