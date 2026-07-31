@@ -242,7 +242,7 @@
       "moveLeftAria": "Move image left",
       "moveRightTitle": "Move right",
       "moveRightAria": "Move image right",
-      "reorderHint": "Drag a photo or use the arrows to reorder. Click the star to set the cover photo.",
+      "reorderHint": "Drag a photo — or press and hold on touch — to reorder, or use the arrows. Tap the star to set the cover photo.",
       "atLeastOneImageRequired": "At least one image is required to publish this listing. Add images or change status to Draft.",
       "listingImageAlt": "Listing image",
       "uploadImageAlt": "Upload {{index}}"

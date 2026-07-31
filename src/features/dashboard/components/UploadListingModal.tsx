@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ZodError } from "zod";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useDragReorder } from "@/hooks/useDragReorder";
 import {
   X,
   ChevronLeft,
@@ -482,9 +483,6 @@ export function UploadListingModal({
   const initialExistingOrderRef = useRef(
     (listing?.images ?? []).map((image) => image.id),
   );
-  const dragExistingIndexRef = useRef<number | null>(null);
-  const dragNewIndexRef = useRef<number | null>(null);
-
   const isSubmitting =
     createMutation.isPending ||
     updateMutation.isPending ||
@@ -492,6 +490,17 @@ export function UploadListingModal({
     removeImageMutation.isPending ||
     setCoverMutation.isPending ||
     reorderImagesMutation.isPending;
+
+  // Pointer-based so reordering works by touch on phones/iPads too — the
+  // HTML5 drag events this replaces only ever fired for a mouse.
+  const existingDrag = useDragReorder({
+    disabled: isSubmitting,
+    onReorder: (from, to) => setExistingImages((current) => reorderArray(current, from, to)),
+  });
+  const newDrag = useDragReorder({
+    disabled: isSubmitting,
+    onReorder: (from, to) => setNewImages((current) => reorderArray(current, from, to)),
+  });
 
   const {
     register,
@@ -674,20 +683,6 @@ export function UploadListingModal({
       if (target < 0 || target >= current.length) return current;
       return reorderArray(current, index, target);
     });
-  }
-
-  function handleExistingDrop(targetIndex: number) {
-    const fromIndex = dragExistingIndexRef.current;
-    dragExistingIndexRef.current = null;
-    if (fromIndex === null || fromIndex === targetIndex) return;
-    setExistingImages((current) => reorderArray(current, fromIndex, targetIndex));
-  }
-
-  function handleNewDrop(targetIndex: number) {
-    const fromIndex = dragNewIndexRef.current;
-    dragNewIndexRef.current = null;
-    if (fromIndex === null || fromIndex === targetIndex) return;
-    setNewImages((current) => reorderArray(current, fromIndex, targetIndex));
   }
 
   function removeExistingImage(imageId: string) {
@@ -1695,23 +1690,24 @@ export function UploadListingModal({
                         {t("uploadModal.fields.currentImages", { count: existingImages.length })}
                       </p>
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                      <div
+                        ref={existingDrag.containerRef}
+                        className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+                      >
                         {existingImages.map((image, index) => (
                           <div
                             key={image.id}
-                            draggable={!isSubmitting}
-                            onDragStart={() => {
-                              dragExistingIndexRef.current = index;
-                            }}
-                            onDragOver={(event) => event.preventDefault()}
-                            onDrop={(event) => {
-                              event.preventDefault();
-                              handleExistingDrop(index);
-                            }}
-                            className={`group relative aspect-square cursor-grab overflow-hidden rounded-[10px] border bg-[#f3f4f6] active:cursor-grabbing ${
+                            {...existingDrag.getItemProps(index)}
+                            className={`group relative aspect-square cursor-grab overflow-hidden rounded-[10px] border bg-[#f3f4f6] transition-transform active:cursor-grabbing ${
                               isExistingCover(image.id)
                                 ? "border-[#1e4f86] ring-2 ring-[#1e4f86]/15"
                                 : "border-[#e5e7eb]"
+                            } ${existingDrag.dragIndex === index ? "scale-95 opacity-50" : ""} ${
+                              existingDrag.isDragging &&
+                              existingDrag.overIndex === index &&
+                              existingDrag.dragIndex !== index
+                                ? "ring-2 ring-[#1e4f86]"
+                                : ""
                             }`}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1799,23 +1795,24 @@ export function UploadListingModal({
                           : t("uploadModal.fields.uploadedImages", { count: newImages.length })}
                       </p>
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                      <div
+                        ref={newDrag.containerRef}
+                        className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+                      >
                         {newImages.map((image, index) => (
                           <div
                             key={image.preview}
-                            draggable={!isSubmitting}
-                            onDragStart={() => {
-                              dragNewIndexRef.current = index;
-                            }}
-                            onDragOver={(event) => event.preventDefault()}
-                            onDrop={(event) => {
-                              event.preventDefault();
-                              handleNewDrop(index);
-                            }}
-                            className={`group relative aspect-square cursor-grab overflow-hidden rounded-[10px] border bg-[#f3f4f6] active:cursor-grabbing ${
+                            {...newDrag.getItemProps(index)}
+                            className={`group relative aspect-square cursor-grab overflow-hidden rounded-[10px] border bg-[#f3f4f6] transition-transform active:cursor-grabbing ${
                               isNewCover(image)
                                 ? "border-[#1e4f86] ring-2 ring-[#1e4f86]/15"
                                 : "border-[#e5e7eb]"
+                            } ${newDrag.dragIndex === index ? "scale-95 opacity-50" : ""} ${
+                              newDrag.isDragging &&
+                              newDrag.overIndex === index &&
+                              newDrag.dragIndex !== index
+                                ? "ring-2 ring-[#1e4f86]"
+                                : ""
                             }`}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}

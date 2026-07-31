@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 interface LoginPromptModalProps {
   open: boolean;
@@ -9,6 +10,8 @@ interface LoginPromptModalProps {
 }
 
 export function LoginPromptModal({ open, onClose }: LoginPromptModalProps) {
+  const { t } = useTranslation("common");
+
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -39,7 +42,7 @@ export function LoginPromptModal({ open, onClose }: LoginPromptModalProps) {
         <button
           onClick={onClose}
           className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#6a7282] hover:bg-[#f3f4f6]"
-          aria-label="Close"
+          aria-label={t("loginPrompt.close")}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
@@ -67,10 +70,10 @@ export function LoginPromptModal({ open, onClose }: LoginPromptModalProps) {
           className="mb-2 text-center text-[20px] font-semibold text-[#0d2138]"
           style={{ fontFamily: "Poppins, sans-serif" }}
         >
-          Save this property
+          {t("loginPrompt.title")}
         </h2>
         <p className="mb-7 text-center text-[14px] leading-[22px] text-[#6a7282]">
-          Sign in to save properties and access your saved listings from any device.
+          {t("loginPrompt.description")}
         </p>
 
         <div className="flex flex-col gap-3">
@@ -79,14 +82,14 @@ export function LoginPromptModal({ open, onClose }: LoginPromptModalProps) {
             className="block w-full rounded-xl bg-[#1a4878] py-3 text-center text-[15px] font-medium text-white transition-opacity hover:opacity-90"
             onClick={onClose}
           >
-            Log in
+            {t("loginPrompt.logIn")}
           </Link>
           <Link
             href="/register"
             className="block w-full rounded-xl border border-[#e5e7eb] py-3 text-center text-[15px] font-medium text-[#0d2138] transition-colors hover:bg-[#f9fafb]"
             onClick={onClose}
           >
-            Create account
+            {t("loginPrompt.createAccount")}
           </Link>
         </div>
       </div>

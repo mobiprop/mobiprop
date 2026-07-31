@@ -242,7 +242,7 @@
       "moveLeftAria": "Mover imagen a la izquierda",
       "moveRightTitle": "Mover a la derecha",
       "moveRightAria": "Mover imagen a la derecha",
-      "reorderHint": "Arrastra una foto o usa las flechas para reordenar. Haz clic en la estrella para establecer la foto de portada.",
+      "reorderHint": "Arrastrá una foto —o mantené presionado en pantalla táctil— para reordenar, o usá las flechas. Tocá la estrella para establecer la foto de portada.",
       "atLeastOneImageRequired": "Se requiere al menos una imagen para publicar esta propiedad. Agrega imágenes o cambia el estado a Borrador.",
       "listingImageAlt": "Imagen de la propiedad",
       "uploadImageAlt": "Subida {{index}}"

@@ -18,5 +18,12 @@
     "messages": "Messages",
     "messagesPlaceholder": "Enter a message",
     "submit": "Book a Free consultation"
+  },
+  "loginPrompt": {
+    "title": "Save this property",
+    "description": "Sign in to save properties and access your saved listings from any device.",
+    "logIn": "Log in",
+    "createAccount": "Create account",
+    "close": "Close"
   }
 }

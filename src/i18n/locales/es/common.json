@@ -18,5 +18,12 @@
     "messages": "Mensaje",
     "messagesPlaceholder": "Escribí tu mensaje",
     "submit": "Reservar consulta gratuita"
+  },
+  "loginPrompt": {
+    "title": "Guardá esta propiedad",
+    "description": "Iniciá sesión para guardar propiedades y acceder a tus favoritos desde cualquier dispositivo.",
+    "logIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta",
+    "close": "Cerrar"
   }
 }
