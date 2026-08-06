@@ -1,54 +1,55 @@
 {
   "hero": {
     "badge": "Sobre Nosotros",
-    "title": "Donde el Alcance Global se Encuentra con la Experiencia Local",
-    "subtitle": "Descubrí una amplia variedad de propiedades, desde departamentos acogedores hasta residencias de lujo, adaptadas a cada necesidad y presupuesto."
+    "title": "Más que una inmobiliaria, un aliado en cada operación.",
+    "subtitle": "Acompañamos a compradores, vendedores e inversores con asesoramiento profesional."
   },
   "ourStory": {
     "badge": "Nuestra Historia",
-    "title": "Encontrar una Propiedad Debería ser Emocionante, no Abrumador."
+    "title": "Te contamos más sobre nosotros",
+    "paragraph": "Con más de 10 años en el rubro inmobiliario, en Ulrich Propiedades creemos que cada operación inmobiliaria merece un enfoque personalizado. Combinamos experiencia, innovación y atención al detalle para brindar un servicio transparente y eficiente, adaptado a las necesidades de cada cliente. Desde la tasación inicial hasta la escritura, acompañamos cada etapa del proceso con profesionalismo, asesoramiento constante y una estrategia comercial diseñada para obtener los mejores resultados."
   },
   "gallery": {
     "badge": "Nuestra Galería",
-    "title": "Momentos Inmobiliarios Capturados con Estilo",
-    "subtitle": "Explorá imágenes de alta calidad que reflejan el diseño, la ubicación y la experiencia de vida de cada propiedad."
+    "title": "Descubrí propiedades que inspiran",
+    "subtitle": "Una selección de propiedades que reflejan la calidad, el diseño y la diversidad del mercado inmobiliario."
   },
   "expertise": {
     "badge": "Nuestra Experiencia",
-    "title": "Impulsados por la Experiencia, Enfocados en la Excelencia",
-    "subtitle": "En Ulrich acompañamos con claridad y confianza cada etapa del proceso de compra de tu propiedad, combinando conocimiento del mercado, sensibilidad de diseño y un servicio de confianza.",
+    "title": "Experiencia, estrategia y resultados en cada operación.",
+    "subtitle": "Brindamos un servicio integral para que comprar, vender o invertir sea una experiencia clara, eficiente y segura.",
     "cards": [
       {
-        "title": "Venta y Asesoramiento de Propiedades",
-        "desc": "Acompañamiento experto en cada etapa — desde la primera consulta hasta la entrega final, garantizando una experiencia de compra fluida y segura."
+        "title": "Compra y Venta de Propiedades",
+        "desc": "Acompañamos todo el proceso de compraventa, desde la tasación y comercialización hasta la negociación y la escritura."
       },
       {
-        "title": "Curaduría de Propiedades Premium",
-        "desc": "Cada propiedad es seleccionada cuidadosamente por su diseño, calidad y confort, reflejando el compromiso de Ulrich con el estilo minimalista moderno."
+        "title": "Comercialización Estratégica",
+        "desc": "Fotografía profesional, video, recorridos virtuales, campañas digitales y presencia en los principales portales inmobiliarios."
       },
       {
-        "title": "Acompañamiento Post-Venta",
-        "desc": "Nuestro compromiso no termina con la venta — estamos para que cada cliente se sienta acompañado, comprendido y valorado."
+        "title": "Asesoramiento Integral",
+        "desc": "Te acompañamos antes, durante y después de la operación para que cada decisión esté respaldada por información y experiencia."
       }
     ]
   },
   "aboutSection": {
-    "badge": "Sobre Nosotros",
-    "heading": "En Ulrich, cada hogar comienza con una promesa — un lugar donde el diseño moderno se encuentra con el confort duradero.",
-    "paragraph1": "Construida sobre la confianza y guiada por la integridad, Ulrich nació para redefinir la forma en que las personas viven la experiencia inmobiliaria. Creemos que un hogar debe ser mucho más que una propiedad — debe reflejar un estilo de vida de calidad, simplicidad y tranquilidad. Con un enfoque transparente y cercano, nuestro equipo se asegura de que cada cliente encuentre el hogar que realmente se ajusta a sus necesidades y aspiraciones.",
-    "paragraph2": "Nuestro compromiso va más allá de cada operación. Nos enfocamos en la calidad, el diseño y un servicio que perdura en el tiempo — valores que guían cada decisión que tomamos. En Ulrich no solo vendemos propiedades; creamos experiencias basadas en la confianza, guiadas por el profesionalismo e inspiradas en el estilo de vida moderno.",
+    "badge": "About Us",
+    "heading": "Construimos relaciones antes que operaciones.",
+    "paragraph1": "Cada cliente tiene objetivos diferentes. Por eso desarrollamos estrategias a medida para quienes buscan vender, comprar, alquilar o invertir, acompañándolos en cada etapa con compromiso, transparencia y profesionalismo.",
+    "paragraph2": "Nuestro objetivo no es simplemente cerrar una operación, sino convertirnos en un asesor inmobiliario de confianza para el largo plazo.",
     "stats": [
       {
-        "label": "Propiedades vendidas",
-        "desc": "Más de $150M en ventas, ayudando a nuestros clientes a encontrar hogares e inversiones con facilidad y confianza."
+        "label": "Acompañamiento Personalizado",
+        "desc": "Cada cliente cuenta con asesoramiento profesional durante todas las etapas de la operación."
       },
       {
-        "label": "Clientes Satisfechos",
-        "desc": "Más de 500 clientes satisfechos confían en nosotros para que su experiencia inmobiliaria sea simple y exitosa."
+        "label": "Servicio Integral",
+        "desc": "Te acompañamos desde la tasación y comercialización hasta la firma de la escritura."
       },
       {
-        "label": "Años de Experiencia",
-        "desc": "Más de 20 años de experiencia acompañando a nuestros clientes con conocimiento del mercado y asesoramiento profesional."
+        "label": "Comunicación Permanente",
+        "desc": "Mantenemos un contacto constante para que siempre conozcas el estado de tu operación."
       }
     ]
   }

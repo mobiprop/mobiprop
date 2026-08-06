@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
 const heroImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero.webp";
+  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero-2026.webp";
 
 function LocationIcon() {
   return (
