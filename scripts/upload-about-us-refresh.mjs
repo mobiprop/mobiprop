@@ -3,7 +3,7 @@
 // Run: node --env-file=.env scripts/upload-about-us-refresh.mjs
 import { readFile } from "node:fs/promises";
 
-// storage-js directly: supabase-js's realtime client needs Node 22+ WebSocket.
+//storage-js directly: supabase-js's realtime client needs Node 22+ WebSocket.
 import { StorageClient } from "../node_modules/.pnpm/@supabase+storage-js@2.108.1/node_modules/@supabase/storage-js/dist/index.mjs";
 
 const BUCKET = "Ulrich Assets";
