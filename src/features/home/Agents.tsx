@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import Slider from "react-slick";
+
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -34,7 +36,48 @@ function XIcon() {
   );
 }
 
-type Agent = { name: string; role: string; photo: string };
+type Agent = {
+  name: string;
+  role: string;
+  photo: string;
+};
+
+function AgentArrow({
+  direction,
+  onClick,
+}: {
+  direction: "previous" | "next";
+  onClick?: () => void;
+}) {
+  const isPrevious = direction === "previous";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${isPrevious ? "Previous" : "Next"} team member`}
+      className={`absolute top-[150px] z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#d1d5dc] bg-white text-[#0d2138] shadow-md transition active:scale-95 ${
+        isPrevious ? "left-3" : "right-3"
+      }`}
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d={isPrevious ? "M15 18L9 12L15 6" : "M9 18L15 12L9 6"}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
 
 function AgentCard({ agent }: { agent: Agent }) {
   return (
@@ -88,16 +131,50 @@ function AgentCard({ agent }: { agent: Agent }) {
 
 export function Agents() {
   const { t } = useTranslation("home");
+  const [slidesToShow, setSlidesToShow] = useState(3);
+
+  useEffect(() => {
+    const updateSlides = () => {
+      const width = Math.min(window.innerWidth, window.screen.width);
+
+      if (width < 768) {
+        setSlidesToShow(1);
+      } else if (width < 1024) {
+        setSlidesToShow(2);
+      } else {
+        setSlidesToShow(3);
+      }
+    };
+
+    updateSlides();
+
+    window.addEventListener("resize", updateSlides);
+    window.addEventListener("orientationchange", updateSlides);
+
+    return () => {
+      window.removeEventListener("resize", updateSlides);
+      window.removeEventListener("orientationchange", updateSlides);
+    };
+  }, []);
+
   const agents: Agent[] = (
-    t("agents.team", { returnObjects: true }) as { name: string; role: string }[]
-  ).map((member) => ({ ...member, photo: agentPlaceholder }));
+    t("agents.team", {
+      returnObjects: true,
+    }) as { name: string; role: string }[]
+  ).map((member) => ({
+    ...member,
+    photo: agentPlaceholder,
+  }));
+
   const settings = {
     dots: true,
-    arrows: false,
+    arrows: slidesToShow === 1,
+    prevArrow: <AgentArrow direction="previous" />,
+    nextArrow: <AgentArrow direction="next" />,
     infinite: true,
     speed: 900,
     cssEase: "ease-in-out",
-    slidesToShow: 3,
+    slidesToShow,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 5000,
@@ -107,7 +184,7 @@ export function Agents() {
     variableWidth: false,
     centerMode: false,
 
-    appendDots: (dots: React.ReactNode) => (
+    appendDots: (dots: ReactNode) => (
       <div>
         <ul className="mt-6 flex items-center justify-center gap-1.5 sm:mt-8">
           {dots}
@@ -118,35 +195,6 @@ export function Agents() {
     customPaging: () => (
       <div className="agent-custom-dot h-2 w-2 cursor-pointer rounded-full bg-[#6a7282] opacity-25 transition-all duration-300" />
     ),
-
-    responsive: [
-      {
-        breakpoint: 1280,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-          speed: 1000,
-        },
-      },
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          speed: 1000,
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          speed: 1000,
-          variableWidth: false,
-          centerMode: false,
-        },
-      },
-    ],
   };
 
   return (
@@ -175,7 +223,7 @@ export function Agents() {
 
         {/* Slick Slider */}
         <div className="agents-slider -mx-2 min-w-0 cursor-pointer sm:-mx-3">
-          <Slider {...settings}>
+          <Slider key={`agents-slider-${slidesToShow}`} {...settings}>
             {agents.map((agent, index) => (
               <div
                 key={`${agent.name}-${index}`}
