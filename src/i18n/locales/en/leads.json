@@ -3,7 +3,6 @@
     "title": "Leads",
     "subtitle": "Manage and nurture your sales leads",
     "import": "Import",
-    "importComingSoon": "Lead import is coming soon!",
     "export": "Export",
     "addLead": "Add Leads"
   },
@@ -20,6 +19,9 @@
     "filter": "Filter",
     "sortAria": "Sort leads",
     "sortPlaceholder": "Sort by",
+    "selectAllAria": "Select all leads",
+    "deselectAllAria": "Deselect all leads",
+    "selectRowAria": "Select {{name}}",
     "sort": {
       "newest": "Newest",
       "oldest": "Oldest",
@@ -36,6 +38,7 @@
       "location": "Location",
       "budget": "Budget",
       "score": "Score",
+      "dateCreated": "Date Created",
       "status": "Status",
       "agent": "Agent"
     },
@@ -52,12 +55,47 @@
       "defaultName": "lead",
       "closeAria": "Close actions menu",
       "viewDetails": "View Details",
+      "assignAgent": "Assign Agent",
       "archive": "Archive",
       "archiving": "Archiving…"
     }
   },
+  "bulkActions": {
+    "selectedCount_one": "{{count}} lead selected",
+    "selectedCount_other": "{{count}} leads selected",
+    "clearSelectionAria": "Clear selection",
+    "archive": "Archive",
+    "assignAgent": "Assign Agent"
+  },
+  "bulkAssignModal": {
+    "title": "Assign Agent",
+    "closeAria": "Close",
+    "description_one": "Assign an agent to {{count}} selected lead.",
+    "description_other": "Assign an agent to {{count}} selected leads.",
+    "cancel": "Cancel",
+    "assign": "Assign"
+  },
   "toasts": {
-    "exportFailed": "Failed to export leads"
+    "exportFailed": "Failed to export leads",
+    "confirmBulkArchive_one": "Archive {{count}} selected lead?",
+    "confirmBulkArchive_other": "Archive {{count}} selected leads?",
+    "bulkArchived_one": "Archived {{count}} lead",
+    "bulkArchived_other": "Archived {{count}} leads",
+    "bulkArchiveFailed_one": "Failed to archive {{count}} lead",
+    "bulkArchiveFailed_other": "Failed to archive {{count}} leads",
+    "bulkAssigned_one": "Assigned {{count}} lead",
+    "bulkAssigned_other": "Assigned {{count}} leads",
+    "bulkAssignFailed_one": "Failed to assign {{count}} lead",
+    "bulkAssignFailed_other": "Failed to assign {{count}} leads",
+    "assignFailed": "Failed to assign agent",
+    "assigned": "Agent assigned",
+    "importNoDataRows": "That file has no data rows to import",
+    "importedCount_one": "Imported {{count}} lead",
+    "importedCount_other": "Imported {{count}} leads",
+    "skippedCount_one": "Skipped {{count}} row",
+    "skippedCount_other": "Skipped {{count}} rows",
+    "importNothing": "Nothing to import — check the file has a Name column",
+    "importFailed": "Failed to import leads"
   },
   "statusBadge": {
     "cold": "Cold",

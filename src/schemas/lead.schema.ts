@@ -116,3 +116,23 @@ export const leadListFiltersSchema = z.object({
 });
 
 export type LeadListFilters = z.infer<typeof leadListFiltersSchema>;
+
+// ── CSV/XLSX import ───────────────────────────────────────────────────────────
+
+export const importLeadRowSchema = z.object({
+  submittedName: z.string().trim().min(1, "Name is required").max(200),
+  submittedEmail: z.string().trim().email("Invalid email address").optional().or(z.literal("")),
+  submittedPhone: z.string().trim().max(50).optional().or(z.literal("")),
+  submittedLocation: z.string().trim().max(200).optional().or(z.literal("")),
+  // Empty-string budget cells must resolve to `undefined`, not 0 — coerce
+  // would otherwise turn "" into Number("") === 0 before ever reaching a
+  // literal("") fallback.
+  budgetMin: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().min(0).optional()),
+  budgetMax: z.preprocess((v) => (v === "" ? undefined : v), z.coerce.number().min(0).optional()),
+  notes: z.string().trim().max(2000).optional().or(z.literal("")),
+});
+export type ImportLeadRow = z.infer<typeof importLeadRowSchema>;
+
+export const importLeadsSchema = z.object({
+  rows: z.array(z.record(z.string(), z.unknown())).min(1, "No rows to import").max(1000, "Import is limited to 1000 rows at a time"),
+});

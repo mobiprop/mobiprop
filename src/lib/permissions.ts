@@ -63,6 +63,7 @@ export type Permission =
   | "leads:archive"
   | "leads:convert"
   | "leads:export"
+  | "leads:import"
   | "leads:view_activity"
   | "tours:view"
   | "tours:view_all"
@@ -161,6 +162,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "leads:archive",
     "leads:convert",
     "leads:export",
+    "leads:import",
     "leads:view_activity",
     "tours:view",
     "tours:view_all",
@@ -231,6 +233,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "leads:archive",
     "leads:convert",
     "leads:export",
+    "leads:import",
     "leads:view_activity",
     "tours:view",
     "tours:view_all",

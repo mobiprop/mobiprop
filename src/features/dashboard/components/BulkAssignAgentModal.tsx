@@ -13,10 +13,11 @@ type BulkAssignAgentModalProps = {
   busy: boolean;
   onClose: () => void;
   onAssign: (agentId: string) => void;
+  namespace?: string;
 };
 
-export function BulkAssignAgentModal({ count, busy, onClose, onAssign }: BulkAssignAgentModalProps) {
-  const { t } = useTranslation("dashboardListings");
+export function BulkAssignAgentModal({ count, busy, onClose, onAssign, namespace = "dashboardListings" }: BulkAssignAgentModalProps) {
+  const { t } = useTranslation(namespace);
   const [agentId, setAgentId] = useState("");
 
   return (

@@ -18,6 +18,9 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
+  Check,
+  Minus,
+  X,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -37,7 +40,8 @@ import {
 import { AddContactModal, type NewContact } from "./components/AddContactModal";
 import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
 import { SearchableSelect } from "./components/SearchableSelect";
-import { toCsv, downloadCsv, parseCsv, csvRowsToObjects } from "@/lib/csv";
+import { toCsv, downloadCsv } from "@/lib/csv";
+import { parseSpreadsheetFile } from "@/lib/spreadsheet";
 
 const CONTACT_TYPE_MAP: Record<NewContact["contactType"], ContactType> = {
   Buyer: ContactType.BUYER,
@@ -133,6 +137,44 @@ function TypeBadge({ type, t }: { type: ContactType; t: (key: string) => string 
     >
       {TYPE_I18N_KEY[type] ? t(TYPE_I18N_KEY[type]) : type}
     </span>
+  );
+}
+
+// ── Row checkbox ──────────────────────────────────────────────────────────────
+
+function RowCheckbox({
+  checked,
+  indeterminate = false,
+  onToggle,
+  label,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={indeterminate ? "mixed" : checked}
+      aria-label={label}
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggle();
+      }}
+      className={`flex size-[19px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
+        checked || indeterminate
+          ? "border-[#235b96] bg-[#235b96]"
+          : "border-[#d9dde3] bg-white"
+      }`}
+    >
+      {indeterminate ? (
+        <Minus size={13} strokeWidth={2.6} className="text-white" />
+      ) : checked ? (
+        <Check size={13} strokeWidth={2.6} className="text-white" />
+      ) : null}
+    </button>
   );
 }
 
@@ -393,6 +435,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const [typeFilter, setTypeFilter] = useState<ContactType | "All">("All");
   const [sortBy, setSortBy] = useState<"default" | "name" | "listings">("default");
   const [conflict, setConflict] = useState<ConflictState | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -485,6 +529,39 @@ export function ContactsPage({ role }: ContactsPageProps) {
     }
   }
 
+  function toggleOneSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllSelected() {
+    setSelectedIds((prev) => {
+      const allVisibleSelected = filtered.length > 0 && filtered.every((c) => prev.has(c.id));
+      return allVisibleSelected ? new Set() : new Set(filtered.map((c) => c.id));
+    });
+  }
+
+  async function handleBulkDelete() {
+    const ids = [...selectedIds];
+    const confirmed = window.confirm(t("toasts.confirmBulkDelete", { count: ids.length }));
+    if (!confirmed) return;
+
+    setBulkBusy(true);
+    const results = await Promise.allSettled(ids.map((id) => deleteMutation.mutateAsync(id)));
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.length - succeeded;
+
+    if (succeeded > 0) toast.success(t("toasts.bulkDeleted", { count: succeeded }));
+    if (failed > 0) toast.error(t("toasts.bulkDeleteFailed", { count: failed }));
+
+    setBulkBusy(false);
+    setSelectedIds(new Set());
+  }
+
   function handleExport() {
     const header = [
       "Contact ID", "First Name", "Last Name", "Email", "Phone",
@@ -532,8 +609,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
     if (!file) return;
 
     try {
-      const text = await file.text();
-      const records = csvRowsToObjects(parseCsv(text));
+      const records = await parseSpreadsheetFile(file);
       if (records.length === 0) {
         toast.error(t("toasts.importNoDataRows"));
         return;
@@ -579,7 +655,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
             onChange={handleImportFile}
           />
@@ -749,6 +825,38 @@ export function ContactsPage({ role }: ContactsPageProps) {
     </div>
   </div>
 
+  {selectedIds.size > 0 && (
+    <div className="sticky top-0 z-10 mb-3 flex flex-col gap-3 rounded-[14px] border border-[#1e4f86]/20 bg-[#eff6ff] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setSelectedIds(new Set())}
+          aria-label={t("bulkActions.clearSelectionAria")}
+          className="flex size-7 shrink-0 items-center justify-center rounded-full text-[#1e4f86] transition-colors hover:bg-white"
+        >
+          <X size={15} />
+        </button>
+        <p className="text-[14px] font-semibold text-[#0d2138]" style={mont}>
+          {t("bulkActions.selectedCount", { count: selectedIds.size })}
+        </p>
+        {bulkBusy && <Loader2 size={15} className="animate-spin text-[#1e4f86]" />}
+      </div>
+
+      {canDelete && (
+        <button
+          type="button"
+          onClick={handleBulkDelete}
+          disabled={bulkBusy}
+          className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[#fecaca] bg-white px-3 text-[13px] font-medium text-[#e7000b] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-50"
+          style={mont}
+        >
+          <Trash2 size={15} />
+          {t("bulkActions.delete")}
+        </button>
+      )}
+    </div>
+  )}
+
   {/* Loading / error / table */}
   {isLoading ? (
     <div className="flex items-center justify-center gap-2 py-16 text-[#6a7282]">
@@ -772,6 +880,15 @@ export function ContactsPage({ role }: ContactsPageProps) {
         <table className="w-full min-w-[1000px]">
           <thead>
             <tr className="border-b border-[#e5e7eb] bg-[#f9fafb]">
+              <th className="w-11 px-4 py-[10px]">
+                <RowCheckbox
+                  checked={filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))}
+                  indeterminate={filtered.some((c) => selectedIds.has(c.id)) && !filtered.every((c) => selectedIds.has(c.id))}
+                  onToggle={toggleAllSelected}
+                  label={filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id)) ? t("table.deselectAllAria") : t("table.selectAllAria")}
+                />
+              </th>
+
               <th
                 className="w-[240px] px-6 py-[10px] text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
@@ -822,8 +939,18 @@ export function ContactsPage({ role }: ContactsPageProps) {
             {filtered.map((contact: ContactDto) => (
               <tr
                 key={contact.id}
-                className="border-b border-[#e5e7eb] last:border-b-0"
+                className={`border-b border-[#e5e7eb] last:border-b-0 ${
+                  selectedIds.has(contact.id) ? "bg-[#eff6ff]" : ""
+                }`}
               >
+                <td className="w-11 px-4 py-4">
+                  <RowCheckbox
+                    checked={selectedIds.has(contact.id)}
+                    onToggle={() => toggleOneSelected(contact.id)}
+                    label={t("table.selectRowAria", { name: contact.fullName })}
+                  />
+                </td>
+
                 <td className="w-[240px] px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div
@@ -912,7 +1039,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
             {filtered.length === 0 && !isLoading && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
                   style={mont}
                 >
@@ -931,10 +1058,17 @@ export function ContactsPage({ role }: ContactsPageProps) {
         {filtered.map((contact: ContactDto) => (
           <div
             key={contact.id}
-            className="rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,0.04)]"
+            className={`rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,0.04)] ${
+              selectedIds.has(contact.id) ? "bg-[#eff6ff]" : ""
+            }`}
           >
             <div className="mb-4 flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-1 items-center gap-3">
+                <RowCheckbox
+                  checked={selectedIds.has(contact.id)}
+                  onToggle={() => toggleOneSelected(contact.id)}
+                  label={t("table.selectRowAria", { name: contact.fullName })}
+                />
                 <div
                   className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
                   style={mont}

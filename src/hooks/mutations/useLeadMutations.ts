@@ -74,6 +74,30 @@ export function useAssignLeadMutation(id: string) {
   });
 }
 
+// Flexible variant of useAssignLeadMutation for call sites (e.g. bulk actions)
+// that need to assign an arbitrary set of lead ids from a single mutation
+// instance, rather than one hook instance per lead id.
+export function useAssignLeadByIdMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, agentId }: { id: string } & AssignLeadInput) => {
+      const res = await fetch(`/api/dashboard/leads/${id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to assign lead");
+      return json.lead;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.leads() });
+      qc.invalidateQueries({ queryKey: queryKeys.leadMetrics() });
+      qc.invalidateQueries({ queryKey: queryKeys.agents() });
+    },
+  });
+}
+
 // ── Add Note ──────────────────────────────────────────────────────────────────
 
 export function useAddLeadNoteMutation(leadId: string) {
@@ -130,6 +154,37 @@ export function useRestoreLeadMutation() {
       qc.invalidateQueries({ queryKey: queryKeys.leads() });
       qc.invalidateQueries({ queryKey: queryKeys.leadDetail(id) });
       qc.invalidateQueries({ queryKey: queryKeys.leadMetrics() });
+    },
+  });
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
+
+export type ImportLeadsResult = {
+  created: number;
+  skipped: number;
+  errors: { row: number; message: string }[];
+};
+
+async function postImportLeads(rows: Record<string, unknown>[]): Promise<ImportLeadsResult> {
+  const res = await fetch("/api/dashboard/leads/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rows }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to import leads");
+  return data;
+}
+
+export function useImportLeadsMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: postImportLeads,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.leads() });
+      qc.invalidateQueries({ queryKey: queryKeys.leadMetrics() });
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardMetrics() });
     },
   });
 }

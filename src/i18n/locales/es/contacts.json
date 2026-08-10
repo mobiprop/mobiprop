@@ -24,6 +24,9 @@
     "title": "Todos los Contactos",
     "searchPlaceholder": "Buscar contactos...",
     "sortAria": "Ordenar contactos",
+    "selectAllAria": "Seleccionar todos los contactos",
+    "deselectAllAria": "Deseleccionar todos los contactos",
+    "selectRowAria": "Seleccionar {{name}}",
     "sort": {
       "default": "Ordenar Por",
       "name": "Nombre (A–Z)",
@@ -58,6 +61,12 @@
     "edit": "Editar",
     "delete": "Eliminar"
   },
+  "bulkActions": {
+    "selectedCount_one": "{{count}} contacto seleccionado",
+    "selectedCount_other": "{{count}} contactos seleccionados",
+    "clearSelectionAria": "Limpiar selección",
+    "delete": "Eliminar"
+  },
   "deleteModal": {
     "title": "Eliminar Contacto",
     "body": "{{name}} se marcará como eliminado y se quitará de todas las listas. Un administrador puede restaurarlo.",
@@ -84,7 +93,13 @@
     "skippedCount_one": "Se omitió {{count}} fila",
     "skippedCount_other": "Se omitieron {{count}} filas",
     "importNothing": "Nada para importar — verifica que el archivo tenga columnas de Nombre/Apellido",
-    "importFailed": "No se pudieron importar los contactos"
+    "importFailed": "No se pudieron importar los contactos",
+    "confirmBulkDelete_one": "¿Eliminar {{count}} contacto seleccionado? Un administrador puede restaurarlo.",
+    "confirmBulkDelete_other": "¿Eliminar {{count}} contactos seleccionados? Un administrador puede restaurarlos.",
+    "bulkDeleted_one": "Se eliminó {{count}} contacto",
+    "bulkDeleted_other": "Se eliminaron {{count}} contactos",
+    "bulkDeleteFailed_one": "Error al eliminar {{count}} contacto",
+    "bulkDeleteFailed_other": "Error al eliminar {{count}} contactos"
   },
   "fields": {
     "firstName": "Nombre *",

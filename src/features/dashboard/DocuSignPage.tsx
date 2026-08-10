@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FileSignature, FileText, Clock, CheckCircle2, XCircle, Send, RefreshCw,
   Search, Plus, Settings as SettingsIcon, LayoutGrid, Loader2, MoreVertical, Copy, PenLine,
@@ -626,12 +627,67 @@ export function DocuSignPage({ role }: { role: Role }) {
   );
 }
 
+type EnvelopeMenuPosition = { top: number; left: number };
+
 function EnvelopeRow({ envelope, canVoid, canResend }: { envelope: DocusignEnvelopeDto; canVoid: boolean; canResend: boolean }) {
   const { t } = useTranslation("docusign");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<EnvelopeMenuPosition>({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const voidMutation = useVoidEnvelopeMutation();
   const resendMutation = useResendEnvelopeMutation();
   const isPending = envelope.status === EnvelopeStatus.SENT || envelope.status === EnvelopeStatus.DELIVERED;
+
+  const calculateMenuPosition = useCallback(() => {
+    const button = buttonRef.current;
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const menuWidth = 160;
+    const menuHeight = canResend && canVoid ? 88 : 46;
+    const gap = 6;
+    const viewportPadding = 8;
+    const hasSpaceBelow = window.innerHeight - rect.bottom >= menuHeight + gap;
+
+    const top = hasSpaceBelow
+      ? rect.bottom + gap
+      : Math.max(viewportPadding, rect.top - menuHeight - gap);
+
+    const left = Math.min(
+      window.innerWidth - menuWidth - viewportPadding,
+      Math.max(viewportPadding, rect.right - menuWidth),
+    );
+
+    setMenuPosition({ top, left });
+  }, [canResend, canVoid]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeMenu = () => setMenuOpen(false);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenu();
+    };
+
+    window.addEventListener("resize", closeMenu);
+    window.addEventListener("scroll", closeMenu, true);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("resize", closeMenu);
+      window.removeEventListener("scroll", closeMenu, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  function handleToggleMenu() {
+    if (!menuOpen) {
+      calculateMenuPosition();
+      setMenuOpen(true);
+      return;
+    }
+    setMenuOpen(false);
+  }
 
   async function handleVoid() {
     const reason = window.prompt(t("page.envelopes.voidReasonPrompt"));
@@ -699,23 +755,39 @@ function EnvelopeRow({ envelope, canVoid, canResend }: { envelope: DocusignEnvel
       <td className="px-5 py-4 w-[55px] text-center relative">
         {(canVoid || canResend) && isPending && (
           <>
-            <button type="button" onClick={() => setMenuOpen((v) => !v)} className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
+            <button ref={buttonRef} type="button" onClick={handleToggleMenu} className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138] transition-colors">
               <MoreVertical size={16} />
             </button>
-            {menuOpen && (
-              <div className="absolute right-5 top-11 z-10 w-[160px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
-                {canResend && (
-                  <button type="button" onClick={handleResend} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
-                    <RefreshCw size={13} /> {t("page.envelopes.resendReminder")}
-                  </button>
-                )}
-                {canVoid && (
-                  <button type="button" onClick={handleVoid} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#fb2c36] hover:bg-[#fff1f2]" style={mont}>
-                    <XCircle size={13} /> {t("page.envelopes.voidEnvelope")}
-                  </button>
-                )}
-              </div>
-            )}
+            {menuOpen &&
+              typeof document !== "undefined" &&
+              createPortal(
+                <>
+                  <button
+                    type="button"
+                    aria-label={t("page.envelopes.closeMenuAria", { defaultValue: "Close menu" })}
+                    className="fixed inset-0 z-[9998] cursor-default bg-transparent"
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <div
+                    role="menu"
+                    className="fixed z-[9999] w-[160px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+                    style={{ top: menuPosition.top, left: menuPosition.left }}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {canResend && (
+                      <button type="button" onClick={handleResend} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
+                        <RefreshCw size={13} /> {t("page.envelopes.resendReminder")}
+                      </button>
+                    )}
+                    {canVoid && (
+                      <button type="button" onClick={handleVoid} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#fb2c36] hover:bg-[#fff1f2]" style={mont}>
+                        <XCircle size={13} /> {t("page.envelopes.voidEnvelope")}
+                      </button>
+                    )}
+                  </div>
+                </>,
+                document.body,
+              )}
           </>
         )}
       </td>

@@ -24,6 +24,9 @@
     "title": "All Contacts",
     "searchPlaceholder": "Search contacts...",
     "sortAria": "Sort contacts",
+    "selectAllAria": "Select all contacts",
+    "deselectAllAria": "Deselect all contacts",
+    "selectRowAria": "Select {{name}}",
     "sort": {
       "default": "Sort By",
       "name": "Name (A–Z)",
@@ -58,6 +61,12 @@
     "edit": "Edit",
     "delete": "Delete"
   },
+  "bulkActions": {
+    "selectedCount_one": "{{count}} contact selected",
+    "selectedCount_other": "{{count}} contacts selected",
+    "clearSelectionAria": "Clear selection",
+    "delete": "Delete"
+  },
   "deleteModal": {
     "title": "Delete Contact",
     "body": "{{name}} will be marked as deleted and removed from all lists. This can be restored by an administrator.",
@@ -84,7 +93,13 @@
     "skippedCount_one": "Skipped {{count}} row",
     "skippedCount_other": "Skipped {{count}} rows",
     "importNothing": "Nothing to import — check the file has First Name/Last Name columns",
-    "importFailed": "Failed to import contacts"
+    "importFailed": "Failed to import contacts",
+    "confirmBulkDelete_one": "Delete {{count}} selected contact? This can be restored by an administrator.",
+    "confirmBulkDelete_other": "Delete {{count}} selected contacts? This can be restored by an administrator.",
+    "bulkDeleted_one": "Deleted {{count}} contact",
+    "bulkDeleted_other": "Deleted {{count}} contacts",
+    "bulkDeleteFailed_one": "Failed to delete {{count}} contact",
+    "bulkDeleteFailed_other": "Failed to delete {{count}} contacts"
   },
   "fields": {
     "firstName": "First Name *",

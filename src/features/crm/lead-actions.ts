@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
 import { notifyLeadAssigned } from "@/features/notifications/server/notify-events";
-import { LeadTemperature, LeadLifecycleStatus, UserStatus } from "@/generated/prisma/enums";
+import { LeadTemperature, LeadLifecycleStatus, LeadSource, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
 import {
@@ -14,6 +14,7 @@ import {
   addLeadNoteSchema,
   linkLeadConversionSchema,
   leadListFiltersSchema,
+  importLeadRowSchema,
 } from "@/schemas/lead.schema";
 import type { LeadDto, LeadNoteDto, LeadActivityDto, LeadMetrics } from "./types/crm-dto";
 
@@ -649,4 +650,102 @@ export async function convertLead(id: string, body: unknown): Promise<CrmActionR
 
   const agentMap = await buildAgentMap([lead.assignedAgentId]);
   return { ok: true, lead: await toLeadDto(lead, agentMap), opportunityId: opportunity.id };
+}
+
+// ── CSV/XLSX import ───────────────────────────────────────────────────────────
+
+type ExistingLeadMatch = { id: string; leadNumber: string; submittedName: string };
+
+async function findDuplicateLead(
+  email: string | null,
+  phone: string | null,
+): Promise<{ matchedOn: "email address" | "phone number"; existing: ExistingLeadMatch } | null> {
+  if (email) {
+    const existing = await prisma.lead.findFirst({
+      where: { isArchived: false, submittedEmail: { equals: email, mode: "insensitive" } },
+      select: { id: true, leadNumber: true, submittedName: true },
+    });
+    if (existing) return { matchedOn: "email address", existing };
+  }
+
+  const normalizedPhone = phone ? phone.replace(/\D/g, "") : "";
+  if (normalizedPhone) {
+    const rows = await prisma.$queryRaw<ExistingLeadMatch[]>`
+      SELECT id, lead_number AS "leadNumber", submitted_name AS "submittedName"
+      FROM leads
+      WHERE is_archived = false AND submitted_phone IS NOT NULL
+        AND regexp_replace(submitted_phone, '\D', '', 'g') = ${normalizedPhone}
+      LIMIT 1
+    `;
+    if (rows[0]) return { matchedOn: "phone number", existing: rows[0] };
+  }
+
+  return null;
+}
+
+export type ImportLeadsError = { row: number; message: string };
+
+export async function importLeads(
+  rawRows: unknown[],
+): Promise<CrmActionResult<{ created: number; skipped: number; errors: ImportLeadsError[] }>> {
+  const gate = await requirePermission("leads:import");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const errors: ImportLeadsError[] = [];
+  let created = 0;
+  const importBatchId = crypto.randomUUID();
+
+  // Sequential on purpose — same reasoning as importContacts(): nextLeadNumber()
+  // and findDuplicateLead() both read current table state, so rows must be
+  // processed one at a time to avoid two rows in the same file racing each
+  // other onto the same generated lead number or both slipping past the
+  // duplicate check.
+  for (let i = 0; i < rawRows.length; i++) {
+    const rowNumber = i + 2; // +1 for 1-index, +1 for the header row
+    const parsed = importLeadRowSchema.safeParse(rawRows[i]);
+    if (!parsed.success) {
+      errors.push({ row: rowNumber, message: parsed.error.issues[0]?.message ?? "Invalid row" });
+      continue;
+    }
+
+    const email = parsed.data.submittedEmail || null;
+    const phone = parsed.data.submittedPhone || null;
+
+    const duplicate = await findDuplicateLead(email, phone);
+    if (duplicate) {
+      errors.push({
+        row: rowNumber,
+        message: `Matches existing lead ${duplicate.existing.leadNumber} (${duplicate.matchedOn})`,
+      });
+      continue;
+    }
+
+    const leadNumber = await nextLeadNumber();
+    const lead = await prisma.lead.create({
+      data: {
+        leadNumber,
+        submittedName: parsed.data.submittedName,
+        submittedEmail: email,
+        submittedPhone: phone,
+        submittedLocation: parsed.data.submittedLocation || null,
+        source: LeadSource.IMPORT,
+        importBatchId,
+        budgetMin: parsed.data.budgetMin ?? null,
+        budgetMax: parsed.data.budgetMax ?? null,
+        notes: parsed.data.notes || null,
+        createdById: gate.profile.id,
+      },
+    });
+
+    await Promise.all([
+      prisma.leadActivity.create({
+        data: { leadId: lead.id, actorId: gate.profile.id, type: "LEAD_CREATED", metadata: { source: LeadSource.IMPORT, submittedName: parsed.data.submittedName } as Prisma.InputJsonValue },
+      }),
+      logActivity({ actorId: gate.profile.id, action: "LEAD_CREATED", entityType: "LEAD", entityId: lead.id, newValues: { leadNumber, source: LeadSource.IMPORT, importBatchId } }),
+    ]);
+
+    created++;
+  }
+
+  return { ok: true, created, skipped: errors.length, errors };
 }

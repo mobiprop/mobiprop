@@ -27,6 +27,11 @@ import {
   ChevronRight,
   Upload,
   Share2,
+  Check,
+  Minus,
+  X,
+  Archive,
+  UserPlus,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -35,7 +40,12 @@ import {
   useDashboardLeadsQuery,
   useLeadMetricsQuery,
 } from "@/hooks/queries/useDashboardLeadsQuery";
-import { useArchiveLeadMutation } from "@/hooks/mutations/useLeadMutations";
+import {
+  useArchiveLeadMutation,
+  useAssignLeadMutation,
+  useAssignLeadByIdMutation,
+  useImportLeadsMutation,
+} from "@/hooks/mutations/useLeadMutations";
 import {
   LeadTemperature,
   LeadLifecycleStatus,
@@ -45,8 +55,10 @@ import type { LeadDto } from "@/features/crm/types/crm-dto";
 import { AddLeadModal } from "./components/AddLeadModal";
 import { LeadFilterModal } from "./components/LeadFilterModal";
 import { SearchableSelect } from "./components/SearchableSelect";
+import { BulkAssignAgentModal } from "./components/BulkAssignAgentModal";
 import type { LeadListFilters } from "@/schemas/lead.schema";
 import { toCsv, downloadCsv } from "@/lib/csv";
+import { parseSpreadsheetFile } from "@/lib/spreadsheet";
 
 const SORT_VALUES = [
   "newest",
@@ -79,6 +91,10 @@ export function scoreColor(score: number): string {
   if (score >= 70) return "#22c55e";
   if (score >= 40) return "#f59e0b";
   return "#ef4444";
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -133,30 +149,41 @@ function StatCard({
   );
 }
 
-// ── Score bar ─────────────────────────────────────────────────────────────────
+// ── Row checkbox ──────────────────────────────────────────────────────────────
 
-function ScoreBar({ score }: { score: number }) {
-  const numericScore = Number(score);
-  const safeScore = Math.min(
-    100,
-    Math.max(0, Number.isFinite(numericScore) ? numericScore : 0),
-  );
-
+function RowCheckbox({
+  checked,
+  indeterminate = false,
+  onToggle,
+  label,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
   return (
-    <div className="flex min-w-[104px] items-center gap-2">
-      <div className="h-1.5 w-[68px] overflow-hidden rounded-full bg-[#e5e7eb]">
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: `${safeScore}%`,
-            backgroundColor: scoreColor(safeScore),
-          }}
-        />
-      </div>
-      <span className="text-[14px] text-[#6a7282] sm:text-[14px]" style={uiFont}>
-        {Math.round(safeScore)}%
-      </span>
-    </div>
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={indeterminate ? "mixed" : checked}
+      aria-label={label}
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggle();
+      }}
+      className={`flex size-[19px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
+        checked || indeterminate
+          ? "border-[#235b96] bg-[#235b96]"
+          : "border-[#d9dde3] bg-white"
+      }`}
+    >
+      {indeterminate ? (
+        <Minus size={13} strokeWidth={2.6} className="text-white" />
+      ) : checked ? (
+        <Check size={13} strokeWidth={2.6} className="text-white" />
+      ) : null}
+    </button>
   );
 }
 
@@ -231,10 +258,13 @@ function RowActions({
 }) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<MenuPosition>({ top: 0, left: 0 });
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const archive = useArchiveLeadMutation();
+  const assign = useAssignLeadMutation(lead.id);
 
   const canArchive = hasPermission(role, "leads:archive") && !lead.isArchived;
+  const canAssign = hasPermission(role, "leads:assign") && !lead.isArchived;
 
   const calculatePosition = useCallback(() => {
     const button = buttonRef.current;
@@ -242,7 +272,7 @@ function RowActions({
 
     const rect = button.getBoundingClientRect();
     const menuWidth = 164;
-    const menuHeight = canArchive ? 88 : 46;
+    const menuHeight = 46 + (canAssign ? 42 : 0) + (canArchive ? 42 : 0);
     const gap = 6;
     const viewportPadding = 8;
     const hasSpaceBelow = window.innerHeight - rect.bottom >= menuHeight + gap;
@@ -257,7 +287,7 @@ function RowActions({
     );
 
     setPosition({ top, left });
-  }, [canArchive]);
+  }, [canAssign, canArchive]);
 
   const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -319,6 +349,20 @@ function RowActions({
                 {t("list.rowActions.viewDetails")}
               </button>
 
+              {canAssign && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setShowAssignModal(true);
+                    setOpen(false);
+                  }}
+                  className="w-full px-3 py-2.5 text-left text-[14px] text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
+                >
+                  {t("list.rowActions.assignAgent")}
+                </button>
+              )}
+
               {canArchive && (
                 <button
                   type="button"
@@ -353,6 +397,28 @@ function RowActions({
         <MoreVertical size={16} strokeWidth={1.8} />
       </button>
       {menu}
+      {showAssignModal && (
+        <BulkAssignAgentModal
+          namespace="leads"
+          count={1}
+          busy={assign.isPending}
+          onClose={() => setShowAssignModal(false)}
+          onAssign={(agentId) => {
+            assign.mutate(
+              { agentId },
+              {
+                onSuccess: () => {
+                  toast.success(t("toasts.assigned"));
+                  setShowAssignModal(false);
+                },
+                onError: (err) => {
+                  toast.error(err instanceof Error ? err.message : t("toasts.assignFailed"));
+                },
+              },
+            );
+          }}
+        />
+      )}
     </>
   );
 }
@@ -410,6 +476,12 @@ export function LeadsPage({ role }: LeadsPageProps) {
     useState<LeadListFilters["sortBy"]>("newest");
   const [page, setPage] = useState(1);
 
+  // Selection is scoped to the currently visible page — cleared any time the
+  // underlying page/search/sort changes what's on screen.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [showBulkAssign, setShowBulkAssign] = useState(false);
+
   const onSearchChange = useCallback((value: string) => {
     setSearch(value);
 
@@ -420,6 +492,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
     searchTimerRef.current = setTimeout(() => {
       setDebouncedSearch(value.trim());
       setPage(1);
+      setSelectedIds(new Set());
     }, 300);
   }, []);
 
@@ -443,11 +516,67 @@ export function LeadsPage({ role }: LeadsPageProps) {
   const { data: metrics } = useLeadMetricsQuery();
 
   const canCreate = hasPermission(role, "leads:create");
+  const canImport = hasPermission(role, "leads:import");
   const leads = data?.leads ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
   const [isExporting, setIsExporting] = useState(false);
+  const importMutation = useImportLeadsMutation();
+
+  const IMPORT_HEADER_ALIASES: Record<string, string> = {
+    name: "submittedName",
+    fullname: "submittedName",
+    submittedname: "submittedName",
+    email: "submittedEmail",
+    emailaddress: "submittedEmail",
+    phone: "submittedPhone",
+    phonenumber: "submittedPhone",
+    location: "submittedLocation",
+    budgetmin: "budgetMin",
+    budgetmax: "budgetMax",
+    notes: "notes",
+  };
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+
+    try {
+      const records = await parseSpreadsheetFile(file);
+      if (records.length === 0) {
+        toast.error(t("toasts.importNoDataRows"));
+        return;
+      }
+
+      const rows = records.map((record) => {
+        const mapped: Record<string, string> = {};
+        for (const [key, value] of Object.entries(record)) {
+          const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
+          const field = IMPORT_HEADER_ALIASES[normalized];
+          if (field) mapped[field] = value;
+        }
+        return mapped;
+      });
+
+      const result = await importMutation.mutateAsync(rows);
+      if (result.created > 0) {
+        toast.success(t("toasts.importedCount", { count: result.created }));
+      }
+      if (result.skipped > 0) {
+        const preview = result.errors.slice(0, 3).map((err) => `Row ${err.row}: ${err.message}`).join(" · ");
+        toast.warning(t("toasts.skippedCount", { count: result.skipped }), {
+          description: preview + (result.errors.length > 3 ? " …" : ""),
+        });
+      }
+      if (result.created === 0 && result.skipped === 0) {
+        toast.error(t("toasts.importNothing"));
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("toasts.importFailed"));
+    }
+  }
 
   // Leads are server-paginated (PAGE_LIMIT per page) — export walks every
   // page matching the current search/sort so the CSV isn't just the 25 rows
@@ -526,6 +655,66 @@ export function LeadsPage({ role }: LeadsPageProps) {
     [router],
   );
 
+  const bulkArchiveMutation = useArchiveLeadMutation();
+  const bulkAssignMutation = useAssignLeadByIdMutation();
+
+  function toggleOneSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllSelected() {
+    setSelectedIds((prev) => {
+      const allVisibleSelected = leads.length > 0 && leads.every((lead) => prev.has(lead.id));
+      return allVisibleSelected ? new Set() : new Set(leads.map((lead) => lead.id));
+    });
+  }
+
+  async function runBulk(
+    ids: string[],
+    run: (id: string) => Promise<unknown>,
+    successLabel: (count: number) => string,
+    failureLabel: (count: number) => string,
+  ) {
+    setBulkBusy(true);
+    const results = await Promise.allSettled(ids.map(run));
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.length - succeeded;
+
+    if (succeeded > 0) toast.success(successLabel(succeeded));
+    if (failed > 0) toast.error(failureLabel(failed));
+
+    setBulkBusy(false);
+    setSelectedIds(new Set());
+  }
+
+  function handleBulkArchive() {
+    const ids = [...selectedIds];
+    const confirmed = window.confirm(t("toasts.confirmBulkArchive", { count: ids.length }));
+    if (!confirmed) return;
+    return runBulk(
+      ids,
+      (id) => bulkArchiveMutation.mutateAsync(id),
+      (n) => t("toasts.bulkArchived", { count: n }),
+      (n) => t("toasts.bulkArchiveFailed", { count: n }),
+    );
+  }
+
+  function handleBulkAssign(agentId: string) {
+    const ids = [...selectedIds];
+    setShowBulkAssign(false);
+    return runBulk(
+      ids,
+      (id) => bulkAssignMutation.mutateAsync({ id, agentId }),
+      (n) => t("toasts.bulkAssigned", { count: n }),
+      (n) => t("toasts.bulkAssignFailed", { count: n }),
+    );
+  }
+
   return (
     <div
       className="flex min-w-0 flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6"
@@ -545,23 +734,24 @@ export function LeadsPage({ role }: LeadsPageProps) {
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           <input
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
-            onChange={(e) => {
-              if (e.target.files?.[0]) {
-                toast.info(t("page.importComingSoon"));
-                e.target.value = "";
-              }
-            }}
+            onChange={handleImportFile}
             id="import-leads-input"
           />
-          {canCreate && (
+          {canImport && (
             <label
               htmlFor="import-leads-input"
-              className="flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] sm:px-4"
+              className={`flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] sm:px-4 ${
+                importMutation.isPending ? "pointer-events-none opacity-60" : ""
+              }`}
               style={uiFont}
             >
-              <Upload size={16} className="shrink-0" />
+              {importMutation.isPending ? (
+                <Loader2 size={16} className="shrink-0 animate-spin" />
+              ) : (
+                <Upload size={16} className="shrink-0" />
+              )}
               <span className="truncate">{t("page.import")}</span>
             </label>
           )}
@@ -686,7 +876,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               <Filter size={14} strokeWidth={1.8} />
             </button>
 
-            <div className="relative h-9 min-w-0 sm:w-[105px]">
+            <div className="relative h-9 min-w-0 sm:w-[190px]">
               <SearchableSelect
                 size="sm"
                 searchable={false}
@@ -695,6 +885,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                 onChange={(next) => {
                   setSortBy(next as LeadListFilters["sortBy"]);
                   setPage(1);
+                  setSelectedIds(new Set());
                 }}
                 options={SORT_VALUES.map((value) => ({ value, label: t(SORT_I18N_KEY[value]) }))}
                 placeholder={t("list.sortPlaceholder")}
@@ -704,10 +895,55 @@ export function LeadsPage({ role }: LeadsPageProps) {
           </div>
         </div>
 
+        {selectedIds.size > 0 && (
+          <div className="sticky top-0 z-10 flex flex-col gap-3 border-y border-[#1e4f86]/20 bg-[#eff6ff] px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                aria-label={t("bulkActions.clearSelectionAria")}
+                className="flex size-7 shrink-0 items-center justify-center rounded-full text-[#1e4f86] transition-colors hover:bg-white"
+              >
+                <X size={15} />
+              </button>
+              <p className="text-[14px] font-semibold text-[#0d2138]">
+                {t("bulkActions.selectedCount", { count: selectedIds.size })}
+              </p>
+              {bulkBusy && <Loader2 size={15} className="animate-spin text-[#1e4f86]" />}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {hasPermission(role, "leads:assign") && (
+                <button
+                  type="button"
+                  onClick={() => setShowBulkAssign(true)}
+                  disabled={bulkBusy}
+                  className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[#e5e7eb] bg-white px-3 text-[13px] font-medium text-[#374151] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <UserPlus size={15} />
+                  {t("bulkActions.assignAgent")}
+                </button>
+              )}
+              {hasPermission(role, "leads:archive") && (
+                <button
+                  type="button"
+                  onClick={handleBulkArchive}
+                  disabled={bulkBusy}
+                  className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[#e5e7eb] bg-white px-3 text-[13px] font-medium text-[#374151] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Archive size={15} />
+                  {t("bulkActions.archive")}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Desktop/tablet table */}
         <div className="hidden min-w-0 overflow-x-auto md:block">
           <table className="w-full min-w-[950px] table-fixed">
             <colgroup>
+              <col className="w-11" />
               <col className="w-[13%]" />
               <col className="w-[16%]" />
               <col className="w-[11%]" />
@@ -721,13 +957,21 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
             <thead>
               <tr className="border-y border-[#e6eaef] bg-[#f8fafc]">
+                <th className="w-11 px-5 py-3">
+                  <RowCheckbox
+                    checked={leads.length > 0 && leads.every((lead) => selectedIds.has(lead.id))}
+                    indeterminate={leads.some((lead) => selectedIds.has(lead.id)) && !leads.every((lead) => selectedIds.has(lead.id))}
+                    onToggle={toggleAllSelected}
+                    label={leads.length > 0 && leads.every((lead) => selectedIds.has(lead.id)) ? t("list.deselectAllAria") : t("list.selectAllAria")}
+                  />
+                </th>
                 {[
                   t("list.columns.name"),
                   t("list.columns.contact"),
                   t("list.columns.source"),
                   t("list.columns.location"),
                   t("list.columns.budget"),
-                  t("list.columns.score"),
+                  t("list.columns.dateCreated"),
                   t("list.columns.status"),
                   t("list.columns.agent"),
                 ].map((heading) => (
@@ -746,7 +990,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               {isLoading && (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="px-5 py-12 text-center text-[14px] text-[#69758a]"
                   >
                     {t("list.loading")}
@@ -757,7 +1001,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               {isError && (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="px-5 py-12 text-center text-[14px] text-[#dc2626]"
                   >
                     {t("list.loadError")}
@@ -771,8 +1015,18 @@ export function LeadsPage({ role }: LeadsPageProps) {
                   <tr
                     key={lead.id}
                     onClick={() => handleView(lead.id)}
-                    className="h-[58px] cursor-pointer border-b border-[#e6eaef] transition-colors last:border-b-0 hover:bg-[#fafbfc]"
+                    className={`h-[58px] cursor-pointer border-b border-[#e6eaef] transition-colors last:border-b-0 hover:bg-[#fafbfc] ${
+                      selectedIds.has(lead.id) ? "bg-[#eff6ff]" : ""
+                    }`}
                   >
+                    <td className="px-5 py-3">
+                      <RowCheckbox
+                        checked={selectedIds.has(lead.id)}
+                        onToggle={() => toggleOneSelected(lead.id)}
+                        label={t("list.selectRowAria", { name: lead.submittedName || t("list.rowActions.defaultName") })}
+                      />
+                    </td>
+
                     <td className="px-5 py-3">
                       <span className="block truncate text-[14px] font-semibold text-[#174f89]">
                         {lead.submittedName || "—"}
@@ -809,7 +1063,9 @@ export function LeadsPage({ role }: LeadsPageProps) {
                     </td>
 
                     <td className="px-5 py-3">
-                      <ScoreBar score={lead.score ?? 0} />
+                      <span className="whitespace-nowrap text-[14px] text-[#34445b]">
+                        {fmtDate(lead.createdAt)}
+                      </span>
                     </td>
 
                     <td
@@ -846,7 +1102,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
               {!isLoading && !isError && leads.length === 0 && (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="px-5 py-12 text-center text-[14px] text-[#69758a]"
                   >
                     {t("list.empty")}
@@ -877,21 +1133,35 @@ export function LeadsPage({ role }: LeadsPageProps) {
               <article
                 key={lead.id}
                 onClick={() => handleView(lead.id)}
-                className="cursor-pointer border-b border-[#e6eaef] p-4 last:border-b-0 active:bg-[#fafbfc]"
+                className={`cursor-pointer border-b border-[#e6eaef] p-4 last:border-b-0 active:bg-[#fafbfc] ${
+                  selectedIds.has(lead.id) ? "bg-[#eff6ff]" : ""
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="truncate text-[14px] font-semibold text-[#174f89]">
-                      {lead.submittedName || "—"}
-                    </h3>
-                    <p className="mt-1 truncate text-[14px] text-[#37465b]">
-                      {lead.submittedEmail ?? lead.contact?.email ?? "—"}
-                    </p>
-                    {(lead.submittedPhone ?? lead.contact?.phone) && (
-                      <p className="mt-0.5 truncate text-[14px] text-[#7b8798]">
-                        {lead.submittedPhone ?? lead.contact?.phone}
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div
+                      className="pt-0.5"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <RowCheckbox
+                        checked={selectedIds.has(lead.id)}
+                        onToggle={() => toggleOneSelected(lead.id)}
+                        label={t("list.selectRowAria", { name: lead.submittedName || t("list.rowActions.defaultName") })}
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-[14px] font-semibold text-[#174f89]">
+                        {lead.submittedName || "—"}
+                      </h3>
+                      <p className="mt-1 truncate text-[14px] text-[#37465b]">
+                        {lead.submittedEmail ?? lead.contact?.email ?? "—"}
                       </p>
-                    )}
+                      {(lead.submittedPhone ?? lead.contact?.phone) && (
+                        <p className="mt-0.5 truncate text-[14px] text-[#7b8798]">
+                          {lead.submittedPhone ?? lead.contact?.phone}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div
@@ -937,11 +1207,11 @@ export function LeadsPage({ role }: LeadsPageProps) {
 
                   <div className="min-w-0">
                     <p className="text-[10px] font-medium uppercase tracking-[0.04em] text-[#94a0b2]">
-                      {t("list.columns.score")}
+                      {t("list.columns.dateCreated")}
                     </p>
-                    <div className="mt-1.5">
-                      <ScoreBar score={lead.score ?? 0} />
-                    </div>
+                    <p className="mt-1 truncate text-[14px] text-[#34445b]">
+                      {fmtDate(lead.createdAt)}
+                    </p>
                   </div>
                 </div>
               </article>
@@ -966,7 +1236,10 @@ export function LeadsPage({ role }: LeadsPageProps) {
                 type="button"
                 aria-label={t("list.pagination.prevAria")}
                 disabled={page <= 1}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                onClick={() => {
+                  setPage((current) => Math.max(1, current - 1));
+                  setSelectedIds(new Set());
+                }}
                 className="flex size-8 items-center justify-center rounded-md border border-[#dfe4ea] text-[#69758a] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft size={14} strokeWidth={1.8} />
@@ -980,9 +1253,10 @@ export function LeadsPage({ role }: LeadsPageProps) {
                 type="button"
                 aria-label={t("list.pagination.nextAria")}
                 disabled={page >= totalPages}
-                onClick={() =>
-                  setPage((current) => Math.min(totalPages, current + 1))
-                }
+                onClick={() => {
+                  setPage((current) => Math.min(totalPages, current + 1));
+                  setSelectedIds(new Set());
+                }}
                 className="flex size-8 items-center justify-center rounded-md border border-[#dfe4ea] text-[#69758a] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight size={14} strokeWidth={1.8} />
@@ -1004,6 +1278,16 @@ export function LeadsPage({ role }: LeadsPageProps) {
           resultCount={total}
           onApply={() => setShowFilter(false)}
           onClose={() => setShowFilter(false)}
+        />
+      )}
+
+      {showBulkAssign && (
+        <BulkAssignAgentModal
+          namespace="leads"
+          count={selectedIds.size}
+          busy={bulkBusy}
+          onClose={() => setShowBulkAssign(false)}
+          onAssign={handleBulkAssign}
         />
       )}
     </div>

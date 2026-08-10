@@ -3,7 +3,6 @@
     "title": "Prospectos",
     "subtitle": "Gestiona y da seguimiento a tus prospectos de venta",
     "import": "Importar",
-    "importComingSoon": "¡La importación de prospectos estará disponible pronto!",
     "export": "Exportar",
     "addLead": "Agregar Prospectos"
   },
@@ -20,6 +19,9 @@
     "filter": "Filtrar",
     "sortAria": "Ordenar prospectos",
     "sortPlaceholder": "Ordenar por",
+    "selectAllAria": "Seleccionar todos los prospectos",
+    "deselectAllAria": "Deseleccionar todos los prospectos",
+    "selectRowAria": "Seleccionar {{name}}",
     "sort": {
       "newest": "Más recientes",
       "oldest": "Más antiguos",
@@ -36,6 +38,7 @@
       "location": "Ubicación",
       "budget": "Presupuesto",
       "score": "Puntaje",
+      "dateCreated": "Fecha de Creación",
       "status": "Estado",
       "agent": "Agente"
     },
@@ -52,12 +55,47 @@
       "defaultName": "prospecto",
       "closeAria": "Cerrar menú de acciones",
       "viewDetails": "Ver Detalles",
+      "assignAgent": "Asignar Agente",
       "archive": "Archivar",
       "archiving": "Archivando…"
     }
   },
+  "bulkActions": {
+    "selectedCount_one": "{{count}} prospecto seleccionado",
+    "selectedCount_other": "{{count}} prospectos seleccionados",
+    "clearSelectionAria": "Limpiar selección",
+    "archive": "Archivar",
+    "assignAgent": "Asignar Agente"
+  },
+  "bulkAssignModal": {
+    "title": "Asignar Agente",
+    "closeAria": "Cerrar",
+    "description_one": "Asigna un agente a {{count}} prospecto seleccionado.",
+    "description_other": "Asigna un agente a {{count}} prospectos seleccionados.",
+    "cancel": "Cancelar",
+    "assign": "Asignar"
+  },
   "toasts": {
-    "exportFailed": "Error al exportar los prospectos"
+    "exportFailed": "Error al exportar los prospectos",
+    "confirmBulkArchive_one": "¿Archivar {{count}} prospecto seleccionado?",
+    "confirmBulkArchive_other": "¿Archivar {{count}} prospectos seleccionados?",
+    "bulkArchived_one": "Se archivó {{count}} prospecto",
+    "bulkArchived_other": "Se archivaron {{count}} prospectos",
+    "bulkArchiveFailed_one": "Error al archivar {{count}} prospecto",
+    "bulkArchiveFailed_other": "Error al archivar {{count}} prospectos",
+    "bulkAssigned_one": "Se asignó {{count}} prospecto",
+    "bulkAssigned_other": "Se asignaron {{count}} prospectos",
+    "bulkAssignFailed_one": "Error al asignar {{count}} prospecto",
+    "bulkAssignFailed_other": "Error al asignar {{count}} prospectos",
+    "assignFailed": "Error al asignar el agente",
+    "assigned": "Agente asignado",
+    "importNoDataRows": "Ese archivo no tiene filas de datos para importar",
+    "importedCount_one": "Se importó {{count}} prospecto",
+    "importedCount_other": "Se importaron {{count}} prospectos",
+    "skippedCount_one": "Se omitió {{count}} fila",
+    "skippedCount_other": "Se omitieron {{count}} filas",
+    "importNothing": "Nada para importar — verifica que el archivo tenga una columna de Nombre",
+    "importFailed": "No se pudieron importar los prospectos"
   },
   "statusBadge": {
     "cold": "Frío",
