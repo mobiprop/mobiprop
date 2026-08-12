@@ -91,10 +91,10 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
     audience: STAFF, pushCategory: "listingUpdates", excludeActor: true, deduplicate: false, customerSafe: false,
   },
 
-  // ── Leads ──
+  // ── Leads — all lead events are both in-app and push. ──
   LEAD_CREATED: {
-    channels: [], priority: "LOW", recipientStrategy: "NONE",
-    audience: STAFF, pushCategory: null, excludeActor: true, deduplicate: false, customerSafe: false,
+    channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "LEAD_AGENT_WITH_MANAGEMENT_FALLBACK",
+    audience: STAFF, pushCategory: "newLeads", excludeActor: true, deduplicate: true, customerSafe: false,
   },
   LEAD_ASSIGNED: {
     channels: ["IN_APP", "PUSH"], priority: "HIGH", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
@@ -109,7 +109,7 @@ export const NOTIFICATION_POLICIES: Record<NotificationType, NotificationPolicy>
     audience: STAFF, pushCategory: "leadAssignments", excludeActor: true, deduplicate: true, customerSafe: false,
   },
   LEAD_CONVERTED: {
-    channels: ["IN_APP"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
+    channels: ["IN_APP", "PUSH"], priority: "NORMAL", recipientStrategy: "ASSIGNED_AGENT_PLUS_ADMINS",
     audience: STAFF, pushCategory: "newLeads", excludeActor: true, deduplicate: false, customerSafe: false,
   },
 

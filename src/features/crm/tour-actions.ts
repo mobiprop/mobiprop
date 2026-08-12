@@ -10,7 +10,9 @@ import {
   notifyTourRequested,
   notifyTourAssigned,
   notifyTourStatusChanged,
+  notifyLeadCreated,
 } from "@/features/notifications/server/notify-events";
+import { resolveLeadAgent } from "./lead-assignment";
 import { TourStatus, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
@@ -885,19 +887,20 @@ export async function requestPublicTour(
   if (scheduledAt <= new Date())
     return { ok: false, error: "Please choose a future date and time", status: 422 };
 
-  // Look up the property to determine the default agent
-  let assignedAgentId: string | null = null;
+  // Resolve the agent this tour/lead should belong to: the listing's assigned
+  // agent, falling back to whoever created the listing, falling back to
+  // unassigned (see resolveLeadAgent).
   let propertyTitle: string | null = null;
   let propertyLocation: string | null = null;
   if (d.propertyId) {
     const prop = await prisma.property.findUnique({
       where: { id: d.propertyId },
-      select: { assignedAgentId: true, title: true, location: true },
+      select: { title: true, location: true },
     });
-    assignedAgentId = prop?.assignedAgentId ?? null;
     propertyTitle = prop?.title ?? null;
     propertyLocation = prop?.location ?? null;
   }
+  const { agentId: assignedAgentId } = await resolveLeadAgent(d.propertyId);
 
   // The public flow can never override a conflict — only suggest alternatives.
   const availability = await checkAvailability(assignedAgentId, scheduledAt, d.durationMinutes);
@@ -961,6 +964,12 @@ export async function requestPublicTour(
     assignedAgentId,
     actorId: null,
   });
+
+  // Only announce a fresh lead — a repeat tour request on an existing open
+  // lead doesn't need a second "new lead" alert.
+  if (leadCreated) {
+    await notifyLeadCreated({ leadId, assignedAgentId, actorId: null });
+  }
 
   await createTourCalendarEvent({
     tourId: tour.id,

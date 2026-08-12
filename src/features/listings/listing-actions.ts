@@ -11,6 +11,7 @@ import {
   notifyListingCreated,
   notifyListingDeleted,
   notifyListingStatusChanged,
+  notifyLeadAssigned,
 } from "@/features/notifications/server/notify-events";
 import { hasPermission } from "@/lib/permissions";
 import { requirePermission } from "@/lib/require-permission";
@@ -34,7 +35,8 @@ import {
   type ListingImageDescriptor,
 } from "@/schemas/listing.schema";
 import { PropertyStatus, UserRole, UserStatus } from "@/generated/prisma/enums";
-import type { Prisma, Profile } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
+import type { Profile } from "@/generated/prisma/client";
 
 import type {
   DashboardListingDto,
@@ -811,6 +813,47 @@ export async function updateListing(
         assignedAgentId: property.assignedAgentId,
         actorId: profile.id,
       });
+
+      // Backfill: any of this listing's leads that are still unassigned
+      // inherit the newly-assigned agent. Leads already manually assigned to
+      // someone else are left untouched.
+      const newAgentId = property.assignedAgentId;
+      const unassignedLeads = await prisma.lead.findMany({
+        where: {
+          primaryListingId: property.id,
+          assignedAgentId: null,
+          isArchived: false,
+          lifecycleStatus: { notIn: ["CONVERTED", "CLOSED", "UNQUALIFIED"] },
+        },
+        select: { id: true },
+      });
+      if (unassignedLeads.length > 0) {
+        await prisma.lead.updateMany({
+          where: { id: { in: unassignedLeads.map((l) => l.id) } },
+          data: { assignedAgentId: newAgentId },
+        });
+        await prisma.leadActivity.createMany({
+          data: unassignedLeads.map((l) => ({
+            leadId: l.id,
+            actorId: profile.id,
+            type: "LEAD_ASSIGNED",
+            fieldName: "assignedAgentId",
+            oldValue: Prisma.JsonNull,
+            newValue: newAgentId as Prisma.InputJsonValue,
+          })),
+        });
+        await Promise.all(
+          unassignedLeads.map((l) =>
+            notifyLeadAssigned({
+              leadId: l.id,
+              assignedAgentId: newAgentId,
+              previousAgentId: null,
+              isReassign: false,
+              actorId: profile.id,
+            }),
+          ),
+        );
+      }
     }
 
     return { ok: true, listing: toDashboardDto(property) };

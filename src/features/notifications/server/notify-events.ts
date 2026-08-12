@@ -277,6 +277,30 @@ export function notifyListingAssigned(input: {
 
 // ── Leads ───────────────────────────────────────────────────────────────────
 
+export function notifyLeadCreated(input: {
+  leadId: string;
+  assignedAgentId: string | null;
+  actorId: string | null;
+}): Promise<void> {
+  return safe(
+    () =>
+      dispatchNotification({
+        type: "LEAD_CREATED",
+        actorId: input.actorId,
+        recipientContext: { assignedAgentId: input.assignedAgentId },
+        dedupeDiscriminator: input.assignedAgentId ?? "unassigned",
+        entityType: "LEAD",
+        entityId: input.leadId,
+        actionUrl: `/dashboard/leads/${input.leadId}`,
+        content: ({ isAssignedAgent }) =>
+          isAssignedAgent
+            ? { title: "New lead assigned to you", body: "A new lead came in and was automatically assigned to you." }
+            : { title: "Unassigned lead needs attention", body: "A new lead came in with no agent to assign — please assign it manually." },
+      }),
+    "notifyLeadCreated",
+  );
+}
+
 export function notifyLeadAssigned(input: {
   leadId: string;
   assignedAgentId: string | null;
@@ -301,10 +325,12 @@ export function notifyLeadAssigned(input: {
         entityType: "LEAD",
         entityId: input.leadId,
         actionUrl,
-        content: ({ isAssignedAgent }) =>
-          isAssignedAgent
-            ? { title: "Lead assigned to you", body: "A new lead has been assigned to you." }
-            : { title: "Lead reassigned", body: "A lead you managed was reassigned to another agent." },
+        content: ({ isAssignedAgent }) => {
+          if (isAssignedAgent) return { title: "Lead assigned to you", body: "A new lead has been assigned to you." };
+          return input.isReassign
+            ? { title: "Lead reassigned", body: "A lead was reassigned to another agent." }
+            : { title: "Lead assigned", body: "A lead was assigned to an agent." };
+        },
       }),
     "notifyLeadAssigned",
   );
