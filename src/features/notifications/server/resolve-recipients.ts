@@ -79,7 +79,8 @@ export async function resolveByStrategy(
       ]);
 
     case "LISTING_AGENT_WITH_MANAGEMENT_FALLBACK":
-    case "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK": {
+    case "TOUR_AGENT_WITH_MANAGEMENT_FALLBACK":
+    case "LEAD_AGENT_WITH_MANAGEMENT_FALLBACK": {
       const agent = await keepActive([ctx.assignedAgentId]);
       if (agent.length > 0) return agent;
       // No operational owner → escalate to management.

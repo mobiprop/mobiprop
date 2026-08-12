@@ -3,7 +3,8 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { notifyLeadAssigned } from "@/features/notifications/server/notify-events";
+import { notifyLeadAssigned, notifyLeadCreated } from "@/features/notifications/server/notify-events";
+import { resolveLeadAgent } from "./lead-assignment";
 import { LeadTemperature, LeadLifecycleStatus, LeadSource, UserStatus } from "@/generated/prisma/enums";
 import { Prisma, type Profile } from "@/generated/prisma/client";
 import { hasPermission } from "@/lib/permissions";
@@ -320,6 +321,13 @@ export async function createLead(body: unknown): Promise<CrmActionResult<{ lead:
     if (!agent || agent.status !== UserStatus.ACTIVE) return { ok: false, error: "Agent is not active", status: 422 };
   }
 
+  // No agent explicitly chosen but a listing was — inherit the listing's
+  // agent (or its creator) instead of leaving the lead unassigned.
+  let resolvedAgentId = data.assignedAgentId || null;
+  if (!resolvedAgentId && data.primaryListingId) {
+    resolvedAgentId = (await resolveLeadAgent(data.primaryListingId)).agentId;
+  }
+
   const leadNumber = await nextLeadNumber();
 
   const lead = await prisma.lead.create({
@@ -343,7 +351,7 @@ export async function createLead(body: unknown): Promise<CrmActionResult<{ lead:
       score: data.score,
       temperature: data.temperature,
       lifecycleStatus: data.lifecycleStatus,
-      assignedAgentId: data.assignedAgentId || null,
+      assignedAgentId: resolvedAgentId,
       notes: data.notes || null,
       nextFollowUpAt: data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null,
       createdById: gate.profile.id,
@@ -357,6 +365,8 @@ export async function createLead(body: unknown): Promise<CrmActionResult<{ lead:
     }),
     logActivity({ actorId: gate.profile.id, action: "LEAD_CREATED", entityType: "LEAD", entityId: lead.id, newValues: { leadNumber, contactId, source: data.source } }),
   ]);
+
+  await notifyLeadCreated({ leadId: lead.id, assignedAgentId: resolvedAgentId, actorId: gate.profile.id });
 
   const agentMap = await buildAgentMap([lead.assignedAgentId]);
   return { ok: true, lead: await toLeadDto(lead, agentMap) };
