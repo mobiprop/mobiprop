@@ -276,8 +276,8 @@ export function LocationsPage({ role }: LocationsPageProps) {
       setSelectedId(result.location.id);
       setModalMode(null);
       toast.success(t("page.toasts.added"));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("page.toasts.addFailed"));
+    } catch {
+      toast.error(t("page.toasts.addFailed"));
     }
   }
 
@@ -287,8 +287,8 @@ export function LocationsPage({ role }: LocationsPageProps) {
       await updateMutation.mutateAsync({ id: selected.id, body: values });
       setModalMode(null);
       toast.success(t("page.toasts.updated"));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("page.toasts.updateFailed"));
+    } catch {
+      toast.error(t("page.toasts.updateFailed"));
     }
   }
 
@@ -304,8 +304,8 @@ export function LocationsPage({ role }: LocationsPageProps) {
       await deleteMutation.mutateAsync(selected.id);
       setSelectedId("");
       toast.success(t("page.toasts.deleted"));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("page.toasts.deleteFailed"));
+    } catch {
+      toast.error(t("page.toasts.deleteFailed"));
     }
   }
 

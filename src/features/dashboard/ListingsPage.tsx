@@ -283,10 +283,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
           ? t("toasts.listingPaused")
           : t("toasts.listingActivated"),
       );
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("toasts.updateStatusFailed"),
-      );
+    } catch {
+      toast.error(t("toasts.updateStatusFailed"));
     }
   }
 
@@ -300,10 +298,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
       toast.success(
         listing.isFeatured ? t("toasts.removedFromFeatured") : t("toasts.markedAsFeatured"),
       );
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("toasts.updateListingFailed"),
-      );
+    } catch {
+      toast.error(t("toasts.updateListingFailed"));
     }
   }
 
@@ -317,10 +313,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
     try {
       await deleteMutation.mutateAsync(listing.id);
       toast.success(t("toasts.listingDeleted"));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("toasts.deleteListingFailed"),
-      );
+    } catch {
+      toast.error(t("toasts.deleteListingFailed"));
     }
   }
 

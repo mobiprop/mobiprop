@@ -495,7 +495,6 @@ return (
                     setBudgetMin(e.target.value)
                   }
                   inputMode="numeric"
-                  placeholder="0"
                   className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                   style={mont}
                 />
@@ -515,7 +514,6 @@ return (
                     setBudgetMax(e.target.value)
                   }
                   inputMode="numeric"
-                  placeholder="0"
                   className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                   style={mont}
                 />

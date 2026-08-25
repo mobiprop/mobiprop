@@ -139,6 +139,27 @@ export function useArchiveLeadMutation() {
   });
 }
 
+// Single batched request instead of one archive call per selected lead.
+export function useBulkArchiveLeadsMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]): Promise<{ archivedIds: string[]; failedCount: number }> => {
+      const res = await fetch(`/api/dashboard/leads/bulk-archive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to archive leads");
+      return json;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.leads() });
+      qc.invalidateQueries({ queryKey: queryKeys.leadMetrics() });
+    },
+  });
+}
+
 // ── Restore ───────────────────────────────────────────────────────────────────
 
 export function useRestoreLeadMutation() {
