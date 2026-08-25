@@ -163,8 +163,8 @@ export function MessagesPage({ currentUserId }: { currentUserId: string }) {
       await sendMessage.mutateAsync({ body: draft.trim(), attachments });
       setDraft("");
       setPendingFiles([]);
-    } catch (error) {
-      setSendError(error instanceof Error ? error.message : t("page.sendFailed"));
+    } catch {
+      setSendError(t("page.sendFailed"));
     } finally {
       setSending(false);
     }

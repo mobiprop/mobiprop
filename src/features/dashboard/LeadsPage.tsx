@@ -42,6 +42,7 @@ import {
 } from "@/hooks/queries/useDashboardLeadsQuery";
 import {
   useArchiveLeadMutation,
+  useBulkArchiveLeadsMutation,
   useAssignLeadMutation,
   useAssignLeadByIdMutation,
   useImportLeadsMutation,
@@ -524,18 +525,29 @@ export function LeadsPage({ role }: LeadsPageProps) {
   const [isExporting, setIsExporting] = useState(false);
   const importMutation = useImportLeadsMutation();
 
+  // Includes the headers used by the client's real-world Zonaprop CSV export
+  // (Nombre y apellido, E-mail, Teléfono, Barrio, Mensaje, …) so that file
+  // imports without a mapping step. Accented characters are stripped by the
+  // normalizer below (e.g. "Teléfono" → "telfono") — note that also strips
+  // digits, so "Teléfono" and "Teléfono 2" normalize to the same "telfono"
+  // key. Only "barrio" maps to location (not provincia/ciudad too) to avoid
+  // the same multi-column collision.
   const IMPORT_HEADER_ALIASES: Record<string, string> = {
     name: "submittedName",
     fullname: "submittedName",
     submittedname: "submittedName",
+    nombreyapellido: "submittedName",
     email: "submittedEmail",
     emailaddress: "submittedEmail",
     phone: "submittedPhone",
     phonenumber: "submittedPhone",
+    telfono: "submittedPhone",
     location: "submittedLocation",
+    barrio: "submittedLocation",
     budgetmin: "budgetMin",
     budgetmax: "budgetMax",
     notes: "notes",
+    mensaje: "notes",
   };
 
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -555,7 +567,11 @@ export function LeadsPage({ role }: LeadsPageProps) {
         for (const [key, value] of Object.entries(record)) {
           const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
           const field = IMPORT_HEADER_ALIASES[normalized];
-          if (field) mapped[field] = value;
+          // First non-empty value for a field wins — two source columns can
+          // normalize to the same alias (e.g. "Teléfono" / "Teléfono 2" both
+          // strip to "telfono"), and an empty second column must not blank
+          // out a value the first one already provided.
+          if (field && value && !mapped[field]) mapped[field] = value;
         }
         return mapped;
       });
@@ -655,7 +671,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
     [router],
   );
 
-  const bulkArchiveMutation = useArchiveLeadMutation();
+  const bulkArchiveMutation = useBulkArchiveLeadsMutation();
   const bulkAssignMutation = useAssignLeadByIdMutation();
 
   function toggleOneSelected(id: string) {
@@ -692,16 +708,21 @@ export function LeadsPage({ role }: LeadsPageProps) {
     setSelectedIds(new Set());
   }
 
-  function handleBulkArchive() {
+  async function handleBulkArchive() {
     const ids = [...selectedIds];
     const confirmed = window.confirm(t("toasts.confirmBulkArchive", { count: ids.length }));
     if (!confirmed) return;
-    return runBulk(
-      ids,
-      (id) => bulkArchiveMutation.mutateAsync(id),
-      (n) => t("toasts.bulkArchived", { count: n }),
-      (n) => t("toasts.bulkArchiveFailed", { count: n }),
-    );
+
+    setBulkBusy(true);
+    try {
+      const { archivedIds, failedCount } = await bulkArchiveMutation.mutateAsync(ids);
+      if (archivedIds.length > 0) toast.success(t("toasts.bulkArchived", { count: archivedIds.length }));
+      if (failedCount > 0) toast.error(t("toasts.bulkArchiveFailed", { count: failedCount }));
+    } catch {
+      toast.error(t("toasts.bulkArchiveFailed", { count: ids.length }));
+    }
+    setBulkBusy(false);
+    setSelectedIds(new Set());
   }
 
   function handleBulkAssign(agentId: string) {

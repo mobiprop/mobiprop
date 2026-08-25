@@ -60,9 +60,10 @@ function formatPrice(
   rentPrice: number | null,
   saleCurrency: Currency,
   rentCurrency: Currency,
+  t: (key: string) => string,
 ): string {
   const sale = salePrice !== null ? `${saleCurrency} $${PRICE_FORMATTERS[saleCurrency].format(salePrice)}` : null;
-  const rent = rentPrice !== null ? `${rentCurrency} $${PRICE_FORMATTERS[rentCurrency].format(rentPrice)}/mo` : null;
+  const rent = rentPrice !== null ? `${rentCurrency} $${PRICE_FORMATTERS[rentCurrency].format(rentPrice)}${t("listings:card.perMonthSuffix")}` : null;
   if (sale && rent) return `${sale} · ${rent}`;
   return sale ?? rent ?? "—";
 }
@@ -187,10 +188,10 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         TYPE_LABELS[property.type as PropertyType],
         property.location,
         STATUS_LABELS[property.status as PropertyStatus],
-        formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency),
+        formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency, t),
       ].some((value) => value.toLowerCase().includes(normalizedSearch)),
     );
-  }, [agent, normalizedSearch]);
+  }, [agent, normalizedSearch, t]);
 
   if (isLoading) {
     return (
@@ -569,7 +570,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="whitespace-nowrap text-[14px] font-medium text-[#0d2138]"
                         style={mont}
                       >
-                        {formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency)}
+                        {formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency, t)}
                       </span>
                     </td>
 
@@ -665,7 +666,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
                         className="mt-2 truncate text-[14px] font-semibold text-[#0d2138]"
                         style={mont}
                       >
-                        {formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency)}
+                        {formatPrice(property.salePrice, property.rentPrice, property.saleCurrency, property.rentCurrency, t)}
                       </p>
                     </div>
                   </div>

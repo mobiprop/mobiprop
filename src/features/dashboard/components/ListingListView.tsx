@@ -217,7 +217,7 @@ return (
                   className="whitespace-nowrap text-[14px] font-semibold text-[#1E4F86]"
                   style={mont}
                 >
-                  {formatListingPrice(listing)}
+                  {formatListingPrice(listing, t)}
                 </span>
               </td>
 
@@ -419,7 +419,7 @@ return (
                   className="mt-2 text-[15px] font-semibold text-[#0d2138]"
                   style={mont}
                 >
-                  {formatListingPrice(listing)}
+                  {formatListingPrice(listing, t)}
                 </p>
               </div>
             </div>

@@ -386,6 +386,47 @@ export async function deleteContact(
   return { ok: true, id };
 }
 
+// A single batched call instead of one request per selected row — the prior
+// client-side fan-out (N parallel deleteContact calls) was a plausible source
+// of the "unusual error" reported on multi-select delete for larger selections.
+export async function bulkDeleteContacts(
+  ids: string[],
+): Promise<CrmActionResult<{ deletedIds: string[]; failedCount: number }>> {
+  const gate = await requirePermission("contacts:archive");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length === 0) return { ok: true, deletedIds: [], failedCount: 0 };
+
+  const existing = await prisma.contact.findMany({
+    where: { id: { in: uniqueIds }, isDeleted: false },
+    select: { id: true, firstName: true, lastName: true },
+  });
+  const deletableIds = existing.map((c) => c.id);
+
+  if (deletableIds.length > 0) {
+    await prisma.contact.updateMany({
+      where: { id: { in: deletableIds } },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+
+    await Promise.all(
+      existing.map((contact) =>
+        logActivity({
+          actorId: gate.profile.id,
+          action: "CONTACT_DELETED",
+          entityType: "CONTACT",
+          entityId: contact.id,
+          oldValues: { firstName: contact.firstName, lastName: contact.lastName, isDeleted: false },
+          newValues: { isDeleted: true, deletedAt: new Date().toISOString() },
+        }),
+      ),
+    );
+  }
+
+  return { ok: true, deletedIds: deletableIds, failedCount: uniqueIds.length - deletableIds.length };
+}
+
 // ── CSV import ────────────────────────────────────────────────────────────────
 
 export type ImportContactsError = { row: number; message: string };

@@ -17,6 +17,7 @@ import { logActivity } from "@/lib/activity-log";
 import { resolveCompanyRevenueUsd, resolveAgentEarningsUsd } from "@/lib/commission";
 import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { uploadAvatar, removeAvatar } from "@/lib/supabase/storage";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { OpportunityStatus, UserRole, UserStatus, type Currency } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -463,6 +464,12 @@ export async function deleteAgent(agentId: string): Promise<DeleteAgentResult> {
   }
 
   await prisma.profile.delete({ where: { id: agentId } });
+
+  const admin = createAdminClient();
+  const { error: authDeleteError } = await admin.auth.admin.deleteUser(agentId);
+  if (authDeleteError && authDeleteError.status !== 404) {
+    console.error(`Failed to delete Supabase Auth user for agent ${agentId}:`, authDeleteError);
+  }
 
   await logActivity({
     actorId: auth.profile.id,

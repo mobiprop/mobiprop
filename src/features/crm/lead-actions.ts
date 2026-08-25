@@ -275,36 +275,21 @@ export async function createLead(body: unknown): Promise<CrmActionResult<{ lead:
 
   const data = parsed.data;
 
+  // A Lead only ever links to an existing Contact match by email/phone. A new
+  // Contact is created later, when the Lead converts into an Opportunity —
+  // leads should stay contact-less until then (see convertLead()).
   let contactId = data.contactId;
-  if (!contactId) {
-    if (data.submittedEmail || data.submittedPhone) {
-      const existing = await prisma.contact.findFirst({
-        where: {
-          isDeleted: false,
-          OR: [
-            ...(data.submittedEmail ? [{ email: data.submittedEmail }] : []),
-            ...(data.submittedPhone ? [{ phone: data.submittedPhone }] : []),
-          ],
-        },
-      });
-      if (existing) contactId = existing.id;
-    }
-
-    if (!contactId) {
-      const nameParts = data.submittedName.trim().split(" ");
-      const firstName = nameParts[0] ?? data.submittedName;
-      const lastName = nameParts.slice(1).join(" ") || "-";
-
-      const [row] = await prisma.$queryRaw<{ max: number | null }[]>`
-        SELECT MAX(CAST(SUBSTRING(contact_id FROM 5) AS INTEGER)) AS max FROM contacts
-      `;
-      const contactNum = `CNT-${String((row?.max ?? 0) + 1).padStart(4, "0")}`;
-
-      const newContact = await prisma.contact.create({
-        data: { contactId: contactNum, firstName, lastName, email: data.submittedEmail || null, phone: data.submittedPhone || null, location: data.submittedLocation || null, createdById: gate.profile.id },
-      });
-      contactId = newContact.id;
-    }
+  if (!contactId && (data.submittedEmail || data.submittedPhone)) {
+    const existing = await prisma.contact.findFirst({
+      where: {
+        isDeleted: false,
+        OR: [
+          ...(data.submittedEmail ? [{ email: data.submittedEmail }] : []),
+          ...(data.submittedPhone ? [{ phone: data.submittedPhone }] : []),
+        ],
+      },
+    });
+    if (existing) contactId = existing.id;
   }
 
   if (data.primaryListingId) {
@@ -590,6 +575,43 @@ export async function archiveLead(id: string): Promise<CrmActionResult<{ lead: L
 
   const agentMap = await buildAgentMap([lead.assignedAgentId]);
   return { ok: true, lead: await toLeadDto(lead, agentMap) };
+}
+
+// A single batched call instead of one request per selected row — the prior
+// client-side fan-out (N parallel archiveLead calls) was a plausible source
+// of the "unusual error" reported on multi-select archive for larger selections.
+export async function bulkArchiveLeads(
+  ids: string[],
+): Promise<CrmActionResult<{ archivedIds: string[]; failedCount: number }>> {
+  const gate = await requirePermission("leads:archive");
+  if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
+
+  const uniqueIds = [...new Set(ids)];
+  if (uniqueIds.length === 0) return { ok: true, archivedIds: [], failedCount: 0 };
+
+  const existing = await prisma.lead.findMany({
+    where: { id: { in: uniqueIds }, isArchived: false, ...leadRecordScope(gate.profile) },
+    select: { id: true },
+  });
+  const archivableIds = existing.map((l) => l.id);
+
+  if (archivableIds.length > 0) {
+    await prisma.lead.updateMany({
+      where: { id: { in: archivableIds } },
+      data: { isArchived: true, archivedAt: new Date() },
+    });
+
+    await Promise.all([
+      prisma.leadActivity.createMany({
+        data: archivableIds.map((leadId) => ({ leadId, actorId: gate.profile.id, type: "LEAD_ARCHIVED" as const })),
+      }),
+      ...archivableIds.map((id) =>
+        logActivity({ actorId: gate.profile.id, action: "LEAD_ARCHIVED", entityType: "LEAD", entityId: id }),
+      ),
+    ]);
+  }
+
+  return { ok: true, archivedIds: archivableIds, failedCount: uniqueIds.length - archivableIds.length };
 }
 
 export async function restoreLead(id: string): Promise<CrmActionResult<{ lead: LeadDto }>> {

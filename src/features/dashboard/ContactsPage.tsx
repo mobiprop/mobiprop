@@ -34,6 +34,7 @@ import {
   useCreateContactMutation,
   useUpdateContactMutation,
   useDeleteContactMutation,
+  useBulkDeleteContactsMutation,
   useImportContactsMutation,
   ContactConflictError,
 } from "@/hooks/mutations/useCrmMutations";
@@ -446,6 +447,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
   const createMutation = useCreateContactMutation();
   const updateMutation = useUpdateContactMutation();
   const deleteMutation = useDeleteContactMutation();
+  const bulkDeleteMutation = useBulkDeleteContactsMutation();
   const importMutation = useImportContactsMutation();
 
   const canCreate = hasPermission(role, "contacts:create");
@@ -504,7 +506,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
         setConflict({ message: err.message, existingContactId: err.existingContact.id });
         return;
       }
-      toast.error(err instanceof Error ? err.message : t("toasts.createFailed"));
+      toast.error(t("toasts.createFailed"));
     }
   }
 
@@ -513,8 +515,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
       await updateMutation.mutateAsync({ id, body: input });
       toast.success(t("toasts.contactUpdated"));
       setEditingContact(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toasts.updateFailed"));
+    } catch {
+      toast.error(t("toasts.updateFailed"));
     }
   }
 
@@ -524,8 +526,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
       await deleteMutation.mutateAsync(deletingContact.id);
       toast.success(t("toasts.contactDeleted"));
       setDeletingContact(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toasts.deleteFailed"));
+    } catch {
+      toast.error(t("toasts.deleteFailed"));
     }
   }
 
@@ -551,12 +553,13 @@ export function ContactsPage({ role }: ContactsPageProps) {
     if (!confirmed) return;
 
     setBulkBusy(true);
-    const results = await Promise.allSettled(ids.map((id) => deleteMutation.mutateAsync(id)));
-    const succeeded = results.filter((r) => r.status === "fulfilled").length;
-    const failed = results.length - succeeded;
-
-    if (succeeded > 0) toast.success(t("toasts.bulkDeleted", { count: succeeded }));
-    if (failed > 0) toast.error(t("toasts.bulkDeleteFailed", { count: failed }));
+    try {
+      const { deletedIds, failedCount } = await bulkDeleteMutation.mutateAsync(ids);
+      if (deletedIds.length > 0) toast.success(t("toasts.bulkDeleted", { count: deletedIds.length }));
+      if (failedCount > 0) toast.error(t("toasts.bulkDeleteFailed", { count: failedCount }));
+    } catch {
+      toast.error(t("toasts.bulkDeleteFailed", { count: ids.length }));
+    }
 
     setBulkBusy(false);
     setSelectedIds(new Set());
@@ -638,8 +641,8 @@ export function ContactsPage({ role }: ContactsPageProps) {
       if (result.created === 0 && result.skipped === 0) {
         toast.error(t("toasts.importNothing"));
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toasts.importFailed"));
+    } catch {
+      toast.error(t("toasts.importFailed"));
     }
   }
 

@@ -133,17 +133,18 @@ function buildLocationDtos(
     ).size;
 
     // USD-normalized like every other dashboard aggregate — a location mixing
-    // USD and ARS listings must not average their raw sale prices together.
+    // USD and ARS listings must not sum their raw sale prices together.
     // A still-unconvertible ARS listing (no locked rate, live-rate fetch
-    // failed) is excluded from the average rather than guessed.
-    const perM2 = matched
-      .filter((p) => p.salePrice != null && p.totalAreaM2 && p.totalAreaM2 > 0)
-      .map((p) => {
-        const usdPrice = toUsd(Number(p.salePrice), p.saleCurrency, liveRate);
-        return usdPrice === null ? null : usdPrice / (p.totalAreaM2 as number);
-      })
+    // failed) is excluded rather than guessed. Per the client's spec this is
+    // the average listing price in the location (sum of prices / count of
+    // priced listings) — not a true price-per-square-meter figure.
+    const pricedListings = matched
+      .filter((p) => p.salePrice != null)
+      .map((p) => toUsd(Number(p.salePrice), p.saleCurrency, liveRate))
       .filter((v): v is number => v !== null);
-    const avgPricePerM2 = perM2.length ? Math.round(perM2.reduce((sum, v) => sum + v, 0) / perM2.length) : 0;
+    const avgPricePerM2 = pricedListings.length
+      ? Math.round(pricedListings.reduce((sum, v) => sum + v, 0) / pricedListings.length)
+      : 0;
 
     const revenue =
       opportunities

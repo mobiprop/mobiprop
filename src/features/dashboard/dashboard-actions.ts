@@ -473,6 +473,7 @@ export async function getSalesByAgent(
         updatedAt: true,
         closedAt: true,
         assignedAgentId: true,
+        dealType: true,
         listings: { take: 1, select: { property: { select: { listingId: true, operationType: true } } } },
       },
       orderBy: { closedAt: "desc" },
@@ -494,7 +495,14 @@ export async function getSalesByAgent(
       agentId: r.assignedAgentId,
       agentName: agent ? agent.fullName ?? agent.email.split("@")[0] : "Unassigned",
       listingId: property?.listingId ?? null,
-      operation: OPERATION_LABEL[property?.operationType ?? PropertyOperationType.SALE],
+      // The opportunity's own deal type (chosen at creation) is authoritative —
+      // a "Sale & Rent" listing can still close as just a Sale or just a Rent.
+      // Only fall back to the listing's operation type for legacy opportunities
+      // created before dealType existed.
+      operation:
+        r.dealType === "Rent" || r.dealType === "Sale"
+          ? r.dealType
+          : OPERATION_LABEL[property?.operationType ?? PropertyOperationType.SALE],
       date: (r.closedAt ?? r.updatedAt).toISOString(),
       revenue: resolveCompanyRevenueUsd(r, liveRate) ?? 0,
     };

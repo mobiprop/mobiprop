@@ -54,7 +54,7 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
           </span>
         </div>
 
-        <p className="text-[20px] font-semibold text-[#1e4f86]" style={poppins}>{formatListingPrice(listing)}</p>
+        <p className="text-[20px] font-semibold text-[#1e4f86]" style={poppins}>{formatListingPrice(listing, t)}</p>
 
         <div className="flex items-center gap-4 text-[12px] text-[#2b3038]" style={mont}>
           <span className="flex items-center gap-1.5"><BedDouble size={14} className="text-[#6a7282]" />{listing.bedrooms ?? 0} {t("grid.bed")}</span>

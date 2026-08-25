@@ -1,6 +1,7 @@
 // Display helpers for the dashboard Listings page (list & grid views).
 // Real data comes from /api/dashboard/listings as DashboardListingDto.
 
+import type { TFunction } from "i18next";
 import type {
   PropertyOperationType,
   PropertyStatus,
@@ -58,15 +59,15 @@ const PRICE_FORMATTERS: Record<Currency, Intl.NumberFormat> = {
   ARS: new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }),
 };
 
-/** "USD $450,000" / "ARS $1.200/mo" / "USD $450,000 · ARS $1.200/mo" depending on operation — sale and rent can be priced in different currencies. */
-export function formatListingPrice(listing: DashboardListingDto): string {
+/** "USD $450,000" / "ARS $1.200/mes" / "USD $450,000 · ARS $1.200/mes" depending on operation — sale and rent can be priced in different currencies. */
+export function formatListingPrice(listing: DashboardListingDto, t: TFunction): string {
   const sale =
     listing.salePrice !== null
       ? `${listing.saleCurrency} $${PRICE_FORMATTERS[listing.saleCurrency].format(listing.salePrice)}`
       : null;
   const rent =
     listing.rentPrice !== null
-      ? `${listing.rentCurrency} $${PRICE_FORMATTERS[listing.rentCurrency].format(listing.rentPrice)}/mo`
+      ? `${listing.rentCurrency} $${PRICE_FORMATTERS[listing.rentCurrency].format(listing.rentPrice)}${t("listings:card.perMonthSuffix")}`
       : null;
   if (sale && rent) return `${sale} · ${rent}`;
   return sale ?? rent ?? "—";

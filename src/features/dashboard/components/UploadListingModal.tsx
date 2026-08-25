@@ -827,9 +827,7 @@ export function UploadListingModal({
       if (error instanceof ZodError) {
         toast.error(error.issues[0]?.message ?? t("uploadModal.errors.somethingWentWrong"));
       } else {
-        toast.error(
-          error instanceof Error ? error.message : t("uploadModal.errors.somethingWentWrong"),
-        );
+        toast.error(t("uploadModal.errors.somethingWentWrong"));
       }
     }
   }, (formErrors) => {

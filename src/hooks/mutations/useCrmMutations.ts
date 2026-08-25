@@ -84,6 +84,29 @@ export function useDeleteContactMutation() {
   });
 }
 
+async function bulkDeleteContactsReq(ids: string[]): Promise<{ deletedIds: string[]; failedCount: number }> {
+  const res = await fetch("/api/dashboard/contacts/bulk-delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to delete contacts");
+  return data;
+}
+
+// Single batched request instead of one DELETE per selected contact.
+export function useBulkDeleteContactsMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: bulkDeleteContactsReq,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() });
+      qc.invalidateQueries({ queryKey: queryKeys.leads() });
+    },
+  });
+}
+
 export type ImportContactsResult = {
   created: number;
   skipped: number;
