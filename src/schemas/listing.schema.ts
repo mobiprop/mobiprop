@@ -28,6 +28,22 @@ export const AMENITY_OPTIONS = [
   { key: "LAUNDRY", label: "Laundry" },
   { key: "WATER", label: "Water" },
   { key: "TENNIS_COURT", label: "Tennis Court" },
+  { key: "CENTRAL_HEATING", label: "Central Heating" },
+  { key: "RADIATORS", label: "Radiators" },
+  { key: "BALANCED_FLUE_GAS_HEATER", label: "Balanced-flue Gas Heater" },
+  { key: "POLO_FIELD", label: "Polo Field" },
+  { key: "GOLF_COURSE", label: "Golf Course" },
+  { key: "MULTIPURPOSE_ROOM", label: "Multipurpose Room" },
+  { key: "PADEL_COURT", label: "Padel Court" },
+  { key: "CENTRAL_AIR_CONDITIONING", label: "Central Air Conditioning" },
+  { key: "LIVING_ROOM", label: "Living Room" },
+  { key: "LIVING_DINING_ROOM", label: "Living-dining Room" },
+  { key: "COVERED_ENTERTAINING_AREA", label: "Covered Entertaining Area" },
+  { key: "APPROVED_FOR_PROFESSIONAL_USE", label: "Approved for Professional Use" },
+  { key: "STAFF_QUARTERS", label: "Staff Quarters" },
+  { key: "WALK_IN_CLOSET", label: "Walk-in Closet" },
+  { key: "EN_SUITE_BEDROOM", label: "En-suite Bedroom" },
+  { key: "SOLARIUM", label: "Solarium" },
 ] as const;
 
 export type AmenityKey = (typeof AMENITY_OPTIONS)[number]["key"];
@@ -264,7 +280,7 @@ export const LISTING_STEP_FIELDS: Record<number, (keyof ListingInput)[]> = {
     "lotDepthM2",
     "yearBuilt",
     "description",
-    "amenities",
   ],
-  2: ["videoUrl"],
+  2: ["amenities"],
+  3: ["videoUrl"],
 };

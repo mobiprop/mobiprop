@@ -56,7 +56,7 @@ export function header(): string {
         </tr></table>
       </td>
       <td valign="middle" align="right" style="font-family:${FONT};font-size:13px;color:#9fb3c8;white-space:nowrap;">
-        <span style="color:#4ade80;font-size:16px;line-height:13px;vertical-align:-2px;">&bull;</span>&nbsp;Secure Email
+        <span style="color:#4ade80;font-size:16px;line-height:13px;vertical-align:-2px;">&bull;</span>&nbsp;Correo Seguro
       </td>
     </tr></table>
   </td></tr>`;
@@ -80,15 +80,15 @@ export function footer(): string {
   return `<tr><td bgcolor="${BRAND.navy}" align="center" style="padding:32px 28px;">
     ${logoTile(40)}
     <div style="margin-top:8px;">${wordmark("#ffffff")}</div>
-    <div style="font-family:${FONT};color:${BRAND.heroEyebrow};font-size:14px;margin-top:14px;">Premium real estate, expertly curated.</div>
+    <div style="font-family:${FONT};color:${BRAND.heroEyebrow};font-size:14px;margin-top:14px;">Bienes raíces premium, curados por expertos.</div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:13px;margin-top:18px;">
       <a href="mailto:info@ulrichpropiedades.com" style="color:${BRAND.footerText};text-decoration:none;">info@ulrichpropiedades.com</a>
     </div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:12px;line-height:1.7;margin-top:16px;">
-      &copy; ${year} ${APP_NAME}. All rights reserved.<br />
-      <a href="${APP_URL}/privacy-policy" style="color:${BRAND.footerText};text-decoration:underline;">Privacy Policy</a>
+      &copy; ${year} ${APP_NAME}. Todos los derechos reservados.<br />
+      <a href="${APP_URL}/privacy-policy" style="color:${BRAND.footerText};text-decoration:underline;">Política de Privacidad</a>
       &nbsp;&middot;&nbsp;
-      <a href="${APP_URL}/terms-conditions" style="color:${BRAND.footerText};text-decoration:underline;">Terms of Service</a>
+      <a href="${APP_URL}/terms-conditions" style="color:${BRAND.footerText};text-decoration:underline;">Términos de Servicio</a>
     </div>
   </td></tr>`;
 }
@@ -103,7 +103,7 @@ export function button(label: string, url: string): string {
 
 function fallbackLink(url: string): string {
   return `<div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};line-height:1.6;margin-top:20px;text-align:center;">
-    If the button doesn't work, paste this link into your browser:<br />
+    Si el botón no funciona, copiá este enlace en tu navegador:<br />
     <a href="${url}" style="color:${BRAND.link};word-break:break-all;">${url}</a>
   </div>`;
 }
@@ -111,7 +111,7 @@ function fallbackLink(url: string): string {
 function securityNote(html: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;"><tr>
     <td style="background-color:#ffffff;border:1px solid ${BRAND.cardBorder};border-radius:12px;padding:16px 20px;font-family:${FONT};font-size:13px;color:${BRAND.text};line-height:1.6;">
-      <img src="${APP_URL}/assets/email/icon-lock.png" width="14" height="14" alt="" style="border:0;vertical-align:-2px;" />&nbsp; <span style="color:${BRAND.link};font-weight:600;">Security reminder:</span> ${html}
+      <img src="${APP_URL}/assets/email/icon-lock.png" width="14" height="14" alt="" style="border:0;vertical-align:-2px;" />&nbsp; <span style="color:${BRAND.link};font-weight:600;">Recordatorio de seguridad:</span> ${html}
     </td>
   </tr></table>`;
 }
@@ -122,7 +122,7 @@ function layout(opts: {
   bodyHtml: string;
 }): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -172,9 +172,9 @@ export function renderOtpEmail(params: {
     : `<td align="center" style="height:64px;background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;font-family:${FONT};font-size:28px;font-weight:700;letter-spacing:10px;color:${BRAND.heroFrom};padding:0 24px;">${code}</td>`;
 
   const metaEntries: Array<[string, string | undefined]> = [
-    ["Requested", requestedAt],
-    ["Device", device],
-    ["Location", location],
+    ["Solicitado", requestedAt],
+    ["Dispositivo", device],
+    ["Ubicación", location],
   ];
   const presentMeta = metaEntries.filter((e): e is [string, string] => Boolean(e[1]));
 
@@ -192,21 +192,21 @@ export function renderOtpEmail(params: {
   const body = `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;"><tr>${digits}</tr></table>
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;"><tr>
-      <td style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:8px 18px;font-family:${FONT};font-size:13px;font-weight:600;color:#f97316;">&bull;&nbsp; Code expires in ${expiresMinutes} minutes</td>
+      <td style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:8px 18px;font-family:${FONT};font-size:13px;font-weight:600;color:#f97316;">&bull;&nbsp; El código expira en ${expiresMinutes} minutos</td>
     </tr></table>
-    ${securityNote(`Ulrich will never ask for this code via phone or email. Never share it with anyone.`)}
+    ${securityNote(`Ulrich nunca te pedirá este código por teléfono o email. Nunca lo compartas con nadie.`)}
     ${meta}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:24px;text-align:center;">If you didn't request this code, you can safely ignore this email.</div>`;
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:24px;text-align:center;">Si no solicitaste este código, podés ignorar este email de forma segura.</div>`;
 
   return layout({
-    preheader: `Your ${APP_NAME} verification code`,
+    preheader: `Tu código de verificación de ${APP_NAME}`,
     hero: {
       icon: "icon-shield.png",
-      eyebrow: "Two-Factor Authentication",
-      title: "Verify Your Identity",
+      eyebrow: "Autenticación de Dos Factores",
+      title: "Verificá tu Identidad",
       subtitle: email
-        ? `We sent a 6-digit code to <strong style="color:#ffffff;">${email}</strong>.<br />Enter it below to continue.`
-        : "Use the 6-digit code below to continue.",
+        ? `Te enviamos un código de 6 dígitos a <strong style="color:#ffffff;">${email}</strong>.<br />Ingresalo abajo para continuar.`
+        : "Usá el código de 6 dígitos de abajo para continuar.",
     },
     bodyHtml: body,
   });
@@ -226,27 +226,27 @@ export function renderMagicLinkEmail(params: {
   const { url, code, expiresMinutes = 60 } = params;
 
   const codeBlock = code
-    ? `<div style="font-family:${FONT};font-size:13px;color:${BRAND.muted};text-align:center;margin-top:24px;">Or enter this code on the sign-in screen:</div>
+    ? `<div style="font-family:${FONT};font-size:13px;color:${BRAND.muted};text-align:center;margin-top:24px;">O ingresá este código en la pantalla de inicio de sesión:</div>
        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:10px auto 0;"><tr>
          <td align="center" style="background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;font-family:${FONT};font-size:24px;font-weight:700;letter-spacing:8px;color:${BRAND.heroFrom};padding:12px 24px;">${code}</td>
        </tr></table>`
     : "";
 
   const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Click the button below to securely sign in to your account. No password needed.</div>
-    ${button("Sign In to Ulrich", url)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">This link expires in ${expiresMinutes} minutes and can only be used once.</div>
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hacé clic en el botón de abajo para iniciar sesión de forma segura. No necesitás contraseña.</div>
+    ${button("Iniciar Sesión en Ulrich", url)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Este enlace expira en ${expiresMinutes} minutos y solo puede usarse una vez.</div>
     ${codeBlock}
     ${fallbackLink(url)}
-    ${securityNote(`If you didn't try to sign in, you can safely ignore this email — your account is secure.`)}`;
+    ${securityNote(`Si no intentaste iniciar sesión, podés ignorar este email de forma segura — tu cuenta está protegida.`)}`;
 
   return layout({
-    preheader: `Your secure sign-in link for ${APP_NAME}`,
+    preheader: `Tu enlace seguro de inicio de sesión para ${APP_NAME}`,
     hero: {
       icon: "icon-check.png",
-      eyebrow: "Secure sign-in link",
-      title: "Sign In to Ulrich",
-      subtitle: "Your one-click sign-in link is ready.<br />It takes you straight to your account.",
+      eyebrow: "Enlace seguro de inicio de sesión",
+      title: "Iniciar Sesión en Ulrich",
+      subtitle: "Tu enlace de inicio de sesión con un clic está listo.<br />Te lleva directo a tu cuenta.",
     },
     bodyHtml: body,
   });
@@ -279,23 +279,23 @@ export function renderPasswordResetEmail(params: {
 
   const body = `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;"><tr>
-      ${step("1", "Request", "done")}
-      ${step("2", "Verify", "active")}
-      ${step("3", "Reset", "todo")}
+      ${step("1", "Solicitud", "done")}
+      ${step("2", "Verificación", "active")}
+      ${step("3", "Restablecer", "todo")}
     </tr></table>
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">No worries — it happens. Click the button below to choose a new password.</div>
-    ${button("Reset My Password", url)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">This link expires in ${expiresMinutes} minutes and can only be used once.</div>
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">No te preocupes, le pasa a cualquiera. Hacé clic en el botón de abajo para elegir una nueva contraseña.</div>
+    ${button("Restablecer Mi Contraseña", url)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Este enlace expira en ${expiresMinutes} minutos y solo puede usarse una vez.</div>
     ${fallbackLink(url)}
-    ${securityNote(`If you didn't request a password reset, ignore this email — your password won't change.`)}`;
+    ${securityNote(`Si no solicitaste restablecer tu contraseña, ignorá este email — tu contraseña no cambiará.`)}`;
 
   return layout({
-    preheader: `Reset your ${APP_NAME} password`,
+    preheader: `Restablecé tu contraseña de ${APP_NAME}`,
     hero: {
       icon: "icon-key.png",
-      eyebrow: "Password reset",
-      title: "Forgot Your Password?",
-      subtitle: "Enter a new password in one click.<br />We'll get you back to your account safely.",
+      eyebrow: "Restablecimiento de contraseña",
+      title: "¿Olvidaste tu Contraseña?",
+      subtitle: "Ingresá una nueva contraseña con un clic.<br />Te ayudamos a volver a tu cuenta de forma segura.",
     },
     bodyHtml: body,
   });
@@ -309,9 +309,9 @@ export function renderWelcomeEmail(params: { name?: string; ctaUrl?: string }): 
   const { name, ctaUrl = APP_URL } = params;
 
   const steps: Array<[string, string, string]> = [
-    ["1", "Complete Your Profile", "Add photo and preferences for personalised listings."],
-    ["2", "Browse Properties", "Explore thousands of verified premium listings."],
-    ["3", "Schedule Viewings", "Book same-day or future tours from any listing page."],
+    ["1", "Completá tu Perfil", "Agregá tu foto y preferencias para propiedades personalizadas."],
+    ["2", "Explorá Propiedades", "Explorá miles de propiedades premium verificadas."],
+    ["3", "Agendá Visitas", "Reservá recorridos para hoy o una fecha futura desde cualquier propiedad."],
   ];
 
   const stepRows = steps
@@ -336,23 +336,23 @@ export function renderWelcomeEmail(params: { name?: string; ctaUrl?: string }): 
 
   const body = `
     <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">${
-      name ? `Hi <strong>${name}</strong>, your` : "Your"
-    } account is ready. Start exploring premium properties today.</div>
-    ${button("Explore Properties", ctaUrl)}
+      name ? `Hola <strong>${name}</strong>, tu` : "Tu"
+    } cuenta está lista. Empezá a explorar propiedades premium hoy.</div>
+    ${button("Explorar Propiedades", ctaUrl)}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;"><tr>
       <td style="background-color:${BRAND.cardBg};border-radius:16px;padding:24px;">
-        <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${BRAND.heroFrom};text-align:center;">What happens next</div>
+        <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${BRAND.heroFrom};text-align:center;">Qué sigue ahora</div>
         ${stepRows}
       </td>
     </tr></table>`;
 
   return layout({
-    preheader: `Welcome to ${APP_NAME} — your account is ready`,
+    preheader: `Bienvenido a ${APP_NAME} — tu cuenta está lista`,
     hero: {
       icon: "icon-check.png",
-      eyebrow: "Registration successful",
-      title: "Welcome to Ulrich",
-      subtitle: "Your account has been created.<br />Start exploring premium properties.",
+      eyebrow: "Registro exitoso",
+      title: "Bienvenido a Ulrich",
+      subtitle: "Tu cuenta fue creada.<br />Empezá a explorar propiedades premium.",
     },
     bodyHtml: body,
   });
@@ -404,30 +404,30 @@ export function renderTourConfirmedEmail(params: {
   const { submittedName, tourNumber, scheduledAtLabel, durationLabel, propertyTitle, propertyLocation, agentName, confirmationNote, ctaUrl } = params;
 
   const rows: Array<[string, string]> = [
-    ...(propertyTitle ? [["Property", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
-    ["Date & Time", scheduledAtLabel],
-    ["Duration", durationLabel],
-    ...(agentName ? [["Agent", agentName] as [string, string]] : []),
-    ["Reference", tourNumber],
+    ...(propertyTitle ? [["Propiedad", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
+    ["Fecha y Hora", scheduledAtLabel],
+    ["Duración", durationLabel],
+    ...(agentName ? [["Agente", agentName] as [string, string]] : []),
+    ["Referencia", tourNumber],
   ];
 
   const card = detailCard(rows);
-  const note = confirmationNote ? agentNoteBox("Note from your agent", confirmationNote) : "";
+  const note = confirmationNote ? agentNoteBox("Nota de tu agente", confirmationNote) : "";
 
   const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hi <strong>${submittedName}</strong>, your property tour has been confirmed. Here are the details:</div>
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hola <strong>${submittedName}</strong>, tu recorrido de la propiedad fue confirmado. Estos son los detalles:</div>
     ${card}
     ${note}
-    ${button("View My Tours", ctaUrl)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Need to reschedule or cancel? You can manage this tour from your account.</div>`;
+    ${button("Ver Mis Recorridos", ctaUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">¿Necesitás reprogramar o cancelar? Podés gestionar este recorrido desde tu cuenta.</div>`;
 
   return layout({
-    preheader: `Your tour${propertyTitle ? ` for ${propertyTitle}` : ""} is confirmed`,
+    preheader: `Tu recorrido${propertyTitle ? ` para ${propertyTitle}` : ""} fue confirmado`,
     hero: {
       icon: "icon-check.png",
-      eyebrow: "Tour confirmed",
-      title: "Your Tour is Confirmed!",
-      subtitle: `We'll see you on <strong style="color:#ffffff;">${scheduledAtLabel}</strong>.`,
+      eyebrow: "Recorrido confirmado",
+      title: "¡Tu Recorrido está Confirmado!",
+      subtitle: `Nos vemos el <strong style="color:#ffffff;">${scheduledAtLabel}</strong>.`,
     },
     bodyHtml: body,
   });
@@ -457,30 +457,30 @@ export function renderTourRescheduledEmail(params: {
   } = params;
 
   const rows: Array<[string, string]> = [
-    ...(propertyTitle ? [["Property", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
-    ["Previous Time", `<span style="text-decoration:line-through;color:${BRAND.faint};font-weight:400;">${previousScheduledAtLabel}</span>`],
-    ["New Date & Time", newScheduledAtLabel],
-    ["Duration", durationLabel],
-    ...(agentName ? [["Agent", agentName] as [string, string]] : []),
-    ["Reference", tourNumber],
+    ...(propertyTitle ? [["Propiedad", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
+    ["Horario Anterior", `<span style="text-decoration:line-through;color:${BRAND.faint};font-weight:400;">${previousScheduledAtLabel}</span>`],
+    ["Nueva Fecha y Hora", newScheduledAtLabel],
+    ["Duración", durationLabel],
+    ...(agentName ? [["Agente", agentName] as [string, string]] : []),
+    ["Referencia", tourNumber],
   ];
 
-  const note = rescheduleNote ? agentNoteBox("Note from your agent", rescheduleNote) : "";
+  const note = rescheduleNote ? agentNoteBox("Nota de tu agente", rescheduleNote) : "";
 
   const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hi <strong>${submittedName}</strong>, your property tour has been rescheduled. Here are the updated details:</div>
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hola <strong>${submittedName}</strong>, tu recorrido de la propiedad fue reprogramado. Estos son los detalles actualizados:</div>
     ${detailCard(rows)}
     ${note}
-    ${button("View My Tours", ctaUrl)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Can't make the new time? You can manage this tour from your account.</div>`;
+    ${button("Ver Mis Recorridos", ctaUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">¿No podés en el nuevo horario? Podés gestionar este recorrido desde tu cuenta.</div>`;
 
   return layout({
-    preheader: `Your tour${propertyTitle ? ` for ${propertyTitle}` : ""} has been rescheduled`,
+    preheader: `Tu recorrido${propertyTitle ? ` para ${propertyTitle}` : ""} fue reprogramado`,
     hero: {
       icon: "icon-check.png",
-      eyebrow: "Tour rescheduled",
-      title: "Your Tour Has a New Time",
-      subtitle: `We'll see you on <strong style="color:#ffffff;">${newScheduledAtLabel}</strong>.`,
+      eyebrow: "Recorrido reprogramado",
+      title: "Tu Recorrido Tiene un Nuevo Horario",
+      subtitle: `Nos vemos el <strong style="color:#ffffff;">${newScheduledAtLabel}</strong>.`,
     },
     bodyHtml: body,
   });
@@ -504,27 +504,27 @@ export function renderTourCancelledEmail(params: {
   const { submittedName, tourNumber, scheduledAtLabel, propertyTitle, propertyLocation, cancellationReason, ctaUrl } = params;
 
   const rows: Array<[string, string]> = [
-    ...(propertyTitle ? [["Property", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
-    ["Was Scheduled For", scheduledAtLabel],
-    ["Reference", tourNumber],
+    ...(propertyTitle ? [["Propiedad", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
+    ["Estaba Programado Para", scheduledAtLabel],
+    ["Referencia", tourNumber],
   ];
 
-  const note = cancellationReason ? agentNoteBox("Reason", cancellationReason) : "";
+  const note = cancellationReason ? agentNoteBox("Motivo", cancellationReason) : "";
 
   const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hi <strong>${submittedName}</strong>, your property tour has been cancelled.</div>
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hola <strong>${submittedName}</strong>, tu recorrido de la propiedad fue cancelado.</div>
     ${detailCard(rows)}
     ${note}
-    ${button("Browse Properties", ctaUrl)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Want to book another time? Visit the listing page to schedule a new tour.</div>`;
+    ${button("Explorar Propiedades", ctaUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">¿Querés reservar otro horario? Visitá la página de la propiedad para agendar un nuevo recorrido.</div>`;
 
   return layout({
-    preheader: `Your tour${propertyTitle ? ` for ${propertyTitle}` : ""} has been cancelled`,
+    preheader: `Tu recorrido${propertyTitle ? ` para ${propertyTitle}` : ""} fue cancelado`,
     hero: {
       icon: "icon-shield.png",
-      eyebrow: "Tour cancelled",
-      title: "Your Tour Was Cancelled",
-      subtitle: `Your visit originally scheduled for <strong style="color:#ffffff;">${scheduledAtLabel}</strong> has been cancelled.`,
+      eyebrow: "Recorrido cancelado",
+      title: "Tu Recorrido fue Cancelado",
+      subtitle: `Tu visita originalmente programada para <strong style="color:#ffffff;">${scheduledAtLabel}</strong> fue cancelada.`,
     },
     bodyHtml: body,
   });
@@ -542,19 +542,19 @@ export function renderInvitationEmail(params: {
   const { inviteUrl, roleLabel, expiresInDays } = params;
 
   const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">You've been invited to join the ${APP_NAME} team as a <strong>${roleLabel}</strong>. Click below to set up your account.</div>
-    ${button("Accept Invitation", inviteUrl)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">This link expires in ${expiresInDays} days and can only be used once.</div>
+    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Fuiste invitado a unirte al equipo de ${APP_NAME} como <strong>${roleLabel}</strong>. Hacé clic abajo para configurar tu cuenta.</div>
+    ${button("Aceptar Invitación", inviteUrl)}
+    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Este enlace expira en ${expiresInDays} días y solo puede usarse una vez.</div>
     ${fallbackLink(inviteUrl)}
-    ${securityNote(`If you weren't expecting this invitation, you can safely ignore this email.`)}`;
+    ${securityNote(`Si no esperabas esta invitación, podés ignorar este email de forma segura.`)}`;
 
   return layout({
-    preheader: `You've been invited to join ${APP_NAME}`,
+    preheader: `Fuiste invitado a unirte a ${APP_NAME}`,
     hero: {
       icon: "icon-check.png",
-      eyebrow: "Team invitation",
-      title: `Join the ${APP_NAME} Team`,
-      subtitle: `You've been invited as a <strong style="color:#ffffff;">${roleLabel}</strong>.<br />Set up your account to get started.`,
+      eyebrow: "Invitación al equipo",
+      title: `Unite al Equipo de ${APP_NAME}`,
+      subtitle: `Fuiste invitado como <strong style="color:#ffffff;">${roleLabel}</strong>.<br />Configurá tu cuenta para empezar.`,
     },
     bodyHtml: body,
   });

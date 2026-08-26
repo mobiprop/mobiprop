@@ -183,6 +183,7 @@
     "steps": {
       "basicInfo": "Basic Info",
       "listingDetails": "Listing Details",
+      "features": "Features",
       "images": "Images"
     },
     "fields": {

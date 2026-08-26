@@ -42,6 +42,22 @@ import {
   WashingMachine,
   Droplets,
   CircleDot,
+  Thermometer,
+  Rows3,
+  FlameKindling,
+  Flag,
+  Target,
+  DoorOpen,
+  Grid3x3,
+  Wind,
+  Armchair,
+  Utensils,
+  Umbrella,
+  Briefcase,
+  Users,
+  Shirt,
+  BedDouble,
+  Sun,
 } from "lucide-react";
 
 import {
@@ -84,7 +100,7 @@ const MAX_IMAGE_MB = Math.round(LISTING_IMAGE_MAX_BYTES / (1024 * 1024));
 
 // Displayed labels are translated via t(`uploadModal.steps.${key}`); these
 // identifiers stay in stable English because they're used for step indexing.
-const STEPS = ["basicInfo", "listingDetails", "images"] as const;
+const STEPS = ["basicInfo", "listingDetails", "features", "images"] as const;
 
 type AreaField = {
   key: "totalAreaM2" | "coveredAreaM2" | "semiCoveredAreaM2" | "lotSizeM2" | "lotFrontageM2" | "lotDepthM2";
@@ -130,6 +146,22 @@ const AMENITY_ICONS: Record<
   LAUNDRY: WashingMachine,
   WATER: Droplets,
   TENNIS_COURT: CircleDot,
+  CENTRAL_HEATING: Thermometer,
+  RADIATORS: Rows3,
+  BALANCED_FLUE_GAS_HEATER: FlameKindling,
+  POLO_FIELD: Flag,
+  GOLF_COURSE: Target,
+  MULTIPURPOSE_ROOM: DoorOpen,
+  PADEL_COURT: Grid3x3,
+  CENTRAL_AIR_CONDITIONING: Wind,
+  LIVING_ROOM: Armchair,
+  LIVING_DINING_ROOM: Utensils,
+  COVERED_ENTERTAINING_AREA: Umbrella,
+  APPROVED_FOR_PROFESSIONAL_USE: Briefcase,
+  STAFF_QUARTERS: Users,
+  WALK_IN_CLOSET: Shirt,
+  EN_SUITE_BEDROOM: BedDouble,
+  SOLARIUM: Sun,
 };
 
 type ListingFormValues = {
@@ -919,7 +951,7 @@ export function UploadListingModal({
 
         {/* Stepper */}
         <div className="shrink-0 border-b border-[#f3f4f6] bg-white px-4 py-4 sm:px-6">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
             {STEPS.map((label, index) => {
               const isComplete = index < step;
               const isCurrent = index === step;
@@ -1516,7 +1548,12 @@ export function UploadListingModal({
 
                     <FieldError message={errors.description?.message} />
                   </div>
+                </>
+              )}
 
+              {/* Step 3: Features */}
+              {step === 2 && (
+                <>
                   <div className="flex min-w-0 flex-col gap-3">
                     <span className={labelClass} style={mont}>
                       {t("uploadModal.fields.featuresAmenities")}
@@ -1560,8 +1597,8 @@ export function UploadListingModal({
                 </>
               )}
 
-              {/* Step 3: Images */}
-              {step === 2 && (
+              {/* Step 4: Images */}
+              {step === 3 && (
                 <>
                   <div className="flex min-w-0 flex-col gap-2">
                     <label

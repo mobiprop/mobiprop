@@ -985,7 +985,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3 text-[12px] font-medium text-[#1e4f86] lg:px-5 lg:text-[14px]" style={mont}>
-                      ${row.revenue.toLocaleString("en-US")}
+                      USD ${row.revenue.toLocaleString("en-US")}
                     </td>
 
                     <td className="px-4 py-3 text-right lg:px-5">
@@ -1086,7 +1086,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     {t("overview.totalSales.columns.revenue")}
                   </p>
                   <p className="mt-1.5 text-[14px] font-semibold text-[#1e4f86]" style={mont}>
-                    ${row.revenue.toLocaleString("en-US")}
+                    USD ${row.revenue.toLocaleString("en-US")}
                   </p>
                 </div>
               </div>
