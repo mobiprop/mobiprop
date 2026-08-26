@@ -801,6 +801,22 @@ const AMENITY_LABEL_KEYS: Record<AmenityKey, string> = {
   LAUNDRY: "listingDetail:amenities.laundry",
   WATER: "listingDetail:amenities.water",
   TENNIS_COURT: "listingDetail:amenities.tennisCourt",
+  CENTRAL_HEATING: "listingDetail:amenities.centralHeating",
+  RADIATORS: "listingDetail:amenities.radiators",
+  BALANCED_FLUE_GAS_HEATER: "listingDetail:amenities.balancedFlueGasHeater",
+  POLO_FIELD: "listingDetail:amenities.poloField",
+  GOLF_COURSE: "listingDetail:amenities.golfCourse",
+  MULTIPURPOSE_ROOM: "listingDetail:amenities.multipurposeRoom",
+  PADEL_COURT: "listingDetail:amenities.padelCourt",
+  CENTRAL_AIR_CONDITIONING: "listingDetail:amenities.centralAirConditioning",
+  LIVING_ROOM: "listingDetail:amenities.livingRoom",
+  LIVING_DINING_ROOM: "listingDetail:amenities.livingDiningRoom",
+  COVERED_ENTERTAINING_AREA: "listingDetail:amenities.coveredEntertainingArea",
+  APPROVED_FOR_PROFESSIONAL_USE: "listingDetail:amenities.approvedForProfessionalUse",
+  STAFF_QUARTERS: "listingDetail:amenities.staffQuarters",
+  WALK_IN_CLOSET: "listingDetail:amenities.walkInCloset",
+  EN_SUITE_BEDROOM: "listingDetail:amenities.enSuiteBedroom",
+  SOLARIUM: "listingDetail:amenities.solarium",
 };
 
 // stat.label doubles as the internal key used to look up its icon above, so

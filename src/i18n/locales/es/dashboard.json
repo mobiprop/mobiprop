@@ -175,7 +175,7 @@
     "SECURITY": "Seguridad",
     "FURNISHED": "Amueblado",
     "PET_FRIENDLY": "Admite Mascotas",
-    "CREDIT_APPROVED": "Crédito Aprobado",
+    "CREDIT_APPROVED": "Apto Crédito",
     "INTERNET": "Internet",
     "GAS": "Gas",
     "RADIANT_FLOORS": "Pisos Radiantes",
@@ -183,7 +183,23 @@
     "BARBECUE": "Parrilla",
     "LAUNDRY": "Lavandería",
     "WATER": "Agua",
-    "TENNIS_COURT": "Cancha de Tenis"
+    "TENNIS_COURT": "Cancha de Tenis",
+    "CENTRAL_HEATING": "Calefacción Central",
+    "RADIATORS": "Radiadores",
+    "BALANCED_FLUE_GAS_HEATER": "Calefactor a Gas de Tiro Balanceado",
+    "POLO_FIELD": "Cancha de Polo",
+    "GOLF_COURSE": "Cancha de Golf",
+    "MULTIPURPOSE_ROOM": "Salón de Usos Múltiples",
+    "PADEL_COURT": "Cancha de Pádel",
+    "CENTRAL_AIR_CONDITIONING": "Aire Acondicionado Central",
+    "LIVING_ROOM": "Living",
+    "LIVING_DINING_ROOM": "Living-Comedor",
+    "COVERED_ENTERTAINING_AREA": "Quincho",
+    "APPROVED_FOR_PROFESSIONAL_USE": "Habilitado para Uso Profesional",
+    "STAFF_QUARTERS": "Dependencia de Servicio",
+    "WALK_IN_CLOSET": "Vestidor",
+    "EN_SUITE_BEDROOM": "Dormitorio en Suite",
+    "SOLARIUM": "Solarium"
   },
   "agentSelect": {
     "placeholder": "Seleccionar agente…",
@@ -285,7 +301,7 @@
         "opportunityId": "ID de Oportunidad",
         "operationType": "Tipo de Operación",
         "date": "Fecha",
-        "revenue": "Ingresos"
+        "revenue": "Ingresos Brutos"
       },
       "operations": {
         "all": "Todos",

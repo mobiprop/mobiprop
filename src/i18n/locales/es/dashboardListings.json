@@ -98,7 +98,7 @@
       "property": "Propiedad",
       "type": "Tipo",
       "price": "Precio",
-      "bedrooms": "Habitaciones",
+      "bedrooms": "Dormitorios",
       "operationType": "Tipo de Operación",
       "status": "Estado"
     },
@@ -112,7 +112,7 @@
     "markAsFeaturedTitle": "Marcar como destacada",
     "deleteTitle": "Eliminar",
     "typeLabel": "Tipo",
-    "bedroomsLabel": "Habitaciones",
+    "bedroomsLabel": "Dormitorios",
     "operationTypeLabel": "Tipo de Operación",
     "noListingsFound": "No se encontraron propiedades."
   },
@@ -145,7 +145,7 @@
     "priceRange": "Rango de Precio",
     "minPricePlaceholder": "Mín $",
     "maxPricePlaceholder": "Máx $",
-    "bedrooms": "Habitaciones",
+    "bedrooms": "Dormitorios",
     "status": "Estado",
     "operation": {
       "sale": "Venta",
@@ -183,6 +183,7 @@
     "steps": {
       "basicInfo": "Información Básica",
       "listingDetails": "Detalles de la Propiedad",
+      "features": "Características",
       "images": "Imágenes"
     },
     "fields": {
@@ -213,7 +214,7 @@
       "ownerHint": "El vendedor/propietario al que está vinculada esta propiedad en Contactos.",
       "featuredListing": "Propiedad destacada",
       "featuredListingHint": "Destaca esta propiedad en la parte superior de las propiedades.",
-      "bedrooms": "Habitaciones",
+      "bedrooms": "Dormitorios",
       "bathrooms": "Baños",
       "yearBuilt": "Año de Construcción",
       "toilets": "Toilettes",
