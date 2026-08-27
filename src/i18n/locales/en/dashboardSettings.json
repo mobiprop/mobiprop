@@ -103,7 +103,7 @@
         "disableFailed": "Could not disable push notifications.",
         "testSent": "Test notification sent. Check your device.",
         "testSkipped": "No active device received the test. Make sure push is enabled here.",
-        "testFailed": "Push delivery failed{{reason}}. Disable and re-enable push on this device to refresh the subscription.",
+        "testFailed": "Push delivery failed. Disable and re-enable push on this device to refresh the subscription.",
         "testFailedGeneric": "Could not send a test notification."
       }
     }

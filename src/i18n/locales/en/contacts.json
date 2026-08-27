@@ -12,6 +12,9 @@
     "totalContacts": "Total Contacts",
     "buyersCount": "{{count}} buyers",
     "sellersCount": "{{count}} sellers",
+    "tenantsCount": "{{count}} tenants",
+    "ownersCount": "{{count}} owners",
+    "realEstateCompaniesCount": "{{count}} real estate companies",
     "bothCount": "{{count}} both",
     "activeDeals": "Active Deals",
     "openOpportunities": "Open opportunities",
@@ -77,6 +80,9 @@
   "type": {
     "buyer": "Buyer",
     "seller": "Seller",
+    "tenant": "Tenant",
+    "owner": "Owner",
+    "realEstateCompany": "Real Estate Company",
     "both": "Both"
   },
   "toasts": {
@@ -118,7 +124,10 @@
     "addressPlaceholder": "Street address",
     "notes": "Notes",
     "notesPlaceholder": "Additional notes about this contact...",
-    "provideEmailOrPhone": "Provide at least an email or a phone number."
+    "provideEmailOrPhone": "Provide at least an email or a phone number.",
+    "selectAtLeastOneRole": "Select at least one role.",
+    "assignedAgent": "Assigned Agent",
+    "contactInfoMaskedHint": "Only the assigned agent can view and edit the email and phone."
   },
   "propertyListings": {
     "title": "Property Listings",

@@ -695,8 +695,8 @@ function EnvelopeRow({ envelope, canVoid, canResend }: { envelope: DocusignEnvel
     try {
       await voidMutation.mutateAsync({ id: envelope.id, reason });
       toast.success(t("page.envelopes.toasts.voided"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("page.envelopes.toasts.voidFailed"));
+    } catch {
+      toast.error(t("page.envelopes.toasts.voidFailed"));
     }
     setMenuOpen(false);
   }
@@ -705,8 +705,8 @@ function EnvelopeRow({ envelope, canVoid, canResend }: { envelope: DocusignEnvel
     try {
       await resendMutation.mutateAsync(envelope.id);
       toast.success(t("page.envelopes.toasts.reminderSent"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("page.envelopes.toasts.resendFailed"));
+    } catch {
+      toast.error(t("page.envelopes.toasts.resendFailed"));
     }
     setMenuOpen(false);
   }
@@ -810,8 +810,8 @@ function SettingsTabContent() {
       await updateMutation.mutateAsync({ [key]: value });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("page.settings.saveFailed"));
+    } catch {
+      toast.error(t("page.settings.saveFailed"));
     }
   }
 

@@ -120,8 +120,8 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
     try {
       const url = await uploadBlogCover(file);
       setCoverImageUrl(url);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("editorModal.toasts.uploadFailed"));
+    } catch {
+      toast.error(t("editorModal.toasts.uploadFailed"));
     } finally {
       setUploadingCover(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

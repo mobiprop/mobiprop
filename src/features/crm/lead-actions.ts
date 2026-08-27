@@ -51,7 +51,7 @@ const leadInclude = {
       email: true,
       phone: true,
       location: true,
-      type: true,
+      roles: true,
     },
   },
   primaryListing: {
@@ -91,7 +91,7 @@ async function toLeadDto(l: LeadRow, agentMap?: Map<string, { id: string; fullNa
           email: l.contact.email,
           phone: l.contact.phone,
           location: l.contact.location,
-          type: l.contact.type,
+          roles: l.contact.roles,
         }
       : null,
     primaryListingId: l.primaryListingId,
@@ -373,7 +373,7 @@ export async function updateLead(id: string, body: unknown): Promise<CrmActionRe
 
   const existing = await prisma.lead.findFirst({
     where: { id, ...leadRecordScope(gate.profile) },
-    select: { id: true, score: true, temperature: true, lifecycleStatus: true, isArchived: true },
+    select: { id: true, score: true, temperature: true, lifecycleStatus: true, source: true, isArchived: true },
   });
   if (!existing) return { ok: false, error: "Lead not found", status: 404 };
   if (existing.isArchived) return { ok: false, error: "Cannot update an archived lead", status: 409 };
@@ -389,6 +389,9 @@ export async function updateLead(id: string, body: unknown): Promise<CrmActionRe
   }
   if (data.lifecycleStatus !== undefined && data.lifecycleStatus !== existing.lifecycleStatus) {
     activities.push({ leadId: id, actorId: gate.profile.id, type: "LEAD_STATUS_CHANGED", fieldName: "lifecycleStatus", oldValue: existing.lifecycleStatus as Prisma.InputJsonValue, newValue: data.lifecycleStatus as Prisma.InputJsonValue });
+  }
+  if (data.source !== undefined && data.source !== existing.source) {
+    activities.push({ leadId: id, actorId: gate.profile.id, type: "LEAD_SOURCE_CHANGED", fieldName: "source", oldValue: existing.source as Prisma.InputJsonValue, newValue: data.source as Prisma.InputJsonValue });
   }
   if (data.nextFollowUpAt !== undefined) {
     activities.push({ leadId: id, actorId: gate.profile.id, type: "LEAD_FOLLOW_UP_CHANGED", fieldName: "nextFollowUpAt", oldValue: Prisma.JsonNull, newValue: (data.nextFollowUpAt ?? Prisma.JsonNull) as Prisma.InputJsonValue });
@@ -408,6 +411,7 @@ export async function updateLead(id: string, body: unknown): Promise<CrmActionRe
       ...(data.score !== undefined && { score: data.score }),
       ...(data.temperature && { temperature: data.temperature }),
       ...(data.lifecycleStatus && { lifecycleStatus: data.lifecycleStatus }),
+      ...(data.source && { source: data.source }),
       ...(data.notes !== undefined && { notes: data.notes }),
       ...(data.nextFollowUpAt !== undefined && { nextFollowUpAt: data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null }),
       ...(data.lastContactedAt !== undefined && { lastContactedAt: data.lastContactedAt ? new Date(data.lastContactedAt) : null }),
@@ -719,6 +723,7 @@ export type ImportLeadsError = { row: number; message: string };
 
 export async function importLeads(
   rawRows: unknown[],
+  source: LeadSource = LeadSource.IMPORT,
 ): Promise<CrmActionResult<{ created: number; skipped: number; errors: ImportLeadsError[] }>> {
   const gate = await requirePermission("leads:import");
   if (!gate.ok) return { ok: false, error: gate.error, status: 403 };
@@ -760,7 +765,7 @@ export async function importLeads(
         submittedEmail: email,
         submittedPhone: phone,
         submittedLocation: parsed.data.submittedLocation || null,
-        source: LeadSource.IMPORT,
+        source,
         importBatchId,
         budgetMin: parsed.data.budgetMin ?? null,
         budgetMax: parsed.data.budgetMax ?? null,
@@ -771,9 +776,9 @@ export async function importLeads(
 
     await Promise.all([
       prisma.leadActivity.create({
-        data: { leadId: lead.id, actorId: gate.profile.id, type: "LEAD_CREATED", metadata: { source: LeadSource.IMPORT, submittedName: parsed.data.submittedName } as Prisma.InputJsonValue },
+        data: { leadId: lead.id, actorId: gate.profile.id, type: "LEAD_CREATED", metadata: { source, submittedName: parsed.data.submittedName } as Prisma.InputJsonValue },
       }),
-      logActivity({ actorId: gate.profile.id, action: "LEAD_CREATED", entityType: "LEAD", entityId: lead.id, newValues: { leadNumber, source: LeadSource.IMPORT, importBatchId } }),
+      logActivity({ actorId: gate.profile.id, action: "LEAD_CREATED", entityType: "LEAD", entityId: lead.id, newValues: { leadNumber, source, importBatchId } }),
     ]);
 
     created++;

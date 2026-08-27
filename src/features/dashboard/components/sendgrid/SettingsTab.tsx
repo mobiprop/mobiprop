@@ -41,8 +41,8 @@ export function SettingsTab() {
     try {
       await updateMutation.mutateAsync({ [key]: value });
       toast.success(t("settings.toasts.saved"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("settings.toasts.saveFailed"));
+    } catch {
+      toast.error(t("settings.toasts.saveFailed"));
     }
   }
 
@@ -52,8 +52,8 @@ export function SettingsTab() {
       setConnection(result.connection);
       if (result.connection.ok) toast.success(t("settings.toasts.connectionVerified"));
       else toast.error(result.connection.error ?? t("settings.toasts.connectionTestFailed"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("settings.toasts.connectionTestFailed"));
+    } catch {
+      toast.error(t("settings.toasts.connectionTestFailed"));
     }
   }
 

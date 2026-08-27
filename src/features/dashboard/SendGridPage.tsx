@@ -348,8 +348,8 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
     try {
       await duplicateMutation.mutateAsync(campaign.id);
       toast.success(t("campaigns.toasts.duplicated"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("campaigns.toasts.duplicateFailed"));
+    } catch {
+      toast.error(t("campaigns.toasts.duplicateFailed"));
     }
   }
 
@@ -360,8 +360,8 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
     try {
       await deleteMutation.mutateAsync(campaign.id);
       toast.success(t("campaigns.toasts.deleted"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("campaigns.toasts.deleteFailed"));
+    } catch {
+      toast.error(t("campaigns.toasts.deleteFailed"));
     }
   }
 
@@ -370,8 +370,8 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
     try {
       await cancelMutation.mutateAsync(campaign.id);
       toast.success(t("campaigns.toasts.scheduleCancelled"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("campaigns.toasts.cancelFailed"));
+    } catch {
+      toast.error(t("campaigns.toasts.cancelFailed"));
     }
   }
 

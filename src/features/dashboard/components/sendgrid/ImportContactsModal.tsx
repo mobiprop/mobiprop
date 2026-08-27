@@ -126,8 +126,8 @@ export function ImportContactsModal({ lists, initialListId, onClose }: ImportCon
       const result = await previewMutation.mutateAsync({ listId, rows });
       setPreview(result.preview);
       setStep(3);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("importModal.errors.analyseFailed"));
+    } catch {
+      setError(t("importModal.errors.analyseFailed"));
     }
   }
 
@@ -141,8 +141,8 @@ export function ImportContactsModal({ lists, initialListId, onClose }: ImportCon
           (result.skipped > 0 ? t("importModal.toasts.andSkipped", { count: result.skipped }) : ""),
       );
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("importModal.errors.importFailed"));
+    } catch {
+      setError(t("importModal.errors.importFailed"));
     }
   }
 

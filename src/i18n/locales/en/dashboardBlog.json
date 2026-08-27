@@ -81,6 +81,8 @@
     "excerptPlaceholder": "Short description shown in post listings…",
     "articleContent": "Article Content",
     "articleContentPlaceholder": "Write your article…",
+    "linkUrlPrompt": "Link URL",
+    "imageUploadFailed": "Failed to upload image",
     "settings": "Settings",
     "author": "Author *",
     "authorPlaceholder": "Full name",

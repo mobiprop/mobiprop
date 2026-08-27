@@ -4,10 +4,9 @@ import { useState } from "react";
 import { X, Home, Trash2, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { ContactType } from "@/generated/prisma/enums";
 import { ListingPicker } from "./ListingPicker";
-import { SearchableSelect } from "./SearchableSelect";
-
-export type ContactType = "Buyer" | "Seller" | "Both";
+import { ContactRolesSelect } from "./ContactRolesSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -16,11 +15,11 @@ export type NewContact = {
   lastName: string;
   email: string;
   phone: string;
-  contactType: ContactType;
+  roles: ContactType[];
   location: string;
   address: string;
   notes: string;
-  // Only sent for Seller/Both — properties this contact owns.
+  // Only sent when roles include SELLER — properties this contact owns.
   propertyIds?: string[];
 };
 
@@ -45,22 +44,17 @@ export function AddContactModal({
   conflict,
 }: AddContactModalProps) {
   const { t } = useTranslation("contacts");
-  const CONTACT_TYPE_OPTIONS = [
-    { value: "Buyer", label: t("type.buyer") },
-    { value: "Seller", label: t("type.seller") },
-    { value: "Both", label: t("type.both") },
-  ];
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [contactType, setContactType] = useState<ContactType>("Buyer");
+  const [roles, setRoles] = useState<ContactType[]>([ContactType.BUYER]);
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [propertyRows, setPropertyRows] = useState<PropertyRow[]>([]);
 
-  const isSellerType = contactType === "Seller" || contactType === "Both";
+  const isSellerType = roles.includes(ContactType.SELLER);
 
   function updatePropertyRow(index: number, id: string, label: string) {
     setPropertyRows((prev) => prev.map((p, i) => (i === index ? { id, label } : p)));
@@ -81,7 +75,7 @@ export function AddContactModal({
       lastName: lastName.trim(),
       email: email.trim(),
       phone: phone.trim(),
-      contactType,
+      roles,
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
@@ -189,29 +183,25 @@ export function AddContactModal({
             <p className="-mt-2 text-[11px] text-[#b45309]" style={mont}>{t("fields.provideEmailOrPhone")}</p>
           )}
 
-          {/* Contact Type / Location */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.contactType")}</label>
-              <SearchableSelect
-                size="sm"
-                searchable={false}
-                value={contactType}
-                onChange={(next) => setContactType(next as ContactType)}
-                options={CONTACT_TYPE_OPTIONS}
-                placeholder={t("fields.selectType")}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.location")}</label>
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder={t("fields.locationPlaceholder")}
-                className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
-                style={mont}
-              />
-            </div>
+          {/* Contact Roles */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.contactType")}</label>
+            <ContactRolesSelect value={roles} onChange={setRoles} />
+            {roles.length === 0 && (
+              <p className="text-[11px] text-[#b45309] sm:text-[12px]" style={mont}>{t("fields.selectAtLeastOneRole")}</p>
+            )}
+          </div>
+
+          {/* Location */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-medium text-[#1f2937] sm:text-[12px]" style={mont}>{t("fields.location")}</label>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder={t("fields.locationPlaceholder")}
+              className="h-10 rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86] sm:h-[35px]"
+              style={mont}
+            />
           </div>
 
           {/* Address */}
@@ -304,7 +294,7 @@ export function AddContactModal({
             </button>
             <button
               type="submit"
-              disabled={isSaving || (!email.trim() && !phone.trim())}
+              disabled={isSaving || roles.length === 0 || (!email.trim() && !phone.trim())}
               className="h-[41.5px] rounded-[10px] bg-[#1e4f86] text-[11px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60 sm:text-[12px]"
               style={mont}
             >

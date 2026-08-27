@@ -12,6 +12,9 @@
     "totalContacts": "Total de Contactos",
     "buyersCount": "{{count}} compradores",
     "sellersCount": "{{count}} vendedores",
+    "tenantsCount": "{{count}} inquilinos",
+    "ownersCount": "{{count}} propietarios",
+    "realEstateCompaniesCount": "{{count}} inmobiliarias",
     "bothCount": "{{count}} ambos",
     "activeDeals": "Negocios Activos",
     "openOpportunities": "Oportunidades abiertas",
@@ -77,6 +80,9 @@
   "type": {
     "buyer": "Comprador",
     "seller": "Vendedor",
+    "tenant": "Inquilino",
+    "owner": "Propietario",
+    "realEstateCompany": "Inmobiliaria",
     "both": "Ambos"
   },
   "toasts": {
@@ -118,7 +124,10 @@
     "addressPlaceholder": "Dirección",
     "notes": "Notas",
     "notesPlaceholder": "Notas adicionales sobre este contacto...",
-    "provideEmailOrPhone": "Proporciona al menos un correo electrónico o un número de teléfono."
+    "provideEmailOrPhone": "Proporciona al menos un correo electrónico o un número de teléfono.",
+    "selectAtLeastOneRole": "Selecciona al menos un rol.",
+    "assignedAgent": "Agente Asignado",
+    "contactInfoMaskedHint": "Solo el agente asignado puede ver y editar el correo y el teléfono."
   },
   "propertyListings": {
     "title": "Propiedades",

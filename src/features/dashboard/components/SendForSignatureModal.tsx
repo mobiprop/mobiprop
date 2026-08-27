@@ -228,8 +228,8 @@ export function SendForSignatureModal({ templates, onClose, onSent, initial, ini
       toast.success(t("sendModal.toasts.sent"));
       onSent();
       onClose();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("sendModal.toasts.sendFailed"));
+    } catch {
+      toast.error(t("sendModal.toasts.sendFailed"));
     } finally {
       setSubmitting(false);
     }

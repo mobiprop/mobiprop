@@ -151,7 +151,14 @@
       "uploadPhotoFailed": "No se pudo subir la foto.",
       "removePhotoFailed": "No se pudo eliminar la foto.",
       "updateFailed": "No se pudo actualizar el agente.",
-      "updated": "Agente actualizado."
+      "updated": "Agente actualizado.",
+      "errors": {
+        "agentNotFound": "Agente no encontrado.",
+        "invalidRole": "El rol debe ser Agente o Gerente.",
+        "adminRoleLocked": "El rol de un Administrador no se puede cambiar aquí.",
+        "selfTeamLeader": "Un agente no puede ser su propio líder de equipo.",
+        "invalidTeamLeader": "El líder de equipo debe ser un Gerente o Administrador activo."
+      }
     }
   },
   "detail": {

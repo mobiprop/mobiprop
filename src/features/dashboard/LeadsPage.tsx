@@ -57,9 +57,9 @@ import { AddLeadModal } from "./components/AddLeadModal";
 import { LeadFilterModal } from "./components/LeadFilterModal";
 import { SearchableSelect } from "./components/SearchableSelect";
 import { BulkAssignAgentModal } from "./components/BulkAssignAgentModal";
+import { ImportLeadsWizardModal } from "./components/ImportLeadsWizardModal";
 import type { LeadListFilters } from "@/schemas/lead.schema";
 import { toCsv, downloadCsv } from "@/lib/csv";
-import { parseSpreadsheetFile } from "@/lib/spreadsheet";
 
 const SORT_VALUES = [
   "newest",
@@ -412,8 +412,8 @@ function RowActions({
                   toast.success(t("toasts.assigned"));
                   setShowAssignModal(false);
                 },
-                onError: (err) => {
-                  toast.error(err instanceof Error ? err.message : t("toasts.assignFailed"));
+                onError: () => {
+                  toast.error(t("toasts.assignFailed"));
                 },
               },
             );
@@ -457,6 +457,7 @@ const SOURCE_LABELS: Partial<Record<LeadSource, string>> = {
   SOCIAL_MEDIA: "Social Media",
   IMPORT: "Import",
   EXTERNAL_API: "API",
+  ZONAPROP: "Zonaprop",
   OTHER: "Other",
 };
 
@@ -523,75 +524,21 @@ export function LeadsPage({ role }: LeadsPageProps) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
   const [isExporting, setIsExporting] = useState(false);
+  const [showImportWizard, setShowImportWizard] = useState(false);
   const importMutation = useImportLeadsMutation();
 
-  // Includes the headers used by the client's real-world Zonaprop CSV export
-  // (Nombre y apellido, E-mail, Teléfono, Barrio, Mensaje, …) so that file
-  // imports without a mapping step. Accented characters are stripped by the
-  // normalizer below (e.g. "Teléfono" → "telfono") — note that also strips
-  // digits, so "Teléfono" and "Teléfono 2" normalize to the same "telfono"
-  // key. Only "barrio" maps to location (not provincia/ciudad too) to avoid
-  // the same multi-column collision.
-  const IMPORT_HEADER_ALIASES: Record<string, string> = {
-    name: "submittedName",
-    fullname: "submittedName",
-    submittedname: "submittedName",
-    nombreyapellido: "submittedName",
-    email: "submittedEmail",
-    emailaddress: "submittedEmail",
-    phone: "submittedPhone",
-    phonenumber: "submittedPhone",
-    telfono: "submittedPhone",
-    location: "submittedLocation",
-    barrio: "submittedLocation",
-    budgetmin: "budgetMin",
-    budgetmax: "budgetMax",
-    notes: "notes",
-    mensaje: "notes",
-  };
-
-  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
-
-    try {
-      const records = await parseSpreadsheetFile(file);
-      if (records.length === 0) {
-        toast.error(t("toasts.importNoDataRows"));
-        return;
-      }
-
-      const rows = records.map((record) => {
-        const mapped: Record<string, string> = {};
-        for (const [key, value] of Object.entries(record)) {
-          const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
-          const field = IMPORT_HEADER_ALIASES[normalized];
-          // First non-empty value for a field wins — two source columns can
-          // normalize to the same alias (e.g. "Teléfono" / "Teléfono 2" both
-          // strip to "telfono"), and an empty second column must not blank
-          // out a value the first one already provided.
-          if (field && value && !mapped[field]) mapped[field] = value;
-        }
-        return mapped;
-      });
-
-      const result = await importMutation.mutateAsync(rows);
-      if (result.created > 0) {
-        toast.success(t("toasts.importedCount", { count: result.created }));
-      }
-      if (result.skipped > 0) {
-        const preview = result.errors.slice(0, 3).map((err) => `Row ${err.row}: ${err.message}`).join(" · ");
-        toast.warning(t("toasts.skippedCount", { count: result.skipped }), {
-          description: preview + (result.errors.length > 3 ? " …" : ""),
-        });
-      }
-      if (result.created === 0 && result.skipped === 0) {
-        toast.error(t("toasts.importNothing"));
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toasts.importFailed"));
+  async function handleWizardImport(rows: Record<string, unknown>[], source: LeadSource) {
+    const result = await importMutation.mutateAsync({ rows, source });
+    if (result.created > 0) {
+      toast.success(t("toasts.importedCount", { count: result.created }));
     }
+    if (result.skipped > 0) {
+      const preview = result.errors.slice(0, 3).map((err) => `Row ${err.row}: ${err.message}`).join(" · ");
+      toast.warning(t("toasts.skippedCount", { count: result.skipped }), {
+        description: preview + (result.errors.length > 3 ? " …" : ""),
+      });
+    }
+    return result;
   }
 
   // Leads are server-paginated (PAGE_LIMIT per page) — export walks every
@@ -639,8 +586,8 @@ export function LeadsPage({ role }: LeadsPageProps) {
         new Date(lead.createdAt).toLocaleDateString("en-US"),
       ]);
       downloadCsv(`leads-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toasts.exportFailed"));
+    } catch {
+      toast.error(t("toasts.exportFailed"));
     } finally {
       setIsExporting(false);
     }
@@ -753,28 +700,16 @@ export function LeadsPage({ role }: LeadsPageProps) {
         </div>
 
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
-          <input
-            type="file"
-            accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-            className="hidden"
-            onChange={handleImportFile}
-            id="import-leads-input"
-          />
           {canImport && (
-            <label
-              htmlFor="import-leads-input"
-              className={`flex h-10 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] sm:px-4 ${
-                importMutation.isPending ? "pointer-events-none opacity-60" : ""
-              }`}
+            <button
+              type="button"
+              onClick={() => setShowImportWizard(true)}
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] sm:px-4"
               style={uiFont}
             >
-              {importMutation.isPending ? (
-                <Loader2 size={16} className="shrink-0 animate-spin" />
-              ) : (
-                <Upload size={16} className="shrink-0" />
-              )}
+              <Upload size={16} className="shrink-0" />
               <span className="truncate">{t("page.import")}</span>
-            </label>
+            </button>
           )}
           {hasPermission(role, "leads:export") && (
             <button
@@ -1309,6 +1244,13 @@ export function LeadsPage({ role }: LeadsPageProps) {
           busy={bulkBusy}
           onClose={() => setShowBulkAssign(false)}
           onAssign={handleBulkAssign}
+        />
+      )}
+
+      {showImportWizard && (
+        <ImportLeadsWizardModal
+          onClose={() => setShowImportWizard(false)}
+          onImport={handleWizardImport}
         />
       )}
     </div>

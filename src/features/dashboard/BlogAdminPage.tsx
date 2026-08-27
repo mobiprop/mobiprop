@@ -365,7 +365,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
             setEditorOpen(false);
             setEditing(null);
           },
-          onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.updateFailed")),
+          onError: () => toast.error(t("adminPage.toasts.updateFailed")),
         },
       );
     } else {
@@ -380,7 +380,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
           );
           setEditorOpen(false);
         },
-        onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.createFailed")),
+        onError: () => toast.error(t("adminPage.toasts.createFailed")),
       });
     }
   }
@@ -395,7 +395,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
       {
         onSuccess: () =>
           toast.success(post.isFeatured ? t("adminPage.toasts.unfeatured") : t("adminPage.toasts.featured")),
-        onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.featuredFailed")),
+        onError: () => toast.error(t("adminPage.toasts.featuredFailed")),
       },
     );
   }
@@ -406,7 +406,7 @@ export function BlogAdminPage({ role }: { role: Role }) {
     setDeletingId(post.id);
     deleteMutation.mutate(post.id, {
       onSuccess: () => toast.success(t("adminPage.toasts.postDeleted")),
-      onError: (err) => toast.error(err instanceof Error ? err.message : t("adminPage.toasts.deleteFailed")),
+      onError: () => toast.error(t("adminPage.toasts.deleteFailed")),
       onSettled: () => {
         setDeletingId(null);
         setConfirmingDelete(null);

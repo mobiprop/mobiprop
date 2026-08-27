@@ -56,8 +56,8 @@ export function NewsletterSubscribeModal({ initialEmail = "", onClose }: Props) 
         throw new Error(data?.error || t("subscribeModal.errorGeneric"));
       }
       setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("subscribeModal.errorGeneric"));
+    } catch {
+      setError(t("subscribeModal.errorGeneric"));
     } finally {
       setSubmitting(false);
     }

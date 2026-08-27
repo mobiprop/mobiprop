@@ -79,8 +79,8 @@ function ListFormModal({ list, onClose }: { list: EmailListDto | null; onClose: 
         toast.success(t("listFormModal.toasts.created"));
       }
       onClose();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("listFormModal.toasts.saveFailed"));
+    } catch {
+      toast.error(t("listFormModal.toasts.saveFailed"));
     }
   }
 
@@ -195,8 +195,8 @@ function MembersModal({ list, canManage, canExport, onClose }: { list: EmailList
       await addMutation.mutateAsync({ listId: list.id, email: manualEmail, firstName: manualFirst, lastName: manualLast });
       toast.success(t("membersModal.toasts.added"));
       setManualEmail(""); setManualFirst(""); setManualLast("");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("membersModal.toasts.addFailed"));
+    } catch {
+      toast.error(t("membersModal.toasts.addFailed"));
     }
   }
 
@@ -213,8 +213,8 @@ function MembersModal({ list, canManage, canExport, onClose }: { list: EmailList
         toast.success(t("membersModal.toasts.addedFromCrm"));
       }
       setCrmContactId(""); setCrmContactLabel("");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("membersModal.toasts.addFailed"));
+    } catch {
+      toast.error(t("membersModal.toasts.addFailed"));
     }
   }
 
@@ -223,8 +223,8 @@ function MembersModal({ list, canManage, canExport, onClose }: { list: EmailList
     try {
       await removeMutation.mutateAsync({ listId: list.id, recipientId: member.id });
       toast.success(t("membersModal.toasts.removed"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("membersModal.toasts.removeFailed"));
+    } catch {
+      toast.error(t("membersModal.toasts.removeFailed"));
     }
   }
 
@@ -440,8 +440,8 @@ export function ContactsTab({ canManage, canExport }: { canManage: boolean; canE
     try {
       await deleteMutation.mutateAsync(list.id);
       toast.success(t("contacts.toasts.deleted"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("contacts.toasts.deleteFailed"));
+    } catch {
+      toast.error(t("contacts.toasts.deleteFailed"));
     }
   }
 

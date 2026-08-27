@@ -34,6 +34,11 @@ export type Permission =
   // listing, opportunity, or tour assigned to them (record-level check in
   // the contact actions) — mirrors the leads:view_all pattern.
   | "contacts:view_all"
+  // Bypasses phone/email masking (see contactRecordScope / toContactDto in
+  // contact-actions.ts) regardless of assignedAgentId. Only ADMIN/MANAGER
+  // hold this — AGENT sees a contact's phone/email unmasked only when they
+  // are its assignedAgentId.
+  | "contacts:viewSensitiveInfo"
   | "contacts:create"
   | "contacts:update"
   | "contacts:delete"
@@ -136,6 +141,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "invitations:inviteAdmin",
     "contacts:view",
     "contacts:view_all",
+    "contacts:viewSensitiveInfo",
     "contacts:create",
     "contacts:update",
     "contacts:delete",
@@ -208,6 +214,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "agents:view",
     "contacts:view",
     "contacts:view_all",
+    "contacts:viewSensitiveInfo",
     "contacts:create",
     "contacts:update",
     "contacts:archive",

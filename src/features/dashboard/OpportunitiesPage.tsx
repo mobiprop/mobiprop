@@ -340,8 +340,8 @@ export function OpportunitiesPage({
       }
       const { opportunity } = await createMutation.mutateAsync(payload);
       return opportunity;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("page.toasts.saveFailed"));
+    } catch {
+      toast.error(t("page.toasts.saveFailed"));
       return null;
     }
   }
@@ -351,8 +351,8 @@ export function OpportunitiesPage({
     try {
       await deleteMutation.mutateAsync(opp.id);
       toast.success(t("page.toasts.deleted"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("page.toasts.deleteFailed"));
+    } catch {
+      toast.error(t("page.toasts.deleteFailed"));
     }
   }
 

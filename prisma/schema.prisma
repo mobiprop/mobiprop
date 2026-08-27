@@ -429,9 +429,15 @@ model Location {
 
 // ── CRM ────────────────────────────────────────────────────────────────────────
 
+// BOTH is retired (superseded by Contact.roles holding multiple values) but
+// kept in the enum type — Postgres can't cheaply drop an enum value, and old
+// rows/activity-log snapshots may still reference it.
 enum ContactType {
   BUYER
   SELLER
+  TENANT
+  OWNER
+  REAL_ESTATE_COMPANY
   BOTH
 }
 
@@ -454,25 +460,29 @@ enum Currency {
   ARS
 }
 
-// CRM contact — a buyer, seller, or both. Linked to properties via the
-// ContactProperty join table and to pipeline records via opportunities.
+// CRM contact — one or more roles (buyer/seller/tenant/owner/real estate
+// company). Linked to properties via the ContactProperty join table and to
+// pipeline records via opportunities.
 model Contact {
-  id              String      @id @default(cuid())
-  contactId       String      @unique @map("contact_id")
-  firstName       String      @map("first_name")
-  lastName        String      @map("last_name")
+  id              String        @id @default(cuid())
+  contactId       String        @unique @map("contact_id")
+  firstName       String        @map("first_name")
+  lastName        String        @map("last_name")
   email           String?
   phone           String?
   location        String?
   address         String?
-  type            ContactType @default(BUYER)
+  // Replaces the old single `type` column (still present in the DB,
+  // unmapped here, holding pre-migration data as a safety net — see
+  // migration 20260827020000_add_contact_roles_array).
+  roles           ContactType[] @default([BUYER])
   notes           String?
-  isDeleted       Boolean     @default(false) @map("is_deleted")
-  deletedAt       DateTime?   @map("deleted_at")
-  assignedAgentId String?     @map("assigned_agent_id") @db.Uuid
-  createdById     String?     @map("created_by_id") @db.Uuid
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
+  isDeleted       Boolean       @default(false) @map("is_deleted")
+  deletedAt       DateTime?     @map("deleted_at")
+  assignedAgentId String?       @map("assigned_agent_id") @db.Uuid
+  createdById     String?       @map("created_by_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
   properties              ContactProperty[]
   opportunityParticipants OpportunityParticipant[]
@@ -480,7 +490,7 @@ model Contact {
   tours                   Tour[]
 
   @@index([email], map: "contacts_email_idx")
-  @@index([type], map: "contacts_type_idx")
+  @@index([roles], map: "contacts_roles_idx", type: Gin)
   @@index([assignedAgentId], map: "contacts_agent_idx")
   @@index([isDeleted], map: "contacts_is_deleted_idx")
   @@map("contacts")
@@ -661,6 +671,7 @@ enum LeadSource {
   SOCIAL_MEDIA
   IMPORT
   EXTERNAL_API
+  ZONAPROP
   OTHER
 }
 

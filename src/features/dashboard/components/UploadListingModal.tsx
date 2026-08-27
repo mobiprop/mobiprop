@@ -492,7 +492,7 @@ export function UploadListingModal({
         const contacts: ContactDto[] = json.contacts ?? [];
         setSellerContacts(
           contacts
-            .filter((c) => c.type === ContactType.SELLER || c.type === ContactType.BOTH)
+            .filter((c) => c.roles.includes(ContactType.SELLER))
             .map((c) => ({ id: c.id, fullName: c.fullName, contactId: c.contactId })),
         );
       })
@@ -2034,8 +2034,8 @@ export function UploadListingModal({
               setValue("fullAddress", location.address, { shouldDirty: true, shouldValidate: true });
               toast.success(t("uploadModal.toasts.locationAdded"));
               setShowAddLocation(false);
-            } catch (err) {
-              toast.error(err instanceof Error ? err.message : t("uploadModal.toasts.addLocationFailed"));
+            } catch {
+              toast.error(t("uploadModal.toasts.addLocationFailed"));
             }
           }}
         />

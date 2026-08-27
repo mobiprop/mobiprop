@@ -22,11 +22,14 @@ export type ContactDto = {
   phone: string | null;
   location: string | null;
   address: string | null;
-  type: ContactType;
+  roles: ContactType[];
   notes: string | null;
   isDeleted: boolean;
   deletedAt: string | null;
   assignedAgentId: string | null;
+  // True when email/phone below are the masked placeholder (viewer isn't the
+  // assigned agent or contacts:viewSensitiveInfo) rather than real values.
+  contactInfoMasked: boolean;
   properties: ContactPropertyDto[];
   createdAt: string;
   updatedAt: string;
@@ -34,9 +37,13 @@ export type ContactDto = {
 
 export type ContactMetrics = {
   total: number;
+  // Per-role counts — not mutually exclusive (a contact with multiple roles
+  // counts in each), so these don't have to sum to `total`.
   buyers: number;
   sellers: number;
-  both: number;
+  tenants: number;
+  owners: number;
+  realEstateCompanies: number;
   withListings: number;
   withOpportunities: number;
 };
@@ -144,7 +151,7 @@ export type LeadContactDto = {
   email: string | null;
   phone: string | null;
   location: string | null;
-  type: ContactType;
+  roles: ContactType[];
 };
 
 export type LeadDto = {

@@ -27,7 +27,7 @@ export type SearchContactResult = {
   fullName: string;
   email: string | null;
   phone: string | null;
-  type: string;
+  roles: string[];
   assignedListings: number;
 };
 
@@ -176,7 +176,7 @@ export async function GET(req: Request) {
     fullName: `${c.firstName} ${c.lastName}`.trim(),
     email: c.email,
     phone: c.phone,
-    type: c.type,
+    roles: c.roles,
     assignedListings: c.properties.length,
   }));
 

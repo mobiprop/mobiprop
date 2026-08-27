@@ -1,26 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { X, Home, Trash2 } from "lucide-react";
+import { X, Home, Trash2, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { ContactType } from "@/generated/prisma/enums";
 import { ListingPicker } from "./ListingPicker";
-import { SearchableSelect } from "./SearchableSelect";
+import { AgentSelect } from "./AgentSelect";
+import { ContactRolesSelect } from "./ContactRolesSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
 export type EditContactInput = {
   firstName: string;
   lastName: string;
-  email: string;
-  phone: string;
-  type: ContactType;
+  // Omitted entirely (not sent as an empty/placeholder string) when the
+  // viewer can't see the real value, so the server leaves it untouched.
+  email?: string;
+  phone?: string;
+  roles: ContactType[];
   location: string;
   address: string;
   notes: string;
   propertyIds: string[];
+  assignedAgentId: string | null;
 };
 
 type EditContactModalProps = {
@@ -28,6 +32,10 @@ type EditContactModalProps = {
   onClose: () => void;
   onSave: (id: string, input: EditContactInput) => void;
   isSaving?: boolean;
+  // Locks the "Assigned Agent" field to the current user for AGENT holders
+  // (mirrors OpportunitiesPage/LeadDetailPage) — null lets ADMIN/MANAGER
+  // reassign via the full picker.
+  lockedAgent: { id: string; name: string } | null;
 };
 
 const inputClass =
@@ -36,28 +44,30 @@ const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
 type PropertyRow = { id: string; label: string };
 
-export function EditContactModal({ contact, onClose, onSave, isSaving }: EditContactModalProps) {
+export function EditContactModal({ contact, onClose, onSave, isSaving, lockedAgent }: EditContactModalProps) {
   const { t } = useTranslation("contacts");
-  const CONTACT_TYPE_OPTIONS = [
-    { value: ContactType.BUYER, label: t("type.buyer") },
-    { value: ContactType.SELLER, label: t("type.seller") },
-    { value: ContactType.BOTH, label: t("type.both") },
-  ];
   const [firstName, setFirstName] = useState(contact.firstName);
   const [lastName, setLastName] = useState(contact.lastName);
   const [email, setEmail] = useState(contact.email ?? "");
   const [phone, setPhone] = useState(contact.phone ?? "");
-  const [type, setType] = useState<ContactType>(contact.type);
+  const [roles, setRoles] = useState<ContactType[]>(contact.roles);
   const [location, setLocation] = useState(contact.location ?? "");
   const [address, setAddress] = useState(contact.address ?? "");
   const [notes, setNotes] = useState(contact.notes ?? "");
+  const [assignedAgentId, setAssignedAgentId] = useState(
+    lockedAgent?.id ?? contact.assignedAgentId ?? "",
+  );
   const [propertyRows, setPropertyRows] = useState<PropertyRow[]>(
     contact.properties
       .filter((p) => p.role === "OWNER")
       .map((p) => ({ id: p.id, label: `${p.listingId} — ${p.title}` })),
   );
 
-  const isSellerType = type === ContactType.SELLER || type === ContactType.BOTH;
+  // Phone/email are masked (contact.contactInfoMasked) when the viewer isn't
+  // the assigned agent — never let the placeholder round-trip as a real edit.
+  const contactInfoLocked = contact.contactInfoMasked;
+
+  const isSellerType = roles.includes(ContactType.SELLER);
 
   function updatePropertyRow(index: number, id: string, label: string) {
     setPropertyRows((prev) => prev.map((p, i) => (i === index ? { id, label } : p)));
@@ -76,13 +86,16 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
     onSave(contact.id, {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      type,
+      // Disabled fields hold the mask placeholder in state, which isn't a
+      // real value — omit them so the server leaves email/phone untouched
+      // instead of validating/saving the placeholder itself.
+      ...(contactInfoLocked ? {} : { email: email.trim(), phone: phone.trim() }),
+      roles,
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
       propertyIds: isSellerType ? propertyRows.map((p) => p.id).filter(Boolean) : [],
+      assignedAgentId: assignedAgentId || null,
     });
   }
 
@@ -148,6 +161,9 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
                 placeholder={t("fields.emailPlaceholder")}
                 className={inputClass}
                 style={mont}
+                disabled={contactInfoLocked}
+                readOnly={contactInfoLocked}
+                title={contactInfoLocked ? t("fields.contactInfoMaskedHint") : undefined}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -159,36 +175,51 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
                 placeholder={t("fields.phonePlaceholder")}
                 className={inputClass}
                 style={mont}
+                disabled={contactInfoLocked}
+                readOnly={contactInfoLocked}
+                title={contactInfoLocked ? t("fields.contactInfoMaskedHint") : undefined}
               />
             </div>
           </div>
-          {!email.trim() && !phone.trim() && (
+          {contactInfoLocked && (
+            <p className="-mt-3 flex items-center gap-1.5 text-[12px] text-[#6a7282]" style={mont}>
+              <Lock size={12} className="shrink-0" />
+              {t("fields.contactInfoMaskedHint")}
+            </p>
+          )}
+          {!contactInfoLocked && !email.trim() && !phone.trim() && (
             <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>{t("fields.provideEmailOrPhone")}</p>
           )}
 
-          {/* Contact Type / Location */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>{t("fields.contactType")}</label>
-              <SearchableSelect
-                size="sm"
-                searchable={false}
-                value={type}
-                onChange={(next) => setType(next as ContactType)}
-                options={CONTACT_TYPE_OPTIONS}
-                placeholder={t("fields.selectType")}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>{t("fields.location")}</label>
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder={t("fields.locationPlaceholder")}
-                className={inputClass}
-                style={mont}
-              />
-            </div>
+          {/* Assigned Agent */}
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} style={mont}>{t("fields.assignedAgent")}</label>
+            <AgentSelect
+              value={assignedAgentId}
+              onChange={setAssignedAgentId}
+              lockedAgent={lockedAgent}
+            />
+          </div>
+
+          {/* Contact Roles */}
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} style={mont}>{t("fields.contactType")}</label>
+            <ContactRolesSelect value={roles} onChange={setRoles} />
+            {roles.length === 0 && (
+              <p className="text-[12px] text-[#b45309]" style={mont}>{t("fields.selectAtLeastOneRole")}</p>
+            )}
+          </div>
+
+          {/* Location */}
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass} style={mont}>{t("fields.location")}</label>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder={t("fields.locationPlaceholder")}
+              className={inputClass}
+              style={mont}
+            />
           </div>
 
           {/* Address */}
@@ -281,7 +312,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving }: EditCon
             </button>
             <button
               type="submit"
-              disabled={isSaving || (!email.trim() && !phone.trim())}
+              disabled={isSaving || roles.length === 0 || (!email.trim() && !phone.trim())}
               className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >

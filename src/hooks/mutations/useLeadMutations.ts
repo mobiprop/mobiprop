@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
 import type { CreateLeadInput, UpdateLeadInput, AssignLeadInput, AddLeadNoteInput, LinkLeadConversionInput } from "@/schemas/lead.schema";
+import type { LeadSource } from "@/generated/prisma/enums";
 
 // ── Create ────────────────────────────────────────────────────────────────────
 
@@ -187,11 +188,17 @@ export type ImportLeadsResult = {
   errors: { row: number; message: string }[];
 };
 
-async function postImportLeads(rows: Record<string, unknown>[]): Promise<ImportLeadsResult> {
+async function postImportLeads({
+  rows,
+  source,
+}: {
+  rows: Record<string, unknown>[];
+  source?: LeadSource;
+}): Promise<ImportLeadsResult> {
   const res = await fetch("/api/dashboard/leads/import", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rows }),
+    body: JSON.stringify({ rows, source }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? "Failed to import leads");

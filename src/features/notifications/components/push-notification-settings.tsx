@@ -72,7 +72,7 @@ export function PushNotificationSettings() {
         toast.error(t("notifications.push.toasts.permissionBlocked"));
         return;
       }
-      toast.error(error instanceof Error ? error.message : t("notifications.push.toasts.enableFailed"));
+      toast.error(t("notifications.push.toasts.enableFailed"));
     }
   }
 
@@ -84,8 +84,8 @@ export function PushNotificationSettings() {
       } else {
         toast.success(t("notifications.push.toasts.disabled"));
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("notifications.push.toasts.disableFailed"));
+    } catch {
+      toast.error(t("notifications.push.toasts.disableFailed"));
     }
   }
 
@@ -97,11 +97,10 @@ export function PushNotificationSettings() {
       } else if (result.skipped > 0) {
         toast.warning(t("notifications.push.toasts.testSkipped"));
       } else {
-        const reason = result.lastError ? `: ${result.lastError}` : "";
-        toast.error(t("notifications.push.toasts.testFailed", { reason }));
+        toast.error(t("notifications.push.toasts.testFailed"));
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("notifications.push.toasts.testFailedGeneric"));
+    } catch {
+      toast.error(t("notifications.push.toasts.testFailedGeneric"));
     }
   }
 

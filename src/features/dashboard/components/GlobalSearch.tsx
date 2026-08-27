@@ -123,7 +123,7 @@ function ContactRow({ c, focused, onClick }: { c: SearchContactResult; focused: 
           {c.contactId} · {c.email ?? c.phone ?? "—"} · {t("globalSearch.assignedListings", { count: c.assignedListings })}
         </p>
       </div>
-      <StatusChip status={c.type} />
+      <StatusChip status={c.roles[0]} />
     </button>
   );
 }
