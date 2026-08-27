@@ -212,7 +212,6 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     AGENCY: t("addModal.participantsSection.roles.AGENCY"),
   };
   const ROLE_OPTIONS = ROLE_VALUES.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
-  const CONTACT_ROLE_OPTIONS = ROLE_OPTIONS.filter((o) => o.value !== "AGENCY");
   const DEAL_TYPE_OPTIONS: { value: "Rent" | "Sale"; label: string }[] = [
     { value: "Rent", label: t("addModal.dealTypeOptions.RENT") },
     { value: "Sale", label: t("addModal.dealTypeOptions.SALE") },
@@ -973,7 +972,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
                       searchable={false}
                       value={ncRole}
                       onChange={(next) => setNcRole(next as OpportunityParticipantRole)}
-                      options={CONTACT_ROLE_OPTIONS}
+                      options={ROLE_OPTIONS}
                       placeholder={t("addModal.participantsSection.newPanel.selectRole")}
                     />
                   </div>

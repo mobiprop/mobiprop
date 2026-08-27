@@ -217,13 +217,13 @@ function RowMenu({ label, items }: { label: string; items: RowMenuItem[] }) {
 
 function fmt(n: number | null) {
   if (n === null) return "—";
-  return `$${n.toLocaleString("en-US")}`;
+  return `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 /** Per-deal figure prefixed with its own currency — dealSize is native-currency, unlike the USD-only dashboard aggregates. */
 function fmtWithCurrency(n: number | null, currency: Currency) {
   if (n === null) return "—";
-  return `${currency} $${n.toLocaleString(currency === "ARS" ? "es-AR" : "en-US")}`;
+  return `${currency} $${n.toLocaleString(currency === "ARS" ? "es-AR" : "en-US", { maximumFractionDigits: 0 })}`;
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

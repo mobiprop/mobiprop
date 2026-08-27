@@ -98,8 +98,12 @@ function resolveDateRange(input: DashboardDateRangeInput) {
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
+// These metric cards are always company-wide/agent revenue already converted
+// to USD (see resolveCompanyRevenueUsd/resolveAgentEarningsUsd below) — the
+// prefix is a fixed "USD", matching the "USD $"/"ARS $" pattern used
+// everywhere else money is shown (see src/lib/formatters.ts).
 function fmtMoney(n: number): string {
-  return `$${Math.round(n).toLocaleString("en-US")}`;
+  return `USD $${Math.round(n).toLocaleString("en-US")}`;
 }
 
 function trendFrom(

@@ -238,6 +238,7 @@ function Badge({
 
 function formatBudget(
   lead: Pick<LeadDto, "budgetMin" | "budgetMax" | "currency">,
+  t: (key: string, options?: Record<string, unknown>) => string,
 ): string {
   if (!lead.budgetMin && !lead.budgetMax) return "—";
 
@@ -255,8 +256,8 @@ function formatBudget(
     )}`;
   }
 
-  if (lead.budgetMax) return `Up to ${formatAmount(lead.budgetMax)}`;
-  return `From ${formatAmount(lead.budgetMin!)}`;
+  if (lead.budgetMax) return t("detail.budgetUpTo", { amount: formatAmount(lead.budgetMax) });
+  return t("detail.budgetFrom", { amount: formatAmount(lead.budgetMin!) });
 }
 
 function formatDateValue(
@@ -791,7 +792,7 @@ export function LeadDetailPage({
                 className="mt-2 truncate text-[16px] font-semibold text-[#0d2138]"
                 style={mont}
               >
-                {formatBudget(lead)}
+                {formatBudget(lead, t)}
               </p>
             </div>
             <div className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#d1fae5]">
@@ -910,7 +911,7 @@ export function LeadDetailPage({
               }
             />
             <InfoRow label={t("detail.fields.sourceDetail")} value={lead.sourceDetail} />
-            <InfoRow label={t("detail.fields.budget")} value={formatBudget(lead)} />
+            <InfoRow label={t("detail.fields.budget")} value={formatBudget(lead, t)} />
             <InfoRow
               label={t("detail.fields.assignedAgent")}
               value={

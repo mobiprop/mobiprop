@@ -17,6 +17,7 @@ import {
   type NotificationPreferences,
   type SecurityPreferences,
 } from "./preferences";
+import { PROFILE_ERROR_CODES as CODE } from "./error-codes";
 
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_AVATAR_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
@@ -31,7 +32,7 @@ function trimmed(formData: FormData, key: string) {
 
 export async function updateProfile(formData: FormData): Promise<UpdateProfileResult> {
   const profile = await getCurrentProfile();
-  if (!profile) return { error: "You must be signed in." };
+  if (!profile) return { error: CODE.AUTH_REQUIRED };
 
   const firstName = trimmed(formData, "firstName");
   const lastName = trimmed(formData, "lastName");
@@ -44,26 +45,26 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
   const removePhoto = formData.get("removeAvatar") === "true";
   const avatarFile = formData.get("avatar");
 
-  if (!firstName) return { error: "First name is required." };
-  if (!lastName) return { error: "Last name is required." };
+  if (!firstName) return { error: CODE.FIRST_NAME_REQUIRED };
+  if (!lastName) return { error: CODE.LAST_NAME_REQUIRED };
   if (description.length > MAX_DESCRIPTION_LENGTH) {
-    return { error: `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer.` };
+    return { error: CODE.DESCRIPTION_TOO_LONG };
   }
 
   let avatarUrl = profile.avatarUrl;
 
   if (avatarFile instanceof File && avatarFile.size > 0) {
     if (avatarFile.size > MAX_AVATAR_SIZE) {
-      return { error: "Image must be smaller than 5MB." };
+      return { error: CODE.AVATAR_TOO_LARGE };
     }
     if (!ALLOWED_AVATAR_TYPES.has(avatarFile.type)) {
-      return { error: "Image must be a PNG, JPEG, WEBP or GIF." };
+      return { error: CODE.AVATAR_INVALID_TYPE };
     }
 
     try {
       avatarUrl = await uploadAvatar(profile.id, avatarFile);
-    } catch (err) {
-      return { error: err instanceof Error ? err.message : "Failed to upload photo." };
+    } catch {
+      return { error: CODE.AVATAR_UPLOAD_FAILED };
     }
   } else if (removePhoto && profile.avatarUrl) {
     await removeAvatar(profile.id);
@@ -117,7 +118,7 @@ export async function updateProfile(formData: FormData): Promise<UpdateProfileRe
     return { profile: updated };
   } catch (err) {
     console.error("updateProfile failed", err);
-    return { error: "Failed to save your profile. Please try again." };
+    return { error: CODE.PROFILE_SAVE_FAILED };
   }
 }
 
@@ -140,7 +141,7 @@ async function updatePreferencesSection(
     | LocalePreferences,
 ): Promise<UpdateProfileResult> {
   const profile = await getCurrentProfile();
-  if (!profile) return { error: "You must be signed in." };
+  if (!profile) return { error: CODE.AUTH_REQUIRED };
 
   try {
     const current = resolvePreferences(profile);
@@ -165,7 +166,7 @@ async function updatePreferencesSection(
     return { profile: updated };
   } catch (err) {
     console.error(`updatePreferencesSection(${section}) failed`, err);
-    return { error: "Failed to save your preferences. Please try again." };
+    return { error: CODE.PREFERENCES_SAVE_FAILED };
   }
 }
 
@@ -183,7 +184,7 @@ export async function updateDashboardNotificationPreferences(
   prefs: DashboardNotificationPreferences,
 ): Promise<UpdateProfileResult> {
   const guard = await requirePermission("settings:view");
-  if (!guard.ok) return { error: guard.error };
+  if (!guard.ok) return { error: CODE.PERMISSION_DENIED };
 
   return updatePreferencesSection("dashboardNotifications", prefs);
 }
@@ -202,29 +203,29 @@ export async function updateLocalePreferences(
 
 const passwordSchema = z
   .string()
-  .min(8, "Password must be at least 8 characters long.")
-  .regex(/[a-z]/, "Password must contain a lowercase letter.")
-  .regex(/[A-Z]/, "Password must contain an uppercase letter.")
-  .regex(/\d/, "Password must include at least one number.")
-  .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character.");
+  .min(8, CODE.PASSWORD_TOO_SHORT)
+  .regex(/[a-z]/, CODE.PASSWORD_MISSING_LOWERCASE)
+  .regex(/[A-Z]/, CODE.PASSWORD_MISSING_UPPERCASE)
+  .regex(/\d/, CODE.PASSWORD_MISSING_NUMBER)
+  .regex(/[^a-zA-Z0-9]/, CODE.PASSWORD_MISSING_SPECIAL);
 
 export async function changePassword(formData: FormData): Promise<ActionResult> {
   const profile = await getCurrentProfile();
-  if (!profile) return { error: "You must be signed in." };
+  if (!profile) return { error: CODE.AUTH_REQUIRED };
 
   const currentPassword = (formData.get("currentPassword") as string | null) ?? "";
   const newPassword = (formData.get("newPassword") as string | null) ?? "";
   const confirmPassword = (formData.get("confirmPassword") as string | null) ?? "";
 
-  if (!currentPassword) return { error: "Enter your current password." };
+  if (!currentPassword) return { error: CODE.CURRENT_PASSWORD_REQUIRED };
 
   const parsed = passwordSchema.safeParse(newPassword);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Password does not meet the requirements." };
+    return { error: parsed.error.issues[0]?.message ?? CODE.PASSWORD_TOO_SHORT };
   }
-  if (newPassword !== confirmPassword) return { error: "New passwords do not match." };
+  if (newPassword !== confirmPassword) return { error: CODE.PASSWORDS_DONT_MATCH };
   if (newPassword === currentPassword) {
-    return { error: "New password must be different from your current password." };
+    return { error: CODE.PASSWORD_SAME_AS_CURRENT };
   }
 
   try {
@@ -235,10 +236,10 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
       email: profile.email,
       password: currentPassword,
     });
-    if (signInError) return { error: "Current password is incorrect." };
+    if (signInError) return { error: CODE.CURRENT_PASSWORD_INCORRECT };
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) return { error: error.message };
+    if (error) return { error: CODE.PASSWORD_UPDATE_REJECTED };
 
     // Audit trail only — never log password values.
     await logActivity({
@@ -250,21 +251,21 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
 
     return { success: true };
   } catch {
-    return { error: "Failed to update your password. Please try again." };
+    return { error: CODE.PASSWORD_UPDATE_FAILED };
   }
 }
 
 export async function logoutOtherSessions(): Promise<ActionResult> {
   const profile = await getCurrentProfile();
-  if (!profile) return { error: "You must be signed in." };
+  if (!profile) return { error: CODE.AUTH_REQUIRED };
 
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.signOut({ scope: "others" });
-    if (error) return { error: error.message };
+    if (error) return { error: CODE.LOGOUT_OTHER_SESSIONS_FAILED };
 
     return { success: true };
   } catch {
-    return { error: "Failed to log out other sessions. Please try again." };
+    return { error: CODE.LOGOUT_OTHER_SESSIONS_FAILED };
   }
 }

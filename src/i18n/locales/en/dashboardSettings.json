@@ -61,17 +61,50 @@
     "heading": "Notification Preferences",
     "saveError": "Failed to save your notification preferences. Please try again.",
     "items": {
-      "emailEnabled": { "title": "Email Notifications", "description": "Receive email updates about your activity" },
-      "pushEnabled": { "title": "Push Notifications", "description": "Master switch for browser push on your devices" },
-      "newMessages": { "title": "New Messages", "description": "Get notified when you receive a new message" },
-      "newLeads": { "title": "New Leads", "description": "Alert when a new lead is added" },
-      "leadAssignments": { "title": "Lead Assignments", "description": "When a lead is assigned or reassigned to you" },
-      "tourUpdates": { "title": "Tour Updates", "description": "Tour requests, confirmations, and changes" },
-      "listingUpdates": { "title": "Listing Updates", "description": "When a listing is assigned or changes status" },
-      "opportunityUpdates": { "title": "Opportunity Updates", "description": "Pipeline stage and outcome changes" },
-      "signatureUpdates": { "title": "Signature Updates", "description": "DocuSign envelope sent, signed, declined, or expiring" },
-      "weeklyReports": { "title": "Weekly Reports", "description": "Receive weekly performance reports" },
-      "marketingUpdates": { "title": "Marketing Updates", "description": "Updates about new features and products" }
+      "emailEnabled": {
+        "title": "Email Notifications",
+        "description": "Receive email updates about your activity"
+      },
+      "pushEnabled": {
+        "title": "Push Notifications",
+        "description": "Master switch for browser push on your devices"
+      },
+      "newMessages": {
+        "title": "New Messages",
+        "description": "Get notified when you receive a new message"
+      },
+      "newLeads": {
+        "title": "New Leads",
+        "description": "Alert when a new lead is added"
+      },
+      "leadAssignments": {
+        "title": "Lead Assignments",
+        "description": "When a lead is assigned or reassigned to you"
+      },
+      "tourUpdates": {
+        "title": "Tour Updates",
+        "description": "Tour requests, confirmations, and changes"
+      },
+      "listingUpdates": {
+        "title": "Listing Updates",
+        "description": "When a listing is assigned or changes status"
+      },
+      "opportunityUpdates": {
+        "title": "Opportunity Updates",
+        "description": "Pipeline stage and outcome changes"
+      },
+      "signatureUpdates": {
+        "title": "Signature Updates",
+        "description": "DocuSign envelope sent, signed, declined, or expiring"
+      },
+      "weeklyReports": {
+        "title": "Weekly Reports",
+        "description": "Receive weekly performance reports"
+      },
+      "marketingUpdates": {
+        "title": "Marketing Updates",
+        "description": "Updates about new features and products"
+      }
     },
     "push": {
       "title": "Browser Push Notifications",
@@ -149,5 +182,30 @@
     "success": "Preferences saved successfully.",
     "saving": "Saving...",
     "savePreferences": "Save Preferences"
+  },
+  "profileErrors": {
+    "AUTH_REQUIRED": "You must be signed in.",
+    "PERMISSION_DENIED": "You do not have permission to do this.",
+    "FIRST_NAME_REQUIRED": "First name is required.",
+    "LAST_NAME_REQUIRED": "Last name is required.",
+    "DESCRIPTION_TOO_LONG": "Description must be 250 characters or fewer.",
+    "AVATAR_TOO_LARGE": "Image must be smaller than 5MB.",
+    "AVATAR_INVALID_TYPE": "Image must be a PNG, JPEG, WEBP or GIF.",
+    "AVATAR_UPLOAD_FAILED": "Failed to upload photo.",
+    "PROFILE_SAVE_FAILED": "Failed to save your profile. Please try again.",
+    "PREFERENCES_SAVE_FAILED": "Failed to save your preferences. Please try again.",
+    "CURRENT_PASSWORD_REQUIRED": "Enter your current password.",
+    "PASSWORD_TOO_SHORT": "Password must be at least 8 characters long.",
+    "PASSWORD_MISSING_LOWERCASE": "Password must contain a lowercase letter.",
+    "PASSWORD_MISSING_UPPERCASE": "Password must contain an uppercase letter.",
+    "PASSWORD_MISSING_NUMBER": "Password must include at least one number.",
+    "PASSWORD_MISSING_SPECIAL": "Password must contain at least one special character.",
+    "PASSWORDS_DONT_MATCH": "New passwords do not match.",
+    "PASSWORD_SAME_AS_CURRENT": "New password must be different from your current password.",
+    "CURRENT_PASSWORD_INCORRECT": "Current password is incorrect.",
+    "PASSWORD_UPDATE_REJECTED": "The server rejected the new password. Try a different one.",
+    "PASSWORD_UPDATE_FAILED": "Failed to update your password. Please try again.",
+    "LOGOUT_OTHER_SESSIONS_FAILED": "Failed to log out other sessions. Please try again.",
+    "GENERIC": "Something went wrong. Please try again."
   }
 }

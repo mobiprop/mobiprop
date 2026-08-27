@@ -483,39 +483,27 @@ return (
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_120px]">
               <div className="relative">
-                <span
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]"
-                  style={mont}
-                >
-                  {t("addModal.budgetMin")}
-                </span>
-
                 <input
                   value={budgetMin}
                   onChange={(e) =>
                     setBudgetMin(e.target.value)
                   }
                   inputMode="numeric"
-                  className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
+                  placeholder={t("addModal.budgetMin")}
+                  className="h-10 w-full rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                   style={mont}
                 />
               </div>
 
               <div className="relative">
-                <span
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6a7282]"
-                  style={mont}
-                >
-                  {t("addModal.budgetMax")}
-                </span>
-
                 <input
                   value={budgetMax}
                   onChange={(e) =>
                     setBudgetMax(e.target.value)
                   }
                   inputMode="numeric"
-                  className="h-10 w-full rounded-[10px] border border-[#e5e7eb] pl-9 pr-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
+                  placeholder={t("addModal.budgetMax")}
+                  className="h-10 w-full rounded-[10px] border border-[#e5e7eb] px-3 text-[12px] text-[#0d2138] outline-none transition-colors placeholder:text-[#6a7282] focus:border-[#1e4f86]"
                   style={mont}
                 />
               </div>

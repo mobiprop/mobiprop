@@ -62,7 +62,7 @@ function StatusChip({ status }: { status: string }) {
 
 function fmtMoney(n: number | null) {
   if (n === null) return null;
-  return `$${n.toLocaleString("en-US")}`;
+  return `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────

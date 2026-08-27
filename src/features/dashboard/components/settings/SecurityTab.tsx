@@ -8,6 +8,7 @@ import {
   changePassword,
   updateSecurityPreferences,
 } from "@/features/profile/actions";
+import { translateProfileError } from "@/features/profile/error-codes";
 import { resolvePreferences } from "@/features/profile/preferences";
 import type { Profile } from "@/generated/prisma/client";
 import { Toggle } from "./Toggle";
@@ -104,7 +105,7 @@ export function SecurityTab({ profile }: SecurityTabProps) {
       const result = await changePassword(formData);
 
       if ("error" in result) {
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
         return;
       }
 

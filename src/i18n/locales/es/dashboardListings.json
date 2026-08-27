@@ -221,7 +221,11 @@
       "area": "Superficie",
       "description": "Descripción",
       "descriptionPlaceholder": "Describe la propiedad, sus características y puntos de venta únicos...",
-      "featuresAmenities": "Características y Amenidades",
+      "featureGroups": {
+        "property": "I) Características de la propiedad",
+        "equipment": "II) Equipamiento y servicios",
+        "amenitiesExterior": "III) Amenities y exteriores"
+      },
       "videoUrl": "URL de Video",
       "videoUrlHint": "Opcional. Se muestra como vista previa de video sobre el mapa en la página pública de la propiedad.",
       "listingImages": "Imágenes de la Propiedad",

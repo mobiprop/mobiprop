@@ -221,7 +221,11 @@
       "area": "Area",
       "description": "Description",
       "descriptionPlaceholder": "Describe the listing, its features, and unique selling points...",
-      "featuresAmenities": "Features & Amenities",
+      "featureGroups": {
+        "property": "I) Property Characteristics",
+        "equipment": "II) Equipment & Services",
+        "amenitiesExterior": "III) Amenities & Exterior"
+      },
       "videoUrl": "Video URL",
       "videoUrlHint": "Optional. Shown as a video preview above the map on the public listing page.",
       "listingImages": "Listing Images",
