@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { translateProfileError } from "./error-codes";
 import {
   Bell,
   Clock,
@@ -419,7 +420,7 @@ function AccountTab({
     try {
       const result = await updateProfile(formData);
       if ("error" in result) {
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
         return;
       }
       onSaved(result.profile);
@@ -579,7 +580,7 @@ function NotificationsTab({
     try {
       const result = await updateNotificationPreferences(prefs);
       if ("error" in result) {
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
         return;
       }
       onSaved(result.profile);
@@ -689,7 +690,7 @@ function SecurityTab({
 
       const result = await changePassword(formData);
       if ("error" in result) {
-        setPasswordError(result.error);
+        setPasswordError(translateProfileError(result.error, t));
         return;
       }
       setPasswordSuccess(t("security.passwordUpdated"));
@@ -713,7 +714,7 @@ function SecurityTab({
       const result = await updateSecurityPreferences(next);
       if ("error" in result) {
         setPrefs(previous);
-        setPrefsError(result.error);
+        setPrefsError(translateProfileError(result.error, t));
         return;
       }
       onSaved(result.profile);
@@ -729,7 +730,7 @@ function SecurityTab({
     try {
       const result = await logoutOtherSessions();
       if ("error" in result) {
-        setSessionsMessage({ error: result.error });
+        setSessionsMessage({ error: translateProfileError(result.error, t) });
         return;
       }
       setSessionsMessage({ success: t("security.sessionsLoggedOut") });
@@ -922,7 +923,7 @@ function LanguageTab({
     try {
       const result = await updateLocalePreferences(locale);
       if ("error" in result) {
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
         return;
       }
       onSaved(result.profile);

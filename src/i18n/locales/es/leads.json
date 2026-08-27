@@ -244,6 +244,8 @@
       "created": "Creado",
       "lastUpdated": "Última Actualización"
     },
+    "budgetUpTo": "Hasta {{amount}}",
+    "budgetFrom": "Desde {{amount}}",
     "viewListing": "Ver Propiedad",
     "propertyFallback": "Propiedad",
     "temperatureLabel": "Temperatura",

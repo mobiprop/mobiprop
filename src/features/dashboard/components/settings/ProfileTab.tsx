@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Camera, Save } from "lucide-react";
 
 import { updateProfile } from "@/features/profile/actions";
+import { translateProfileError } from "@/features/profile/error-codes";
 import type { Profile } from "@/generated/prisma/client";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -90,7 +91,7 @@ export function ProfileTab({ profile }: ProfileTabProps) {
     try {
       const result = await updateProfile(formData);
       if ("error" in result) {
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
         return;
       }
       setSuccess(true);

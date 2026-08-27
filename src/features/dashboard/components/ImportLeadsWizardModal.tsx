@@ -32,23 +32,35 @@ const TARGET_FIELD_ORDER: TargetField[] = [
   "__ignore__",
 ];
 
-// Same normalization/aliases as the quick-fix importer already shipped in
-// LeadsPage.tsx — a file that maps cleanly there pre-fills identically here.
+// Recognizes both the client's real Zonaprop export headers and the
+// friendlier Spanish/English headers used in the sample import template
+// (docs/plantilla-importacion-prospectos) — anything else still works via
+// manual mapping in step 2, this is just what pre-fills automatically.
 const HEADER_ALIASES: Record<string, TargetField> = {
   name: "submittedName",
+  nombre: "submittedName",
   fullname: "submittedName",
   submittedname: "submittedName",
   nombreyapellido: "submittedName",
   email: "submittedEmail",
+  correo: "submittedEmail",
   emailaddress: "submittedEmail",
   phone: "submittedPhone",
+  telefono: "submittedPhone",
   phonenumber: "submittedPhone",
   telfono: "submittedPhone",
   location: "submittedLocation",
+  ubicacion: "submittedLocation",
+  ubicacin: "submittedLocation",
   barrio: "submittedLocation",
   budgetmin: "budgetMin",
+  presupuestominimo: "budgetMin",
+  presupuestomnimo: "budgetMin",
   budgetmax: "budgetMax",
+  presupuestomaximo: "budgetMax",
+  presupuestomximo: "budgetMax",
   notes: "notes",
+  notas: "notes",
   mensaje: "notes",
 };
 

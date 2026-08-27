@@ -55,15 +55,36 @@
     "emailSection": "Notificaciones por Correo",
     "pushSection": "Notificaciones Push",
     "email": {
-      "emailNewListings": { "title": "Nuevas Propiedades", "description": "Recibí un aviso cuando nuevas propiedades coincidan con tus preferencias" },
-      "emailPriceChanges": { "title": "Cambios de Precio", "description": "Alertas cuando cambia el precio de propiedades guardadas" },
-      "emailMessages": { "title": "Mensajes y Consultas", "description": "Recibí correos por nuevos mensajes de agentes" },
-      "emailNewsletter": { "title": "Boletín y Novedades", "description": "Resumen semanal de tendencias del mercado y consejos" }
+      "emailNewListings": {
+        "title": "Nuevas Propiedades",
+        "description": "Recibí un aviso cuando nuevas propiedades coincidan con tus preferencias"
+      },
+      "emailPriceChanges": {
+        "title": "Cambios de Precio",
+        "description": "Alertas cuando cambia el precio de propiedades guardadas"
+      },
+      "emailMessages": {
+        "title": "Mensajes y Consultas",
+        "description": "Recibí correos por nuevos mensajes de agentes"
+      },
+      "emailNewsletter": {
+        "title": "Boletín y Novedades",
+        "description": "Resumen semanal de tendencias del mercado y consejos"
+      }
     },
     "push": {
-      "pushNewListings": { "title": "Nuevas Propiedades", "description": "Alertas instantáneas de nuevas coincidencias de propiedades" },
-      "pushMessages": { "title": "Mensajes", "description": "Recibí un aviso inmediato cuando llegan mensajes" },
-      "pushPriceAlerts": { "title": "Alertas de Precio", "description": "Notificaciones de bajas de precio en tiempo real" }
+      "pushNewListings": {
+        "title": "Nuevas Propiedades",
+        "description": "Alertas instantáneas de nuevas coincidencias de propiedades"
+      },
+      "pushMessages": {
+        "title": "Mensajes",
+        "description": "Recibí un aviso inmediato cuando llegan mensajes"
+      },
+      "pushPriceAlerts": {
+        "title": "Alertas de Precio",
+        "description": "Notificaciones de bajas de precio en tiempo real"
+      }
     },
     "saved": "Preferencias de notificaciones guardadas.",
     "error": "Algo salió mal al guardar. Por favor, intentá nuevamente."
@@ -155,5 +176,30 @@
   "timeFormats": {
     "12h": "12 horas (2:30 PM)",
     "24h": "24 horas (14:30)"
+  },
+  "profileErrors": {
+    "AUTH_REQUIRED": "Debes iniciar sesión.",
+    "PERMISSION_DENIED": "No tenés permiso para hacer esto.",
+    "FIRST_NAME_REQUIRED": "El nombre es obligatorio.",
+    "LAST_NAME_REQUIRED": "El apellido es obligatorio.",
+    "DESCRIPTION_TOO_LONG": "La descripción debe tener 250 caracteres o menos.",
+    "AVATAR_TOO_LARGE": "La imagen debe pesar menos de 5MB.",
+    "AVATAR_INVALID_TYPE": "La imagen debe ser PNG, JPEG, WEBP o GIF.",
+    "AVATAR_UPLOAD_FAILED": "No se pudo subir la foto.",
+    "PROFILE_SAVE_FAILED": "No se pudo guardar tu perfil. Intenta de nuevo.",
+    "PREFERENCES_SAVE_FAILED": "No se pudieron guardar tus preferencias. Intenta de nuevo.",
+    "CURRENT_PASSWORD_REQUIRED": "Ingresa tu contraseña actual.",
+    "PASSWORD_TOO_SHORT": "La contraseña debe tener al menos 8 caracteres.",
+    "PASSWORD_MISSING_LOWERCASE": "La contraseña debe contener una letra minúscula.",
+    "PASSWORD_MISSING_UPPERCASE": "La contraseña debe contener una letra mayúscula.",
+    "PASSWORD_MISSING_NUMBER": "La contraseña debe incluir al menos un número.",
+    "PASSWORD_MISSING_SPECIAL": "La contraseña debe contener al menos un carácter especial.",
+    "PASSWORDS_DONT_MATCH": "Las contraseñas nuevas no coinciden.",
+    "PASSWORD_SAME_AS_CURRENT": "La nueva contraseña debe ser diferente de la actual.",
+    "CURRENT_PASSWORD_INCORRECT": "La contraseña actual es incorrecta.",
+    "PASSWORD_UPDATE_REJECTED": "El servidor rechazó la nueva contraseña. Probá con otra.",
+    "PASSWORD_UPDATE_FAILED": "No se pudo actualizar tu contraseña. Intenta de nuevo.",
+    "LOGOUT_OTHER_SESSIONS_FAILED": "No se pudo cerrar sesión en los otros dispositivos. Intenta de nuevo.",
+    "GENERIC": "Ocurrió un error. Intenta de nuevo."
   }
 }

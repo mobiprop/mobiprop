@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { PushNotificationSettings } from "@/features/notifications/components/push-notification-settings";
 import { updateDashboardNotificationPreferences } from "@/features/profile/actions";
+import { translateProfileError } from "@/features/profile/error-codes";
 import {
   resolvePreferences,
   type DashboardNotificationPreferences,
@@ -49,7 +50,7 @@ export function NotificationsTab({ profile }: NotificationsTabProps) {
       const result = await updateDashboardNotificationPreferences(next);
       if ("error" in result) {
         setPrefs(previous);
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
       }
     } catch {
       setPrefs(previous);

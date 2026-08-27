@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Save } from "lucide-react";
 
 import { updateLocalePreferences } from "@/features/profile/actions";
+import { translateProfileError } from "@/features/profile/error-codes";
 import { resolvePreferences } from "@/features/profile/preferences";
 import { syncSiteLanguageFromPreference } from "@/i18n/client";
 import { isSupportedLanguage } from "@/i18n/config";
@@ -88,7 +89,7 @@ export function PreferencesTab({
       });
 
       if ("error" in result) {
-        setError(result.error);
+        setError(translateProfileError(result.error, t));
         return;
       }
 

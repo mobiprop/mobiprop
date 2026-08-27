@@ -164,6 +164,16 @@ const AMENITY_ICONS: Record<
   SOLARIUM: Sun,
 };
 
+// Order + section titles for the Features step's 3 grouped subsections
+// (client's explicit grouping, replacing the single "Features & Amenities"
+// heading).
+const AMENITY_GROUP_ORDER = ["PROPERTY", "EQUIPMENT", "AMENITIES_EXTERIOR"] as const;
+const AMENITY_GROUP_TITLE_KEY: Record<(typeof AMENITY_GROUP_ORDER)[number], string> = {
+  PROPERTY: "uploadModal.fields.featureGroups.property",
+  EQUIPMENT: "uploadModal.fields.featureGroups.equipment",
+  AMENITIES_EXTERIOR: "uploadModal.fields.featureGroups.amenitiesExterior",
+};
+
 type ListingFormValues = {
   title: string;
   type: PropertyType;
@@ -1554,46 +1564,48 @@ export function UploadListingModal({
               {/* Step 3: Features */}
               {step === 2 && (
                 <>
-                  <div className="flex min-w-0 flex-col gap-3">
-                    <span className={labelClass} style={mont}>
-                      {t("uploadModal.fields.featuresAmenities")}
-                    </span>
+                  {AMENITY_GROUP_ORDER.map((group) => (
+                    <div key={group} className="flex min-w-0 flex-col gap-3">
+                      <span className={labelClass} style={mont}>
+                        {t(AMENITY_GROUP_TITLE_KEY[group])}
+                      </span>
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {AMENITY_OPTIONS.map(({ key }) => {
-                        const Icon = AMENITY_ICONS[key];
-                        const isActive = amenities.includes(key);
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {AMENITY_OPTIONS.filter((option) => option.group === group).map(({ key }) => {
+                          const Icon = AMENITY_ICONS[key];
+                          const isActive = amenities.includes(key);
 
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            aria-pressed={isActive}
-                            onClick={() => toggleAmenity(key)}
-                            className={`flex min-h-12 min-w-0 items-center gap-2.5 rounded-[10px] border px-3 text-left text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 sm:px-4 ${
-                              isActive
-                                ? "border-[#1e4f86] bg-[#eff6ff] font-medium text-[#1e4f86]"
-                                : "border-[#e5e7eb] bg-[#fafbfc] text-[#6a7282] hover:bg-[#f3f4f6]"
-                            }`}
-                            style={mont}
-                          >
-                            <Icon
-                              size={17}
-                              className={`shrink-0 ${
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              aria-pressed={isActive}
+                              onClick={() => toggleAmenity(key)}
+                              className={`flex min-h-12 min-w-0 items-center gap-2.5 rounded-[10px] border px-3 text-left text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 sm:px-4 ${
                                 isActive
-                                  ? "text-[#1e4f86]"
-                                  : "text-[#99a1af]"
+                                  ? "border-[#1e4f86] bg-[#eff6ff] font-medium text-[#1e4f86]"
+                                  : "border-[#e5e7eb] bg-[#fafbfc] text-[#6a7282] hover:bg-[#f3f4f6]"
                               }`}
-                            />
+                              style={mont}
+                            >
+                              <Icon
+                                size={17}
+                                className={`shrink-0 ${
+                                  isActive
+                                    ? "text-[#1e4f86]"
+                                    : "text-[#99a1af]"
+                                }`}
+                              />
 
-                            <span className="min-w-0 break-words leading-5">
-                              {td(`amenities.${key}`)}
-                            </span>
-                          </button>
-                        );
-                      })}
+                              <span className="min-w-0 break-words leading-5">
+                                {td(`amenities.${key}`)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </>
               )}
 

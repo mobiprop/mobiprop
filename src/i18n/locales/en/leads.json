@@ -244,6 +244,8 @@
       "created": "Created",
       "lastUpdated": "Last Updated"
     },
+    "budgetUpTo": "Up to {{amount}}",
+    "budgetFrom": "From {{amount}}",
     "viewListing": "View Listing",
     "propertyFallback": "Property",
     "temperatureLabel": "Temperature",

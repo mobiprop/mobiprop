@@ -61,17 +61,50 @@
     "heading": "Preferencias de Notificaciones",
     "saveError": "No se pudieron guardar tus preferencias de notificaciones. Por favor, intentá nuevamente.",
     "items": {
-      "emailEnabled": { "title": "Notificaciones por Correo", "description": "Recibí actualizaciones por correo sobre tu actividad" },
-      "pushEnabled": { "title": "Notificaciones Push", "description": "Interruptor general para las notificaciones push en tus dispositivos" },
-      "newMessages": { "title": "Nuevos Mensajes", "description": "Recibí un aviso cuando llegue un nuevo mensaje" },
-      "newLeads": { "title": "Nuevos Prospectos", "description": "Aviso cuando se agrega un nuevo prospecto" },
-      "leadAssignments": { "title": "Asignación de Prospectos", "description": "Cuando se te asigna o reasigna un prospecto" },
-      "tourUpdates": { "title": "Actualizaciones de Visitas", "description": "Solicitudes, confirmaciones y cambios de visitas" },
-      "listingUpdates": { "title": "Actualizaciones de Propiedades", "description": "Cuando se te asigna una propiedad o cambia de estado" },
-      "opportunityUpdates": { "title": "Actualizaciones de Oportunidades", "description": "Cambios de etapa y resultado en el pipeline" },
-      "signatureUpdates": { "title": "Actualizaciones de Firmas", "description": "Sobre de DocuSign enviado, firmado, rechazado o por vencer" },
-      "weeklyReports": { "title": "Reportes Semanales", "description": "Recibí reportes semanales de desempeño" },
-      "marketingUpdates": { "title": "Novedades de Marketing", "description": "Novedades sobre funciones y productos nuevos" }
+      "emailEnabled": {
+        "title": "Notificaciones por Correo",
+        "description": "Recibí actualizaciones por correo sobre tu actividad"
+      },
+      "pushEnabled": {
+        "title": "Notificaciones Push",
+        "description": "Interruptor general para las notificaciones push en tus dispositivos"
+      },
+      "newMessages": {
+        "title": "Nuevos Mensajes",
+        "description": "Recibí un aviso cuando llegue un nuevo mensaje"
+      },
+      "newLeads": {
+        "title": "Nuevos Prospectos",
+        "description": "Aviso cuando se agrega un nuevo prospecto"
+      },
+      "leadAssignments": {
+        "title": "Asignación de Prospectos",
+        "description": "Cuando se te asigna o reasigna un prospecto"
+      },
+      "tourUpdates": {
+        "title": "Actualizaciones de Visitas",
+        "description": "Solicitudes, confirmaciones y cambios de visitas"
+      },
+      "listingUpdates": {
+        "title": "Actualizaciones de Propiedades",
+        "description": "Cuando se te asigna una propiedad o cambia de estado"
+      },
+      "opportunityUpdates": {
+        "title": "Actualizaciones de Oportunidades",
+        "description": "Cambios de etapa y resultado en el pipeline"
+      },
+      "signatureUpdates": {
+        "title": "Actualizaciones de Firmas",
+        "description": "Sobre de DocuSign enviado, firmado, rechazado o por vencer"
+      },
+      "weeklyReports": {
+        "title": "Reportes Semanales",
+        "description": "Recibí reportes semanales de desempeño"
+      },
+      "marketingUpdates": {
+        "title": "Novedades de Marketing",
+        "description": "Novedades sobre funciones y productos nuevos"
+      }
     },
     "push": {
       "title": "Notificaciones Push del Navegador",
@@ -149,5 +182,30 @@
     "success": "Preferencias guardadas con éxito.",
     "saving": "Guardando...",
     "savePreferences": "Guardar Preferencias"
+  },
+  "profileErrors": {
+    "AUTH_REQUIRED": "Debes iniciar sesión.",
+    "PERMISSION_DENIED": "No tenés permiso para hacer esto.",
+    "FIRST_NAME_REQUIRED": "El nombre es obligatorio.",
+    "LAST_NAME_REQUIRED": "El apellido es obligatorio.",
+    "DESCRIPTION_TOO_LONG": "La descripción debe tener 250 caracteres o menos.",
+    "AVATAR_TOO_LARGE": "La imagen debe pesar menos de 5MB.",
+    "AVATAR_INVALID_TYPE": "La imagen debe ser PNG, JPEG, WEBP o GIF.",
+    "AVATAR_UPLOAD_FAILED": "No se pudo subir la foto.",
+    "PROFILE_SAVE_FAILED": "No se pudo guardar tu perfil. Intenta de nuevo.",
+    "PREFERENCES_SAVE_FAILED": "No se pudieron guardar tus preferencias. Intenta de nuevo.",
+    "CURRENT_PASSWORD_REQUIRED": "Ingresa tu contraseña actual.",
+    "PASSWORD_TOO_SHORT": "La contraseña debe tener al menos 8 caracteres.",
+    "PASSWORD_MISSING_LOWERCASE": "La contraseña debe contener una letra minúscula.",
+    "PASSWORD_MISSING_UPPERCASE": "La contraseña debe contener una letra mayúscula.",
+    "PASSWORD_MISSING_NUMBER": "La contraseña debe incluir al menos un número.",
+    "PASSWORD_MISSING_SPECIAL": "La contraseña debe contener al menos un carácter especial.",
+    "PASSWORDS_DONT_MATCH": "Las contraseñas nuevas no coinciden.",
+    "PASSWORD_SAME_AS_CURRENT": "La nueva contraseña debe ser diferente de la actual.",
+    "CURRENT_PASSWORD_INCORRECT": "La contraseña actual es incorrecta.",
+    "PASSWORD_UPDATE_REJECTED": "El servidor rechazó la nueva contraseña. Probá con otra.",
+    "PASSWORD_UPDATE_FAILED": "No se pudo actualizar tu contraseña. Intenta de nuevo.",
+    "LOGOUT_OTHER_SESSIONS_FAILED": "No se pudo cerrar sesión en los otros dispositivos. Intenta de nuevo.",
+    "GENERIC": "Ocurrió un error. Intenta de nuevo."
   }
 }

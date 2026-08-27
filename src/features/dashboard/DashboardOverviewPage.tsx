@@ -401,7 +401,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                 {t("overview.tooltip.revenue")}
               </span>
               <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
-                US${revenue.toLocaleString("en-US")}
+                US${revenue.toLocaleString("en-US", { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
@@ -421,7 +421,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                 {t("overview.tooltip.revenueNet")}
               </span>
               <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
-                US${revenueNet.toLocaleString("en-US")}
+                US${revenueNet.toLocaleString("en-US", { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
@@ -453,7 +453,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                 {t("overview.tooltip.openOpportunities")}
               </span>
               <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
-                US${openOpportunities.toLocaleString("en-US")}
+                US${openOpportunities.toLocaleString("en-US", { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
@@ -985,7 +985,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     </td>
 
                     <td className="whitespace-nowrap px-4 py-3 text-[12px] font-medium text-[#1e4f86] lg:px-5 lg:text-[14px]" style={mont}>
-                      USD ${row.revenue.toLocaleString("en-US")}
+                      USD ${row.revenue.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                     </td>
 
                     <td className="px-4 py-3 text-right lg:px-5">
@@ -1086,7 +1086,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     {t("overview.totalSales.columns.revenue")}
                   </p>
                   <p className="mt-1.5 text-[14px] font-semibold text-[#1e4f86]" style={mont}>
-                    USD ${row.revenue.toLocaleString("en-US")}
+                    USD ${row.revenue.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                   </p>
                 </div>
               </div>
