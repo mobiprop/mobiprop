@@ -28,6 +28,18 @@ const ROLE_I18N_KEY: Record<string, string> = {
 
 type TeamLeaderOption = { id: string; name: string };
 
+// updateAgent()/validateTeamLeader() (src/features/agents/agent-actions.ts)
+// return a handful of specific, known English validation strings the admin
+// genuinely needs to see (not just "update failed") — map each to its
+// translation; anything unrecognized still falls back to the generic toast.
+const KNOWN_UPDATE_ERROR_I18N_KEY: Record<string, string> = {
+  "Agent not found.": "editModal.toasts.errors.agentNotFound",
+  "Role must be AGENT or MANAGER.": "editModal.toasts.errors.invalidRole",
+  "An Admin's role can't be changed here.": "editModal.toasts.errors.adminRoleLocked",
+  "An agent can't be their own team leader.": "editModal.toasts.errors.selfTeamLeader",
+  "Team leader must be an active Manager or Admin.": "editModal.toasts.errors.invalidTeamLeader",
+};
+
 function roleToLabel(role: AgentDto["role"]): string {
   if (role === "MANAGER") return "Manager";
   if (role === "ADMIN") return "Administrator";
@@ -110,14 +122,14 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
         });
         const data = await res.json().catch(() => null);
         if (!res.ok || !data?.success) {
-          setError(data?.error ?? t("editModal.toasts.uploadPhotoFailed"));
+          setError(t("editModal.toasts.uploadPhotoFailed"));
           return;
         }
       } else if (removePhoto && agent.avatarUrl) {
         const res = await fetch(`/api/dashboard/agents/${agent.id}/avatar`, { method: "DELETE" });
         const data = await res.json().catch(() => null);
         if (!res.ok || !data?.success) {
-          setError(data?.error ?? t("editModal.toasts.removePhotoFailed"));
+          setError(t("editModal.toasts.removePhotoFailed"));
           return;
         }
       }
@@ -141,7 +153,8 @@ export function EditAgentModal({ agent, onClose, onSaved }: EditAgentModalProps)
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.success) {
-        setError(data?.error ?? t("editModal.toasts.updateFailed"));
+        const knownKey = data?.error ? KNOWN_UPDATE_ERROR_I18N_KEY[data.error] : undefined;
+        setError(knownKey ? t(knownKey) : t("editModal.toasts.updateFailed"));
         return;
       }
       toast.success(t("editModal.toasts.updated"));

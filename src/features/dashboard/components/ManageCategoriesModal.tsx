@@ -140,7 +140,7 @@ export function ManageCategoriesModal({
             toast.success(t("categoriesModal.toasts.updated"));
             setPanel({ mode: "empty" });
           },
-          onError: (err) => toast.error(err instanceof Error ? err.message : t("categoriesModal.toasts.updateFailed")),
+          onError: () => toast.error(t("categoriesModal.toasts.updateFailed")),
         },
       );
     } else {
@@ -149,7 +149,7 @@ export function ManageCategoriesModal({
           toast.success(t("categoriesModal.toasts.added"));
           setPanel({ mode: "empty" });
         },
-        onError: (err) => toast.error(err instanceof Error ? err.message : t("categoriesModal.toasts.addFailed")),
+        onError: () => toast.error(t("categoriesModal.toasts.addFailed")),
       });
     }
   }
@@ -162,7 +162,7 @@ export function ManageCategoriesModal({
         setDeleteTarget(null);
         if (panel.mode === "edit" && panel.category.id === deleteTarget.id) setPanel({ mode: "empty" });
       },
-      onError: (err) => toast.error(err instanceof Error ? err.message : t("categoriesModal.toasts.deleteFailed")),
+      onError: () => toast.error(t("categoriesModal.toasts.deleteFailed")),
     });
   }
 

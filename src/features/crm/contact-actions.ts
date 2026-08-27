@@ -51,39 +51,50 @@ async function nextContactId(): Promise<string> {
 
 // ── DTO mapping ───────────────────────────────────────────────────────────────
 
-function toContactDto(c: {
-  id: string;
-  contactId: string;
-  firstName: string;
-  lastName: string;
-  email: string | null;
-  phone: string | null;
-  location: string | null;
-  address: string | null;
-  type: ContactType;
-  notes: string | null;
-  isDeleted: boolean;
-  deletedAt: Date | null;
-  assignedAgentId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  properties: Array<{ role: string; property: { id: string; listingId: string; title: string; location: string; slug: string } }>;
-}): ContactDto {
+// Placeholder shown instead of a contact's real phone/email to agents who
+// aren't its assigned/owning agent (item #6, client-feedback/2026-08).
+const MASKED_CONTACT_VALUE = "••••••••";
+
+function toContactDto(
+  c: {
+    id: string;
+    contactId: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    phone: string | null;
+    location: string | null;
+    address: string | null;
+    roles: ContactType[];
+    notes: string | null;
+    isDeleted: boolean;
+    deletedAt: Date | null;
+    assignedAgentId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    properties: Array<{ role: string; property: { id: string; listingId: string; title: string; location: string; slug: string } }>;
+  },
+  viewerProfile: Profile,
+): ContactDto {
+  const canViewSensitiveInfo =
+    hasPermission(viewerProfile.role, "contacts:viewSensitiveInfo") || c.assignedAgentId === viewerProfile.id;
+
   return {
     id: c.id,
     contactId: c.contactId,
     firstName: c.firstName,
     lastName: c.lastName,
     fullName: `${c.firstName} ${c.lastName}`.trim(),
-    email: c.email,
-    phone: c.phone,
+    email: canViewSensitiveInfo || !c.email ? c.email : MASKED_CONTACT_VALUE,
+    phone: canViewSensitiveInfo || !c.phone ? c.phone : MASKED_CONTACT_VALUE,
     location: c.location,
     address: c.address,
-    type: c.type,
+    roles: c.roles,
     notes: c.notes,
     isDeleted: c.isDeleted,
     deletedAt: c.deletedAt?.toISOString() ?? null,
     assignedAgentId: c.assignedAgentId,
+    contactInfoMasked: !canViewSensitiveInfo,
     properties: c.properties.map((cp) => ({
       id: cp.property.id,
       listingId: cp.property.listingId,
@@ -141,16 +152,18 @@ export async function listContacts(search?: string, limit?: number): Promise<
     ...((limit ?? (search ? 10 : undefined)) !== undefined && { take: limit ?? 10 }),
   });
 
-  const dtos = contacts.map(toContactDto);
+  const dtos = contacts.map((c) => toContactDto(c, gate.profile));
 
   return {
     ok: true,
     contacts: dtos,
     metrics: {
       total: dtos.length,
-      buyers: dtos.filter((c) => c.type === ContactType.BUYER).length,
-      sellers: dtos.filter((c) => c.type === ContactType.SELLER).length,
-      both: dtos.filter((c) => c.type === ContactType.BOTH).length,
+      buyers: dtos.filter((c) => c.roles.includes(ContactType.BUYER)).length,
+      sellers: dtos.filter((c) => c.roles.includes(ContactType.SELLER)).length,
+      tenants: dtos.filter((c) => c.roles.includes(ContactType.TENANT)).length,
+      owners: dtos.filter((c) => c.roles.includes(ContactType.OWNER)).length,
+      realEstateCompanies: dtos.filter((c) => c.roles.includes(ContactType.REAL_ESTATE_COMPANY)).length,
       withListings: dtos.filter((c) => c.properties.length > 0).length,
       withOpportunities: contacts.filter((c) => c._count.opportunityParticipants > 0).length,
     },
@@ -173,7 +186,7 @@ export async function getContact(
   if (!contact) return { ok: false, error: "Contact not found", status: 404 };
   if (contact.isDeleted) return { ok: false, error: "Contact not found", status: 404 };
 
-  return { ok: true, contact: toContactDto(contact) };
+  return { ok: true, contact: toContactDto(contact, gate.profile) };
 }
 
 // ── Duplicate lookup (manual create only — automatic find-or-create for
@@ -248,8 +261,12 @@ export async function createContact(
       email,
       contactId,
       createdById: gate.profile.id,
+      // The creator is the initial owning/assigned agent (item #6) — masking
+      // and record-scope checks key off this, not createdById. ADMIN/MANAGER
+      // can hand it off to someone else afterward via the Edit Contact modal.
+      assignedAgentId: gate.profile.id,
       // Property links from this form represent ownership (the section only
-      // renders for Seller/Both contacts) — see decision 5.C in the CRM plan.
+      // renders for contacts with the SELLER role) — see decision 5.C in the CRM plan.
       properties: propertyIds?.length
         ? { create: propertyIds.map((propertyId) => ({ propertyId, role: "OWNER" })) }
         : undefined,
@@ -262,7 +279,7 @@ export async function createContact(
     action: "CONTACT_CREATED",
     entityType: "CONTACT",
     entityId: contact.id,
-    newValues: { contactId: contact.contactId, firstName: contact.firstName, lastName: contact.lastName, type: contact.type },
+    newValues: { contactId: contact.contactId, firstName: contact.firstName, lastName: contact.lastName, roles: contact.roles },
   });
   if (propertyIds?.length) {
     await logActivity({
@@ -274,7 +291,7 @@ export async function createContact(
     });
   }
 
-  return { ok: true, contact: toContactDto(contact) };
+  return { ok: true, contact: toContactDto(contact, gate.profile) };
 }
 
 // ── Update ────────────────────────────────────────────────────────────────────
@@ -296,7 +313,13 @@ export async function updateContact(
     return { ok: false, error: "Contact not found", status: 404 };
   }
 
-  const { propertyIds, ...fields } = parsed.data;
+  const { propertyIds, assignedAgentId: requestedAssignedAgentId, ...fields } = parsed.data;
+
+  // The Edit Contact modal disables email/phone (rendering the mask) when the
+  // viewer isn't the owning agent, but guard server-side too: never let a
+  // round-tripped masked placeholder overwrite the real value.
+  if (fields.email === MASKED_CONTACT_VALUE) delete fields.email;
+  if (fields.phone === MASKED_CONTACT_VALUE) delete fields.phone;
 
   if (propertyIds !== undefined) {
     const desired = new Set(propertyIds);
@@ -338,6 +361,12 @@ export async function updateContact(
     data: {
       ...fields,
       email: fields.email !== undefined ? (fields.email || null) : undefined,
+      // Reassigning the owning agent is ADMIN/MANAGER-only (same gate the
+      // AgentSelect picker uses); AGENT holders never see the picker, so this
+      // only guards against a direct action call bypassing the UI.
+      ...(requestedAssignedAgentId !== undefined && hasPermission(gate.profile.role, "agents:view")
+        ? { assignedAgentId: requestedAssignedAgentId }
+        : {}),
     },
     include: contactInclude,
   });
@@ -347,11 +376,11 @@ export async function updateContact(
     action: "CONTACT_UPDATED",
     entityType: "CONTACT",
     entityId: id,
-    oldValues: { firstName: existing.firstName, lastName: existing.lastName, type: existing.type, email: existing.email, phone: existing.phone },
-    newValues: { firstName: contact.firstName, lastName: contact.lastName, type: contact.type, email: contact.email, phone: contact.phone },
+    oldValues: { firstName: existing.firstName, lastName: existing.lastName, roles: existing.roles, email: existing.email, phone: existing.phone },
+    newValues: { firstName: contact.firstName, lastName: contact.lastName, roles: contact.roles, email: contact.email, phone: contact.phone },
   });
 
-  return { ok: true, contact: toContactDto(contact) };
+  return { ok: true, contact: toContactDto(contact, gate.profile) };
 }
 
 // ── Soft delete (archive) ──────────────────────────────────────────────────────
@@ -471,12 +500,15 @@ export async function importContacts(
         lastName: parsed.data.lastName,
         email,
         phone,
-        type: parsed.data.type,
+        roles: parsed.data.roles,
         location: parsed.data.location || null,
         address: parsed.data.address || null,
         notes: parsed.data.notes || null,
         contactId,
         createdById: gate.profile.id,
+        // Matches createContact's manual-entry path (item #6) — the importer
+        // is the initial owning agent, not left unassigned/masked-for-everyone.
+        assignedAgentId: gate.profile.id,
       },
     });
 
@@ -485,7 +517,7 @@ export async function importContacts(
       action: "CONTACT_CREATED",
       entityType: "CONTACT",
       entityId: contact.id,
-      newValues: { contactId: contact.contactId, firstName: contact.firstName, lastName: contact.lastName, type: contact.type, source: "CSV_IMPORT" },
+      newValues: { contactId: contact.contactId, firstName: contact.firstName, lastName: contact.lastName, roles: contact.roles, source: "CSV_IMPORT" },
     });
 
     created++;

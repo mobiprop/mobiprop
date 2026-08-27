@@ -44,12 +44,6 @@ import { SearchableSelect } from "./components/SearchableSelect";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { parseSpreadsheetFile } from "@/lib/spreadsheet";
 
-const CONTACT_TYPE_MAP: Record<NewContact["contactType"], ContactType> = {
-  Buyer: ContactType.BUYER,
-  Seller: ContactType.SELLER,
-  Both: ContactType.BOTH,
-};
-
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
@@ -111,33 +105,48 @@ function StatCard({ label, value, trend, note, iconBg, icon }: StatCardProps) {
   );
 }
 
-// ── Contact type badge ────────────────────────────────────────────────────────
+// ── Contact role badges ───────────────────────────────────────────────────────
 
 const TYPE_STYLE: Record<string, { bg: string; text: string }> = {
-  BUYER:  { bg: "#dcfce7", text: "#008236" },
-  SELLER: { bg: "#b8e6fe", text: "#0069a8" },
-  BOTH:   { bg: "#fef3c7", text: "#b45309" },
+  BUYER:                { bg: "#dcfce7", text: "#008236" },
+  SELLER:                { bg: "#b8e6fe", text: "#0069a8" },
+  TENANT:                { bg: "#f3e8ff", text: "#7e22ce" },
+  OWNER:                 { bg: "#fde2e2", text: "#c0392b" },
+  REAL_ESTATE_COMPANY:   { bg: "#e0e7ff", text: "#4338ca" },
+  BOTH:                  { bg: "#fef3c7", text: "#b45309" },
 };
 
 // English labels kept for CSV export (see handleExport) — exported file
 // content stays untranslated regardless of UI language.
 const TYPE_LABEL: Record<string, string> = {
-  BUYER: "Buyer", SELLER: "Seller", BOTH: "Both",
+  BUYER: "Buyer", SELLER: "Seller", TENANT: "Tenant", OWNER: "Owner",
+  REAL_ESTATE_COMPANY: "Real Estate Company", BOTH: "Both",
 };
 
 const TYPE_I18N_KEY: Record<string, string> = {
-  BUYER: "type.buyer", SELLER: "type.seller", BOTH: "type.both",
+  BUYER: "type.buyer", SELLER: "type.seller", TENANT: "type.tenant",
+  OWNER: "type.owner", REAL_ESTATE_COMPANY: "type.realEstateCompany", BOTH: "type.both",
 };
 
-function TypeBadge({ type, t }: { type: ContactType; t: (key: string) => string }) {
-  const s = TYPE_STYLE[type] ?? TYPE_STYLE.BUYER;
+function TypeBadge({ role, t }: { role: ContactType; t: (key: string) => string }) {
+  const s = TYPE_STYLE[role] ?? TYPE_STYLE.BUYER;
   return (
     <span
       className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded-[6px] text-[14px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text, ...mont }}
     >
-      {TYPE_I18N_KEY[type] ? t(TYPE_I18N_KEY[type]) : type}
+      {TYPE_I18N_KEY[role] ? t(TYPE_I18N_KEY[role]) : role}
     </span>
+  );
+}
+
+function RoleBadges({ roles, t }: { roles: ContactType[]; t: (key: string) => string }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {roles.map((role) => (
+        <TypeBadge key={role} role={role} t={t} />
+      ))}
+    </div>
   );
 }
 
@@ -423,12 +432,18 @@ function DeleteConfirmModal({ contact, isDeleting, onCancel, onConfirm, t }: Del
 
 type ContactsPageProps = {
   role: Role;
+  currentUserId: string;
+  currentUserName: string;
 };
 
 type ConflictState = { message: string; existingContactId: string };
 
-export function ContactsPage({ role }: ContactsPageProps) {
+export function ContactsPage({ role, currentUserId, currentUserName }: ContactsPageProps) {
   const { t } = useTranslation("contacts");
+  // Mirrors OpportunitiesPage/LeadDetailPage's lockedAgent convention: only
+  // ADMIN/MANAGER (agents:view) can reassign a contact's owning agent —
+  // AGENT holders are always locked to themselves.
+  const lockedAgent = hasPermission(role, "agents:view") ? null : { id: currentUserId, name: currentUserName };
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactDto | null>(null);
   const [deletingContact, setDeletingContact] = useState<ContactDto | null>(null);
@@ -475,7 +490,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
           (c.email ?? "").toLowerCase().includes(q) ||
           (c.location ?? "").toLowerCase().includes(q) ||
           c.contactId.toLowerCase().includes(q);
-        const matchesType = typeFilter === "All" || c.type === typeFilter;
+        const matchesType = typeFilter === "All" || c.roles.includes(typeFilter);
         return matchesSearch && matchesType;
       })
       .sort((a, b) => {
@@ -493,7 +508,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
         lastName: input.lastName,
         email: input.email,
         phone: input.phone,
-        type: CONTACT_TYPE_MAP[input.contactType],
+        roles: input.roles,
         location: input.location,
         address: input.address,
         notes: input.notes,
@@ -568,7 +583,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
   function handleExport() {
     const header = [
       "Contact ID", "First Name", "Last Name", "Email", "Phone",
-      "Type", "Location", "Address", "Notes", "Listings", "Created At",
+      "Roles", "Location", "Address", "Notes", "Listings", "Created At",
     ];
     const rows = filtered.map((c) => [
       c.contactId,
@@ -576,7 +591,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
       c.lastName,
       c.email ?? "",
       c.phone ?? "",
-      TYPE_LABEL[c.type] ?? c.type,
+      c.roles.map((role) => TYPE_LABEL[role] ?? role).join("; "),
       c.location ?? "",
       c.address ?? "",
       c.notes ?? "",
@@ -599,8 +614,10 @@ export function ContactsPage({ role }: ContactsPageProps) {
     emailaddress: "email",
     phone: "phone",
     phonenumber: "phone",
-    type: "type",
-    contacttype: "type",
+    type: "roles",
+    contacttype: "roles",
+    role: "roles",
+    roles: "roles",
     location: "location",
     address: "address",
     notes: "notes",
@@ -712,7 +729,9 @@ export function ContactsPage({ role }: ContactsPageProps) {
           note={data ? [
             data.metrics.buyers > 0 && t("stats.buyersCount", { count: data.metrics.buyers }),
             data.metrics.sellers > 0 && t("stats.sellersCount", { count: data.metrics.sellers }),
-            data.metrics.both > 0 && t("stats.bothCount", { count: data.metrics.both }),
+            data.metrics.tenants > 0 && t("stats.tenantsCount", { count: data.metrics.tenants }),
+            data.metrics.owners > 0 && t("stats.ownersCount", { count: data.metrics.owners }),
+            data.metrics.realEstateCompanies > 0 && t("stats.realEstateCompaniesCount", { count: data.metrics.realEstateCompanies }),
           ].filter(Boolean).join(" · ") : undefined}
           iconBg="#e8ebff"
           icon={
@@ -819,7 +838,9 @@ export function ContactsPage({ role }: ContactsPageProps) {
           { value: "All", label: t("table.typeFilterAll") },
           { value: ContactType.BUYER, label: t("type.buyer") },
           { value: ContactType.SELLER, label: t("type.seller") },
-          { value: ContactType.BOTH, label: t("type.both") },
+          { value: ContactType.TENANT, label: t("type.tenant") },
+          { value: ContactType.OWNER, label: t("type.owner") },
+          { value: ContactType.REAL_ESTATE_COMPANY, label: t("type.realEstateCompany") },
         ]}
         placeholder={t("table.typeFilterAll")}
         ariaLabel={t("table.typeFilterAria")}
@@ -928,7 +949,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
               </th>
 
               <th
-                className="w-[120px] px-4 py-[10px] text-center text-[14px] font-medium text-[#6a7282]"
+                className="w-[180px] px-4 py-[10px] text-center text-[14px] font-medium text-[#6a7282]"
                 style={mont}
               >
                 {t("table.columns.contactType")}
@@ -1022,8 +1043,10 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   </span>
                 </td>
 
-                <td className="w-[120px] px-4 py-4 text-center">
-                  <TypeBadge type={contact.type} t={t} />
+                <td className="w-[180px] px-4 py-4">
+                  <div className="flex justify-center">
+                    <RoleBadges roles={contact.roles} t={t} />
+                  </div>
                 </td>
 
                 <td className="w-[55px] px-4 py-4 text-center">
@@ -1170,7 +1193,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
                   {t("table.mobileLabels.contactType")}
                 </p>
 
-                <TypeBadge type={contact.type} t={t} />
+                <RoleBadges roles={contact.roles} t={t} />
               </div>
 
               <div className="col-span-2 min-w-0 rounded-[10px] bg-[#f8fafc] px-3 py-2.5">
@@ -1247,6 +1270,7 @@ export function ContactsPage({ role }: ContactsPageProps) {
           onClose={() => setEditingContact(null)}
           onSave={handleUpdate}
           isSaving={updateMutation.isPending}
+          lockedAgent={lockedAgent}
         />
       )}
       {deletingContact && (

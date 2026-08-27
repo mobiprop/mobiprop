@@ -151,7 +151,14 @@
       "uploadPhotoFailed": "Failed to upload photo.",
       "removePhotoFailed": "Failed to remove photo.",
       "updateFailed": "Failed to update agent.",
-      "updated": "Agent updated."
+      "updated": "Agent updated.",
+      "errors": {
+        "agentNotFound": "Agent not found.",
+        "invalidRole": "Role must be Agent or Manager.",
+        "adminRoleLocked": "An Admin's role can't be changed here.",
+        "selfTeamLeader": "An agent can't be their own team leader.",
+        "invalidTeamLeader": "Team leader must be an active Manager or Admin."
+      }
     }
   },
   "detail": {

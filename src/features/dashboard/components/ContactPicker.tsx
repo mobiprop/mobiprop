@@ -13,7 +13,7 @@ const VISIBLE_ROWS = 4.5;
 const SEARCH_DEBOUNCE_MS = 300;
 const RESULTS_LIMIT = 8;
 
-export type ContactOption = { id: string; contactId: string; fullName: string; type?: string; email?: string | null };
+export type ContactOption = { id: string; contactId: string; fullName: string; roles?: string[]; email?: string | null };
 
 type ContactPickerProps = {
   /** Selected contact id, or "" for none. */
@@ -121,11 +121,11 @@ export function ContactPicker({
           .then((json) => {
             if (requestId !== requestIdRef.current) return;
             const contacts: ContactOption[] = (json.contacts ?? []).map(
-              (c: { id: string; contactId: string; fullName: string; type?: string; email?: string | null }) => ({
+              (c: { id: string; contactId: string; fullName: string; roles?: string[]; email?: string | null }) => ({
                 id: c.id,
                 contactId: c.contactId,
                 fullName: c.fullName,
-                type: c.type,
+                roles: c.roles,
                 email: c.email ?? null,
               }),
             );

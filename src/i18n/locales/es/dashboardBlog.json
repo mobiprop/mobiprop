@@ -81,6 +81,8 @@
     "excerptPlaceholder": "Descripción breve mostrada en los listados de publicaciones…",
     "articleContent": "Contenido del Artículo",
     "articleContentPlaceholder": "Escribe tu artículo…",
+    "linkUrlPrompt": "URL del enlace",
+    "imageUploadFailed": "No se pudo subir la imagen",
     "settings": "Configuración",
     "author": "Autor *",
     "authorPlaceholder": "Nombre completo",

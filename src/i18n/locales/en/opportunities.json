@@ -125,13 +125,7 @@
         "emailOrPhoneRequired": "Provide at least an email or a phone number.",
         "nameRequired": "First and last name are required.",
         "contactType": "Contact Type *",
-        "selectContactType": "Select contact type",
-        "contactTypeAria": "Contact type",
-        "contactTypeOptions": {
-          "BUYER": "Buyer",
-          "SELLER": "Seller",
-          "BOTH": "Both"
-        },
+        "selectAtLeastOneRole": "Select at least one role.",
         "addAsParticipant": "Add as participant",
         "addAsParticipantHint": "Link this new contact directly to this opportunity",
         "role": "Role *",

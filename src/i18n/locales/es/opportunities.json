@@ -125,13 +125,7 @@
         "emailOrPhoneRequired": "Proporciona al menos un correo electrónico o un número de teléfono.",
         "nameRequired": "El nombre y el apellido son obligatorios.",
         "contactType": "Tipo de Contacto *",
-        "selectContactType": "Seleccionar tipo de contacto",
-        "contactTypeAria": "Tipo de contacto",
-        "contactTypeOptions": {
-          "BUYER": "Comprador",
-          "SELLER": "Vendedor",
-          "BOTH": "Ambos"
-        },
+        "selectAtLeastOneRole": "Selecciona al menos un rol.",
         "addAsParticipant": "Agregar como participante",
         "addAsParticipantHint": "Vincula este nuevo contacto directamente a esta oportunidad",
         "role": "Rol *",

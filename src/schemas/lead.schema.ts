@@ -69,6 +69,7 @@ export const updateLeadSchema = z.object({
   score: z.coerce.number().int().min(0).max(100).optional(),
   temperature: z.nativeEnum(LeadTemperature).optional(),
   lifecycleStatus: z.nativeEnum(LeadLifecycleStatus).optional(),
+  source: z.nativeEnum(LeadSource).optional(),
   notes: z.string().max(5000).optional().nullable(),
   nextFollowUpAt: z.string().datetime({ offset: true }).optional().nullable().or(z.literal("")),
   lastContactedAt: z.string().datetime({ offset: true }).optional().nullable().or(z.literal("")),
@@ -135,4 +136,7 @@ export type ImportLeadRow = z.infer<typeof importLeadRowSchema>;
 
 export const importLeadsSchema = z.object({
   rows: z.array(z.record(z.string(), z.unknown())).min(1, "No rows to import").max(1000, "Import is limited to 1000 rows at a time"),
+  // Applied to every lead in the batch — the mapping wizard lets the user
+  // pick this once per file rather than per row (e.g. a Zonaprop export).
+  source: z.nativeEnum(LeadSource).optional(),
 });

@@ -31,6 +31,7 @@ const SOURCE_VALUES: LeadSource[] = [
   LeadSource.WHATSAPP,
   LeadSource.REFERRAL,
   LeadSource.SOCIAL_MEDIA,
+  LeadSource.ZONAPROP,
   LeadSource.OTHER,
 ];
 
@@ -190,8 +191,8 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
       });
       onCreated?.();
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("addModal.errors.createFailed"));
+    } catch {
+      setError(t("addModal.errors.createFailed"));
     }
   }
 

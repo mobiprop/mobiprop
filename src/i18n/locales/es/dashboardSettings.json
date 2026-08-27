@@ -103,7 +103,7 @@
         "disableFailed": "No se pudieron desactivar las notificaciones push.",
         "testSent": "Notificación de prueba enviada. Revisá tu dispositivo.",
         "testSkipped": "Ningún dispositivo activo recibió la prueba. Asegurate de tener el push activado aquí.",
-        "testFailed": "Falló la entrega push{{reason}}. Desactivá y volvé a activar el push en este dispositivo para renovar la suscripción.",
+        "testFailed": "Falló la entrega push. Desactivá y volvé a activar el push en este dispositivo para renovar la suscripción.",
         "testFailedGeneric": "No se pudo enviar una notificación de prueba."
       }
     }

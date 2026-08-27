@@ -7,5 +7,11 @@ export const metadata: Metadata = { title: "Contacts — Ulrich Propiedades" };
 
 export default async function DashboardContactsPage() {
   const profile = await requireDashboardAccess("contacts:view");
-  return <ContactsPage role={profile.role} />;
+  return (
+    <ContactsPage
+      role={profile.role}
+      currentUserId={profile.id}
+      currentUserName={profile.fullName ?? profile.email}
+    />
+  );
 }

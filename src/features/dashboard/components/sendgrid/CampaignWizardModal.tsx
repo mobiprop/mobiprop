@@ -176,8 +176,8 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
       const cards = await fetchListingCards(ids);
       setFeatured(cards);
       setHtmlBody((body) => replacePropertiesBlock(body, cards));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update properties");
+    } catch {
+      toast.error(t("wizard.toasts.updatePropertiesFailed"));
     } finally {
       setFeaturedLoading(false);
     }
@@ -246,8 +246,8 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
       const created = await createMutation.mutateAsync(input);
       setSavedId(created.campaign.id);
       return created.campaign.id;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("wizard.toasts.saveFailed"));
+    } catch {
+      toast.error(t("wizard.toasts.saveFailed"));
       return null;
     }
   }
@@ -281,8 +281,8 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
     try {
       const result = await testMutation.mutateAsync({ id, emails });
       toast.success(t("wizard.toasts.testSent", { emails: result.sentTo.join(", ") }));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("wizard.toasts.testSendFailed"));
+    } catch {
+      toast.error(t("wizard.toasts.testSendFailed"));
     }
   }
 
@@ -307,8 +307,8 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
         return;
       }
       setConfirm({ recipientCount: data.recipientCount, listName: data.listName ?? selectedList?.name ?? "—" });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("wizard.toasts.verifyFailed"));
+    } catch {
+      toast.error(t("wizard.toasts.verifyFailed"));
     }
   }
 
@@ -324,9 +324,9 @@ export function CampaignWizardModal({ campaign, initialTemplateKey, canSend, onC
           : t("wizard.toasts.sentTo", { count: result.totalRecipients }),
       );
       onClose();
-    } catch (err) {
+    } catch {
       setConfirm(null);
-      setValidationError(err instanceof Error ? err.message : t("wizard.toasts.sendFailed"));
+      setValidationError(t("wizard.toasts.sendFailed"));
     }
   }
 

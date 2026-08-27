@@ -113,6 +113,7 @@ const SOURCE_LABELS: Partial<Record<LeadSource, string>> = {
   SOCIAL_MEDIA: "Social Media",
   IMPORT: "Import",
   EXTERNAL_API: "API",
+  ZONAPROP: "Zonaprop",
   OTHER: "Other",
 };
 
@@ -126,6 +127,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
   LEAD_SCORE_CHANGED: "Score updated",
   LEAD_TEMPERATURE_CHANGED: "Temperature changed",
   LEAD_STATUS_CHANGED: "Status changed",
+  LEAD_SOURCE_CHANGED: "Source changed",
   LEAD_FOLLOW_UP_CHANGED: "Follow-up date set",
   LEAD_NOTE_ADDED: "Note added",
   LEAD_NOTE_UPDATED: "Note updated",
@@ -513,8 +515,8 @@ function ConvertToOpportunityModal({
     try {
       const result = await createOpportunity.mutateAsync(payload);
       opportunity = result.opportunity;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("detail.convertModal.convertError"));
+    } catch {
+      toast.error(t("detail.convertModal.convertError"));
       return null;
     }
 
@@ -634,6 +636,12 @@ export function LeadDetailPage({
     );
   }
 
+  function updateSource(value: LeadSource) {
+    update.mutate(
+      { source: value } as Parameters<typeof update.mutate>[0],
+    );
+  }
+
   function handleArchiveToggle() {
     if (lead.isArchived) {
       restore.mutate(lead.id);
@@ -700,11 +708,6 @@ export function LeadDetailPage({
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge
-                label={temperatureLabel}
-                background={temperature.bg}
-                color={temperature.text}
-              />
               <Badge
                 label={lifecycleLabel}
                 background={lifecycle.bg}
@@ -886,7 +889,25 @@ export function LeadDetailPage({
           >
             <InfoRow
               label={t("detail.fields.source")}
-              value={t(`source.${lead.source}`, { defaultValue: SOURCE_LABELS[lead.source] ?? lead.source })}
+              value={
+                canUpdate ? (
+                  <SearchableSelect
+                    size="sm"
+                    searchable={false}
+                    value={lead.source}
+                    disabled={update.isPending}
+                    onChange={(next) => updateSource(next as LeadSource)}
+                    options={Object.values(LeadSource).map((value) => ({
+                      value,
+                      label: t(`source.${value}`, { defaultValue: SOURCE_LABELS[value] ?? value }),
+                    }))}
+                    placeholder={t("detail.fields.source")}
+                    ariaLabel={t("detail.fields.source")}
+                  />
+                ) : (
+                  t(`source.${lead.source}`, { defaultValue: SOURCE_LABELS[lead.source] ?? lead.source })
+                )
+              }
             />
             <InfoRow label={t("detail.fields.sourceDetail")} value={lead.sourceDetail} />
             <InfoRow label={t("detail.fields.budget")} value={formatBudget(lead)} />

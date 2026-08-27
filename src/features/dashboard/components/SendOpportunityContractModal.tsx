@@ -85,13 +85,11 @@ export function SendOpportunityContractModal({
       }
       onSent();
       onClose();
-    } catch (err) {
+    } catch {
       toast.error(
-        err instanceof Error
-          ? err.message
-          : selection.source === "TEMPLATE"
-            ? t("sendContractModal.toasts.sendFailed")
-            : t("sendContractModal.toasts.attachFailed"),
+        selection.source === "TEMPLATE"
+          ? t("sendContractModal.toasts.sendFailed")
+          : t("sendContractModal.toasts.attachFailed"),
       );
     } finally {
       setSubmitting(false);

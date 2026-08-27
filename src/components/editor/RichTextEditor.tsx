@@ -6,6 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Bold,
   Italic,
@@ -57,6 +58,7 @@ function ToolbarButton({ onClick, active, disabled, label, children }: ToolbarBu
 }
 
 function Toolbar({ editor }: { editor: Editor }) {
+  const { t } = useTranslation("dashboardBlog");
   // editor.isActive()/can() are plain reads — nothing about them tells React to
   // re-render, so without this the buttons only ever reflected the state at
   // mount (stale after every toggle, and never updated when the cursor moved
@@ -81,7 +83,7 @@ function Toolbar({ editor }: { editor: Editor }) {
 
   const setLink = () => {
     const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Link URL", previous ?? "https://");
+    const url = window.prompt(t("editorModal.linkUrlPrompt"), previous ?? "https://");
     if (url === null) return;
     if (url === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -102,8 +104,8 @@ function Toolbar({ editor }: { editor: Editor }) {
     try {
       const url = await uploadBlogCover(file);
       editor.chain().focus().setImage({ src: url }).run();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to upload image");
+    } catch {
+      toast.error(t("editorModal.imageUploadFailed"));
     } finally {
       setUploadingImage(false);
     }

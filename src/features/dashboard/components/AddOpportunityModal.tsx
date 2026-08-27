@@ -22,6 +22,7 @@ import {
 import { uploadDocusignDocument } from "@/lib/client-upload";
 import { SearchableSelect } from "./SearchableSelect";
 import { ContactPicker } from "./ContactPicker";
+import { ContactRolesSelect } from "./ContactRolesSelect";
 import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
@@ -239,7 +240,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const [ncLastName, setNcLastName] = useState(!initial ? (prefill?.newContact?.lastName ?? "") : "");
   const [ncEmail, setNcEmail] = useState(!initial ? (prefill?.newContact?.email ?? "") : "");
   const [ncPhone, setNcPhone] = useState(!initial ? (prefill?.newContact?.phone ?? "") : "");
-  const [ncType, setNcType] = useState<ContactType>(ContactType.BUYER);
+  const [ncRoles, setNcRoles] = useState<ContactType[]>([ContactType.BUYER]);
   const [ncAddAsParticipant, setNcAddAsParticipant] = useState(true);
   const [ncRole, setNcRole] = useState<OpportunityParticipantRole>("BUYER");
 
@@ -304,8 +305,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
       await attachMutation.mutateAsync({ opportunityId: initial.id, envelopeId: selectedEnvelopeId });
       setSelectedEnvelopeId("");
       toast.success(t("addModal.contractsSection.toasts.attached"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.attachFailed"));
+    } catch {
+      toast.error(t("addModal.contractsSection.toasts.attachFailed"));
     }
   }
 
@@ -314,8 +315,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     try {
       await detachMutation.mutateAsync({ opportunityId: initial.id, envelopeId });
       toast.success(t("addModal.contractsSection.toasts.detached"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.detachFailed"));
+    } catch {
+      toast.error(t("addModal.contractsSection.toasts.detachFailed"));
     }
   }
 
@@ -325,8 +326,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     try {
       await voidMutation.mutateAsync({ id: envelopeId, reason });
       toast.success(t("addModal.contractsSection.toasts.voided"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.voidFailed"));
+    } catch {
+      toast.error(t("addModal.contractsSection.toasts.voidFailed"));
     }
   }
 
@@ -334,8 +335,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     try {
       await resendMutation.mutateAsync(envelopeId);
       toast.success(t("addModal.contractsSection.toasts.reminderSent"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("addModal.contractsSection.toasts.resendFailed"));
+    } catch {
+      toast.error(t("addModal.contractsSection.toasts.resendFailed"));
     }
   }
 
@@ -420,7 +421,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     setNcLastName("");
     setNcEmail("");
     setNcPhone("");
-    setNcType(ContactType.BUYER);
+    setNcRoles([ContactType.BUYER]);
     setNcAddAsParticipant(true);
     setNcRole("BUYER");
   }
@@ -475,7 +476,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
         lastName: ncLastName.trim(),
         email: ncEmail.trim(),
         phone: ncPhone.trim(),
-        type: ncType,
+        roles: ncRoles,
       });
       toast.success(t("addModal.participantsSection.newPanel.contactCreated"));
       if (ncAddAsParticipant) {
@@ -486,8 +487,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
         setParticipantsError(null);
       }
       closeParticipantPanel();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("addModal.participantsSection.newPanel.createFailed"));
+    } catch {
+      toast.error(t("addModal.participantsSection.newPanel.createFailed"));
     }
   }
 
@@ -656,8 +657,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
       }
 
       onClose();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("addModal.toasts.saveFailed"));
+    } catch {
+      toast.error(t("addModal.toasts.saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -944,19 +945,10 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
 
                 <div className="flex flex-col gap-1.5">
                   <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.contactType")}</label>
-                  <SearchableSelect
-                    size="sm"
-                    searchable={false}
-                    value={ncType}
-                    onChange={(next) => setNcType(next as ContactType)}
-                    options={[
-                      { value: ContactType.BUYER, label: t("addModal.participantsSection.newPanel.contactTypeOptions.BUYER") },
-                      { value: ContactType.SELLER, label: t("addModal.participantsSection.newPanel.contactTypeOptions.SELLER") },
-                      { value: ContactType.BOTH, label: t("addModal.participantsSection.newPanel.contactTypeOptions.BOTH") },
-                    ]}
-                    placeholder={t("addModal.participantsSection.newPanel.selectContactType")}
-                    ariaLabel={t("addModal.participantsSection.newPanel.contactTypeAria")}
-                  />
+                  <ContactRolesSelect value={ncRoles} onChange={setNcRoles} />
+                  {ncRoles.length === 0 && (
+                    <p className="text-[11px] text-[#b45309]" style={mont}>{t("addModal.participantsSection.newPanel.selectAtLeastOneRole")}</p>
+                  )}
                 </div>
 
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-3">
@@ -991,7 +983,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
                   <button
                     type="button"
                     onClick={createAndAddContact}
-                    disabled={createContactMutation.isPending}
+                    disabled={createContactMutation.isPending || ncRoles.length === 0}
                     className="h-9 px-4 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                     style={mont}
                   >

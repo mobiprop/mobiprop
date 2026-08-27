@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await importLeads(parsed.data.rows);
+  const result = await importLeads(parsed.data.rows, parsed.data.source);
   if (!result.ok) {
     return NextResponse.json({ success: false, error: result.error }, { status: result.status });
   }

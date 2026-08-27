@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { ContactType } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
 import { useCreateContactMutation } from "@/hooks/mutations/useCrmMutations";
-import { SearchableSelect } from "./SearchableSelect";
+import { ContactRolesSelect } from "./ContactRolesSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -28,7 +28,7 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [type, setType] = useState<ContactType>(ContactType.BUYER);
+  const [roles, setRoles] = useState<ContactType[]>([ContactType.BUYER]);
 
   const createMutation = useCreateContactMutation();
 
@@ -40,12 +40,12 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
         lastName: lastName.trim(),
         email: email.trim(),
         phone: phone.trim(),
-        type,
+        roles,
       });
       toast.success(t("toasts.contactCreated"));
       onCreate?.(contact);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("toasts.createFailed"));
+    } catch {
+      toast.error(t("toasts.createFailed"));
     }
   }
 
@@ -92,22 +92,13 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
             <p className="-mt-3 text-[12px] text-[#b45309]" style={mont}>{t("quickAddModal.provideEmailOrPhone")}</p>
           )}
 
-          {/* Type */}
+          {/* Roles */}
           <div className="flex flex-col gap-1.5">
             <label className={labelClass} style={mont}>{t("quickAddModal.type")}</label>
-            <SearchableSelect
-              size="sm"
-              searchable={false}
-              value={type}
-              onChange={(next) => setType(next as ContactType)}
-              options={[
-                { value: ContactType.BUYER, label: t("type.buyer") },
-                { value: ContactType.SELLER, label: t("type.seller") },
-                { value: ContactType.BOTH, label: t("type.both") },
-              ]}
-              placeholder={t("quickAddModal.selectType")}
-              ariaLabel={t("quickAddModal.typeAria")}
-            />
+            <ContactRolesSelect value={roles} onChange={setRoles} />
+            {roles.length === 0 && (
+              <p className="text-[12px] text-[#b45309]" style={mont}>{t("fields.selectAtLeastOneRole")}</p>
+            )}
           </div>
 
           {/* Actions */}
@@ -117,7 +108,7 @@ export function QuickAddContactModal({ onClose, onCreate }: QuickAddContactModal
             </button>
             <button
               type="submit"
-              disabled={createMutation.isPending || (!email.trim() && !phone.trim())}
+              disabled={createMutation.isPending || roles.length === 0 || (!email.trim() && !phone.trim())}
               className="flex-1 h-[41.5px] bg-[#1e4f86] rounded-[10px] text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               style={mont}
             >
