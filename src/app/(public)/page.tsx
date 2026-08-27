@@ -8,8 +8,11 @@ import { Testimonial } from "@/features/home/Testimonial";
 import { FAQ } from "@/features/home/FAQ";
 import { Blog } from "@/features/home/Blog";
 import { ConsultationBanner } from "@/features/home/ConsultationBanner";
+import { getTeamAvatars } from "@/features/home/getTeamAvatars";
 
-export default function Home() {
+export default async function Home() {
+  const avatarsByName = await getTeamAvatars();
+
   return (
     <>
       <HeroSection />
@@ -17,7 +20,7 @@ export default function Home() {
       <FeaturedSpots />
       <WhyUs />
       <OurServices />
-      <Agents />
+      <Agents avatarsByName={avatarsByName} />
       <Testimonial />
       <FAQ />
       <Blog />

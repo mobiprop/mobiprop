@@ -3,6 +3,7 @@ import { FAQ } from "@/features/home/FAQ";
 import { Agents } from "@/features/home/Agents";
 import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 import { AboutUsContent } from "@/features/about/AboutUs";
+import { getTeamAvatars } from "@/features/home/getTeamAvatars";
 
 export const metadata: Metadata = {
   title: "About Us — Ulrich Propiedades",
@@ -10,12 +11,14 @@ export const metadata: Metadata = {
     "Where global property meets local expertise. Learn about Ulrich's story, expertise, and the team behind every home.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const avatarsByName = await getTeamAvatars();
+
   return (
     <>
       <AboutUsContent />
       <FAQ />
-      <Agents />
+      <Agents avatarsByName={avatarsByName} />
       <ConsultationBanner />
     </>
   );

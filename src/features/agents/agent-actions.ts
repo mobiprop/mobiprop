@@ -1,5 +1,6 @@
 import "server-only";
 
+import { revalidatePath } from "next/cache";
 import {
   startOfMonth as dfStartOfMonth,
   endOfMonth,
@@ -411,6 +412,12 @@ export async function updateAgentAvatar(agentId: string, file: File): Promise<Up
     newValues: { avatarUrl: updated.avatarUrl },
   });
 
+  // Homepage/About team sections render an agent's avatarUrl and are
+  // statically rendered, so they need an explicit revalidation to pick up
+  // a freshly uploaded photo.
+  revalidatePath("/");
+  revalidatePath("/about");
+
   const earningsByAgent = await loadEarningsByAgent();
   return { ok: true, agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0) };
 }
@@ -441,6 +448,9 @@ export async function removeAgentAvatar(agentId: string): Promise<UpdateAgentRes
     oldValues: { avatarUrl: existing.avatarUrl },
     newValues: { avatarUrl: null },
   });
+
+  revalidatePath("/");
+  revalidatePath("/about");
 
   const earningsByAgent = await loadEarningsByAgent();
   return { ok: true, agent: toAgentDto(updated, earningsByAgent.get(updated.id) ?? 0) };

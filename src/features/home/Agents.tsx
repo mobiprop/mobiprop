@@ -8,9 +8,18 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-// Placeholder silhouette used for every team member until real photos are provided.
+// Fallback silhouette shown when a team member has no avatar uploaded yet.
 const agentPlaceholder =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/team-placeholder.webp";
+
+// Names must match the `agents.team[].name` entries in src/i18n/locales/*/home.json
+// and the corresponding Profile.fullName in the DB, so the About page can look up
+// each member's real avatarUrl and pass it in here.
+export const TEAM_MEMBER_NAMES = [
+  "Rodolfo Ulrich",
+  "Carola Buscaglia",
+  "Matías Ulrich",
+] as const;
 
 function InstagramIcon() {
   return (
@@ -129,7 +138,11 @@ function AgentCard({ agent }: { agent: Agent }) {
   );
 }
 
-export function Agents() {
+export function Agents({
+  avatarsByName = {},
+}: {
+  avatarsByName?: Record<string, string>;
+}) {
   const { t } = useTranslation("home");
   const [slidesToShow, setSlidesToShow] = useState(3);
 
@@ -163,7 +176,7 @@ export function Agents() {
     }) as { name: string; role: string }[]
   ).map((member) => ({
     ...member,
-    photo: agentPlaceholder,
+    photo: avatarsByName[member.name] ?? agentPlaceholder,
   }));
 
   const settings = {
