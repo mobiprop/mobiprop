@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@/generated/prisma/enums";
-import { TEAM_MEMBER_NAMES } from "@/features/home/Agents";
+import { TEAM_MEMBER_NAMES } from "@/features/home/team-members";
 
 // Profile.fullName in the DB isn't guaranteed to match the i18n team names
 // byte-for-byte (e.g. "Rodolfo ulrich" vs "Rodolfo Ulrich"), so comparisons

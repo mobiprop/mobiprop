@@ -12,15 +12,6 @@ import "slick-carousel/slick/slick-theme.css";
 const agentPlaceholder =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/team-placeholder.webp";
 
-// Names must match the `agents.team[].name` entries in src/i18n/locales/*/home.json
-// and the corresponding Profile.fullName in the DB, so the About page can look up
-// each member's real avatarUrl and pass it in here.
-export const TEAM_MEMBER_NAMES = [
-  "Rodolfo Ulrich",
-  "Carola Buscaglia",
-  "Matías Ulrich",
-] as const;
-
 function InstagramIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
