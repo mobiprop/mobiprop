@@ -81,6 +81,43 @@ export type CreateInvitationResult =
   | { ok: false; error: string };
 
 /**
+ * Frees an email address still held by a Supabase Auth user that has no
+ * profiles row — the residue of an agent deleted before deleteAgent() also
+ * removed the login. Such a user can't sign in to anything (every dashboard
+ * path requires a profile), it only reserves the address.
+ *
+ * Returns null when the address is usable, or a message to show the caller.
+ * A user that DOES still have a profile is never touched — that's a genuine
+ * duplicate, reported by the profile check above.
+ */
+async function releaseOrphanedAuthEmail(email: string): Promise<string | null> {
+  const admin = createAdminClient();
+
+  // listUsers is paginated and has no exact-email filter, so scan for a match.
+  const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  if (error) {
+    console.error("Could not check Supabase Auth for an existing user:", error);
+    // Fail open: the invite is still worth sending, and acceptance surfaces
+    // the real error if the address turns out to be taken.
+    return null;
+  }
+
+  const target = email.trim().toLowerCase();
+  const existing = data.users.find((u) => (u.email ?? "").toLowerCase() === target);
+  if (!existing) return null;
+
+  const profile = await prisma.profile.findUnique({ where: { id: existing.id } });
+  if (profile) return "An account with this email already exists.";
+
+  const { error: deleteError } = await admin.auth.admin.deleteUser(existing.id);
+  if (deleteError && deleteError.status !== 404) {
+    console.error(`Failed to clear orphaned auth user ${existing.id}:`, deleteError);
+    return "This email is still registered to a removed account. Please try again in a moment.";
+  }
+  return null;
+}
+
+/**
  * Admin-only: create a staff invitation, persist a hashed token, and email the
  * one-time accept link. The raw token is returned (inside the invite URL) only
  * to the caller — never stored. Role is constrained to AGENT/MANAGER/ADMIN; a
@@ -130,6 +167,14 @@ export async function createAgentInvitation(
   if (existingProfile) {
     return { ok: false, error: "An account with this email already exists." };
   }
+
+  // A profile check alone isn't enough: Supabase Auth can still hold the
+  // address with no profile attached (an agent deleted before deleteAgent()
+  // removed the login too). The invite would send fine and only fail at the
+  // very last step with Supabase's "A user with this email address has already
+  // been registered". Clear that orphan here so the invite actually works.
+  const orphanCheckError = await releaseOrphanedAuthEmail(email);
+  if (orphanCheckError) return { ok: false, error: orphanCheckError };
 
   // Supersede any earlier pending invite for this email so only one is live.
   await prisma.agentInvitation.updateMany({

@@ -473,13 +473,24 @@ export async function deleteAgent(agentId: string): Promise<DeleteAgentResult> {
     return { ok: false, error: "Agent not found.", status: 404 };
   }
 
-  await prisma.profile.delete({ where: { id: agentId } });
-
+  // Auth user first, profile second. If the auth deletion fails we abort with
+  // the profile still intact, so the agent stays visible in the list and the
+  // delete can be retried. The old order (profile first, auth failure only
+  // logged) could strand a login with no profile — invisible in the UI, but
+  // still holding the email address, which is what produced
+  // "A user with this email address has already been registered" on re-signup.
   const admin = createAdminClient();
   const { error: authDeleteError } = await admin.auth.admin.deleteUser(agentId);
   if (authDeleteError && authDeleteError.status !== 404) {
     console.error(`Failed to delete Supabase Auth user for agent ${agentId}:`, authDeleteError);
+    return {
+      ok: false,
+      error: "Could not remove this agent's login. Nothing was deleted — please try again.",
+      status: 502,
+    };
   }
+
+  await prisma.profile.delete({ where: { id: agentId } });
 
   await logActivity({
     actorId: auth.profile.id,
