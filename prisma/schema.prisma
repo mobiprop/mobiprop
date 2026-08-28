@@ -53,6 +53,15 @@ model Profile {
   teamLeaderId String?    @map("team_leader_id") @db.Uuid
   // Notification / security / locale settings edited from the profile modal.
   preferences  Json?
+
+  // Public "Nuestro Equipo" section (home + about). Admins pick who appears
+  // there from the Agents page; the job titles are per-language because the
+  // public site is bilingual. websiteOrder drives the left-to-right order.
+  showOnWebsite  Boolean @default(false) @map("show_on_website")
+  websiteTitleEs String? @map("website_title_es")
+  websiteTitleEn String? @map("website_title_en")
+  websiteOrder   Int     @default(0) @map("website_order")
+
   role         UserRole   @default(USER)
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now()) @map("created_at")
@@ -75,6 +84,7 @@ model Profile {
   invitationsAsTeamLeader AgentInvitation[] @relation("InvitationTeamLeader")
 
   @@index([teamLeaderId], map: "profiles_team_leader_idx")
+  @@index([showOnWebsite, websiteOrder], map: "profiles_website_team_idx")
   @@map("profiles")
 }
 

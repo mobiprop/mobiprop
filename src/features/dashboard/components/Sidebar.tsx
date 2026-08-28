@@ -54,8 +54,9 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
     window.location.href = "/";
   }
 
-  // Route change par sidebar close
+  // Route change par sidebar close — syncing from the router pathname (an external system).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
   }, [pathname]);
 

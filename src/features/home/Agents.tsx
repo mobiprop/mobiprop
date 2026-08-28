@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import svgPaths from "@/assets/svg-6s7nojygyu";
 import Slider from "react-slick";
 
+import type { PublicTeamMember } from "@/features/home/getPublicTeam";
+
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -111,7 +113,7 @@ function AgentCard({ agent }: { agent: Agent }) {
         </div>
 
         <div className="flex flex-shrink-0 gap-2">
-          {[<InstagramIcon />, <LinkedinIcon />, <XIcon />].map(
+          {[<InstagramIcon key="instagram" />, <LinkedinIcon key="linkedin" />, <XIcon key="x" />].map(
             (icon, index) => (
               <button
                 key={index}
@@ -130,11 +132,11 @@ function AgentCard({ agent }: { agent: Agent }) {
 }
 
 export function Agents({
-  avatarsByName = {},
+  members = [],
 }: {
-  avatarsByName?: Record<string, string>;
+  members?: PublicTeamMember[];
 }) {
-  const { t } = useTranslation("home");
+  const { t, i18n } = useTranslation("home");
   const [slidesToShow, setSlidesToShow] = useState(3);
 
   useEffect(() => {
@@ -161,26 +163,38 @@ export function Agents({
     };
   }, []);
 
-  const agents: Agent[] = (
-    t("agents.team", {
-      returnObjects: true,
-    }) as { name: string; role: string }[]
-  ).map((member) => ({
-    ...member,
-    photo: avatarsByName[member.name] ?? agentPlaceholder,
-  }));
+  // Admin-selected team (Agents page → "Equipo del Sitio Web"). Falls back to
+  // the hardcoded home.json list when nobody is selected yet, so the section
+  // never renders empty on the live site.
+  const isSpanish = i18n.language?.startsWith("es") ?? false;
+
+  const agents: Agent[] =
+    members.length > 0
+      ? members.map((member) => ({
+          name: member.name,
+          role: isSpanish ? member.titleEs : member.titleEn,
+          photo: member.photo ?? agentPlaceholder,
+        }))
+      : (
+          t("agents.team", {
+            returnObjects: true,
+          }) as { name: string; role: string }[]
+        ).map((member) => ({ ...member, photo: agentPlaceholder }));
+
+  const effectiveSlidesToShow = Math.max(1, Math.min(slidesToShow, agents.length));
+  const canLoop = agents.length > effectiveSlidesToShow;
 
   const settings = {
     dots: true,
-    arrows: slidesToShow === 1,
+    arrows: slidesToShow === 1 && canLoop,
     prevArrow: <AgentArrow direction="previous" />,
     nextArrow: <AgentArrow direction="next" />,
-    infinite: true,
+    infinite: canLoop,
     speed: 900,
     cssEase: "ease-in-out",
-    slidesToShow,
+    slidesToShow: effectiveSlidesToShow,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: canLoop,
     autoplaySpeed: 5000,
     pauseOnHover: true,
     swipeToSlide: true,

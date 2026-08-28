@@ -660,3 +660,154 @@ export async function getAgentDetail(
 
   return { ok: true, agent };
 }
+
+// ── Public "Nuestro Equipo" team (home + about pages) ─────────────────────────
+
+export type WebsiteTeamMemberDto = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  role: "ADMIN" | "MANAGER" | "AGENT";
+  showOnWebsite: boolean;
+  titleEs: string;
+  titleEn: string;
+  order: number;
+};
+
+const MAX_WEBSITE_TITLE_LENGTH = 120;
+
+/** Every staff account that can be put on the public team section, with its
+ *  current selection state. Ordered so already-selected members come first in
+ *  their display order, then the rest alphabetically. */
+export async function listWebsiteTeam(): Promise<
+  { ok: true; members: WebsiteTeamMemberDto[] } | { ok: false; error: string; status: number }
+> {
+  const auth = await requirePermission("agents:view");
+  if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
+
+  const profiles = await prisma.profile.findMany({
+    where: {
+      role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
+      status: UserStatus.ACTIVE,
+    },
+    orderBy: [{ showOnWebsite: "desc" }, { websiteOrder: "asc" }, { fullName: "asc" }],
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      avatarUrl: true,
+      role: true,
+      showOnWebsite: true,
+      websiteTitleEs: true,
+      websiteTitleEn: true,
+      websiteOrder: true,
+    },
+  });
+
+  return {
+    ok: true,
+    members: profiles.map((p) => ({
+      id: p.id,
+      name: p.fullName ?? p.email,
+      email: p.email,
+      avatarUrl: p.avatarUrl,
+      role: p.role as "ADMIN" | "MANAGER" | "AGENT",
+      showOnWebsite: p.showOnWebsite,
+      titleEs: p.websiteTitleEs ?? "",
+      titleEn: p.websiteTitleEn ?? "",
+      order: p.websiteOrder,
+    })),
+  };
+}
+
+export type SaveWebsiteTeamInput = {
+  id: string;
+  showOnWebsite: boolean;
+  titleEs: string;
+  titleEn: string;
+  order: number;
+};
+
+/** Replaces the whole public-team selection in one transaction so the visible
+ *  set and its ordering can never land half-applied. */
+export async function saveWebsiteTeam(
+  input: SaveWebsiteTeamInput[],
+): Promise<{ ok: true; members: WebsiteTeamMemberDto[] } | { ok: false; error: string; status: number }> {
+  const auth = await requirePermission("agents:update");
+  if (!auth.ok) return { ok: false, error: auth.error, status: 403 };
+
+  if (!Array.isArray(input)) {
+    return { ok: false, error: "Invalid payload.", status: 400 };
+  }
+
+  const seen = new Set<string>();
+  for (const row of input) {
+    if (!row?.id || seen.has(row.id)) {
+      return { ok: false, error: "Invalid payload.", status: 400 };
+    }
+    seen.add(row.id);
+
+    if (row.titleEs.length > MAX_WEBSITE_TITLE_LENGTH || row.titleEn.length > MAX_WEBSITE_TITLE_LENGTH) {
+      return { ok: false, error: "TITLE_TOO_LONG", status: 422 };
+    }
+    // A visible card with no job title renders a blank line under the name.
+    if (row.showOnWebsite && !row.titleEs.trim() && !row.titleEn.trim()) {
+      return { ok: false, error: "TITLE_REQUIRED", status: 422 };
+    }
+  }
+
+  // Only ever touch real staff accounts — never a public USER profile.
+  const allowed = await prisma.profile.findMany({
+    where: {
+      id: { in: [...seen] },
+      role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] },
+    },
+    select: { id: true },
+  });
+  if (allowed.length !== seen.size) {
+    return { ok: false, error: "Agent not found.", status: 404 };
+  }
+
+  const previous = await prisma.profile.findMany({
+    where: { showOnWebsite: true },
+    select: { id: true, fullName: true, websiteOrder: true },
+  });
+
+  await prisma.$transaction([
+    // Anyone not in the payload is cleared, so removing a member from the UI
+    // really removes them from the public site.
+    prisma.profile.updateMany({
+      where: { id: { notIn: [...seen] }, showOnWebsite: true },
+      data: { showOnWebsite: false },
+    }),
+    ...input.map((row) =>
+      prisma.profile.update({
+        where: { id: row.id },
+        data: {
+          showOnWebsite: row.showOnWebsite,
+          websiteTitleEs: row.titleEs.trim() || null,
+          websiteTitleEn: row.titleEn.trim() || null,
+          websiteOrder: row.order,
+        },
+      }),
+    ),
+  ]);
+
+  await logActivity({
+    actorId: auth.profile.id,
+    action: "AGENT_UPDATED",
+    entityType: "PROFILE",
+    entityId: auth.profile.id,
+    oldValues: { websiteTeam: previous.map((p) => p.fullName) },
+    newValues: {
+      websiteTeam: input.filter((r) => r.showOnWebsite).sort((a, b) => a.order - b.order).map((r) => r.id),
+    },
+  });
+
+  // The team renders on both public pages — refresh their cached HTML.
+  revalidatePath("/");
+  revalidatePath("/about");
+
+  return listWebsiteTeam();
+}

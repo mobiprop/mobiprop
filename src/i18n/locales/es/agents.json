@@ -5,7 +5,37 @@
   },
   "actions": {
     "invitations": "Invitaciones",
-    "addAgent": "Agregar Agente"
+    "addAgent": "Agregar Agente",
+    "websiteTeam": "Equipo del Sitio"
+  },
+  "websiteTeamModal": {
+    "title": "Equipo del Sitio Web",
+    "subtitle": "Elegí qué miembros aparecen en la sección \"Nuestro Equipo\" del inicio y de Sobre Nosotros.",
+    "closeAria": "Cerrar modal",
+    "loading": "Cargando equipo…",
+    "loadFailed": "No se pudo cargar el equipo.",
+    "shownHeading_one": "Se muestra en el sitio ({{count}})",
+    "shownHeading_other": "Se muestran en el sitio ({{count}})",
+    "emptySelection": "Todavía no seleccionaste a nadie. Elegí miembros de la lista de abajo para mostrarlos en el sitio.",
+    "availableHeading": "Otros miembros del equipo",
+    "titleEs": "Cargo (Español)",
+    "titleEn": "Cargo (Inglés)",
+    "titleEsPlaceholder": "Martillero y Corredor Público",
+    "titleEnPlaceholder": "Licensed Auctioneer & Real Estate Broker",
+    "moveUpAria": "Mover {{name}} hacia arriba",
+    "moveDownAria": "Mover {{name}} hacia abajo",
+    "showAria": "Mostrar a {{name}} en el sitio",
+    "hideAria": "Quitar a {{name}} del sitio",
+    "cancel": "Cancelar",
+    "save": "Guardar Cambios",
+    "saving": "Guardando…",
+    "toasts": {
+      "saved": "Equipo del sitio actualizado",
+      "saveFailed": "No se pudieron guardar los cambios",
+      "titleRequired": "Agregá un cargo para {{name}} antes de mostrarlo en el sitio.",
+      "titleRequiredGeneric": "Cada miembro visible necesita al menos un cargo.",
+      "titleTooLong": "El cargo es demasiado largo (máximo 120 caracteres)."
+    }
   },
   "stats": {
     "totalAgents": "Total de Agentes",

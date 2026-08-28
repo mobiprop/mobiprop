@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -69,6 +69,13 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
   const [scheduledDate, setScheduledDate] = useState(toDateInput(post?.scheduledAt ?? null));
   const [uploadingCover, setUploadingCover] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [scheduleMinDate, setScheduleMinDate] = useState<Date | undefined>(undefined);
+
+  useEffect(() => {
+    // Reading the current date (an external/environmental value), not deriving state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setScheduleMinDate(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  }, []);
 
   function parseTags(): string[] {
     return tagsInput
@@ -273,7 +280,7 @@ export function BlogEditorModal({ post, canPublish, submitting, categories, onCl
                   <DatePickerField
                     value={scheduledDate}
                     onChange={setScheduledDate}
-                    minDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
+                    minDate={scheduleMinDate}
                     placeholder={t("editorModal.publishDatePlaceholder")}
                     className="[&>button]:bg-white"
                   />

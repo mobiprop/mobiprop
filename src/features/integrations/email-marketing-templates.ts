@@ -67,7 +67,7 @@ export function parsePropertiesBlockIds(html: string): string[] | null {
 function propertiesPlaceholder(): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
     <td align="center" style="border:2px dashed ${BRAND.cardBorder};border-radius:12px;padding:28px 20px;font-family:${FONT};font-size:13px;color:${BRAND.faint};line-height:1.6;">
-      Featured properties will appear here.<br />Select them under &ldquo;Featured Properties&rdquo; in the campaign editor.
+      Las propiedades destacadas van a aparecer acá.<br />Seleccionalas en &ldquo;Propiedades Destacadas&rdquo; dentro del editor de campaña.
     </td>
   </tr></table>`;
 }
@@ -77,8 +77,8 @@ export function renderListingCardsHtml(cards: EmailListingCard[]): string {
   return cards
     .map((card) => {
       const meta = [
-        card.bedrooms != null ? `${card.bedrooms} bed` : null,
-        card.bathrooms != null ? `${card.bathrooms} bath` : null,
+        card.bedrooms != null ? `${card.bedrooms} dorm.` : null,
+        card.bathrooms != null ? `${card.bathrooms} baños` : null,
         card.totalAreaM2 != null ? `${card.totalAreaM2} m²` : null,
       ]
         .filter(Boolean)
@@ -98,7 +98,7 @@ export function renderListingCardsHtml(cards: EmailListingCard[]): string {
           ${meta ? `<div style="font-family:${FONT};font-size:13px;color:${BRAND.muted};margin-top:8px;">${meta}</div>` : ""}
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;"><tr>
             <td style="font-family:${FONT};font-size:17px;font-weight:700;color:${BRAND.button};">${escapeAttr(card.priceLabel)}</td>
-            <td align="right"><a href="${card.url}" style="font-family:${FONT};font-size:13px;font-weight:600;color:${BRAND.link};text-decoration:none;">View Property &rarr;</a></td>
+            <td align="right"><a href="${card.url}" style="font-family:${FONT};font-size:13px;font-weight:600;color:${BRAND.link};text-decoration:none;">Ver Propiedad &rarr;</a></td>
           </tr></table>
         </td></tr>
       </table>`;
@@ -185,8 +185,8 @@ export function replaceCtaBlock(html: string, label: string, url: string): strin
 function complianceBar(): string {
   return `<tr><td bgcolor="#ffffff" align="center" style="padding:0 32px 28px;">
     <div style="border-top:1px solid ${BRAND.cardBorder};padding-top:18px;font-family:${FONT};font-size:12px;color:${BRAND.muted};line-height:1.7;">
-      You are receiving this email because you subscribed to updates from ${APP_NAME}.<br />
-      <a href="%unsubscribe_url%" style="color:${BRAND.link};text-decoration:underline;">Unsubscribe</a>
+      Recibís este correo porque te suscribiste a las novedades de ${APP_NAME}.<br />
+      <a href="%unsubscribe_url%" style="color:${BRAND.link};text-decoration:underline;">Darse de baja</a>
       &nbsp;&middot;&nbsp; ${APP_NAME}, Mar del Plata, Argentina
     </div>
   </td></tr>`;
@@ -197,7 +197,7 @@ function marketingLayout(opts: {
   bodyHtml: string;
 }): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -222,7 +222,7 @@ function marketingLayout(opts: {
 }
 
 const greeting = (text: string) =>
-  `<div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;">Hi %first_name%,</div>
+  `<div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;">Hola %first_name%,</div>
    ${buildMessageBlock(text)}`;
 
 // ── Templates ────────────────────────────────────────────────────────────────
@@ -230,85 +230,85 @@ const greeting = (text: string) =>
 export const MARKETING_TEMPLATES: MarketingTemplate[] = [
   {
     key: "new-listing-alert",
-    name: "New Listing Alert",
+    name: "Alerta de Nueva Propiedad",
     category: "Marketing",
-    subject: "New Properties Just Listed",
-    previewText: "Fresh properties just hit the market — take a look before they're gone.",
+    subject: "Nuevas Propiedades Recién Publicadas",
+    previewText: "Propiedades recién salidas al mercado — mirálas antes de que vuelen.",
     supportsProperties: true,
     html: marketingLayout({
       heroOpts: {
         icon: "icon-check.png",
-        eyebrow: "Property alert",
-        title: "New Properties Just Listed",
-        subtitle: "Hand-picked new listings from our portfolio.<br />Be the first to visit them.",
+        eyebrow: "Alerta de propiedad",
+        title: "Nuevas Propiedades Recién Publicadas",
+        subtitle: "Una selección de las últimas propiedades de nuestro portfolio.<br />Sé el primero en visitarlas.",
       },
       bodyHtml: `${greeting(
-        "We just added new properties that we think you'll love. Here are the highlights:",
+        "Acabamos de sumar propiedades que sabemos que te van a encantar. Estos son los destacados:",
       )}
       ${buildImageBlock("")}
       <!--PROPERTIES:START ids=-->${propertiesPlaceholder()}<!--PROPERTIES:END-->
-      ${buildCtaBlock("Browse All Listings", `${APP_URL}/listings`)}`,
+      ${buildCtaBlock("Ver Todas las Propiedades", `${APP_URL}/listings`)}`,
     }),
   },
   {
     key: "monthly-market-report",
-    name: "Monthly Market Report",
+    name: "Informe Mensual de Mercado",
     category: "Marketing",
-    subject: "Real Estate Market Report",
-    previewText: "This month's market trends, prices and featured neighbourhoods.",
+    subject: "Informe del Mercado Inmobiliario",
+    previewText: "Las tendencias, precios y barrios destacados de este mes.",
     supportsProperties: true,
     html: marketingLayout({
       heroOpts: {
         icon: "icon-shield.png",
-        eyebrow: "Market insights",
-        title: "Monthly Market Report",
-        subtitle: "Trends, prices and opportunities in the<br />Mar del Plata real estate market.",
+        eyebrow: "Panorama de mercado",
+        title: "Informe Mensual de Mercado",
+        subtitle: "Tendencias, precios y oportunidades del<br />mercado inmobiliario de Mar del Plata.",
       },
       bodyHtml: `${greeting(
-        "[Write your market commentary here — trends, featured neighbourhoods, and advice for buyers and sellers this month.]",
+        "[Escribí acá tu comentario de mercado: tendencias, barrios destacados y consejos para compradores y vendedores este mes.]",
       )}
       ${buildImageBlock("")}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
         <td width="48%" style="background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;padding:18px 20px;">
-          <div style="font-family:${FONT};font-size:12px;color:${BRAND.faint};">Average sale price</div>
-          <div style="font-family:${FONT};font-size:20px;font-weight:700;color:${BRAND.heroFrom};margin-top:6px;">[USD 000,000]</div>
+          <div style="font-family:${FONT};font-size:12px;color:${BRAND.faint};">Precio de venta promedio</div>
+          <div style="font-family:${FONT};font-size:20px;font-weight:700;color:${BRAND.heroFrom};margin-top:6px;">[USD 000.000]</div>
         </td>
         <td width="4%">&nbsp;</td>
         <td width="48%" style="background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;padding:18px 20px;">
-          <div style="font-family:${FONT};font-size:12px;color:${BRAND.faint};">New listings this month</div>
+          <div style="font-family:${FONT};font-size:12px;color:${BRAND.faint};">Nuevas propiedades este mes</div>
           <div style="font-family:${FONT};font-size:20px;font-weight:700;color:${BRAND.heroFrom};margin-top:6px;">[00]</div>
         </td>
       </tr></table>
-      <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${BRAND.heroFrom};margin-top:28px;">Featured this month</div>
+      <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${BRAND.heroFrom};margin-top:28px;">Destacadas del mes</div>
       <!--PROPERTIES:START ids=-->${propertiesPlaceholder()}<!--PROPERTIES:END-->
-      ${buildCtaBlock("Browse All Listings", `${APP_URL}/listings`)}`,
+      ${buildCtaBlock("Ver Todas las Propiedades", `${APP_URL}/listings`)}`,
     }),
   },
   {
     key: "lead-follow-up",
-    name: "Lead Follow-up",
+    name: "Seguimiento de Lead",
     category: "Marketing",
-    subject: "Still Looking? We Have New Matches",
-    previewText: "New properties matching your search are now available.",
+    subject: "¿Seguís Buscando? Tenemos Nuevas Opciones",
+    previewText: "Ya están disponibles nuevas propiedades que coinciden con tu búsqueda.",
     supportsProperties: true,
     html: marketingLayout({
       heroOpts: {
         icon: "icon-check.png",
-        eyebrow: "New matches",
-        title: "Still Looking for Your Next Property?",
-        subtitle: "New listings match what you were searching for.<br />Our team is ready to help.",
+        eyebrow: "Nuevas coincidencias",
+        title: "¿Seguís Buscando tu Próxima Propiedad?",
+        subtitle: "Tenemos nuevas propiedades que coinciden con lo que buscabas.<br />Nuestro equipo está listo para ayudarte.",
       },
       bodyHtml: `${greeting(
-        "We have new properties that match what you were looking for. Take a look — and if you'd like to visit any of them, just reply to this email and we'll arrange it.",
+        "Tenemos nuevas propiedades que coinciden con lo que estabas buscando. Echales un vistazo — y si querés visitar alguna, respondé este correo y lo coordinamos.",
       )}
       ${buildImageBlock("")}
       <!--PROPERTIES:START ids=-->${propertiesPlaceholder()}<!--PROPERTIES:END-->
-      ${buildCtaBlock("See All New Matches", `${APP_URL}/listings`)}`,
+      ${buildCtaBlock("Ver Todas las Coincidencias", `${APP_URL}/listings`)}`,
     }),
   },
   {
     key: "blank",
-    name: "Blank Newsletter",
+    name: "Newsletter en Blanco",
     category: "Marketing",
     subject: "",
     previewText: "",
@@ -317,12 +317,12 @@ export const MARKETING_TEMPLATES: MarketingTemplate[] = [
       heroOpts: {
         icon: "icon-check.png",
         eyebrow: "Newsletter",
-        title: "[Your headline here]",
-        subtitle: "[A short subtitle for the hero section.]",
+        title: "[Tu título acá]",
+        subtitle: "[Un subtítulo breve para la sección principal.]",
       },
-      bodyHtml: `${greeting("[Write your newsletter content here.]")}
+      bodyHtml: `${greeting("[Escribí acá el contenido de tu newsletter.]")}
       ${buildImageBlock("")}
-      ${buildCtaBlock("Visit Ulrich Propiedades", APP_URL)}`,
+      ${buildCtaBlock("Visitar Ulrich Propiedades", APP_URL)}`,
     }),
   },
 ];

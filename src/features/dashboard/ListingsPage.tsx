@@ -180,6 +180,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
     if (!highlightSlug) return;
     const match = listings.find((listing) => listing.slug === highlightSlug);
     if (!match) return;
+    // Syncing from the router's highlightSlug param (an external system), not derived state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (canUpdate) setEditListing(match);
     router.replace("/dashboard/listings");
   }, [highlightSlug, listings, canUpdate, router]);

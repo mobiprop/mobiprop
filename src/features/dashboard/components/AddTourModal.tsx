@@ -100,7 +100,12 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
 
   // Search listings
   useEffect(() => {
-    if (!listingSearch.trim()) { setListings([]); return; }
+    if (!listingSearch.trim()) {
+      // Clearing stale results before the debounced fetch below runs, not deriving state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setListings([]);
+      return;
+    }
     const timer = setTimeout(() => {
       fetch(`/api/dashboard/listings?search=${encodeURIComponent(listingSearch)}&limit=6`)
         .then((r) => r.json())

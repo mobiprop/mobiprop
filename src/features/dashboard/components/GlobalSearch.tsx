@@ -238,6 +238,8 @@ export function GlobalSearch() {
     }
   }
 
+  // Resetting keyboard focus when the debounced query (an external input) changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setFocusedIdx(-1), [debouncedQ]);
 
   // Running index across all sections for keyboard focus

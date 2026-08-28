@@ -5,7 +5,37 @@
   },
   "actions": {
     "invitations": "Invitations",
-    "addAgent": "Add Agent"
+    "addAgent": "Add Agent",
+    "websiteTeam": "Website Team"
+  },
+  "websiteTeamModal": {
+    "title": "Website Team",
+    "subtitle": "Choose which members appear in the \"Our Team\" section on the home and About pages.",
+    "closeAria": "Close modal",
+    "loading": "Loading team…",
+    "loadFailed": "Failed to load the team.",
+    "shownHeading_one": "Shown on the site ({{count}})",
+    "shownHeading_other": "Shown on the site ({{count}})",
+    "emptySelection": "No one selected yet. Pick members from the list below to show them on the site.",
+    "availableHeading": "Other team members",
+    "titleEs": "Job title (Spanish)",
+    "titleEn": "Job title (English)",
+    "titleEsPlaceholder": "Martillero y Corredor Público",
+    "titleEnPlaceholder": "Licensed Auctioneer & Real Estate Broker",
+    "moveUpAria": "Move {{name}} up",
+    "moveDownAria": "Move {{name}} down",
+    "showAria": "Show {{name}} on the site",
+    "hideAria": "Remove {{name}} from the site",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "saving": "Saving…",
+    "toasts": {
+      "saved": "Website team updated",
+      "saveFailed": "Failed to save changes",
+      "titleRequired": "Add a job title for {{name}} before showing them on the site.",
+      "titleRequiredGeneric": "Every visible member needs at least one job title.",
+      "titleTooLong": "That job title is too long (120 characters max)."
+    }
   },
   "stats": {
     "totalAgents": "Total Agents",

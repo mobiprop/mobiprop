@@ -722,7 +722,7 @@ function SavedPropertiesSection({
                 </div>
                 <p className="text-[16px] text-[#6a7282]" style={{ fontFamily: montserrat }}>
                   {t("tours.empty")}{" "}
-                  <a href="/listings" className="text-[#1a4878] hover:underline">{t("tours.browseListingsToBook")}</a> {t("tours.browseListingsToBookSuffix")}
+                  <Link href="/listings" className="text-[#1a4878] hover:underline">{t("tours.browseListingsToBook")}</Link> {t("tours.browseListingsToBookSuffix")}
                 </p>
               </div>
             ) : (

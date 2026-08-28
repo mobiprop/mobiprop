@@ -68,7 +68,19 @@
     "selectedCount_one": "{{count}} contact selected",
     "selectedCount_other": "{{count}} contacts selected",
     "clearSelectionAria": "Clear selection",
-    "delete": "Delete"
+    "delete": "Delete",
+    "addToSendgridList": "Add to SendGrid List"
+  },
+  "sendgridListModal": {
+    "title": "Add to SendGrid List",
+    "subtitle_one": "{{count}} selected contact will be added to the chosen list.",
+    "subtitle_other": "{{count}} selected contacts will be added to the chosen list.",
+    "listLabel": "Target List",
+    "noListsHint": "No SendGrid lists available yet. Create one from the SendGrid section.",
+    "cancel": "Cancel",
+    "add": "Add",
+    "adding": "Adding…",
+    "closeAria": "Close modal"
   },
   "deleteModal": {
     "title": "Delete Contact",
@@ -105,7 +117,12 @@
     "bulkDeleted_one": "Deleted {{count}} contact",
     "bulkDeleted_other": "Deleted {{count}} contacts",
     "bulkDeleteFailed_one": "Failed to delete {{count}} contact",
-    "bulkDeleteFailed_other": "Failed to delete {{count}} contacts"
+    "bulkDeleteFailed_other": "Failed to delete {{count}} contacts",
+    "addedToSendgrid_one": "Added {{count}} contact to the list",
+    "addedToSendgrid_other": "Added {{count}} contacts to the list",
+    "addedToSendgridSkipped_one": "{{count}} contact had no email and was skipped",
+    "addedToSendgridSkipped_other": "{{count}} contacts had no email and were skipped",
+    "addToSendgridFailed": "Failed to add contacts to the list"
   },
   "fields": {
     "firstName": "First Name *",

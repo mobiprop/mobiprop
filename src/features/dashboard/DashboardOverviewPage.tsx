@@ -355,8 +355,7 @@ interface CustomTooltipProps {
   payload?: Array<{
     dataKey: string | number;
     value: number | string;
-    payload: any;
-    [key: string]: any;
+    payload: { revenueNet?: number };
   }>;
   label?: string;
 }

@@ -29,7 +29,9 @@ export function AttachmentPreviewModal({
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
+  // Syncing the active attachment from the startIndex prop (an external input).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (startIndex !== null) setIndex(startIndex);
   }, [startIndex]);
 

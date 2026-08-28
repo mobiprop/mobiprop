@@ -68,7 +68,19 @@
     "selectedCount_one": "{{count}} contacto seleccionado",
     "selectedCount_other": "{{count}} contactos seleccionados",
     "clearSelectionAria": "Limpiar selección",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "addToSendgridList": "Agregar a Lista de SendGrid"
+  },
+  "sendgridListModal": {
+    "title": "Agregar a Lista de SendGrid",
+    "subtitle_one": "Se agregará {{count}} contacto seleccionado a la lista elegida.",
+    "subtitle_other": "Se agregarán {{count}} contactos seleccionados a la lista elegida.",
+    "listLabel": "Lista de Destino",
+    "noListsHint": "No hay listas de SendGrid disponibles. Creá una desde la sección SendGrid.",
+    "cancel": "Cancelar",
+    "add": "Agregar",
+    "adding": "Agregando…",
+    "closeAria": "Cerrar modal"
   },
   "deleteModal": {
     "title": "Eliminar Contacto",
@@ -105,7 +117,12 @@
     "bulkDeleted_one": "Se eliminó {{count}} contacto",
     "bulkDeleted_other": "Se eliminaron {{count}} contactos",
     "bulkDeleteFailed_one": "Error al eliminar {{count}} contacto",
-    "bulkDeleteFailed_other": "Error al eliminar {{count}} contactos"
+    "bulkDeleteFailed_other": "Error al eliminar {{count}} contactos",
+    "addedToSendgrid_one": "Se agregó {{count}} contacto a la lista",
+    "addedToSendgrid_other": "Se agregaron {{count}} contactos a la lista",
+    "addedToSendgridSkipped_one": "{{count}} contacto sin correo electrónico fue omitido",
+    "addedToSendgridSkipped_other": "{{count}} contactos sin correo electrónico fueron omitidos",
+    "addToSendgridFailed": "No se pudieron agregar los contactos a la lista"
   },
   "fields": {
     "firstName": "Nombre *",

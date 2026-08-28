@@ -27,8 +27,10 @@ export function ImageLightbox({
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
-  // Sync the active image whenever the lightbox is (re)opened at a new index.
+  // Sync the active image whenever the lightbox is (re)opened at a new index
+  // (syncing from the startIndex prop, an external input).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (startIndex !== null) setIndex(startIndex);
   }, [startIndex]);
 

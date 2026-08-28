@@ -592,6 +592,8 @@ const [locationInput, setLocationInput] = useState(filters.location);
 const [locationOpen, setLocationOpen] = useState(false);
 const [debouncedLocation, setDebouncedLocation] = useState(filters.location);
 const locationRef = useRef<HTMLDivElement>(null);
+// Syncing the input text from the filters prop (an external input).
+// eslint-disable-next-line react-hooks/set-state-in-effect
 useEffect(() => setLocationInput(filters.location), [filters.location]);
 useEffect(() => {
   if (!locationOpen) return;
@@ -634,8 +636,9 @@ const suggestions: PublicListingDto[] = (featuredData?.listings ?? []).slice(0, 
 
 const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 const safePage = Math.min(page, totalPages);
-// Snap back to page 1 whenever the result set changes.
+// Snap back to page 1 whenever the result set changes (syncing from filters, an external input).
 const filterKey = JSON.stringify(filters);
+// eslint-disable-next-line react-hooks/set-state-in-effect
 useEffect(() => setPage(1), [filterKey]);
 
 const resultsHeading = isLoading

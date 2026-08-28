@@ -25,6 +25,8 @@ export function PropertyLocationMap({
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
+      // Bailing out of the external Maps script load below, not deriving state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFailed(true);
       return;
     }

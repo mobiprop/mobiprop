@@ -80,8 +80,7 @@
     "title": "Conocé al equipo detrás de cada operación.",
     "team": [
       { "name": "Rodolfo Ulrich", "role": "Martillero y Corredor Público Responsable" },
-      { "name": "Carola Buscaglia", "role": "Asesor Inmobiliario" },
-      { "name": "Matías Ulrich", "role": "Martillero y Corredor Público" }
+      { "name": "Carola Buscaglia", "role": "Asesor Inmobiliario" }
     ]
   },
   "testimonial": {

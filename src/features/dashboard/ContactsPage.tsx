@@ -21,6 +21,7 @@ import {
   Check,
   Minus,
   X,
+  Send,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -41,6 +42,7 @@ import {
 import { AddContactModal, type NewContact } from "./components/AddContactModal";
 import { EditContactModal, type EditContactInput } from "./components/EditContactModal";
 import { SearchableSelect } from "./components/SearchableSelect";
+import { AddToSendgridListModal } from "./components/AddToSendgridListModal";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { parseSpreadsheetFile } from "@/lib/spreadsheet";
 
@@ -215,6 +217,10 @@ function RowMenu({
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
+    // Portal below must not render during SSR/hydration; there's no
+    // synchronous way to know we're on the client, so this one-time flag
+    // is the standard escape hatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -453,6 +459,7 @@ export function ContactsPage({ role, currentUserId, currentUserName }: ContactsP
   const [conflict, setConflict] = useState<ConflictState | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [showAddToSendgrid, setShowAddToSendgrid] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -470,6 +477,7 @@ export function ContactsPage({ role, currentUserId, currentUserName }: ContactsP
   const canDelete = hasPermission(role, "contacts:archive");
   const canExport = hasPermission(role, "contacts:export");
   const canImport = hasPermission(role, "contacts:import");
+  const canAddToSendgridList = hasPermission(role, "sendgrid:manageLists");
 
   const contacts = useMemo(() => data?.contacts ?? [], [data]);
 
@@ -585,7 +593,10 @@ export function ContactsPage({ role, currentUserId, currentUserName }: ContactsP
       "Contact ID", "First Name", "Last Name", "Email", "Phone",
       "Roles", "Location", "Address", "Notes", "Listings", "Created At",
     ];
-    const rows = filtered.map((c) => [
+    // A selection exports exactly what's selected — matching bulk delete, which
+    // also acts on every selected row, not just the ones the current filter shows.
+    const rowsSource = selectedIds.size > 0 ? contacts.filter((c) => selectedIds.has(c.id)) : filtered;
+    const rows = rowsSource.map((c) => [
       c.contactId,
       c.firstName,
       c.lastName,
@@ -699,7 +710,7 @@ export function ContactsPage({ role, currentUserId, currentUserName }: ContactsP
             <button
               type="button"
               onClick={handleExport}
-              disabled={filtered.length === 0}
+              disabled={selectedIds.size === 0 && filtered.length === 0}
               className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#4a5565] transition-colors hover:bg-[#f9fafb] disabled:opacity-60 sm:px-4"
               style={mont}
             >
@@ -866,19 +877,41 @@ export function ContactsPage({ role, currentUserId, currentUserName }: ContactsP
         {bulkBusy && <Loader2 size={15} className="animate-spin text-[#1e4f86]" />}
       </div>
 
-      {canDelete && (
-        <button
-          type="button"
-          onClick={handleBulkDelete}
-          disabled={bulkBusy}
-          className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[#fecaca] bg-white px-3 text-[13px] font-medium text-[#e7000b] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-50"
-          style={mont}
-        >
-          <Trash2 size={15} />
-          {t("bulkActions.delete")}
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        {canAddToSendgridList && (
+          <button
+            type="button"
+            onClick={() => setShowAddToSendgrid(true)}
+            disabled={bulkBusy}
+            className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[#1e4f86]/30 bg-white px-3 text-[13px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-50"
+            style={mont}
+          >
+            <Send size={15} />
+            {t("bulkActions.addToSendgridList")}
+          </button>
+        )}
+        {canDelete && (
+          <button
+            type="button"
+            onClick={handleBulkDelete}
+            disabled={bulkBusy}
+            className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[#fecaca] bg-white px-3 text-[13px] font-medium text-[#e7000b] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-50"
+            style={mont}
+          >
+            <Trash2 size={15} />
+            {t("bulkActions.delete")}
+          </button>
+        )}
+      </div>
     </div>
+  )}
+
+  {showAddToSendgrid && (
+    <AddToSendgridListModal
+      contactIds={[...selectedIds]}
+      onClose={() => setShowAddToSendgrid(false)}
+      onAdded={() => setSelectedIds(new Set())}
+    />
   )}
 
   {/* Loading / error / table */}

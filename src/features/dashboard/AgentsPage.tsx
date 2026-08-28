@@ -18,6 +18,7 @@ import {
   Trash2,
   Pencil,
   MoreVertical,
+  Users,
 } from "lucide-react";
 
 import { hasPermission } from "@/lib/permissions";
@@ -25,6 +26,7 @@ import type { Role } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/formatters";
 import { AddAgentModal } from "./components/AddAgentModal";
 import { EditAgentModal } from "./components/EditAgentModal";
+import { WebsiteTeamModal } from "./components/WebsiteTeamModal";
 import { SearchableSelect } from "./components/SearchableSelect";
 import { useDashboardAgentsQuery } from "@/hooks/queries/useDashboardAgentsQuery";
 import type { AgentDto } from "@/features/agents/agent-actions";
@@ -314,6 +316,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
   // onClick could run — the menu just closed and nothing happened.
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editingAgent, setEditingAgent] = useState<AgentDto | null>(null);
+  const [showWebsiteTeam, setShowWebsiteTeam] = useState(false);
 
   const canInvite = hasPermission(role, "agents:invite");
   const canApprove = hasPermission(role, "agents:update");
@@ -408,6 +411,17 @@ export function AgentsPage({ role }: AgentsPageProps) {
               <Mail size={16} className="shrink-0" />
               <span className="truncate">{t("actions.invitations")}</span>
             </Link>
+          )}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setShowWebsiteTeam(true)}
+              className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f8fafc] sm:px-4"
+              style={mont}
+            >
+              <Users size={16} className="shrink-0" />
+              <span className="truncate">{t("actions.websiteTeam")}</span>
+            </button>
           )}
           {canInvite && (
             <button
@@ -988,6 +1002,7 @@ export function AgentsPage({ role }: AgentsPageProps) {
           onSaved={() => fetchAgents()}
         />
       )}
+      {showWebsiteTeam && <WebsiteTeamModal onClose={() => setShowWebsiteTeam(false)} />}
     </div>
   );
 }
