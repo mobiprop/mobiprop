@@ -29,7 +29,7 @@ function Badge({
 }) {
   return (
     <span
-      className={`inline-flex max-w-full items-center justify-center truncate px-2 py-0.5 rounded-[6px] text-[11px] font-medium ${className}`}
+      className={`inline-flex max-w-full items-center justify-center truncate px-3 py-1 rounded-[6px] text-[12px] font-medium ${className}`}
       style={{ backgroundColor: style.bg, color: style.text, ...mont }}
       title={label}
     >
@@ -146,7 +146,7 @@ return (
 
         <thead>
           <tr className="border-y border-[#e5e7eb] bg-[#f9fafb]">
-            <th className="px-2 py-2">
+            <th className="px-3 py-4">
               <RowCheckbox
                 checked={allSelected}
                 indeterminate={someSelected}
@@ -166,7 +166,7 @@ return (
             ].map((heading) => (
               <th
                 key={heading}
-                className="truncate px-2 py-2 text-left text-[13px] font-medium text-[#6a7282]"
+                className="truncate px-3 py-4 text-left text-[14px] font-medium text-[#6a7282]"
                 style={mont}
                 title={heading}
               >
@@ -174,7 +174,7 @@ return (
               </th>
             ))}
 
-            <th className="px-2 py-2" />
+            <th className="px-3 py-4" />
           </tr>
         </thead>
 
@@ -186,7 +186,7 @@ return (
                 selection.selectedIds.has(listing.id) ? "bg-[#eff6ff]" : ""
               }`}
             >
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <RowCheckbox
                   checked={selection.selectedIds.has(listing.id)}
                   onToggle={() => selection.onToggleOne(listing.id)}
@@ -195,9 +195,9 @@ return (
               </td>
 
               {/* Listing ID */}
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <span
-                  className="block truncate text-[13px] font-medium text-[#1e4f86]"
+                  className="block truncate text-[14px] font-medium text-[#1e4f86]"
                   style={mont}
                 >
                   {listing.listingId}
@@ -205,9 +205,9 @@ return (
               </td>
 
               {/* Property */}
-              <td className="px-2 py-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="relative size-9 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
+              <td className="px-3 py-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="relative size-10 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
                     <Image
                       src={
                         listing.coverImageUrl ??
@@ -215,14 +215,14 @@ return (
                       }
                       alt={listing.title}
                       fill
-                      sizes="36px"
+                      sizes="40px"
                       className="object-cover"
                     />
                   </div>
 
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span
-                      className="flex items-center gap-1.5 text-[13px] font-medium text-[#1e4f86]"
+                      className="flex items-center gap-1.5 text-[14px] font-medium text-[#1e4f86]"
                       style={mont}
                     >
                       <span className="truncate">{listing.title}</span>
@@ -236,7 +236,7 @@ return (
                     </span>
 
                     <span
-                      className="flex items-center gap-1 text-[11px] text-[#6a7282]"
+                      className="flex items-center gap-1 text-[12px] text-[#6a7282]"
                       style={mont}
                     >
                       <MapPin size={12} className="shrink-0" />
@@ -247,7 +247,7 @@ return (
               </td>
 
               {/* Type */}
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <Badge
                   label={td(`propertyType.${listing.type}`)}
                   style={TYPE_BADGE[listing.type]}
@@ -255,9 +255,9 @@ return (
               </td>
 
               {/* Price */}
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <span
-                  className="block text-[13px] font-semibold leading-tight text-[#1E4F86]"
+                  className="block text-[14px] font-semibold leading-tight text-[#1E4F86]"
                   style={mont}
                 >
                   {formatListingPrice(listing, t)}
@@ -265,9 +265,9 @@ return (
               </td>
 
               {/* Bedrooms */}
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <span
-                  className="text-[13px] text-[#1E4F86]"
+                  className="text-[14px] text-[#1E4F86]"
                   style={mont}
                 >
                   {listing.bedrooms ?? "—"}
@@ -275,9 +275,9 @@ return (
               </td>
 
               {/* Operation type */}
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <span
-                  className="block truncate text-[13px] text-[#1E4F86]"
+                  className="block truncate text-[14px] text-[#1E4F86]"
                   style={mont}
                 >
                   {td(`operationType.${listing.operationType}`)}
@@ -285,7 +285,7 @@ return (
               </td>
 
               {/* Status */}
-              <td className="px-2 py-3">
+              <td className="px-3 py-4">
                 <Badge
                   label={td(`status.${listing.status}`)}
                   style={STATUS_BADGE[listing.status]}
@@ -293,15 +293,15 @@ return (
               </td>
 
               {/* Actions */}
-              <td className="px-2 py-3">
-                <div className="flex items-center gap-1.5 text-[#99a1af]">
+              <td className="px-3 py-4">
+                <div className="flex items-center gap-2 text-[#99a1af]">
                   <button
                     type="button"
                     title={t("list.copyLinkTitle")}
                     onClick={() => handleCopyLink(listing)}
                     className="transition-colors hover:text-[#1e4f86]"
                   >
-                    <Link2 size={14} />
+                    <Link2 size={16} />
                   </button>
 
                   {actions.canUpdate && (
@@ -311,7 +311,7 @@ return (
                       onClick={() => actions.onEdit(listing)}
                       className="transition-colors hover:text-[#1e4f86]"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={16} />
                     </button>
                   )}
 
@@ -329,9 +329,9 @@ return (
                       className="transition-colors hover:text-[#1e4f86]"
                     >
                       {listing.status === "ACTIVE" ? (
-                        <Pause size={14} />
+                        <Pause size={16} />
                       ) : (
-                        <Play size={14} />
+                        <Play size={16} />
                       )}
                     </button>
                   )}
@@ -350,7 +350,7 @@ return (
                       className="transition-colors hover:text-[#f59e0b]"
                     >
                       <Star
-                        size={14}
+                        size={16}
                         className={
                           listing.isFeatured
                             ? "fill-[#f59e0b] text-[#f59e0b]"
