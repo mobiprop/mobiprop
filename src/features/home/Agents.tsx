@@ -90,7 +90,21 @@ function AgentCard({ agent }: { agent: Agent }) {
           src={agent.photo}
           alt={agent.name}
           draggable={false}
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          // Both current team photos are landscape shots where the subject
+          // stands right-of-center (office/garden space to their left), so a
+          // dead-center crop clips the right shoulder on the wide 2/3-up
+          // card (>=768px, matching the carousel's own breakpoint above).
+          // On the single-column mobile card the box is much narrower/
+          // taller, so the same shift would crop too much off the same
+          // side instead — keep that one centered, which was never
+          // reported broken.
+          // The >=768px card can also flip from a horizontal to a vertical
+          // crop as the window widens (card gets wider than it is tall
+          // relative to the source photo's aspect ratio), which instead
+          // crops the *top of the head* under a centered vertical position
+          // — bias the crop upward (18% from top) so headroom survives at
+          // every width up to the container's 1440px cap.
+          className="absolute inset-0 h-full w-full object-cover object-center md:object-[65%_18%]"
         />
       </div>
 

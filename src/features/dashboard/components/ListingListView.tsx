@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus } from "lucide-react";
+import { toast } from "sonner";
+import { Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2 } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
@@ -14,11 +15,23 @@ import {
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
-function Badge({ label, style }: { label: string; style: { bg: string; text: string } }) {
+function Badge({
+  label,
+  style,
+  className = "",
+}: {
+  label: string;
+  style: { bg: string; text: string };
+  /** Extra classes — e.g. a max-width + truncate cap for the desktop table,
+   *  where "Oficina Comercial" or "Casa Adosada" would otherwise force the
+   *  whole Type column wide for every row. */
+  className?: string;
+}) {
   return (
     <span
-      className="inline-flex items-center justify-center px-3 py-1 rounded-[6px] text-[12px] font-medium whitespace-nowrap"
+      className={`inline-flex max-w-full items-center justify-center truncate px-2 py-0.5 rounded-[6px] text-[11px] font-medium ${className}`}
       style={{ backgroundColor: style.bg, color: style.text, ...mont }}
+      title={label}
     >
       {label}
     </span>
@@ -87,6 +100,14 @@ export function ListingListView({ listings, actions, selection }: ListingListVie
   const selectedCount = listings.filter((listing) => selection.selectedIds.has(listing.id)).length;
   const allSelected = listings.length > 0 && selectedCount === listings.length;
   const someSelected = selectedCount > 0 && !allSelected;
+
+  function handleCopyLink(listing: DashboardListingDto) {
+    const url = `${window.location.origin}/listings/${listing.slug}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => toast.success(t("list.linkCopied")))
+      .catch(() => toast.error(t("list.linkCopyFailed")));
+  }
 return (
   <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
     {/* Header */}
@@ -101,10 +122,31 @@ return (
 
     {/* Desktop table - same design */}
     <div className="hidden overflow-x-auto lg:block">
-      <table className="w-full min-w-[1000px]">
+      <table className="w-full table-fixed">
+        {/* table-fixed + colgroup, widths in % (not px): every column is a
+            fixed share of whatever the container actually is, so the table
+            always fills its width exactly — no fixed floor to fall short
+            of on a small laptop, no wasted gap on a big monitor. Auto
+            layout let a single long value (e.g. the "Oficina Comercial"
+            property type, or a listing priced for both sale and rent)
+            force that whole column, and the table itself, wider than the
+            viewport; each cell's content now truncates/wraps to whatever
+            pixel width its % resolves to at the current size instead. */}
+        <colgroup>
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "9%" }} />
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "12%" }} />
+          <col style={{ width: "14%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "11%" }} />
+          <col style={{ width: "15%" }} />
+        </colgroup>
+
         <thead>
           <tr className="border-y border-[#e5e7eb] bg-[#f9fafb]">
-            <th className="w-11 px-5 py-3">
+            <th className="px-2 py-2">
               <RowCheckbox
                 checked={allSelected}
                 indeterminate={someSelected}
@@ -124,14 +166,15 @@ return (
             ].map((heading) => (
               <th
                 key={heading}
-                className="whitespace-nowrap px-5 py-3 text-left text-[14px] font-medium text-[#6a7282]"
+                className="truncate px-2 py-2 text-left text-[13px] font-medium text-[#6a7282]"
                 style={mont}
+                title={heading}
               >
                 {heading}
               </th>
             ))}
 
-            <th className="w-[140px] px-5 py-3" />
+            <th className="px-2 py-2" />
           </tr>
         </thead>
 
@@ -143,7 +186,7 @@ return (
                 selection.selectedIds.has(listing.id) ? "bg-[#eff6ff]" : ""
               }`}
             >
-              <td className="w-11 px-5 py-4">
+              <td className="px-2 py-3">
                 <RowCheckbox
                   checked={selection.selectedIds.has(listing.id)}
                   onToggle={() => selection.onToggleOne(listing.id)}
@@ -152,9 +195,9 @@ return (
               </td>
 
               {/* Listing ID */}
-              <td className="px-5 py-4">
+              <td className="px-2 py-3">
                 <span
-                  className="whitespace-nowrap text-[14px] font-medium text-[#1e4f86]"
+                  className="block truncate text-[13px] font-medium text-[#1e4f86]"
                   style={mont}
                 >
                   {listing.listingId}
@@ -162,9 +205,9 @@ return (
               </td>
 
               {/* Property */}
-              <td className="px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative size-11 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
+              <td className="px-2 py-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="relative size-9 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
                     <Image
                       src={
                         listing.coverImageUrl ??
@@ -172,17 +215,17 @@ return (
                       }
                       alt={listing.title}
                       fill
-                      sizes="44px"
+                      sizes="36px"
                       className="object-cover"
                     />
                   </div>
 
-                  <div className="flex min-w-0 flex-col gap-0.5">
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span
-                      className="flex items-center gap-1.5 whitespace-nowrap text-[14px] font-medium text-[#1e4f86]"
+                      className="flex items-center gap-1.5 text-[13px] font-medium text-[#1e4f86]"
                       style={mont}
                     >
-                      {listing.title}
+                      <span className="truncate">{listing.title}</span>
 
                       {listing.isFeatured && (
                         <Star
@@ -193,18 +236,18 @@ return (
                     </span>
 
                     <span
-                      className="flex items-center gap-1 whitespace-nowrap text-[12px] text-[#6a7282]"
+                      className="flex items-center gap-1 text-[11px] text-[#6a7282]"
                       style={mont}
                     >
-                      <MapPin size={12} />
-                      {listing.location}
+                      <MapPin size={12} className="shrink-0" />
+                      <span className="truncate">{listing.location}</span>
                     </span>
                   </div>
                 </div>
               </td>
 
               {/* Type */}
-              <td className="px-5 py-4">
+              <td className="px-2 py-3">
                 <Badge
                   label={td(`propertyType.${listing.type}`)}
                   style={TYPE_BADGE[listing.type]}
@@ -212,9 +255,9 @@ return (
               </td>
 
               {/* Price */}
-              <td className="px-5 py-4">
+              <td className="px-2 py-3">
                 <span
-                  className="whitespace-nowrap text-[14px] font-semibold text-[#1E4F86]"
+                  className="block text-[13px] font-semibold leading-tight text-[#1E4F86]"
                   style={mont}
                 >
                   {formatListingPrice(listing, t)}
@@ -222,9 +265,9 @@ return (
               </td>
 
               {/* Bedrooms */}
-              <td className="px-5 py-4">
+              <td className="px-2 py-3">
                 <span
-                  className="text-[14px] text-[#1E4F86]"
+                  className="text-[13px] text-[#1E4F86]"
                   style={mont}
                 >
                   {listing.bedrooms ?? "—"}
@@ -232,9 +275,9 @@ return (
               </td>
 
               {/* Operation type */}
-              <td className="px-5 py-4">
+              <td className="px-2 py-3">
                 <span
-                  className="whitespace-nowrap text-[14px] text-[#1E4F86]"
+                  className="block truncate text-[13px] text-[#1E4F86]"
                   style={mont}
                 >
                   {td(`operationType.${listing.operationType}`)}
@@ -242,7 +285,7 @@ return (
               </td>
 
               {/* Status */}
-              <td className="px-5 py-4">
+              <td className="px-2 py-3">
                 <Badge
                   label={td(`status.${listing.status}`)}
                   style={STATUS_BADGE[listing.status]}
@@ -250,8 +293,17 @@ return (
               </td>
 
               {/* Actions */}
-              <td className="w-[140px] px-5 py-4">
-                <div className="flex items-center gap-2 text-[#99a1af]">
+              <td className="px-2 py-3">
+                <div className="flex items-center gap-1.5 text-[#99a1af]">
+                  <button
+                    type="button"
+                    title={t("list.copyLinkTitle")}
+                    onClick={() => handleCopyLink(listing)}
+                    className="transition-colors hover:text-[#1e4f86]"
+                  >
+                    <Link2 size={14} />
+                  </button>
+
                   {actions.canUpdate && (
                     <button
                       type="button"
@@ -259,7 +311,7 @@ return (
                       onClick={() => actions.onEdit(listing)}
                       className="transition-colors hover:text-[#1e4f86]"
                     >
-                      <Pencil size={16} />
+                      <Pencil size={14} />
                     </button>
                   )}
 
@@ -277,9 +329,9 @@ return (
                       className="transition-colors hover:text-[#1e4f86]"
                     >
                       {listing.status === "ACTIVE" ? (
-                        <Pause size={16} />
+                        <Pause size={14} />
                       ) : (
-                        <Play size={16} />
+                        <Play size={14} />
                       )}
                     </button>
                   )}
@@ -298,7 +350,7 @@ return (
                       className="transition-colors hover:text-[#f59e0b]"
                     >
                       <Star
-                        size={16}
+                        size={14}
                         className={
                           listing.isFeatured
                             ? "fill-[#f59e0b] text-[#f59e0b]"
@@ -315,7 +367,7 @@ return (
                       onClick={() => actions.onDelete(listing)}
                       className="transition-colors hover:text-[#e7000b]"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={15} />
                     </button>
                   )}
                 </div>
@@ -327,7 +379,7 @@ return (
             <tr>
               <td
                 colSpan={9}
-                className="px-4 py-10 text-center text-[14px] text-[#6a7282]"
+                className="px-2 py-10 text-center text-[14px] text-[#6a7282]"
                 style={mont}
               >
                 {t("list.noListingsFound")}
@@ -477,6 +529,15 @@ return (
 
             {/* Mobile actions */}
             <div className="mt-3 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                title={t("list.copyLinkTitle")}
+                onClick={() => handleCopyLink(listing)}
+                className="flex size-9 items-center justify-center rounded-[8px] border border-[#e5e7eb] text-[#99a1af] transition-colors hover:bg-[#f8fafc] hover:text-[#1e4f86]"
+              >
+                <Link2 size={16} />
+              </button>
+
               {actions.canUpdate && (
                 <button
                   type="button"
