@@ -1,9 +1,13 @@
 "use client";
 
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2 } from "lucide-react";
+import {
+  Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2, MoreVertical,
+} from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
@@ -35,6 +39,110 @@ function Badge({
     >
       {label}
     </span>
+  );
+}
+
+// ── Row actions menu ──────────────────────────────────────────────────────────
+// Portal-rendered so the table's overflow-x-auto wrapper can't clip it on the
+// last row; flips above the trigger near the viewport bottom. Same pattern as
+// OpportunitiesPage.tsx's RowMenu — kept local since each dashboard table's
+// action set differs, but matches its behavior/styling for consistency.
+
+type RowMenuItem = { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean };
+
+function RowMenu({ label, ariaLabel, items }: { label: string; ariaLabel: string; items: RowMenuItem[] }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const updatePosition = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const menuWidth = 200;
+    const menuHeight = items.length * 40 + 12;
+    const gap = 6;
+    const padding = 8;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+    if (left < padding) left = padding;
+    if (left + menuWidth > window.innerWidth - padding) left = window.innerWidth - menuWidth - padding;
+    if (top + menuHeight > window.innerHeight - padding) top = rect.top - menuHeight - gap;
+    setPosition({ top, left });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, items.length]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const handleEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        title={label}
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
+        className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
+          open ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
+        }`}
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            className="fixed z-[9999] w-[200px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+            style={{ top: position.top, left: position.left }}
+          >
+            {items.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                role="menuitem"
+                onClick={() => { setOpen(false); item.onClick(); }}
+                className={`flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium transition-colors ${
+                  item.danger ? "text-[#fb2c36] hover:bg-[#fff1f2]" : "text-[#0d2138] hover:bg-[#f8fafc]"
+                }`}
+                style={mont}
+              >
+                {item.icon} {item.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -131,17 +239,20 @@ return (
             property type, or a listing priced for both sale and rent)
             force that whole column, and the table itself, wider than the
             viewport; each cell's content now truncates/wraps to whatever
-            pixel width its % resolves to at the current size instead. */}
+            pixel width its % resolves to at the current size instead.
+            Actions collapsed to a single "..." menu button (was 5 separate
+            icons), freeing space redistributed to the other columns so
+            they can run a bit larger while headers keep their full text. */}
         <colgroup>
           <col style={{ width: "4%" }} />
-          <col style={{ width: "9%" }} />
-          <col style={{ width: "20%" }} />
-          <col style={{ width: "12%" }} />
-          <col style={{ width: "14%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "10%" }} />
           <col style={{ width: "11%" }} />
+          <col style={{ width: "22%" }} />
+          <col style={{ width: "12%" }} />
           <col style={{ width: "15%" }} />
+          <col style={{ width: "6%" }} />
+          <col style={{ width: "11%" }} />
+          <col style={{ width: "11%" }} />
+          <col style={{ width: "8%" }} />
         </colgroup>
 
         <thead>
@@ -174,7 +285,13 @@ return (
               </th>
             ))}
 
-            <th className="px-3 py-4" />
+            <th
+              className="truncate px-3 py-4 text-left text-[14px] font-medium text-[#6a7282]"
+              style={mont}
+              title={t("list.actionsTitle")}
+            >
+              {t("list.actionsTitle")}
+            </th>
           </tr>
         </thead>
 
@@ -294,83 +411,59 @@ return (
 
               {/* Actions */}
               <td className="px-3 py-4">
-                <div className="flex items-center gap-2 text-[#99a1af]">
-                  <button
-                    type="button"
-                    title={t("list.copyLinkTitle")}
-                    onClick={() => handleCopyLink(listing)}
-                    className="transition-colors hover:text-[#1e4f86]"
-                  >
-                    <Link2 size={16} />
-                  </button>
-
-                  {actions.canUpdate && (
-                    <button
-                      type="button"
-                      title={t("list.editTitle")}
-                      onClick={() => actions.onEdit(listing)}
-                      className="transition-colors hover:text-[#1e4f86]"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                  )}
-
-                  {actions.canPause && (
-                    <button
-                      type="button"
-                      title={
+                <RowMenu
+                  label={t("list.actionsTitle")}
+                  ariaLabel={t("list.actionsAria", { title: listing.title })}
+                  items={([
+                    {
+                      label: t("list.copyLinkTitle"),
+                      icon: <Link2 size={16} />,
+                      onClick: () => handleCopyLink(listing),
+                    },
+                    actions.canUpdate && {
+                      label: t("list.editTitle"),
+                      icon: <Pencil size={16} />,
+                      onClick: () => actions.onEdit(listing),
+                    },
+                    actions.canPause && {
+                      label:
                         listing.status === "ACTIVE"
                           ? t("list.pauseTitle")
-                          : t("list.activateTitle")
-                      }
-                      onClick={() =>
-                        actions.onToggleStatus(listing)
-                      }
-                      className="transition-colors hover:text-[#1e4f86]"
-                    >
-                      {listing.status === "ACTIVE" ? (
-                        <Pause size={16} />
-                      ) : (
-                        <Play size={16} />
-                      )}
-                    </button>
+                          : t("list.activateTitle"),
+                      icon:
+                        listing.status === "ACTIVE" ? (
+                          <Pause size={16} />
+                        ) : (
+                          <Play size={16} />
+                        ),
+                      onClick: () => actions.onToggleStatus(listing),
+                    },
+                    actions.canFeature && {
+                      label: listing.isFeatured
+                        ? t("list.removeFromFeaturedTitle")
+                        : t("list.markAsFeaturedTitle"),
+                      icon: (
+                        <Star
+                          size={16}
+                          className={
+                            listing.isFeatured
+                              ? "fill-[#f59e0b] text-[#f59e0b]"
+                              : undefined
+                          }
+                        />
+                      ),
+                      onClick: () => actions.onToggleFeatured(listing),
+                    },
+                    actions.canDelete && {
+                      label: t("list.deleteTitle"),
+                      icon: <Trash2 size={16} />,
+                      onClick: () => actions.onDelete(listing),
+                      danger: true,
+                    },
+                  ] as (RowMenuItem | false)[]).filter(
+                    (item): item is RowMenuItem => Boolean(item),
                   )}
-
-                  {actions.canFeature && (
-                    <button
-                      type="button"
-                      title={
-                        listing.isFeatured
-                          ? t("list.removeFromFeaturedTitle")
-                          : t("list.markAsFeaturedTitle")
-                      }
-                      onClick={() =>
-                        actions.onToggleFeatured(listing)
-                      }
-                      className="transition-colors hover:text-[#f59e0b]"
-                    >
-                      <Star
-                        size={16}
-                        className={
-                          listing.isFeatured
-                            ? "fill-[#f59e0b] text-[#f59e0b]"
-                            : undefined
-                        }
-                      />
-                    </button>
-                  )}
-
-                  {actions.canDelete && (
-                    <button
-                      type="button"
-                      title={t("list.deleteTitle")}
-                      onClick={() => actions.onDelete(listing)}
-                      className="transition-colors hover:text-[#e7000b]"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  )}
-                </div>
+                />
               </td>
             </tr>
           ))}
