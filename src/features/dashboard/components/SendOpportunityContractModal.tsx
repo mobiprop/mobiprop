@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useSendForSignatureMutation, useAttachSignedContractMutation } from "@/hooks/mutations/useDocusignMutations";
 import { uploadDocusignDocument } from "@/lib/client-upload";
 import type { DocusignTemplateSummary } from "@/lib/docusign";
-import { ContractSourcePicker, type ContractParticipantOption, type ContractSelection } from "./ContractSourcePicker";
+import { ContractSourcePicker, type ContractParticipantOption, type ContractSelection, type Source } from "./ContractSourcePicker";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -22,6 +22,8 @@ type SendOpportunityContractModalProps = {
   /** True when another envelope on this opportunity is still awaiting signature — shows a warning, never blocks. */
   hasActiveEnvelope: boolean;
   templates: DocusignTemplateSummary[];
+  /** Opens straight to a given tab — e.g. "CUSTOM_UPLOAD" from the "Attach Personalized Contract" entry point. */
+  initialSource?: Source;
   onClose: () => void;
   onSent: () => void;
 };
@@ -43,6 +45,7 @@ export function SendOpportunityContractModal({
   participants,
   hasActiveEnvelope,
   templates,
+  initialSource,
   onClose,
   onSent,
 }: SendOpportunityContractModalProps) {
@@ -126,6 +129,7 @@ export function SendOpportunityContractModal({
             participants={participants}
             templates={templates}
             disabled={submitting}
+            initialSource={initialSource}
             onSelectionChange={setSelection}
           />
 

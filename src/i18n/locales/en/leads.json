@@ -55,6 +55,7 @@
       "defaultName": "lead",
       "closeAria": "Close actions menu",
       "viewDetails": "View Details",
+      "edit": "Edit",
       "assignAgent": "Assign Agent",
       "archive": "Archive",
       "archiving": "Archiving…"
@@ -262,6 +263,7 @@
     },
     "notesSection": {
       "loading": "Loading notes…",
+      "initialNoteLabel": "Added when this lead was created",
       "empty": "No notes yet.",
       "unknownAuthor": "Unknown",
       "placeholder": "Write a note…",
@@ -277,6 +279,7 @@
   },
   "addModal": {
     "title": "Add New Lead",
+    "editTitle": "Edit Lead",
     "closeAria": "Close add lead modal",
     "sectionContact": "Contact",
     "searchExistingContact": "Search Existing Contact",
@@ -329,11 +332,14 @@
     "notesPlaceholder": "Initial notes about this lead…",
     "cancel": "Cancel",
     "creating": "Creating…",
+    "saving": "Saving…",
     "submit": "Add Lead",
+    "saveButton": "Save Changes",
     "errors": {
       "nameRequired": "Name is required",
       "emailOrPhoneRequired": "Provide at least an email or phone number",
-      "createFailed": "Failed to create lead"
+      "createFailed": "Failed to create lead",
+      "updateFailed": "Failed to update lead"
     }
   },
   "filterModal": {

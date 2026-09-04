@@ -385,7 +385,7 @@ export function OpportunitiesPage({
 
       {/* Stat cards */}
       <div className="flex flex-wrap gap-3.5">
-        <StatCard label={t("page.stats.totalValue")} value={isLoading ? "—" : fmt(metrics?.totalValue ?? null)} trend={t("page.stats.totalValueTrend")} iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
+        <StatCard label={t("page.stats.totalCommission")} value={isLoading ? "—" : fmt(metrics?.totalCommission ?? null)} trend={t("page.stats.totalCommissionTrend")} iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
         <StatCard label={t("page.stats.open")} value={isLoading ? "—" : String(metrics?.open ?? 0)} trend={t("page.stats.openTrend")} iconBg="#e0e7ff" icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
         <StatCard label={t("page.stats.won")} value={isLoading ? "—" : String(metrics?.closedWon ?? 0)} trend={t("page.stats.wonTrend")} iconBg="#d1fae5" icon={<Trophy size={18} className="text-[#10b981]" />} />
         <StatCard label={t("page.stats.winRate")} value={isLoading ? "—" : `${winRate}%`} trend={t("page.stats.winRateTrend")} iconBg="#dbeafe" icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />

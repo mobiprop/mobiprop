@@ -16,7 +16,7 @@ export type Source = "NONE" | "TEMPLATE" | "CUSTOM_UPLOAD";
 export type ContractParticipantOption = {
   name: string;
   email: string | null;
-  role: "BUYER" | "SELLER" | "AGENCY";
+  role: "BUYER" | "SELLER" | "TENANT" | "OWNER" | "AGENCY";
 };
 
 export type ContractSelection =
@@ -40,6 +40,10 @@ export type ContractSelection =
 const PARTICIPANT_ROLE_TO_RECIPIENT_ROLE: Record<ContractParticipantOption["role"], EnvelopeRecipientRole> = {
   BUYER: EnvelopeRecipientRole.BUYER,
   SELLER: EnvelopeRecipientRole.SELLER,
+  // Rentals have no dedicated envelope-recipient role — a Tenant signs like a
+  // Buyer (acquiring use of the property) and an Owner like a Seller.
+  TENANT: EnvelopeRecipientRole.BUYER,
+  OWNER: EnvelopeRecipientRole.SELLER,
   AGENCY: EnvelopeRecipientRole.THIRD_PARTY,
 };
 
@@ -55,6 +59,8 @@ type ContractSourcePickerProps = {
   disabled?: boolean;
   /** Prepends a "No Contract" tab, selected by default — used in the New Opportunity form. */
   allowNone?: boolean;
+  /** Pre-selects a tab other than the default (TEMPLATE, or NONE when allowNone) — e.g. jumping straight to the Personalized-contract tab from a dedicated entry point. */
+  initialSource?: Source;
   onSelectionChange: (selection: ContractSelection | null) => void;
   /**
    * Fires whenever the active tab changes — lets a caller with a "silent"
@@ -80,6 +86,7 @@ export function ContractSourcePicker({
   templates,
   disabled,
   allowNone,
+  initialSource,
   onSelectionChange,
   onSourceChange,
 }: ContractSourcePickerProps) {
@@ -87,9 +94,11 @@ export function ContractSourcePicker({
   const PARTICIPANT_ROLE_LABEL: Record<ContractParticipantOption["role"], string> = {
     BUYER: t("contractSourcePicker.participantRoles.BUYER"),
     SELLER: t("contractSourcePicker.participantRoles.SELLER"),
+    TENANT: t("contractSourcePicker.participantRoles.TENANT"),
+    OWNER: t("contractSourcePicker.participantRoles.OWNER"),
     AGENCY: t("contractSourcePicker.participantRoles.AGENCY"),
   };
-  const [source, setSource] = useState<Source>(allowNone ? "NONE" : "TEMPLATE");
+  const [source, setSource] = useState<Source>(initialSource ?? (allowNone ? "NONE" : "TEMPLATE"));
   const [templateId, setTemplateId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [selectedEmail, setSelectedEmail] = useState(""); // TEMPLATE — single signer

@@ -572,6 +572,8 @@ model Opportunity {
 enum OpportunityParticipantRole {
   BUYER
   SELLER
+  TENANT
+  OWNER
   // No Contact record needed — just a free-text company name.
   AGENCY
 }

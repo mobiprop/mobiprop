@@ -4,8 +4,8 @@
     "subtitle": "Track and manage sales opportunities",
     "newOpportunity": "New Opportunity",
     "stats": {
-      "totalValue": "Total Value",
-      "totalValueTrend": "Live from database",
+      "totalCommission": "Total Commission",
+      "totalCommissionTrend": "Live from database",
       "open": "Open",
       "openTrend": "Active opportunities",
       "won": "Won",
@@ -96,6 +96,8 @@
       "roles": {
         "BUYER": "Buyer",
         "SELLER": "Seller",
+        "TENANT": "Tenant",
+        "OWNER": "Owner",
         "AGENCY": "Real Estate Company"
       },
       "existingPanel": {
@@ -203,6 +205,8 @@
       "attachPlaceholder": "Attach an existing envelope…",
       "attach": "Attach",
       "addOrSend": "Add Contract / Send for Signature",
+      "sendViaDocusign": "Send via Docusign",
+      "attachPersonalized": "Attach Personalized Contract",
       "voidReasonPrompt": "Reason for voiding this envelope?",
       "toasts": {
         "attached": "Envelope attached",
@@ -272,6 +276,8 @@
     "participantRoles": {
       "BUYER": "Buyer",
       "SELLER": "Seller",
+      "TENANT": "Tenant",
+      "OWNER": "Owner",
       "AGENCY": "Agency"
     },
     "incompleteNoDocumentTemplate": "Select a template to include this contract, or switch to No Contract.",

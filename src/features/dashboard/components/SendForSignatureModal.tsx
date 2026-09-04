@@ -44,11 +44,13 @@ function newRecipient(): CustomRecipient {
   return { key: crypto.randomUUID(), name: "", email: "", role: EnvelopeRecipientRole.BUYER, roleLabel: "" };
 }
 
-type InitialParticipant = { name: string; email: string; role: "BUYER" | "SELLER" | "AGENCY" };
+type InitialParticipant = { name: string; email: string; role: "BUYER" | "SELLER" | "TENANT" | "OWNER" | "AGENCY" };
 
 const PARTICIPANT_ROLE_TO_RECIPIENT_ROLE: Record<InitialParticipant["role"], EnvelopeRecipientRole> = {
   BUYER: EnvelopeRecipientRole.BUYER,
   SELLER: EnvelopeRecipientRole.SELLER,
+  TENANT: EnvelopeRecipientRole.BUYER,
+  OWNER: EnvelopeRecipientRole.SELLER,
   AGENCY: EnvelopeRecipientRole.THIRD_PARTY,
 };
 

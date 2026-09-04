@@ -38,6 +38,8 @@
     "role": {
       "BUYER": "Comprador",
       "SELLER": "Vendedor",
+      "TENANT": "Inquilino",
+      "OWNER": "Propietario",
       "AGENCY": "Inmobiliaria"
     },
     "sent": "Enviado el {{date}}",

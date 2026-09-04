@@ -2,11 +2,12 @@ import { z } from "zod";
 
 import { OpportunityStage, OpportunityStatus, Currency } from "@/generated/prisma/enums";
 
-// BUYER/SELLER rows link a real Contact; AGENCY rows (a co-broking real
-// estate company) are just a free-text name — no Contact record needed.
+// BUYER/SELLER/TENANT/OWNER rows link a real Contact; AGENCY rows (a
+// co-broking real estate company) are just a free-text name — no Contact
+// record needed.
 const participantSchema = z
   .object({
-    role: z.enum(["BUYER", "SELLER", "AGENCY"]),
+    role: z.enum(["BUYER", "SELLER", "TENANT", "OWNER", "AGENCY"]),
     contactId: z.string().trim().min(1).optional(),
     companyName: z.string().trim().min(1).max(150).optional(),
     // AGENCY rows only — optional, but needed to pick the agency as a
@@ -28,14 +29,15 @@ export type ParticipantInput = z.infer<typeof participantSchema>;
 export const createOpportunitySchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
   // Required: the lifecycle rule is Contact → Lead → Opportunity → Contract —
-  // an Opportunity can't exist without at least one real client (Buyer or
-  // Seller) behind it. Co-broking agencies alone aren't enough.
+  // an Opportunity can't exist without at least one real client (Buyer,
+  // Seller, Tenant or Owner) behind it. Co-broking agencies alone aren't enough.
   participants: z
     .array(participantSchema)
     .min(1, "At least one participant is required")
-    .refine((rows) => rows.some((r) => r.role === "BUYER" || r.role === "SELLER"), {
-      message: "At least one Buyer or Seller is required",
-    }),
+    .refine(
+      (rows) => rows.some((r) => r.role === "BUYER" || r.role === "SELLER" || r.role === "TENANT" || r.role === "OWNER"),
+      { message: "At least one Buyer, Seller, Tenant or Owner is required" },
+    ),
   propertyIds: z.array(z.string().trim().min(1)).optional(),
   dealType: z.enum(["Rent", "Sale"]).optional(),
   dealSize: z.coerce.number().positive().optional(),

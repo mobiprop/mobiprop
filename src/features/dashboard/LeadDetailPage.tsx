@@ -330,10 +330,12 @@ function NotesSection({
   leadId,
   role,
   isArchived,
+  initialNote,
 }: {
   leadId: string;
   role: Role;
   isArchived: boolean;
+  initialNote?: string | null;
 }) {
   const { t } = useTranslation("leads");
   const { data: notes, isLoading } = useLeadNotesQuery(leadId);
@@ -360,6 +362,20 @@ function NotesSection({
         </p>
       )}
 
+      {initialNote && (
+        <div className="rounded-[10px] border border-dashed border-[#d1d5db] bg-[#f9fafb] p-3">
+          <p
+            className="whitespace-pre-wrap break-words text-[14px] text-[#0d2138]"
+            style={mont}
+          >
+            {initialNote}
+          </p>
+          <p className="mt-1.5 text-[11px] text-[#99a1af]" style={mont}>
+            {t("detail.notesSection.initialNoteLabel")}
+          </p>
+        </div>
+      )}
+
       {notes?.map((note) => (
         <div key={note.id} className="rounded-[10px] bg-[#f9fafb] p-3">
           <p
@@ -378,7 +394,7 @@ function NotesSection({
         </div>
       ))}
 
-      {!notes?.length && !isLoading && (
+      {!notes?.length && !initialNote && !isLoading && (
         <p className="text-[14px] text-[#6a7282]" style={mont}>
           {t("detail.notesSection.empty")}
         </p>
@@ -998,6 +1014,7 @@ export function LeadDetailPage({
               leadId={lead.id}
               role={role}
               isArchived={lead.isArchived}
+              initialNote={lead.notes}
             />
           </Section>
         </div>

@@ -4,8 +4,8 @@
     "subtitle": "Rastrea y gestiona las oportunidades de venta",
     "newOpportunity": "Nueva Oportunidad",
     "stats": {
-      "totalValue": "Valor Total",
-      "totalValueTrend": "En vivo desde la base de datos",
+      "totalCommission": "Comisión Total",
+      "totalCommissionTrend": "En vivo desde la base de datos",
       "open": "Abiertas",
       "openTrend": "Oportunidades activas",
       "won": "Ganadas",
@@ -96,6 +96,8 @@
       "roles": {
         "BUYER": "Comprador",
         "SELLER": "Vendedor",
+        "TENANT": "Inquilino",
+        "OWNER": "Propietario",
         "AGENCY": "Inmobiliaria"
       },
       "existingPanel": {
@@ -203,6 +205,8 @@
       "attachPlaceholder": "Vincular un sobre existente…",
       "attach": "Vincular",
       "addOrSend": "Agregar Contrato / Enviar para Firma",
+      "sendViaDocusign": "Enviar por Docusign",
+      "attachPersonalized": "Adjuntar Contrato Personalizado",
       "voidReasonPrompt": "¿Motivo para anular este sobre?",
       "toasts": {
         "attached": "Sobre vinculado",
@@ -272,6 +276,8 @@
     "participantRoles": {
       "BUYER": "Comprador",
       "SELLER": "Vendedor",
+      "TENANT": "Inquilino",
+      "OWNER": "Propietario",
       "AGENCY": "Inmobiliaria"
     },
     "incompleteNoDocumentTemplate": "Selecciona una plantilla para incluir este contrato, o cambia a Sin Contrato.",

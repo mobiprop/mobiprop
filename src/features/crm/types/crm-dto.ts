@@ -50,12 +50,12 @@ export type ContactMetrics = {
 
 // ── Opportunity ───────────────────────────────────────────────────────────────
 
-export type OpportunityParticipantRole = "BUYER" | "SELLER" | "AGENCY";
+export type OpportunityParticipantRole = "BUYER" | "SELLER" | "TENANT" | "OWNER" | "AGENCY";
 
 export type OpportunityParticipantDto = {
   id: string;
   role: OpportunityParticipantRole;
-  /** Set for BUYER/SELLER rows (a linked Contact); null for AGENCY rows. */
+  /** Set for BUYER/SELLER/TENANT/OWNER rows (a linked Contact); null for AGENCY rows. */
   contactId: string | null;
   contactName: string | null;
   /** Set for BUYER/SELLER rows with a Contact on file; null otherwise. Lets Send for Signature pull a recipient's email without staff retyping it. */
@@ -113,7 +113,9 @@ export type OpportunityMetrics = {
   open: number;
   closedWon: number;
   closedLost: number;
-  totalValue: number;
+  /** Sum of resolved commission amounts across all in-scope opportunities —
+   * the brokerage's commission, not the raw deal size. */
+  totalCommission: number;
   /** Sum of resolved commission amounts for CLOSED_WON opportunities — the
    * brokerage's actual revenue, not the raw deal size. */
   totalRevenue: number;
