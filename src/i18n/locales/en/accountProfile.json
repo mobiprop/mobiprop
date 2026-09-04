@@ -38,6 +38,8 @@
     "role": {
       "BUYER": "Buyer",
       "SELLER": "Seller",
+      "TENANT": "Tenant",
+      "OWNER": "Owner",
       "AGENCY": "Agency"
     },
     "sent": "Sent {{date}}",

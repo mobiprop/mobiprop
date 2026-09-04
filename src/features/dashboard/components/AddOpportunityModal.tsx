@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, FileSignature, Send, Link2Off, RefreshCw, XCircle, ExternalLink } from "lucide-react";
+import { X, Plus, UserPlus, Users, Calendar, Trash2, AlertTriangle, Home, FileSignature, Send, Link2Off, RefreshCw, XCircle, ExternalLink, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -22,7 +22,7 @@ import {
 import { uploadDocusignDocument } from "@/lib/client-upload";
 import { SearchableSelect } from "./SearchableSelect";
 import { ContactPicker } from "./ContactPicker";
-import { ContactRolesSelect } from "./ContactRolesSelect";
+import { ContactRoleSingleSelect } from "./ContactRolesSelect";
 import { ListingPicker } from "./ListingPicker";
 import { AgentSelect } from "./AgentSelect";
 import { DatePickerField } from "./DatePickerField";
@@ -120,7 +120,7 @@ const STATUS_VALUES: OpportunityStatus[] = [
   OpportunityStatus.CLOSED_WON,
   OpportunityStatus.CLOSED_LOST,
 ];
-const ROLE_VALUES = ["BUYER", "SELLER", "AGENCY"] as const;
+const ROLE_VALUES = ["BUYER", "SELLER", "TENANT", "OWNER", "AGENCY"] as const;
 
 let rowKeySeq = 0;
 function newRowKey() {
@@ -209,6 +209,8 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const ROLE_LABELS: Record<OpportunityParticipantRole, string> = {
     BUYER: t("addModal.participantsSection.roles.BUYER"),
     SELLER: t("addModal.participantsSection.roles.SELLER"),
+    TENANT: t("addModal.participantsSection.roles.TENANT"),
+    OWNER: t("addModal.participantsSection.roles.OWNER"),
     AGENCY: t("addModal.participantsSection.roles.AGENCY"),
   };
   const ROLE_OPTIONS = ROLE_VALUES.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
@@ -239,7 +241,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const [ncLastName, setNcLastName] = useState(!initial ? (prefill?.newContact?.lastName ?? "") : "");
   const [ncEmail, setNcEmail] = useState(!initial ? (prefill?.newContact?.email ?? "") : "");
   const [ncPhone, setNcPhone] = useState(!initial ? (prefill?.newContact?.phone ?? "") : "");
-  const [ncRoles, setNcRoles] = useState<ContactType[]>([ContactType.BUYER]);
+  const [ncContactType, setNcContactType] = useState<ContactType>(ContactType.BUYER);
   const [ncAddAsParticipant, setNcAddAsParticipant] = useState(true);
   const [ncRole, setNcRole] = useState<OpportunityParticipantRole>("BUYER");
 
@@ -283,6 +285,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const [contractSource, setContractSource] = useState<ContractSourcePickerSource>("NONE");
   const [contractError, setContractError] = useState<string | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [sendModalSource, setSendModalSource] = useState<ContractSourcePickerSource>("TEMPLATE");
   const { data: envelopesData } = useDocusignEnvelopesQuery();
   const { data: templatesData } = useDocusignTemplatesQuery();
   const attachMutation = useAttachEnvelopeMutation();
@@ -420,7 +423,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     setNcLastName("");
     setNcEmail("");
     setNcPhone("");
-    setNcRoles([ContactType.BUYER]);
+    setNcContactType(ContactType.BUYER);
     setNcAddAsParticipant(true);
     setNcRole("BUYER");
   }
@@ -475,7 +478,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
         lastName: ncLastName.trim(),
         email: ncEmail.trim(),
         phone: ncPhone.trim(),
-        roles: ncRoles,
+        roles: [ncContactType],
       });
       toast.success(t("addModal.participantsSection.newPanel.contactCreated"));
       if (ncAddAsParticipant) {
@@ -521,7 +524,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     if (submitting || isSaving) return;
 
     const hasBuyerOrSeller = participants.some(
-      (r) => (r.role === "BUYER" || r.role === "SELLER") && r.contactId,
+      (r) => (r.role === "BUYER" || r.role === "SELLER" || r.role === "TENANT" || r.role === "OWNER") && r.contactId,
     );
     if (!hasBuyerOrSeller) {
       setParticipantsError(t("addModal.participantsRequired"));
@@ -944,10 +947,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
 
                 <div className="flex flex-col gap-1.5">
                   <label className={labelClass} style={mont}>{t("addModal.participantsSection.newPanel.contactType")}</label>
-                  <ContactRolesSelect value={ncRoles} onChange={setNcRoles} />
-                  {ncRoles.length === 0 && (
-                    <p className="text-[11px] text-[#b45309]" style={mont}>{t("addModal.participantsSection.newPanel.selectAtLeastOneRole")}</p>
-                  )}
+                  <ContactRoleSingleSelect value={ncContactType} onChange={setNcContactType} />
                 </div>
 
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 py-3">
@@ -982,7 +982,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
                   <button
                     type="button"
                     onClick={createAndAddContact}
-                    disabled={createContactMutation.isPending || ncRoles.length === 0}
+                    disabled={createContactMutation.isPending}
                     className="h-9 px-4 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                     style={mont}
                   >
@@ -1321,11 +1321,19 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
                   )}
                   <button
                     type="button"
-                    onClick={() => setShowSendModal(true)}
+                    onClick={() => { setSendModalSource("TEMPLATE"); setShowSendModal(true); }}
                     className="h-9 px-3 rounded-[8px] bg-[#1e4f86] flex items-center gap-1.5 text-[12px] font-medium text-white hover:bg-[#1b487a] transition-colors"
                     style={mont}
                   >
-                    <Send size={14} /> {t("addModal.contractsSection.addOrSend")}
+                    <Send size={14} /> {t("addModal.contractsSection.sendViaDocusign")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSendModalSource("CUSTOM_UPLOAD"); setShowSendModal(true); }}
+                    className="h-9 px-3 rounded-[8px] border border-[#1a5ea8] bg-white flex items-center gap-1.5 text-[12px] font-medium text-[#1e4f86] hover:bg-[#eff6ff] transition-colors"
+                    style={mont}
+                  >
+                    <Upload size={14} /> {t("addModal.contractsSection.attachPersonalized")}
                   </button>
                 </div>
               </div>
@@ -1380,6 +1388,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
             (e) => e.status === EnvelopeStatus.SENT || e.status === EnvelopeStatus.DELIVERED,
           )}
           templates={templatesData?.templates ?? []}
+          initialSource={sendModalSource}
           onClose={() => setShowSendModal(false)}
           onSent={() => setShowSendModal(false)}
         />

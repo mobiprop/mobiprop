@@ -8,7 +8,7 @@ import { hasPermission } from "@/lib/permissions";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
-import { computeCommissionAmount, resolveCompanyRevenueUsd, toUsd } from "@/lib/commission";
+import { computeCommissionAmount, resolveCompanyRevenueUsd } from "@/lib/commission";
 import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
@@ -183,14 +183,10 @@ export async function listOpportunities(): Promise<
   const agentMap = await buildAgentMap(rows.map((r) => r.assignedAgentId));
   const dtos = rows.map((r) => toOpportunityDto(r, agentMap));
 
-  // Both are USD-normalized dashboard rollups — dealSize/revenue can be
+  // Both are USD-normalized dashboard rollups — commission/revenue can be
   // entered in ARS per-deal, but these summary stats must stay single-currency.
   const liveRate = await getDolarBlueVenta();
-  const totalValue = rows.reduce((sum, r) => {
-    const dealSize = r.dealSize !== null ? Number(r.dealSize) : null;
-    if (dealSize === null) return sum;
-    return sum + (toUsd(dealSize, r.currency, r.exchangeRate !== null ? Number(r.exchangeRate) : liveRate) ?? 0);
-  }, 0);
+  const totalCommission = rows.reduce((sum, r) => sum + (resolveCompanyRevenueUsd(r, liveRate) ?? 0), 0);
   const totalRevenue = rows
     .filter((r) => r.status === OpportunityStatus.CLOSED_WON)
     .reduce((sum, r) => sum + (resolveCompanyRevenueUsd(r, liveRate) ?? 0), 0);
@@ -203,7 +199,7 @@ export async function listOpportunities(): Promise<
       open: dtos.filter((o) => o.status === OpportunityStatus.OPEN).length,
       closedWon: dtos.filter((o) => o.status === OpportunityStatus.CLOSED_WON).length,
       closedLost: dtos.filter((o) => o.status === OpportunityStatus.CLOSED_LOST).length,
-      totalValue,
+      totalCommission,
       totalRevenue,
     },
   };

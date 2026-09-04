@@ -250,11 +250,13 @@ function RowActions({
   lead,
   role,
   onView,
+  onEdit,
   t,
 }: {
   lead: LeadDto;
   role: Role;
   onView: (id: string) => void;
+  onEdit: (lead: LeadDto) => void;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const [open, setOpen] = useState(false);
@@ -264,6 +266,7 @@ function RowActions({
   const archive = useArchiveLeadMutation();
   const assign = useAssignLeadMutation(lead.id);
 
+  const canEdit = hasPermission(role, "leads:update") && !lead.isArchived;
   const canArchive = hasPermission(role, "leads:archive") && !lead.isArchived;
   const canAssign = hasPermission(role, "leads:assign") && !lead.isArchived;
 
@@ -273,7 +276,7 @@ function RowActions({
 
     const rect = button.getBoundingClientRect();
     const menuWidth = 164;
-    const menuHeight = 46 + (canAssign ? 42 : 0) + (canArchive ? 42 : 0);
+    const menuHeight = 46 + (canEdit ? 42 : 0) + (canAssign ? 42 : 0) + (canArchive ? 42 : 0);
     const gap = 6;
     const viewportPadding = 8;
     const hasSpaceBelow = window.innerHeight - rect.bottom >= menuHeight + gap;
@@ -288,7 +291,7 @@ function RowActions({
     );
 
     setPosition({ top, left });
-  }, [canAssign, canArchive]);
+  }, [canEdit, canAssign, canArchive]);
 
   const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -349,6 +352,20 @@ function RowActions({
               >
                 {t("list.rowActions.viewDetails")}
               </button>
+
+              {canEdit && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onEdit(lead);
+                    setOpen(false);
+                  }}
+                  className="w-full px-3 py-2.5 text-left text-[14px] text-[#0d2138] transition-colors hover:bg-[#f8fafc]"
+                >
+                  {t("list.rowActions.edit")}
+                </button>
+              )}
 
               {canAssign && (
                 <button
@@ -471,6 +488,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [showModal, setShowModal] = useState(false);
+  const [editingLead, setEditingLead] = useState<LeadDto | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -1049,6 +1067,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                         lead={lead}
                         role={role}
                         onView={handleView}
+                        onEdit={setEditingLead}
                         t={t}
                       />
                     </td>
@@ -1129,7 +1148,7 @@ export function LeadsPage({ role }: LeadsPageProps) {
                       temperature={lead.temperature}
                       t={t}
                     />
-                    <RowActions lead={lead} role={role} onView={handleView} t={t} />
+                    <RowActions lead={lead} role={role} onView={handleView} onEdit={setEditingLead} t={t} />
                   </div>
                 </div>
 
@@ -1226,6 +1245,14 @@ export function LeadsPage({ role }: LeadsPageProps) {
         <AddLeadModal
           onClose={() => setShowModal(false)}
           onCreated={() => setShowModal(false)}
+        />
+      )}
+
+      {editingLead && (
+        <AddLeadModal
+          lead={editingLead}
+          onClose={() => setEditingLead(null)}
+          onCreated={() => setEditingLead(null)}
         />
       )}
 

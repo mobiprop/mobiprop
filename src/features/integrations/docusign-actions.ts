@@ -826,7 +826,7 @@ export type MyContractDto = {
   templateName: string;
   source: EnvelopeSource;
   status: EnvelopeStatus;
-  role: "BUYER" | "SELLER" | "AGENCY" | null;
+  role: "BUYER" | "SELLER" | "TENANT" | "OWNER" | "AGENCY" | null;
   opportunityNumber: string | null;
   propertyReference: string | null;
   sentAt: string;
@@ -856,7 +856,7 @@ export async function getMyContracts(profileId: string): Promise<MyContractDto[]
     select: { opportunityParticipants: { select: { opportunityId: true, role: true } } },
   });
 
-  const roleByOpportunity = new Map<string, "BUYER" | "SELLER" | "AGENCY">();
+  const roleByOpportunity = new Map<string, "BUYER" | "SELLER" | "TENANT" | "OWNER" | "AGENCY">();
   for (const p of contact?.opportunityParticipants ?? []) {
     if (!roleByOpportunity.has(p.opportunityId)) roleByOpportunity.set(p.opportunityId, p.role);
   }

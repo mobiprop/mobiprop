@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { X, Search, Loader2 } from "lucide-react";
 
 import { LeadSource, LeadTemperature, LeadLifecycleStatus } from "@/generated/prisma/enums";
-import { useCreateLeadMutation } from "@/hooks/mutations/useLeadMutations";
+import { useCreateLeadMutation, useUpdateLeadMutation, useAssignLeadMutation } from "@/hooks/mutations/useLeadMutations";
 import { SearchableSelect } from "./SearchableSelect";
+import type { LeadDto } from "@/features/crm/types/crm-dto";
 
 function suggestTemperature(score: number): LeadTemperature {
   if (score >= 70) return LeadTemperature.HOT;
@@ -55,11 +56,15 @@ type Listing = { id: string; listingId: string; title: string; location: string 
 type AddLeadModalProps = {
   onClose: () => void;
   onCreated?: () => void;
+  lead?: LeadDto;
 };
 
-export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
+export function AddLeadModal({ onClose, onCreated, lead }: AddLeadModalProps) {
   const { t } = useTranslation("leads");
+  const isEdit = !!lead;
   const create = useCreateLeadMutation();
+  const update = useUpdateLeadMutation(lead?.id ?? "");
+  const assign = useAssignLeadMutation(lead?.id ?? "");
 
   // Contact section
   const [contactSearch, setContactSearch] = useState("");
@@ -68,30 +73,41 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
   const [showContactDropdown, setShowContactDropdown] = useState(false);
   const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [name, setName]   = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [location, setLocation] = useState("");
+  const [name, setName]   = useState(lead?.submittedName ?? "");
+  const [email, setEmail] = useState(lead?.submittedEmail ?? "");
+  const [phone, setPhone] = useState(lead?.submittedPhone ?? "");
+  const [location, setLocation] = useState(lead?.submittedLocation ?? "");
 
   // Lead details
-  const [source, setSource]               = useState<LeadSource>(LeadSource.MANUAL);
-  const [sourceDetail, setSourceDetail]   = useState("");
-  const [listingSearch, setListingSearch] = useState("");
+  const [source, setSource]               = useState<LeadSource>(lead?.source ?? LeadSource.MANUAL);
+  const [sourceDetail, setSourceDetail]   = useState(lead?.sourceDetail ?? "");
+  const [listingSearch, setListingSearch] = useState(
+    lead?.primaryListing ? `${lead.primaryListing.listingId} – ${lead.primaryListing.title}` : "",
+  );
   const [listings, setListings]           = useState<Listing[]>([]);
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(
+    lead?.primaryListing
+      ? {
+          id: lead.primaryListing.id,
+          listingId: lead.primaryListing.listingId,
+          title: lead.primaryListing.title,
+          location: lead.primaryListing.location,
+        }
+      : null,
+  );
   const [showListingDropdown, setShowListingDropdown] = useState(false);
   const listingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [budgetMin, setBudgetMin]         = useState("");
-  const [budgetMax, setBudgetMax]         = useState("");
-  const [currency, setCurrency]           = useState("ARS");
-  const [score, setScore]                 = useState(0);
-  const [temperature, setTemperature]     = useState<LeadTemperature>(LeadTemperature.COLD);
-  const [tempManual, setTempManual]       = useState(false);
-  const [lifecycleStatus, setLifecycle]   = useState<LeadLifecycleStatus>(LeadLifecycleStatus.NEW);
+  const [budgetMin, setBudgetMin]         = useState(lead?.budgetMin != null ? String(lead.budgetMin) : "");
+  const [budgetMax, setBudgetMax]         = useState(lead?.budgetMax != null ? String(lead.budgetMax) : "");
+  const [currency, setCurrency]           = useState(lead?.currency ?? "ARS");
+  const [score, setScore]                 = useState(lead?.score ?? 0);
+  const [temperature, setTemperature]     = useState<LeadTemperature>(lead?.temperature ?? LeadTemperature.COLD);
+  const [tempManual, setTempManual]       = useState(isEdit);
+  const [lifecycleStatus, setLifecycle]   = useState<LeadLifecycleStatus>(lead?.lifecycleStatus ?? LeadLifecycleStatus.NEW);
   const [agents, setAgents]               = useState<Agent[]>([]);
-  const [assignedAgentId, setAgentId]     = useState("");
-  const [notes, setNotes]                 = useState("");
+  const [assignedAgentId, setAgentId]     = useState(lead?.assignedAgentId ?? "");
+  const [notes, setNotes]                 = useState(lead?.notes ?? "");
   const [error, setError]                 = useState("");
 
   // Load agents once on mount
@@ -171,28 +187,50 @@ export function AddLeadModal({ onClose, onCreated }: AddLeadModalProps) {
     if (!email && !phone) { setError(t("addModal.errors.emailOrPhoneRequired")); return; }
 
     try {
-      await create.mutateAsync({
-        contactId: selectedContact?.id,
-        submittedName: name.trim(),
-        submittedEmail: email.trim() || undefined,
-        submittedPhone: phone.trim() || undefined,
-        submittedLocation: location.trim() || undefined,
-        source,
-        sourceDetail: sourceDetail.trim() || undefined,
-        primaryListingId: selectedListing?.id,
-        budgetMin: budgetMin ? Number(budgetMin) : undefined,
-        budgetMax: budgetMax ? Number(budgetMax) : undefined,
-        currency,
-        score,
-        temperature,
-        lifecycleStatus,
-        assignedAgentId: assignedAgentId || undefined,
-        notes: notes.trim() || undefined,
-      });
+      if (isEdit && lead) {
+        await update.mutateAsync({
+          submittedName: name.trim(),
+          submittedEmail: email.trim() || undefined,
+          submittedPhone: phone.trim() || undefined,
+          submittedLocation: location.trim() || undefined,
+          source,
+          primaryListingId: selectedListing?.id ?? null,
+          budgetMin: budgetMin ? Number(budgetMin) : null,
+          budgetMax: budgetMax ? Number(budgetMax) : null,
+          currency,
+          score,
+          temperature,
+          lifecycleStatus,
+          notes: notes.trim() || null,
+        });
+
+        if (assignedAgentId !== (lead.assignedAgentId ?? "")) {
+          await assign.mutateAsync({ agentId: assignedAgentId || null });
+        }
+      } else {
+        await create.mutateAsync({
+          contactId: selectedContact?.id,
+          submittedName: name.trim(),
+          submittedEmail: email.trim() || undefined,
+          submittedPhone: phone.trim() || undefined,
+          submittedLocation: location.trim() || undefined,
+          source,
+          sourceDetail: sourceDetail.trim() || undefined,
+          primaryListingId: selectedListing?.id,
+          budgetMin: budgetMin ? Number(budgetMin) : undefined,
+          budgetMax: budgetMax ? Number(budgetMax) : undefined,
+          currency,
+          score,
+          temperature,
+          lifecycleStatus,
+          assignedAgentId: assignedAgentId || undefined,
+          notes: notes.trim() || undefined,
+        });
+      }
       onCreated?.();
       onClose();
     } catch {
-      setError(t("addModal.errors.createFailed"));
+      setError(t(isEdit ? "addModal.errors.updateFailed" : "addModal.errors.createFailed"));
     }
   }
 
@@ -219,7 +257,7 @@ return (
           className="text-[16px] font-semibold text-[#0d2138]"
           style={mont}
         >
-          {t("addModal.title")}
+          {t(isEdit ? "addModal.editTitle" : "addModal.title")}
         </p>
 
         <button
@@ -246,7 +284,9 @@ return (
             {t("addModal.sectionContact")}
           </p>
 
-          {/* Contact search */}
+          {/* Contact search — create mode only; the update endpoint can't
+              re-link a lead to a different contact. */}
+          {!isEdit && (
           <div className="relative flex flex-col gap-1.5">
             <label className={labelCls} style={mont}>
               {t("addModal.searchExistingContact")}
@@ -312,6 +352,7 @@ return (
               </p>
             )}
           </div>
+          )}
 
           {/* Full name */}
           <div className="flex flex-col gap-1.5">
@@ -403,6 +444,8 @@ return (
               />
             </div>
 
+            {/* Not editable after creation — the update endpoint doesn't persist it. */}
+            {!isEdit && (
             <div className="flex min-w-0 flex-col gap-1.5">
               <label className={labelCls} style={mont}>
                 {t("addModal.sourceDetail")}
@@ -418,6 +461,7 @@ return (
                 style={mont}
               />
             </div>
+            )}
           </div>
 
           {/* Interested property */}
@@ -668,15 +712,17 @@ return (
 
           <button
             type="submit"
-            disabled={create.isPending}
+            disabled={isEdit ? update.isPending || assign.isPending : create.isPending}
             className="flex h-[41.5px] items-center justify-center gap-2 rounded-[10px] bg-[#1e4f86] text-[12px] font-medium text-white transition-colors hover:bg-[#1b487a] disabled:cursor-not-allowed disabled:opacity-60"
             style={mont}
           >
-            {create.isPending && (
+            {(isEdit ? update.isPending || assign.isPending : create.isPending) && (
               <Loader2 size={14} className="animate-spin" />
             )}
 
-            {create.isPending ? t("addModal.creating") : t("addModal.submit")}
+            {isEdit
+              ? (update.isPending || assign.isPending ? t("addModal.saving") : t("addModal.saveButton"))
+              : (create.isPending ? t("addModal.creating") : t("addModal.submit"))}
           </button>
         </div>
       </form>

@@ -55,6 +55,7 @@
       "defaultName": "prospecto",
       "closeAria": "Cerrar menú de acciones",
       "viewDetails": "Ver Detalles",
+      "edit": "Editar",
       "assignAgent": "Asignar Agente",
       "archive": "Archivar",
       "archiving": "Archivando…"
@@ -262,6 +263,7 @@
     },
     "notesSection": {
       "loading": "Cargando notas…",
+      "initialNoteLabel": "Agregada al crear este prospecto",
       "empty": "Aún no hay notas.",
       "unknownAuthor": "Desconocido",
       "placeholder": "Escribe una nota…",
@@ -277,6 +279,7 @@
   },
   "addModal": {
     "title": "Agregar Nuevo Prospecto",
+    "editTitle": "Editar Prospecto",
     "closeAria": "Cerrar modal de agregar prospecto",
     "sectionContact": "Contacto",
     "searchExistingContact": "Buscar Contacto Existente",
@@ -329,11 +332,14 @@
     "notesPlaceholder": "Notas iniciales sobre este prospecto…",
     "cancel": "Cancelar",
     "creating": "Creando…",
+    "saving": "Guardando…",
     "submit": "Agregar Prospecto",
+    "saveButton": "Guardar Cambios",
     "errors": {
       "nameRequired": "El nombre es obligatorio",
       "emailOrPhoneRequired": "Proporciona al menos un correo o número de teléfono",
-      "createFailed": "Error al crear el prospecto"
+      "createFailed": "Error al crear el prospecto",
+      "updateFailed": "Error al actualizar el prospecto"
     }
   },
   "filterModal": {
