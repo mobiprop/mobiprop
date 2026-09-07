@@ -37,9 +37,17 @@
     "noneAvailable": "No hay propiedades {{filter}} disponibles por el momento."
   },
   "featuredSpots": {
-    "badge": "Ubicación",
-    "title": "Explorá por Zona",
-    "subtitle": "Descubrí los barrios más buscados para vivir e invertir."
+    "badge": "Explorá Lugares",
+    "title": "Encontrá Tu Lugar",
+    "subtitle": "Propiedades premium seleccionadas, estilo de vida garantizado.",
+    "filters": {
+      "all": "Todos",
+      "gatedCommunities": "Barrios Cerrados",
+      "apartments": "Departamentos",
+      "lots": "Terrenos",
+      "offices": "Oficinas",
+      "retail": "Locales Comerciales"
+    }
   },
   "whyUs": {
     "badge": "¿Por Qué Elegirnos?",

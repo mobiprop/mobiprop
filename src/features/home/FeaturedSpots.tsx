@@ -1,13 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 import svgPaths from "@/assets/svg-6s7nojygyu";
-
-const ASSET_BASE =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal";
 
 // Static per the client's latest Figma — was DB-driven ("most active listings
 // per location") until they asked for these exact 5 spots, in this order,
@@ -24,36 +22,49 @@ type FeaturedSpot = {
 
 const FEATURED_SPOTS: FeaturedSpot[] = [
   {
-    title: "Martindale",
-    category: "Country Club",
-    imageUrl: `${ASSET_BASE}/featured-martindale.webp`,
-    searchLocation: "Martindale",
-  },
-  {
     title: "Altos del Pilar",
     category: "Barrio Privado",
-    imageUrl: `${ASSET_BASE}/featured-altos-del-pilar.webp`,
+    imageUrl: "/spots/altos-del-pilar.webp",
     searchLocation: "Altos del Pilar",
+  },
+  {
+    title: "Pilar Lagoon",
+    category: "Barrio Privado",
+    imageUrl: "/spots/pilar-lagoon.webp",
+    searchLocation: "Pilar Lagoon",
   },
   {
     title: "Ayres de Pilar",
     category: "Barrio Privado",
-    imageUrl: `${ASSET_BASE}/featured-ayres-de-pilar.webp`,
+    imageUrl: "/spots/ayres-de-pilar.webp",
     searchLocation: "Ayres del Pilar",
   },
   {
     title: "Bouquet Pilar",
     category: "Condominio",
-    imageUrl: `${ASSET_BASE}/featured-bouquet-pilar.webp`,
+    imageUrl: "/spots/bouquet-pilar.webp",
     searchLocation: "Bouquet",
   },
   {
     title: "Vilahaus",
     category: "Condominio",
-    imageUrl: `${ASSET_BASE}/featured-vilahaus.webp`,
+    imageUrl: "/spots/vilahaus.webp",
     searchLocation: "Vila Haus",
   },
 ];
+
+/** Purely presentational — the curated spot list above is fixed regardless of
+ * category, matching the client's "exact 5 spots" requirement (see above).
+ * Filtering by these labels would need a property-type/community-type field
+ * these cards don't have, so this is a visual pill row, not a live filter. */
+const FILTER_KEYS = [
+  "all",
+  "gatedCommunities",
+  "apartments",
+  "lots",
+  "offices",
+  "retail",
+] as const;
 
 function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
   return (
@@ -67,20 +78,22 @@ function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
 function SpotCard({
   spot,
   imgHeight,
+  widthClass,
   sizes,
   emphasize,
 }: {
   spot: FeaturedSpot;
   imgHeight: string;
+  widthClass: string;
   sizes: string;
   emphasize: boolean;
 }) {
   return (
     <Link
       href={`/listings?location=${encodeURIComponent(spot.searchLocation)}`}
-      className="flex flex-col gap-5 group"
+      className={`flex flex-col gap-5 group ${widthClass}`}
     >
-      <div className={`hover-shine relative ${imgHeight} rounded-[24px] overflow-hidden bg-[#f3f4f6]`}>
+      <div className={`hover-shine relative ${imgHeight} rounded-[20px] overflow-hidden bg-[#f3f4f6]`}>
         <Image
           src={spot.imageUrl}
           alt={spot.title}
@@ -92,13 +105,13 @@ function SpotCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p
-            className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#0d2138] leading-[24px] sm:leading-[26px] lg:leading-[28px]"
+            className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#232323] leading-[1.4]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {spot.title}
           </p>
           <p
-            className="mt-1 text-[14px] sm:text-[15px] lg:text-[16px] text-[#2b3038]"
+            className="mt-1 text-[14px] sm:text-[15px] lg:text-[16px] text-[#4f4f4f]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {spot.category}
@@ -106,9 +119,14 @@ function SpotCard({
         </div>
 
         <div
-          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 border border-[#d1d5dc] ${
-            emphasize ? "bg-[#1e4f86]" : "bg-[#f8fafc]"
+          className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border ${
+            emphasize ? "border-transparent" : "border-[#bbbbbb]"
           }`}
+          style={
+            emphasize
+              ? { background: "linear-gradient(135deg, #005ea4 0%, #006fc2 100%)" }
+              : undefined
+          }
         >
           <ArrowUpRight color={emphasize ? "white" : "#0D2138"} />
         </div>
@@ -119,31 +137,33 @@ function SpotCard({
 
 export function FeaturedSpots() {
   const { t } = useTranslation("home");
-  const [topRow, bottomRow] = [FEATURED_SPOTS.slice(0, 2), FEATURED_SPOTS.slice(2)];
+  const [activeFilter, setActiveFilter] = useState<(typeof FILTER_KEYS)[number]>("all");
+  const [spot1, spot2, spot3, spot4, spot5] = FEATURED_SPOTS;
 
   return (
     <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto">
+      <div className="w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-10">
         {/* Header */}
-        <div className="flex flex-col items-center gap-4 mb-10">
-          <div className="flex items-center gap-2">
-            <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
+        <div className="flex flex-col items-center gap-5">
+          <div className="flex items-center gap-3 w-full max-w-[380px]">
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
             <span
-              className="text-[14px] sm:text-[16px] font-medium text-[#6a7282]"
+              className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("featuredSpots.badge")}
             </span>
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
           </div>
-          <div className="text-center">
+          <div className="text-center max-w-[434px]">
             <h2
-              className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-tight"
+              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
               {t("featuredSpots.title")}
             </h2>
             <p
-              className="mt-3 text-[14px] sm:text-[16px] text-[#2b3038] max-w-[460px]"
+              className="mt-3.5 text-[14px] sm:text-[16px] text-[#4f4f4f]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("featuredSpots.subtitle")}
@@ -151,30 +171,75 @@ export function FeaturedSpots() {
           </div>
         </div>
 
-        {/* Top row: 2 large cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {topRow.map((spot, i) => (
-            <SpotCard
-              key={spot.title}
-              spot={spot}
-              imgHeight="h-[300px] lg:h-[400px]"
-              sizes="(min-width: 768px) 50vw, 100vw"
-              emphasize={i === 0}
-            />
-          ))}
+        {/* Filter pills */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {FILTER_KEYS.map((key) => {
+            const active = key === activeFilter;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveFilter(key)}
+                className={`h-11 rounded-xl px-[18px] text-[15px] sm:text-[16px] transition-colors ${
+                  active
+                    ? "text-white"
+                    : "bg-[#f0f6fa] border border-[#ccdeef] text-[#4f4f4f] hover:bg-[#e5eff6]"
+                }`}
+                style={{
+                  fontFamily: active ? "Poppins, sans-serif" : "Montserrat, sans-serif",
+                  fontWeight: active ? 500 : 400,
+                  ...(active
+                    ? { background: "linear-gradient(151deg, #005ea4 0%, #006fc2 100%)" }
+                    : {}),
+                }}
+              >
+                {t(`featuredSpots.filters.${key}`)}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Bottom row: 3 smaller cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {bottomRow.map((spot) => (
+        {/* Bento grid: two uneven rows, matching the Figma layout */}
+        <div className="flex flex-col gap-7 w-full">
+          <div className="flex flex-col md:flex-row gap-6">
             <SpotCard
-              key={spot.title}
-              spot={spot}
-              imgHeight="h-[240px]"
-              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              spot={spot1}
+              imgHeight="h-[260px] lg:h-[315px]"
+              widthClass="md:w-[57%]"
+              sizes="(min-width: 768px) 57vw, 100vw"
+              emphasize
+            />
+            <SpotCard
+              spot={spot2}
+              imgHeight="h-[260px] lg:h-[315px]"
+              widthClass="md:w-[41%]"
+              sizes="(min-width: 768px) 41vw, 100vw"
               emphasize={false}
             />
-          ))}
+          </div>
+          <div className="flex flex-col lg:flex-row gap-6">
+            <SpotCard
+              spot={spot3}
+              imgHeight="h-[220px] lg:h-[315px]"
+              widthClass="lg:w-[24%]"
+              sizes="(min-width: 1024px) 24vw, 100vw"
+              emphasize={false}
+            />
+            <SpotCard
+              spot={spot4}
+              imgHeight="h-[220px] lg:h-[315px]"
+              widthClass="lg:w-[49%]"
+              sizes="(min-width: 1024px) 49vw, 100vw"
+              emphasize={false}
+            />
+            <SpotCard
+              spot={spot5}
+              imgHeight="h-[220px] lg:h-[315px]"
+              widthClass="lg:w-[24%]"
+              sizes="(min-width: 1024px) 24vw, 100vw"
+              emphasize={false}
+            />
+          </div>
         </div>
       </div>
     </section>

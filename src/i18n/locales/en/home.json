@@ -37,9 +37,17 @@
     "noneAvailable": "No {{filter}} listings available right now."
   },
   "featuredSpots": {
-    "badge": "Location",
-    "title": "Featured Spots",
-    "subtitle": "Explore the areas with the most listings right now"
+    "badge": "Explore Places",
+    "title": "Find Your Place",
+    "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
+    "filters": {
+      "all": "All",
+      "gatedCommunities": "Gated Communities",
+      "apartments": "Apartments",
+      "lots": "Lots",
+      "offices": "Offices",
+      "retail": "Retail Space"
+    }
   },
   "whyUs": {
     "badge": "Why Us",
