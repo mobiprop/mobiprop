@@ -136,7 +136,10 @@
     "blurb": "Have more questions? Our team is happy to help."
   },
   "blog": {
-    "badge": "More Posts",
-    "title": "Continue Reading"
+    "badge": "Our Blog",
+    "title": "Recent Blogposts",
+    "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
+    "readArticle": "Read Article",
+    "readMore": "Read More"
   }
 }

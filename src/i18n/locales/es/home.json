@@ -136,7 +136,10 @@
     "blurb": "¿Tenés dudas? ¿No encontraste lo que buscabas?"
   },
   "blog": {
-    "badge": "Más Publicaciones",
-    "title": "Seguí Leyendo"
+    "badge": "Nuestro Blog",
+    "title": "Publicaciones Recientes",
+    "subtitle": "Propiedades premium seleccionadas, estilo de vida garantizado.",
+    "readArticle": "Leer Artículo",
+    "readMore": "Ver Más"
   }
 }
