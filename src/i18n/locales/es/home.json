@@ -141,5 +141,10 @@
     "subtitle": "Propiedades premium seleccionadas, estilo de vida garantizado.",
     "readArticle": "Leer Artículo",
     "readMore": "Ver Más"
+  },
+  "cta": {
+    "badge": "Explorá Propiedades",
+    "title": "Encontrá Tu Hogar Ideal",
+    "subtitle": "Nuestros agentes expertos están listos para guiarte hacia la propiedad que merecés."
   }
 }

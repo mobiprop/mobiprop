@@ -141,5 +141,10 @@
     "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
     "readArticle": "Read Article",
     "readMore": "Read More"
+  },
+  "cta": {
+    "badge": "Explore Properties",
+    "title": "Find Your Perfect Home",
+    "subtitle": "Our expert agents are ready to guide you to the property you deserve."
   }
 }
