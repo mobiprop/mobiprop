@@ -29,12 +29,14 @@
     }
   },
   "featuredListings": {
-    "badge": "Properties",
-    "title": "Featured Luxury Listings",
-    "subtitle": "Handpicked exclusive properties that redefine luxury living",
+    "badge": "Explore Properties",
+    "title": "Explore Listings",
+    "subtitle": "Handpicked premium properties across Buenos Aires and surrounding areas — quality, location, and lifestyle guaranteed.",
     "filterSale": "For Sale",
     "filterRent": "For Rent",
-    "noneAvailable": "No {{filter}} listings available right now."
+    "noneAvailable": "No listings available right now.",
+    "viewAll": "View All Listings",
+    "viewProperty": "View Property"
   },
   "featuredSpots": {
     "badge": "Explore Places",

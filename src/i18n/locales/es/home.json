@@ -29,12 +29,14 @@
     }
   },
   "featuredListings": {
-    "badge": "Propiedades",
-    "title": "Nuestra Selección",
-    "subtitle": "Una selección de propiedades elegidas por ubicación, diseño y calidad.",
+    "badge": "Explorá Propiedades",
+    "title": "Explorá Nuestros Listados",
+    "subtitle": "Propiedades premium seleccionadas en Buenos Aires y alrededores — calidad, ubicación y estilo de vida garantizados.",
     "filterSale": "En Venta",
     "filterRent": "En Alquiler",
-    "noneAvailable": "No hay propiedades {{filter}} disponibles por el momento."
+    "noneAvailable": "No hay propiedades disponibles por el momento.",
+    "viewAll": "Ver Todas las Propiedades",
+    "viewProperty": "Ver Propiedad"
   },
   "featuredSpots": {
     "badge": "Explorá Lugares",
