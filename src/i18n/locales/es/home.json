@@ -51,6 +51,30 @@
       "retail": "Locales Comerciales"
     }
   },
+  "howItWorks": {
+    "badge": "Cómo Funciona",
+    "title": "Tres Pasos Hacia Tu Propiedad Ideal",
+    "subtitle": "Nuestro proceso está pensado para ser simple, transparente y sin estrés — desde la primera búsqueda hasta el cierre.",
+    "statValue": "100+",
+    "statLabel": "Propiedades Vendidas",
+    "steps": [
+      {
+        "label": "PASO 01",
+        "title": "Buscá y Preseleccioná",
+        "description": "Explorá nuestra base verificada. Guardá favoritos, comparalos y agendá visitas online."
+      },
+      {
+        "label": "PASO 02",
+        "title": "Visitá y Evaluá",
+        "description": "Nuestros especialistas te acompañan, aportan contexto de mercado y responden todas tus dudas."
+      },
+      {
+        "label": "PASO 03",
+        "title": "Cerrá con Confianza",
+        "description": "Nosotros nos ocupamos de la negociación, la revisión legal y el papeleo — vos solo tenés que firmar."
+      }
+    ]
+  },
   "whyUs": {
     "badge": "¿Por Qué Elegirnos?",
     "title": "Más que una inmobiliaria.",

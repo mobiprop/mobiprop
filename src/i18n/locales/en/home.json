@@ -51,6 +51,30 @@
       "retail": "Retail Space"
     }
   },
+  "howItWorks": {
+    "badge": "How It Works",
+    "title": "Three Steps to Your Dream Property",
+    "subtitle": "Our process is designed to be simple, transparent, and stress-free — from the first search to the final handshake.",
+    "statValue": "100+",
+    "statLabel": "Properties Sold",
+    "steps": [
+      {
+        "label": "STEP 01",
+        "title": "Search & Shortlist",
+        "description": "Browse our verified database. Save favourites, compare properties, and schedule viewings online."
+      },
+      {
+        "label": "STEP 02",
+        "title": "Visit & Evaluate",
+        "description": "Our specialists accompany you, provide market context, and answer every question you have."
+      },
+      {
+        "label": "STEP 03",
+        "title": "Close with Confidence",
+        "description": "Let us take care of the negotiations, legal reviews, and paperwork — all you need to do is sign."
+      }
+    ]
+  },
   "whyUs": {
     "badge": "Why Us",
     "title": "Ulrich's home experts",

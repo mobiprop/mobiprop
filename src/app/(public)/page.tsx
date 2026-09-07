@@ -1,6 +1,7 @@
 import { HeroSection } from "@/features/home/HeroSection";
 import { FeaturedListings } from "@/features/home/FeaturedListings";
 import { FeaturedSpots } from "@/features/home/FeaturedSpots";
+import { HowItWorks } from "@/features/home/HowItWorks";
 import { WhyUs } from "@/features/home/WhyUs";
 import { OurServices } from "@/features/home/OurServices";
 import { Agents } from "@/features/home/Agents";
@@ -18,6 +19,7 @@ export default async function Home() {
       <HeroSection />
       <FeaturedListings />
       <FeaturedSpots />
+      <HowItWorks />
       <WhyUs />
       <OurServices />
       <Agents members={teamMembers} />
