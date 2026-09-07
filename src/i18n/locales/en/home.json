@@ -1,7 +1,9 @@
 {
   "hero": {
-    "title": "Your Gateway To Prestige Properties",
-    "subtitle": "Uncover a world of unique homes and unforgettable experiences. Your perfect getaway awaits just a search away!",
+    "badge": "Curated properties",
+    "titlePrefix": "Your gateway to ",
+    "titleAccent": "exclusive properties",
+    "subtitle": "We help you find the place you want to live, invest, or start a new chapter in.",
     "tabBuy": "Buy",
     "tabRent": "Rent",
     "locationLabel": "Location",

@@ -1,7 +1,9 @@
 {
   "hero": {
-    "title": "Espacios para la próxima etapa de tu vida.",
-    "subtitle": "Desde departamentos urbanos hasta casas en barrios cerrados, encontrá propiedades seleccionadas por su calidad y ubicación.",
+    "badge": "Propiedades seleccionadas",
+    "titlePrefix": "Tu puerta de entrada a propiedades ",
+    "titleAccent": "exclusivas",
+    "subtitle": "Te ayudamos a encontrar el lugar donde querés vivir, invertir o empezar una nueva etapa.",
     "tabBuy": "Venta",
     "tabRent": "Alquiler",
     "locationLabel": "Ubicación",

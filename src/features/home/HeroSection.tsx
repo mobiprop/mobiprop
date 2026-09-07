@@ -1,155 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useScroll, useTransform } from "framer-motion";
-import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const heroImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero-2026.webp";
-
-function LocationIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 11.6667 14.3333" fill="none">
-      <path
-        d={svgPaths.p1fff3000}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d={svgPaths.p1a179d80}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 14.3333 13" fill="none">
-      <path
-        d={svgPaths.p3c430c00}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function DollarIcon() {
-  return (
-    <svg width="14" height="16" viewBox="0 0 9 14.3333" fill="none">
-      <path
-        d={svgPaths.p16a08f00}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ChevronDown() {
-  return (
-    <svg width="12" height="8" viewBox="0 0 11 6" fill="none">
-      <path
-        d="M0.5 0.5L5.5 5.5L10.5 0.5"
-        stroke="black"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-const PROPERTY_TYPE_VALUES = [
-  { value: "", labelKey: "hero.propertyTypeOptions.any" },
-  { value: "APARTMENT", labelKey: "hero.propertyTypeOptions.apartment" },
-  { value: "HOUSE", labelKey: "hero.propertyTypeOptions.house" },
-  { value: "COMMERCIAL_OFFICE", labelKey: "hero.propertyTypeOptions.commercialOffice" },
-  { value: "LOT", labelKey: "hero.propertyTypeOptions.lot" },
-  { value: "TOWNHOUSE", labelKey: "hero.propertyTypeOptions.townhouse" },
-] as const;
-
-const PRICE_VALUES = [
-  { value: { min: "", max: "" }, labelKey: "hero.priceOptions.any" },
-  { value: { min: "", max: "100000" }, labelKey: "hero.priceOptions.upTo100k" },
-  { value: { min: "100000", max: "500000" }, labelKey: "hero.priceOptions.100kTo500k" },
-  { value: { min: "500000", max: "1000000" }, labelKey: "hero.priceOptions.500kTo1m" },
-  { value: { min: "1000000", max: "5000000" }, labelKey: "hero.priceOptions.1mTo5m" },
-  { value: { min: "5000000", max: "" }, labelKey: "hero.priceOptions.over5m" },
-] as const;
-
-/** Pill-styled dropdown matching the Figma hero search fields. */
-function HeroDropdown({
-  icon,
-  options,
-  selectedIndex,
-  onSelect,
-}: {
-  icon: React.ReactNode;
-  options: { label: string }[];
-  selectedIndex: number;
-  onSelect: (index: number) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div ref={rootRef} className="relative w-full">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-[50px] lg:h-[54px] w-full items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5 cursor-pointer"
-      >
-        <div className="flex min-w-0 items-center gap-3 text-[#4a5565]">
-          {icon}
-          <span
-            className="truncate text-[14px]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {options[selectedIndex]?.label}
-          </span>
-        </div>
-        <ChevronDown />
-      </button>
-      {open ? (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full z-50 max-h-[280px] overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
-          {options.map((opt, index) => (
-            <button
-              key={opt.label}
-              type="button"
-              onClick={() => {
-                onSelect(index);
-                setOpen(false);
-              }}
-              className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
-                index === selectedIndex ? "text-[#00528f] font-medium" : "text-[#4a5565]"
-              }`}
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
+const heroImg = "/hero/hero-home.webp";
 
 export function HeroSection() {
   const heroRef = useRef<HTMLElement>(null);
@@ -159,257 +14,62 @@ export function HeroSection() {
   });
   const imgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
-  const router = useRouter();
   const { t } = useTranslation("home");
-  const propertyTypeOptions = PROPERTY_TYPE_VALUES.map((opt) => ({
-    value: opt.value,
-    label: t(opt.labelKey),
-  }));
-  const priceOptions = PRICE_VALUES.map((opt) => ({
-    value: opt.value,
-    label: t(opt.labelKey),
-  }));
-  const [activeTab, setActiveTab] = useState<"buy" | "rent">("buy");
-  const [location, setLocation] = useState("");
-  const [typeIndex, setTypeIndex] = useState(0);
-  const [priceIndex, setPriceIndex] = useState(0);
-
-  // Available-location suggestions for the typed search.
-  const [locationOpen, setLocationOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const locationRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!locationOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (!locationRef.current?.contains(e.target as Node)) setLocationOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [locationOpen]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => {
-      fetch(`/api/listings/locations?q=${encodeURIComponent(location)}`, {
-        signal: controller.signal,
-      })
-        .then((res) => (res.ok ? res.json() : { locations: [] }))
-        .then((data) => setSuggestions(data.locations ?? []))
-        .catch(() => undefined);
-    }, 250);
-    return () => {
-      controller.abort();
-      clearTimeout(timer);
-    };
-  }, [location]);
-
-  function handleSearch() {
-    const params = new URLSearchParams();
-    if (location.trim()) params.set("location", location.trim());
-    const propertyType = propertyTypeOptions[typeIndex].value;
-    if (propertyType) params.set("propertyType", propertyType);
-    params.set("transactionType", activeTab === "buy" ? "SALE" : "RENT");
-    const price = priceOptions[priceIndex].value;
-    if (price.min) params.set("minPrice", price.min);
-    if (price.max) params.set("maxPrice", price.max);
-    router.push(`/listings?${params.toString()}`);
-  }
 
   return (
     <section
       ref={heroRef}
-      className="relative w-full min-h-[760px] sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]"
+      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto pt-4 sm:pt-5"
     >
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="relative h-[560px] sm:h-[680px] lg:h-[820px] xl:h-[873px] w-full overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
-          alt="Luxury property"
-          className="h-full w-full object-fill scale-[1.15]"
-          style={{ y: imgY }}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ y: imgY, scale: 1.12 }}
         />
-        <div className="absolute inset-0 bg-[rgba(20,78,128,0.12)]" />
-        <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.62)] to-[rgba(255,255,255,0.9)]" />
-      </div>
-
-      <div className="relative z-10 flex min-h-[calc(100vh-70px)] flex-col items-center px-4 pt-[70px] pb-6 sm:pt-[90px] lg:pt-[95px]">
-  <motion.div
-    className="mx-auto max-w-[760px] text-center text-white"
-    initial={{ opacity: 0.2, y: 60, scale: 0.95 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    transition={{ duration: 1, ease: "easeOut" }}
-  >
-    <h1
-      className="mb-4 sm:mb-5 capitalize text-[32px] sm:text-[42px] md:text-[54px] lg:text-[60px] leading-[39px] sm:leading-[50px] md:leading-[64px] lg:leading-[70px]"
-      style={{
-        fontFamily: "Poppins, sans-serif",
-        fontWeight: 500,
-        letterSpacing: "0",
-      }}
-    >
-      {t("hero.title")}
-    </h1>
-
-    <p
-      className="mx-auto max-w-[620px] text-[14px] sm:text-[16px] lg:text-[17px] leading-[22px] sm:leading-[24px] opacity-95"
-      style={{
-        fontFamily: "Poppins, sans-serif",
-      }}
-    >
-      {t("hero.subtitle")}
-    </p>
-  </motion.div>
-
-  <motion.div
-    className="mt-auto w-full max-w-[1370px] px-0 pb-4 sm:px-4 lg:pb-6"
-    initial={{ opacity: 0, y: 40 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.7, ease: "easeOut", delay: 0.35 }}
-  >
-    <div className="flex pl-0">
-      <button
-        onClick={() => setActiveTab("buy")}
-        className={`h-[52px] sm:h-[56px] lg:h-[60px] w-[130px] sm:w-[145px] text-[14px] font-medium transition-all border-t border-l border-r rounded-tl-2xl ${
-          activeTab === "buy"
-            ? "bg-white text-[#00528f] border-[#e8e8e8]"
-            : "bg-[rgba(0,0,0,0.58)] text-white border-[#d5d5d552]"
-        }`}
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {t("hero.tabBuy")}
-      </button>
-
-      <button
-        onClick={() => setActiveTab("rent")}
-        className={`h-[52px] sm:h-[56px] lg:h-[60px] w-[130px] sm:w-[145px] text-[14px] font-normal transition-all border-t border-r ${
-          activeTab === "rent"
-            ? "bg-white text-[#00528f] border-[#e8e8e8]"
-            : "bg-[rgba(0,0,0,0.58)] text-white border-[#d5d5d552]"
-        }`}
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {t("hero.tabRent")}
-      </button>
-    </div>
-
-    <div className="rounded-b-[16px] rounded-tr-[16px] border border-[#e8e8e8] bg-white shadow-[0px_18px_45px_rgba(15,23,42,0.08)]">
-      <div className="flex flex-col items-stretch gap-4 p-4 sm:p-5 lg:flex-row lg:items-end lg:gap-5 lg:px-8 lg:py-6">
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("hero.locationLabel")}
-          </p>
-
-          <div ref={locationRef} className="relative w-full">
-            <div className="flex h-[50px] lg:h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5">
-              <div className="flex min-w-0 flex-1 items-center gap-3 text-[#4a5565]">
-                <LocationIcon />
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => {
-                    setLocation(e.target.value);
-                    setLocationOpen(true);
-                  }}
-                  onFocus={() => setLocationOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSearch();
-                  }}
-                  placeholder={t("hero.locationPlaceholder")}
-                  className="w-full min-w-0 bg-transparent text-[16px] sm:text-[14px] text-[#0d2138] placeholder:text-[#4a5565] outline-none"
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                  aria-label={t("hero.locationLabel")}
-                />
-              </div>
-              <ChevronDown />
-            </div>
-
-            {locationOpen && suggestions.length > 0 ? (
-              <div className="absolute top-[calc(100%+6px)] left-0 w-full z-50 max-h-[280px] overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
-                {suggestions.map((sugg) => (
-                  <button
-                    key={sugg}
-                    type="button"
-                    onClick={() => {
-                      setLocation(sugg);
-                      setLocationOpen(false);
-                    }}
-                    className="w-full truncate px-4 py-2.5 text-left text-[14px] text-[#4a5565] hover:bg-[#f3f4f6] transition-colors cursor-pointer"
-                    style={{ fontFamily: "Poppins, sans-serif" }}
-                  >
-                    {sugg}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("hero.propertyTypeLabel")}
-          </p>
-
-          <HeroDropdown
-            icon={<BuildingIcon />}
-            options={propertyTypeOptions}
-            selectedIndex={typeIndex}
-            onSelect={setTypeIndex}
-          />
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("hero.priceLabel")}
-          </p>
-
-          <HeroDropdown
-            icon={<DollarIcon />}
-            options={priceOptions}
-            selectedIndex={priceIndex}
-            onSelect={setPriceIndex}
-          />
-        </div>
-
-        <button
-          onClick={handleSearch}
-          className="relative h-[50px] lg:h-[54px] flex-shrink-0 overflow-hidden whitespace-nowrap rounded-[48px] px-8 text-[15px] lg:text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px] flex items-center justify-center gap-1"
+        <div
+          className="absolute inset-0"
           style={{
-            fontFamily: "Poppins, sans-serif",
-            background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-            border: "1px solid #0088ff",
+            backgroundImage:
+              "linear-gradient(180deg, rgba(5,22,44,0.15) 0%, rgba(5,22,44,0.1) 45%, rgba(20,20,20,0.2) 75%, rgba(10,10,10,0.4) 100%)",
           }}
-        >
-          <span
-            className="absolute inset-0 opacity-25"
-            style={{
-              backgroundImage:
-                "url('/assets/figma-temp/BlogPage/btn-img.png')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
+        />
 
-          <span className="relative z-10">{t("hero.searchButton")}</span>
-        </button>
+        <motion.div
+          className="relative z-10 flex h-full max-w-[720px] flex-col justify-center gap-4 px-6 pt-[70px] sm:gap-5 sm:px-10 sm:pt-[80px] lg:px-12"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
+            <span className="size-1.5 shrink-0 rounded-full bg-white" />
+            <span
+              className="text-[11px] uppercase tracking-[1.2px] text-white sm:text-[12px]"
+              style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
+            >
+              {t("hero.badge")}
+            </span>
+          </div>
+
+          <h1
+            className="text-[32px] leading-[39px] text-white sm:text-[44px] sm:leading-[52px] lg:text-[52px] lg:leading-[62px] xl:text-[60px] xl:leading-[70px]"
+            style={{ fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif", fontWeight: 400 }}
+          >
+            {t("hero.titlePrefix")}
+            <span style={{ fontFamily: "'IvyPresto Display', Georgia, serif", fontStyle: "italic" }}>
+              {t("hero.titleAccent")}
+            </span>
+          </h1>
+
+          <p
+            className="max-w-[560px] text-[15px] leading-[1.45] text-white/90 sm:text-[18px] lg:text-[20px]"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
+          >
+            {t("hero.subtitle")}
+          </p>
+        </motion.div>
       </div>
-    </div>
-  </motion.div>
-</div>
     </section>
   );
 }

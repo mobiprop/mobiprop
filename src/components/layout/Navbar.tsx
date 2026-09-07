@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -119,18 +119,23 @@ function ProfileMenu({ user }: { user: NavUser }) {
   );
 }
 
-function Logo() {
+function Logo({ transparent }: { transparent?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-1" aria-label="Ulrich Propiedades home">
+    <Link href="/" className="flex items-center gap-2" aria-label="Mobi Prop home">
       <Image
-        src="/logo.svg"
-        alt="Ulrich Propiedades"
-        width={59}
-        height={40}
+        src={transparent ? "/mobi-prop-logo-white.svg" : "/mobi-prop-logo-dark.svg"}
+        alt=""
+        width={30}
+        height={30}
         priority
-        className="h-9 object-contain"
-        style={{ width: "auto" }}
+        className="h-[26px] w-[26px] sm:h-[30px] sm:w-[30px]"
       />
+      <p
+        className={`text-[20px] sm:text-[24px] leading-none whitespace-nowrap ${transparent ? "text-white" : "text-[#0d2138]"}`}
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
+        <span className="font-medium">Mobi</span> <span className="font-light">Prop</span>
+      </p>
     </Link>
   );
 }
@@ -144,6 +149,20 @@ const headerItem: Variants = {
   hidden: { opacity: 0, y: -20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
+
+const noopSubscribe = () => () => {};
+
+/** True only after hydration — lets a value legitimately differ between the
+ * server-rendered HTML and the client without ever causing a hydration
+ * mismatch, since React treats the server snapshot as authoritative for the
+ * first paint. */
+function useMounted() {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}
 
 const navLinks = [
   { key: "home", href: "/" },
@@ -162,38 +181,88 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   const user = initialUser;
 
+  // `usePathname()` can disagree between the server-rendered shell and the
+  // first client render for a shared layout like this one, which makes any
+  // conditional derived from it directly a real hydration-mismatch risk.
+  // Gating on `mounted` guarantees the server and first client paint always
+  // agree (isHome=false), then the real home-page look applies right after.
+  const mounted = useMounted();
+  const isHome = mounted && pathname === "/";
+
+  // On the homepage the navbar floats transparently over the hero photo,
+  // then solidifies once scrolled past it — fixed (not sticky) throughout so
+  // it never disappears while the page scrolls. Every other route keeps the
+  // plain sticky solid header.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!isHome) return;
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
+
+  const transparent = isHome && !scrolled && !menuOpen;
+
   return (
-    <header className="sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]">
+    <header
+      className={
+        isHome
+          ? `fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+              transparent ? "bg-transparent" : "bg-[#f9fafb] border-b border-[#c2c7d3]"
+            }`
+          : "sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]"
+      }
+    >
   <motion.div
-    className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    className={`w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto h-[70px] sm:h-[80px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] ${transparent ? "px-4 sm:px-6" : ""}`}
     variants={headerContainer}
     initial="hidden"
     animate="visible"
   >
     {/* Logo */}
     <motion.div className="flex-shrink-0 justify-self-start" variants={headerItem}>
-      <Logo />
+      <Logo transparent={transparent} />
     </motion.div>
 
     {/* Desktop Menu */}
     <motion.nav
-      className="hidden lg:flex items-center gap-8 justify-self-center bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
+      className={
+        transparent
+          ? "hidden lg:flex items-center gap-1 justify-self-center rounded-full border border-white/30 bg-white/10 p-1"
+          : "hidden lg:flex items-center gap-8 justify-self-center bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
+      }
       variants={headerItem}
     >
-      {navLinks.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={`text-[14px] font-medium leading-5 transition-colors ${
-            isActive(link.href)
-              ? "text-[#232323]"
-              : "text-[#5e5e5e] hover:text-[#232323]"
-          }`}
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          {t(link.key)}
-        </Link>
-      ))}
+      {navLinks.map((link) =>
+        transparent ? (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`rounded-full px-4 py-2 text-[15px] leading-6 transition-colors ${
+              isActive(link.href)
+                ? "bg-white/60 text-[#0a0d14] backdrop-blur-lg"
+                : "text-white hover:bg-white/10"
+            }`}
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {t(link.key)}
+          </Link>
+        ) : (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`text-[14px] font-medium leading-5 transition-colors ${
+              isActive(link.href)
+                ? "text-[#232323]"
+                : "text-[#5e5e5e] hover:text-[#232323]"
+            }`}
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {t(link.key)}
+          </Link>
+        ),
+      )}
     </motion.nav>
 
     {/* Desktop Buttons */}
@@ -201,6 +270,24 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       <LanguageSwitcher />
       {user ? (
         <ProfileMenu user={user} />
+      ) : transparent ? (
+        <>
+          <Link
+            href="/login"
+            className="flex h-11 w-[92px] items-center justify-center rounded-xl border border-white/30 bg-white/10 text-[14px] font-medium text-white transition-colors hover:bg-white/20"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {t("login")}
+          </Link>
+
+          <Link
+            href="/register"
+            className="flex h-11 items-center justify-center rounded-xl border border-white bg-white px-6 text-[14px] font-medium text-[#232323] transition-colors hover:bg-gray-100"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            {t("signup")}
+          </Link>
+        </>
       ) : (
         <>
           <Link
@@ -224,7 +311,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
     {/* Mobile Hamburger */}
     <motion.button
-      className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+      className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
       onClick={() => setMenuOpen(!menuOpen)}
       aria-label="Toggle menu"
       variants={headerItem}
@@ -233,7 +320,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         width="24"
         height="24"
         fill="none"
-        stroke="#0d2138"
+        stroke={transparent ? "#ffffff" : "#0d2138"}
         strokeWidth="2"
         strokeLinecap="round"
       >

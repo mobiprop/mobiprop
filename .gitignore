@@ -43,3 +43,9 @@ next-env.d.ts
 
 /src/generated/prisma
 .email-previews
+
+# Claude Code local tooling config
+.claude/
+
+# Supabase CLI local cache
+supabase/.temp/
