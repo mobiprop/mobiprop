@@ -113,10 +113,13 @@
   },
   "agents": {
     "badge": "Nuestro Equipo",
-    "title": "Conocé al equipo detrás de cada operación.",
+    "title": "Conocé al Equipo",
+    "subtitle": "Propiedades premium seleccionadas, estilo de vida garantizado.",
     "team": [
-      { "name": "Rodolfo Ulrich", "role": "Martillero y Corredor Público Responsable" },
-      { "name": "Carola Buscaglia", "role": "Asesor Inmobiliario" }
+      { "name": "Matias Ulrich", "role": "Martillero & Corredor Público", "photo": "/team/matias-ulrich.webp" },
+      { "name": "Delfina Cabrera", "role": "Asesor Inmobiliario", "photo": "/team/delfina-cabrera.webp" },
+      { "name": "Delfina Barberio", "role": "Asesor Inmobiliario", "photo": "/team/delfina-barberio.webp" },
+      { "name": "Jeronimo Perez B.", "role": "Asesor Inmobiliario", "photo": "/team/jeronimo-perez.webp" }
     ]
   },
   "testimonial": {

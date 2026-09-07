@@ -112,11 +112,14 @@
     ]
   },
   "agents": {
-    "badge": "Agents",
-    "title": "Meet The Experts Who Make It Happen.",
+    "badge": "Team Members",
+    "title": "Meet The Team",
+    "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
     "team": [
-      { "name": "Rodolfo Ulrich", "role": "Licensed Auctioneer & Responsible Real Estate Broker" },
-      { "name": "Carola Buscaglia", "role": "Real Estate Advisor" }
+      { "name": "Matias Ulrich", "role": "Licensed Auctioneer & Real Estate Broker", "photo": "/team/matias-ulrich.webp" },
+      { "name": "Delfina Cabrera", "role": "Real Estate Advisor", "photo": "/team/delfina-cabrera.webp" },
+      { "name": "Delfina Barberio", "role": "Real Estate Advisor", "photo": "/team/delfina-barberio.webp" },
+      { "name": "Jeronimo Perez B.", "role": "Real Estate Advisor", "photo": "/team/jeronimo-perez.webp" }
     ]
   },
   "testimonial": {

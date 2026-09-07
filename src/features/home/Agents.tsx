@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import svgPaths from "@/assets/svg-6s7nojygyu";
 import Slider from "react-slick";
 
 import type { PublicTeamMember } from "@/features/home/getPublicTeam";
@@ -14,26 +13,13 @@ import "slick-carousel/slick/slick-theme.css";
 const agentPlaceholder =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/team-placeholder.webp";
 
-function InstagramIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
-      <path d={svgPaths.p24f75100} fill="#232323" />
-    </svg>
-  );
-}
-
 function LinkedinIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
-      <path d={svgPaths.p27b2a380} fill="#232323" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg width="14" height="15" viewBox="0 0 13.7548 15.0095" fill="none">
-      <path d={svgPaths.p478ee00} fill="#232323" />
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M18.5195 0H1.47656C0.660156 0 0 0.644531 0 1.44141V18.5547C0 19.3516 0.660156 20 1.47656 20H18.5195C19.3359 20 20 19.3516 20 18.5586V1.44141C20 0.644531 19.3359 0 18.5195 0ZM5.93359 17.043H2.96484V7.49609H5.93359V17.043ZM4.44922 6.19531C3.49609 6.19531 2.72656 5.42578 2.72656 4.47656C2.72656 3.52734 3.49609 2.75781 4.44922 2.75781C5.39844 2.75781 6.16797 3.52734 6.16797 4.47656C6.16797 5.42187 5.39844 6.19531 4.44922 6.19531ZM17.043 17.043H14.0781V12.4023C14.0781 11.2969 14.0586 9.87109 12.5352 9.87109C10.9922 9.87109 10.7578 11.0781 10.7578 12.3242V17.043H7.79688V7.49609H10.6406V8.80078H10.6797C11.0742 8.05078 12.043 7.25781 13.4844 7.25781C16.4883 7.25781 17.043 9.23438 17.043 11.8047V17.043V17.043Z"
+        fill="#005089"
+      />
     </svg>
   );
 }
@@ -83,63 +69,35 @@ function AgentArrow({
 
 function AgentCard({ agent }: { agent: Agent }) {
   return (
-    <div className="flex w-full min-w-0 flex-col gap-4">
-      {/* Photo */}
-      <div className="relative h-[300px] w-full overflow-hidden rounded-[20px] lg:h-[372px]">
+    <div className="flex w-full min-w-0 flex-col items-center gap-6 rounded-2xl border border-[#f4f9ff] bg-[#f0f6fa] px-3 py-6">
+      <div className="relative size-[164px] shrink-0 overflow-hidden rounded-full">
         <img
           src={agent.photo}
           alt={agent.name}
           draggable={false}
-          // Both current team photos are landscape shots where the subject
-          // stands right-of-center (office/garden space to their left), so a
-          // dead-center crop clips the right shoulder on the wide 2/3-up
-          // card (>=768px, matching the carousel's own breakpoint above).
-          // On the single-column mobile card the box is much narrower/
-          // taller, so the same shift would crop too much off the same
-          // side instead — keep that one centered, which was never
-          // reported broken.
-          // The >=768px card can also flip from a horizontal to a vertical
-          // crop as the window widens (card gets wider than it is tall
-          // relative to the source photo's aspect ratio), which instead
-          // crops the *top of the head* under a centered vertical position
-          // — bias the crop upward (18% from top) so headroom survives at
-          // every width up to the container's 1440px cap.
-          className="absolute inset-0 h-full w-full object-cover object-center md:object-[65%_18%]"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
 
-      {/* Info */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex flex-col items-center gap-3 px-1 text-center">
+        <div className="flex flex-col items-center gap-1">
           <p
-            className="text-[20px] font-medium leading-[28px] text-[#0d2138] lg:text-[24px]"
+            className="text-[22px] font-medium leading-tight text-[#00223a] lg:text-[24px] tracking-[-0.12px]"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {agent.name}
           </p>
-
           <p
-            className="mt-1 max-w-[160px] text-[14px] text-[#2b3038]"
+            className="text-[16px] text-[#4f4f4f] lg:text-[18px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {agent.role}
           </p>
         </div>
 
-        <div className="flex flex-shrink-0 gap-2">
-          {[<InstagramIcon key="instagram" />, <LinkedinIcon key="linkedin" />, <XIcon key="x" />].map(
-            (icon, index) => (
-              <button
-                key={index}
-                type="button"
-                aria-label={`Social profile ${index + 1}`}
-                className="flex items-center justify-center rounded-[8px] border border-[#d1d5dc] bg-white p-2 transition-colors hover:bg-gray-50"
-              >
-                {icon}
-              </button>
-            ),
-          )}
-        </div>
+        <button type="button" aria-label={`${agent.name} on LinkedIn`}>
+          <LinkedinIcon />
+        </button>
       </div>
     </div>
   );
@@ -192,8 +150,8 @@ export function Agents({
       : (
           t("agents.team", {
             returnObjects: true,
-          }) as { name: string; role: string }[]
-        ).map((member) => ({ ...member, photo: agentPlaceholder }));
+          }) as { name: string; role: string; photo?: string }[]
+        ).map((member) => ({ ...member, photo: member.photo ?? agentPlaceholder }));
 
   const effectiveSlidesToShow = Math.max(1, Math.min(slidesToShow, agents.length));
   const canLoop = agents.length > effectiveSlidesToShow;
@@ -233,24 +191,32 @@ export function Agents({
     <section className="overflow-hidden bg-white py-16 lg:py-20">
       <div className="mx-auto w-[calc(100%_-_32px)] min-w-0 max-w-[1440px] sm:w-[calc(100%_-_35px)]">
         {/* Header */}
-        <div className="mb-8 flex flex-col items-center gap-3 sm:mb-10 sm:gap-4 lg:mb-12">
-          <div className="flex items-center gap-2">
-            <div className="h-[7px] w-[7px] rounded-full bg-[#4896b6]" />
-
+        <div className="mb-8 flex flex-col items-center gap-5 sm:mb-10 lg:mb-12">
+          <div className="flex items-center gap-3 w-full max-w-[380px]">
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
             <span
-              className="text-[14px] font-medium text-[#6a7282] sm:text-[16px]"
+              className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("agents.badge")}
             </span>
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
           </div>
 
-          <h2
-            className="max-w-[500px] text-center text-[26px] font-semibold leading-[36px] text-[#232323] sm:text-[34px] sm:leading-[42px] lg:text-[44px] lg:leading-tight"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("agents.title")}
-          </h2>
+          <div className="text-center max-w-[434px]">
+            <h2
+              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              {t("agents.title")}
+            </h2>
+            <p
+              className="mt-3.5 text-[14px] sm:text-[16px] text-[#4f4f4f]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("agents.subtitle")}
+            </p>
+          </div>
         </div>
 
         {/* Slick Slider */}
