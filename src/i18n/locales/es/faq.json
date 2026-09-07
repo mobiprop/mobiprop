@@ -1,7 +1,7 @@
 {
   "hero": {
     "title": "Preguntas Frecuentes",
-    "subtitle": "Encontrá respuestas a las preguntas más frecuentes sobre comprar, vender y alquilar propiedades con Ulrich Propiedades.",
+    "subtitle": "Encontrá respuestas a las preguntas más frecuentes sobre comprar, vender y alquilar propiedades con Mobi Prop.",
     "searchPlaceholder": "Buscar",
     "popularLabel": "Preguntas populares:",
     "popularTags": [
@@ -37,7 +37,7 @@
     {
       "id": "generalInformation-2",
       "categoryId": "generalInformation",
-      "question": "¿Qué diferencia a Ulrich Propiedades?",
+      "question": "¿Qué diferencia a Mobi Prop?",
       "answer": "Combinamos experiencia, tecnología y procesos propios para brindar un servicio más organizado, transparente y eficiente en cada operación."
     },
     {
