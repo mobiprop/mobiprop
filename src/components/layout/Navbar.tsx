@@ -123,7 +123,7 @@ function Logo({ transparent }: { transparent?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-2" aria-label="Mobi Prop home">
       <Image
-        src={transparent ? "/mobi-prop-logo-white.svg" : "/mobi-prop-logo-dark.svg"}
+        src={transparent ? "/mobi-prop-logo-white.svg" : "/mobi-prop-logo-color.svg"}
         alt=""
         width={30}
         height={30}
@@ -131,7 +131,7 @@ function Logo({ transparent }: { transparent?: boolean }) {
         className="h-[26px] w-[26px] sm:h-[30px] sm:w-[30px]"
       />
       <p
-        className={`text-[20px] sm:text-[24px] leading-none whitespace-nowrap ${transparent ? "text-white" : "text-[#0d2138]"}`}
+        className={`text-[20px] sm:text-[24px] leading-none whitespace-nowrap ${transparent ? "text-white" : "text-[#232323]"}`}
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
         <span className="font-medium">Mobi</span> <span className="font-light">Prop</span>
