@@ -217,7 +217,7 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="w-[calc(100%-32px)] max-w-[1920px] mx-auto pt-4"
+      className="w-[calc(100%-32px)] max-w-[1440px] mx-auto pt-4"
     >
       <div className="relative w-full overflow-hidden rounded-[20px]">
         <motion.img

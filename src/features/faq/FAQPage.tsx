@@ -195,7 +195,7 @@ function FAQContent() {
     : allFaqs;
 
   return (
-    <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-[76px] py-10 sm:py-14 lg:py-[80px]">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[76px] py-10 sm:py-14 lg:py-[80px]">
   <div className="flex flex-col lg:flex-row gap-8 lg:gap-[70px] items-start">
     {/* ── Categories sidebar ── */}
     <div className="flex flex-col gap-4 lg:gap-[20px] shrink-0 lg:w-[250px] w-full">

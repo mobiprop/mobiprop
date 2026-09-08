@@ -12,8 +12,8 @@
    * Each is interpolated between a 375px mobile reference and Figma's
    * 1440px desktop frame (the two sizes the design was actually specified
    * at); below 375px it holds at the min, above 1440px it holds at the max
-   * (the shared max-w-[1920px] container is what keeps growing beyond
-   * that, not these tokens — see max-w-[1920px] usages).
+   * (the shared max-w-[1440px] container is what keeps growing beyond
+   * that, not these tokens — see max-w-[1440px] usages).
    *
    * clamp(min, intercept + slope*vw, max) where, for a value going from
    * `a` px at 375px viewport to `b` px at 1440px viewport:

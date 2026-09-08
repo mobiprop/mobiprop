@@ -219,7 +219,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       }
     >
   <motion.div
-    className="w-[calc(100%-32px)] max-w-[1920px] mx-auto flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    className="w-[calc(100%-32px)] max-w-[1440px] mx-auto flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
     style={{ height: "var(--space-fluid-nav-h)", paddingInline: "var(--space-fluid-section-px)" }}
     variants={headerContainer}
     initial="hidden"

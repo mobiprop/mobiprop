@@ -318,7 +318,7 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
       </section>
 
       {/* ── Content ── */}
-      <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
+      <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
         {hasContent ? (
           <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[60px] w-full">
             {featured && (

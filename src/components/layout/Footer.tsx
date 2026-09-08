@@ -148,7 +148,7 @@ export function Footer() {
         <img src={footerBg} alt="" className="h-full w-full object-cover" />
       </div>
 
-      <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto py-16 flex flex-col gap-10">
+      <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-16 flex flex-col gap-10">
         <div className="flex flex-col lg:flex-row items-start justify-between gap-12">
           <div className="flex flex-col gap-7 w-full lg:max-w-[405px]">
             <div className="flex flex-col gap-4">

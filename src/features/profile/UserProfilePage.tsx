@@ -263,7 +263,7 @@ function ProfileHero({ profile, onEditClick, savedCount }: { profile: Profile; o
   />
 
   {/* Profile content */}
-  <div className="relative z-10 mx-auto max-w-[1920px] px-4 pb-[40px] pt-[36px] sm:px-6 sm:pb-[50px] sm:pt-[48px] lg:px-[76px] lg:pb-[60px] lg:pt-[87px]">
+  <div className="relative z-10 mx-auto max-w-[1440px] px-4 pb-[40px] pt-[36px] sm:px-6 sm:pb-[50px] sm:pt-[48px] lg:px-[76px] lg:pb-[60px] lg:pt-[87px]">
     <div className="flex flex-col items-center gap-[24px] sm:gap-[32px] lg:flex-row lg:items-start lg:gap-[60px]">
       {/* Avatar card */}
       <div className="relative h-[170px] w-[170px] shrink-0 overflow-hidden rounded-[16px] bg-white sm:h-[210px] sm:w-[210px] lg:h-[243px] lg:w-[244px]">
@@ -606,7 +606,7 @@ function SavedPropertiesSection({
   const contracts = contractsData ?? [];
 
   return (
-    <section className="mx-auto max-w-[1920px] px-4 py-[32px] sm:px-6 sm:py-[40px] lg:px-[76px] lg:py-[48px]">
+    <section className="mx-auto max-w-[1440px] px-4 py-[32px] sm:px-6 sm:py-[40px] lg:px-[76px] lg:py-[48px]">
       {/* Tab bar */}
       <div className="flex flex-col">
         <div className="flex w-full items-center gap-[4px] overflow-x-auto pb-[2px] sm:gap-[8px]">

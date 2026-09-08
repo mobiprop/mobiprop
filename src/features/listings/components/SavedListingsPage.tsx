@@ -246,7 +246,7 @@ export function SavedListingsPageContent({ initialListings }: { initialListings:
 
   return (
     <div
-      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto py-10 sm:py-14"
+      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-10 sm:py-14"
       style={{ fontFamily: "Montserrat, sans-serif" }}
     >
       {/* Header */}
