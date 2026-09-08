@@ -5,9 +5,9 @@ import { Providers } from "./providers";
 import { DEFAULT_LANGUAGE, LANGUAGE_COOKIE_NAME, isSupportedLanguage } from "@/i18n/config";
 
 export const metadata: Metadata = {
-  title: "Ulrich Propiedades — Your Gateway to Prestige Properties",
+  title: "Mobi Prop — Your Gateway to Exclusive Properties",
   description:
-    "Discover luxury homes for sale and rent. Ulrich Propiedades helps you find your perfect property.",
+    "Discover exclusive homes for sale and rent. Mobi Prop helps you find your perfect property.",
   manifest: "/manifest.webmanifest",
 };
 

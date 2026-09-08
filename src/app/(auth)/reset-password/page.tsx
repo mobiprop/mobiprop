@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ForgotPasswordPageContent } from "@/features/auth/ForgotPasswordPage";
 
 export const metadata: Metadata = {
-  title: "Reset Password — Ulrich Propiedades",
+  title: "Reset Password — Mobi Prop",
   description: "Enter your email to reset your password.",
 };
 

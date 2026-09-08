@@ -10,11 +10,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const result = await getPublicListingBySlug(slug);
   if (!result) {
-    return { title: "Property Not Found — Ulrich Propiedades" };
+    return { title: "Property Not Found — Mobi Prop" };
   }
   const { listing } = result;
   return {
-    title: `${listing.title} — Ulrich Propiedades`,
+    title: `${listing.title} — Mobi Prop`,
     description: listing.description.slice(0, 160),
     openGraph: {
       title: listing.title,

@@ -272,7 +272,7 @@ export function StaffLoginPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:w-full max-sm:text-[12px] max-sm:leading-[18px] max-sm:tracking-[-0.12px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    © 2026 Ulrich Propiedades
+    © 2026 Mobi Prop
   </span>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />

@@ -13,14 +13,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
-    return { title: "Blog Post — Ulrich Propiedades" };
+    return { title: "Blog Post — Mobi Prop" };
   }
 
   const description =
     post.excerpt || post.content.replace(/<[^>]*>/g, "").trim().slice(0, 160);
 
   return {
-    title: `${post.title} — Ulrich Propiedades`,
+    title: `${post.title} — Mobi Prop`,
     description,
     openGraph: {
       title: post.title,

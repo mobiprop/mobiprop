@@ -6,7 +6,7 @@ import { getSavedListings } from "@/features/listings/saved-actions";
 import { SavedListingsPageContent } from "@/features/listings/components/SavedListingsPage";
 
 export const metadata: Metadata = {
-  title: "Saved Properties — Ulrich Propiedades",
+  title: "Saved Properties — Mobi Prop",
   description: "Properties you have saved for later.",
 };
 

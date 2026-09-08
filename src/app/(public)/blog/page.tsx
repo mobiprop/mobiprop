@@ -4,7 +4,7 @@ import { BlogPageContent } from "@/features/blog/BlogPage";
 import { getPublishedBlogPosts } from "@/services/blog.service";
 
 export const metadata: Metadata = {
-  title: "Blog — Ulrich Propiedades",
+  title: "Blog — Mobi Prop",
   description:
     "Insights for the modern property market: expert analysis, local market trends, and guides for buyers, sellers, and investors.",
 };

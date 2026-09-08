@@ -4,7 +4,7 @@ import { requireDashboardAccess } from "@/lib/auth";
 import { listInvitations } from "@/features/auth/staff-actions";
 import { InvitationsPage } from "@/features/dashboard/InvitationsPage";
 
-export const metadata: Metadata = { title: "Invitations — Ulrich Propiedades" };
+export const metadata: Metadata = { title: "Invitations — Mobi Prop" };
 
 export default async function DashboardInvitationsPage() {
   const profile = await requireDashboardAccess("invitations:view");

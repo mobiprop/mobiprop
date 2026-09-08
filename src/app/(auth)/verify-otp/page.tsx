@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { OtpPageContent } from "@/features/auth/OtpPage";
 
 export const metadata: Metadata = {
-  title: "OTP Verification — Ulrich Propiedades",
+  title: "OTP Verification — Mobi Prop",
   description: "Enter your one-time verification code.",
 };
 
