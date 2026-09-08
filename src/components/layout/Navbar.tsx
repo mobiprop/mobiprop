@@ -219,7 +219,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       }
     >
   <motion.div
-    className={`w-[calc(100%-32px)] max-w-[1920px] mx-auto h-[70px] sm:h-[80px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] ${transparent ? "px-4 sm:px-[48px]" : ""}`}
+    className="w-[calc(100%-32px)] max-w-[1920px] mx-auto h-[70px] sm:h-[80px] flex items-center justify-between px-4 sm:px-[48px] lg:grid lg:grid-cols-[1fr_auto_1fr]"
     variants={headerContainer}
     initial="hidden"
     animate="visible"
@@ -345,7 +345,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   {/* Mobile Menu Dropdown */}
   {menuOpen && (
-    <div className="lg:hidden bg-white border-t border-[#e5e7eb] px-4 sm:px-6 py-5 shadow-lg">
+    <div className="lg:hidden bg-white border-t border-[#e5e7eb] px-4 sm:px-[48px] py-5 shadow-lg">
       <nav className="flex flex-col gap-2">
         {navLinks.map((link) => (
           <Link
