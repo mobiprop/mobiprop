@@ -130,10 +130,10 @@ function Logo({ transparent }: { transparent?: boolean }) {
         width={30}
         height={30}
         priority
-        className="h-[26px] w-[26px] sm:h-[30px] sm:w-[30px] 2xl:h-[34px] 2xl:w-[34px]"
+        className="h-[26px] w-[26px] sm:h-[30px] sm:w-[30px]"
       />
       <p
-        className={`text-[20px] sm:text-[24px] 2xl:text-[27px] leading-none whitespace-nowrap ${transparent ? "text-white" : "text-[#232323]"}`}
+        className={`text-[20px] sm:text-[24px] leading-none whitespace-nowrap ${transparent ? "text-white" : "text-[#232323]"}`}
         style={{ fontFamily: "Poppins, sans-serif" }}
       >
         <span className="font-medium">Mobi</span> <span className="font-light">Prop</span>
@@ -212,14 +212,14 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         isHome
           ? `fixed inset-x-0 z-50 transition-colors duration-300 ${
               transparent
-                ? "top-4 sm:top-5 bg-transparent"
+                ? "top-4 bg-transparent"
                 : "top-0 bg-[#f9fafb] border-b border-[#c2c7d3]"
             }`
           : "sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]"
       }
     >
   <motion.div
-    className={`w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto h-[70px] sm:h-[80px] 2xl:h-[88px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] ${transparent ? "px-4 sm:px-6" : ""}`}
+    className={`w-[calc(100%-32px)] max-w-[1920px] mx-auto h-[70px] sm:h-[80px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] ${transparent ? "px-4 sm:px-[48px]" : ""}`}
     variants={headerContainer}
     initial="hidden"
     animate="visible"
@@ -234,7 +234,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       className={
         transparent
           ? "hidden lg:flex items-center gap-1 justify-self-center rounded-full border border-white/30 bg-white/10 p-1"
-          : "hidden lg:flex items-center gap-8 justify-self-center bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 2xl:px-8 2xl:py-3.5 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
+          : "hidden lg:flex items-center gap-8 justify-self-center bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
       }
       variants={headerItem}
     >
@@ -243,7 +243,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <Link
             key={link.href}
             href={link.href}
-            className={`rounded-full px-4 py-2 2xl:px-5 2xl:py-2.5 text-[16px] leading-6 transition-colors ${
+            className={`rounded-full px-4 py-2 text-[16px] leading-6 transition-colors ${
               isActive(link.href)
                 ? "bg-white/90 text-[#0a0d14] backdrop-blur-lg"
                 : "text-white hover:bg-white/10"
@@ -256,7 +256,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <Link
             key={link.href}
             href={link.href}
-            className={`text-[14px] 2xl:text-[15px] font-medium leading-5 transition-colors ${
+            className={`text-[14px] font-medium leading-5 transition-colors ${
               isActive(link.href)
                 ? "text-[#232323]"
                 : "text-[#5e5e5e] hover:text-[#232323]"
@@ -277,7 +277,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         <>
           <Link
             href="/login"
-            className="flex h-11 w-[92px] items-center justify-center rounded-xl border border-white/30 bg-white/10 text-[14px] font-medium text-white transition-colors hover:bg-white/20 2xl:h-12 2xl:w-[100px] 2xl:text-[15px]"
+            className="flex h-11 w-[92px] items-center justify-center rounded-xl border border-white/30 bg-white/10 text-[14px] font-medium text-white transition-colors hover:bg-white/20"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("login")}
@@ -285,7 +285,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
           <Link
             href="/register"
-            className="flex h-11 items-center justify-center rounded-xl border border-white bg-white px-6 text-[14px] font-medium text-[#232323] transition-colors hover:bg-gray-100 2xl:h-12 2xl:px-7 2xl:text-[15px]"
+            className="flex h-11 items-center justify-center rounded-xl border border-white bg-white px-6 text-[14px] font-medium text-[#232323] transition-colors hover:bg-gray-100"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("signup")}
@@ -295,7 +295,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         <>
           <Link
             href="/login"
-            className="bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors 2xl:px-6 2xl:py-3 2xl:text-[15px]"
+            className="bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("login")}
@@ -303,7 +303,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
           <Link
             href="/register"
-            className="rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white transition-opacity hover:opacity-90 2xl:px-6 2xl:py-3 2xl:text-[15px]"
+            className="rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white transition-opacity hover:opacity-90"
             style={{ fontFamily: "Poppins, sans-serif", background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)" }}
           >
             {t("signup")}

@@ -85,7 +85,7 @@ function SearchField({
       >
         {label}
       </p>
-      <div className="flex h-[46px] items-center gap-2 2xl:gap-2.5 rounded-xl border border-[#e9e9e9] bg-[#fafafa] px-3 2xl:px-4">
+      <div className="flex h-[46px] items-center gap-2 rounded-xl border border-[#e9e9e9] bg-[#fafafa] px-3">
         {icon}
         {children}
         <ChevronDown />
@@ -217,9 +217,9 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto pt-4 sm:pt-5"
+      className="w-[calc(100%-32px)] max-w-[1920px] mx-auto pt-4"
     >
-      <div className="relative h-[710px] sm:h-[770px] lg:h-[800px] xl:h-[823px] 2xl:h-[900px] w-full overflow-hidden rounded-[20px]">
+      <div className="relative h-[800px] sm:h-[873px] w-full overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""
@@ -241,10 +241,10 @@ export function HeroSection() {
           }}
         />
 
-        <div className="relative z-10 flex h-full flex-col px-4 pb-6 sm:px-8 lg:px-12 2xl:px-16">
-          <div className="flex min-h-0 flex-1 flex-col justify-center pt-[76px] sm:pt-[88px]">
+        <div className="relative z-10 flex h-full flex-col px-4 pb-6 sm:px-[48px]">
+          <div className="pt-[55px] sm:pt-[180px]">
             <motion.div
-              className="flex max-w-[720px] flex-col gap-4 sm:gap-5"
+              className="flex max-w-[720px] flex-col gap-4"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -252,7 +252,7 @@ export function HeroSection() {
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
                 <span className="size-1.5 shrink-0 rounded-full bg-[#fafafa]" />
                 <span
-                  className="text-[11px] uppercase tracking-[1.2px] text-white sm:text-[12px]"
+                  className="text-[12px] uppercase tracking-[1.2px] text-white"
                   style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
                 >
                   {t("hero.badge")}
@@ -260,7 +260,7 @@ export function HeroSection() {
               </div>
 
               <h1
-                className="text-[32px] leading-[39px] text-white sm:text-[44px] sm:leading-[52px] lg:text-[52px] lg:leading-[62px] xl:text-[60px] xl:leading-[74.8px] 2xl:text-[68px] 2xl:leading-[82px]"
+                className="text-[32px] leading-[39px] text-white sm:text-[60px] sm:leading-[74.8px]"
                 style={{ fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif", fontWeight: 400 }}
               >
                 {t("hero.titlePrefix")}
@@ -270,7 +270,7 @@ export function HeroSection() {
               </h1>
 
               <p
-                className="max-w-[592px] text-[15px] leading-[1.45] text-white/90 sm:text-[18px] lg:text-[20px] 2xl:text-[22px]"
+                className="max-w-[592px] text-[15px] leading-[1.45] text-white/90 sm:text-[20px]"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 {t("hero.subtitle")}
@@ -280,7 +280,7 @@ export function HeroSection() {
 
           {/* Search bar */}
           <motion.div
-            className="w-full max-w-[1360px] 2xl:max-w-[1510px]"
+            className="mt-auto w-full max-w-[1360px]"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
@@ -309,7 +309,7 @@ export function HeroSection() {
               })}
             </div>
 
-            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] sm:p-6 xl:gap-3 xl:p-5 xl:flex-row xl:items-end 2xl:gap-5 2xl:p-6">
+            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] sm:p-6 xl:flex-row xl:items-end xl:gap-3">
               <SearchField label={t("hero.locationLabel")} icon={<PinIcon />}>
                 <div ref={locationRef} className="relative min-w-0 flex-1">
                   <input
