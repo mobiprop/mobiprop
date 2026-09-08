@@ -215,7 +215,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       }
     >
   <motion.div
-    className={`w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1600px] mx-auto h-[70px] sm:h-[80px] 2xl:h-[88px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] ${transparent ? "px-4 sm:px-6" : ""}`}
+    className={`w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto h-[70px] sm:h-[80px] 2xl:h-[88px] flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] ${transparent ? "px-4 sm:px-6" : ""}`}
     variants={headerContainer}
     initial="hidden"
     animate="visible"

@@ -215,11 +215,8 @@ export function HeroSection() {
   }
 
   return (
-    <section
-      ref={heroRef}
-      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1600px] mx-auto pt-4 sm:pt-5"
-    >
-      <div className="relative h-[760px] sm:h-[820px] lg:h-[850px] xl:h-[873px] 2xl:h-[950px] w-full overflow-hidden rounded-[20px]">
+    <section ref={heroRef} className="w-full">
+      <div className="relative h-[760px] sm:h-[820px] lg:h-[850px] xl:h-[873px] 2xl:h-[950px] w-full overflow-hidden">
         <motion.img
           src={heroImg}
           alt=""
@@ -234,7 +231,7 @@ export function HeroSection() {
           }}
         />
 
-        <div className="relative z-10 flex h-full flex-col px-4 pt-[70px] pb-6 sm:px-8 sm:pt-[80px] lg:px-12 2xl:px-16">
+        <div className="relative z-10 mx-auto flex h-full max-w-[1920px] flex-col px-4 pt-[70px] pb-6 sm:px-8 sm:pt-[80px] lg:px-12 2xl:px-16">
           <motion.div
             className="flex max-w-[720px] flex-col gap-4 sm:gap-5"
             initial={{ opacity: 0, y: 40 }}

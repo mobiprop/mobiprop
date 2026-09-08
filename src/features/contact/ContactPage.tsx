@@ -391,7 +391,7 @@ function ContactCard() {
 function LocationSection() {
   const { t } = useTranslation("contact");
   return (
-    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-[60px] pt-[50px] sm:pt-[60px] lg:pt-[80px] pb-[50px] sm:pb-[60px] lg:pb-[80px]">
+    <section className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-[60px] pt-[50px] sm:pt-[60px] lg:pt-[80px] pb-[50px] sm:pb-[60px] lg:pb-[80px]">
   {/* Heading */}
   <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center max-w-[570px] mx-auto" amount={0.5}>
     <div className="flex flex-col items-center gap-2">
@@ -543,7 +543,7 @@ function ConsultationBannerSection() {
     <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
   </div>
 
-  <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1600px] mx-auto flex justify-center">
+  <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto flex justify-center">
     <Reveal className="bg-white rounded-[18px] sm:rounded-[20px] p-5 sm:p-8 lg:p-10 w-full max-w-[540px] shadow-xl" amount={0.3}>
       <h2
         className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-tight mb-5 sm:mb-7"

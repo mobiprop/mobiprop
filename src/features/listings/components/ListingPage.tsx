@@ -745,7 +745,7 @@ return (
   <Reveal
     delay={0.3}
     amount={0.6}
-    className="relative z-10 -mt-[69px] w-full max-w-[1600px] bg-white border border-[#e5e7eb] rounded-[24px] px-[10px] py-[10px] flex flex-col items-center justify-center min-h-[138px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
+    className="relative z-10 -mt-[69px] w-full max-w-[1920px] bg-white border border-[#e5e7eb] rounded-[24px] px-[10px] py-[10px] flex flex-col items-center justify-center min-h-[138px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
   <div className="flex flex-wrap gap-3.5 items-end justify-center w-full max-xl:grid max-xl:grid-cols-2 max-md:grid-cols-1 max-xl:gap-4">
     {/* Location */}
     <div className="flex flex-col gap-3 items-start flex-1 min-w-[200px] max-w-[361px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
@@ -938,7 +938,7 @@ return (
 </div>
 {/* ── Listings Grid ── */}
 <section className="bg-white py-8 sm:py-10 lg:py-14">
-   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1600px] mx-auto">
+   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto">
       {/* Results header */}
       <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8" amount={0.5}>
          <h2
@@ -1025,7 +1025,7 @@ return (
 {suggestions.length > 0 ? (
 <section className="bg-white pt-4 pb-16 lg:pb-20">
    <div className="might">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1600px] mx-auto">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto">
          {/* Section heading */}
          <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
             <SplitHeading
