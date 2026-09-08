@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
@@ -24,167 +23,14 @@ import {
 } from "@/stores/useListingFilterStore";
 import type { PublicListingDto } from "../types/listing-dto";
 import { PropertyMapModal } from "@/components/maps/PropertyMapModal";
-import {
-  formatArea,
-  formatBaths,
-  formatBeds,
-  listingDisplayPrice,
-  listingTags,
-  propertyTypeLabel,
-} from "../utils/format";
-import { useSavedListings } from "@/hooks/useSavedListings";
-import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
+import { propertyTypeLabel } from "../utils/format";
+import { PropertyCard } from "./PropertyCard";
+import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 const heroImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
 const cloudsImg =
 "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.webp";
-const fallbackImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
 /* ─── icon helpers ─── */
-function SquareArrowIcon() {
-return (
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-   <path
-      d="M16.25 7.5H12.5V3.75"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M3.75 12.5H7.5V16.25"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M12.5 16.25V12.5H16.25"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M7.5 3.75V7.5H3.75"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-</svg>
-);
-}
-function BedIcon({ color = "#2B3038" }: { color?: string }) {
-return (
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-   <path
-      d={svgPaths.p48eb680}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M1.875 16.25V3.75"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M1.875 13.125H19.375V16.25"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M8.75 6.25H1.875"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-</svg>
-);
-}
-function BathIcon({ color = "#2B3038" }: { color?: string }) {
-return (
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-   <path
-      d="M5.625 15V16.875"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M14.375 15V16.875"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d={svgPaths.p376e01f0}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d={svgPaths.p3f8783b0}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d={svgPaths.p35ecd900}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-</svg>
-);
-}
-function PinIcon({ color = "#2B3038" }: { color?: string }) {
-return (
-<svg width="12" height="15" viewBox="0 0 11.6667 14.3333" fill="none">
-   <path
-      d={svgPaths.p1fff3000}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      />
-   <path
-      d={svgPaths.p1a179d80}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      />
-</svg>
-);
-}
-function HeartIcon({ filled }: { filled: boolean }) {
-return (
-<svg
-width="16"
-height="16"
-viewBox="0 0 16 16"
-fill={filled ? "#ef4444" : "none"}
->
-<path
-d={svgPaths.p2a65c600}
-stroke={filled ? "#ef4444" : "#6A7282"}
-strokeLinecap="round"
-strokeLinejoin="round"
-/>
-</svg>
-);
-}
 function ChevronDown({ color = "#6A7282" }: { color?: string }) {
 return (
 <svg width="12" height="7" viewBox="0 0 11.774 6.774" fill="none">
@@ -209,115 +55,6 @@ return (
       strokeWidth="1.4"
       />
 </svg>
-);
-}
-/* ─── card component (vertical only) ─── */
-function PropertyCard({ item }: { item: PublicListingDto }) {
-const { t } = useTranslation("listings");
-const [loginOpen, setLoginOpen] = useState(false);
-const { isSaved, toggleSave } = useSavedListings();
-const saved = isSaved(item.listingId);
-return (
-<>
-<LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-<Link
-   href={`/listings/${item.slug}`}
-   className="flex flex-col gap-[20px] items-start w-full group"
-   >
-{/* Image */}
-<div className="hover-shine relative w-full h-[296px] rounded-[16px] overflow-hidden flex-shrink-0">
-   <img
-      src={item.coverImageUrl ?? fallbackImg}
-      alt={item.title}
-      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-      />
-   {/* Tags top-left */}
-   <div className="absolute top-4 left-4 flex gap-1">
-      {listingTags(item, t).map((tag) => (
-      <span
-      key={tag}
-      className="bg-white opacity-90 px-3 py-[4px] rounded-[36px] text-[14px] text-[#0d2138]"
-      style={{ fontFamily: "Montserrat, sans-serif" }}
-      >
-      {tag}
-      </span>
-      ))}
-   </div>
-   {/* Heart button top-right */}
-   <button
-      onClick={(e) =>
-      {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleSave(item.listingId, () => setLoginOpen(true));
-      }}
-      aria-label={saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
-      className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"
-      >
-      <HeartIcon filled={saved} />
-   </button>
-</div>
-{/* Info */}
-<div className="flex flex-col gap-[10px] items-start w-full">
-   {/* Title row */}
-   <div className="flex items-center sm:items-start justify-between w-full pb-[10px] border-b border-[#e5e7eb]">
-      <div className="flex flex-col gap-[2px]">
-         <p
-         className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[24px] line-clamp-2 max-w-[260px]"
-         style={{ fontFamily: "Poppins, sans-serif" }}
-         >
-         {item.title}
-         </p>
-         <div className="flex items-center gap-1">
-            <PinIcon color="#2B3038" />
-            <span
-            className="text-[14px] text-[#0d2138] leading-[20px] truncate max-w-[180px]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-            {item.location}
-            </span>
-         </div>
-      </div>
-      <p
-      className="text-[17px] sm:text-[18px] font-semibold text-[#2b3038] leading-[26px] whitespace-nowrap text-right"
-      style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-      {listingDisplayPrice(item, t)}
-      </p>
-   </div>
-   {/* Stats row */}
-   <div className="flex items-center gap-5">
-      <div className="flex items-center gap-[7px]">
-         <SquareArrowIcon />
-         <span
-         className="text-[14px] text-[#2b3038]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         {formatArea(item.totalAreaM2)}
-         </span>
-      </div>
-      <div className="flex items-center gap-[7px]">
-         <BedIcon />
-         <span
-         className="text-[14px] text-[#2b3038]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         {formatBeds(item.bedrooms, t)}
-         </span>
-      </div>
-      <div className="flex items-center gap-[7px]">
-         <BathIcon />
-         <span
-         className="text-[14px] text-[#2b3038]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         {formatBaths(item.bathrooms, t)}
-         </span>
-      </div>
-   </div>
-</div>
-</Link>
-</>
 );
 }
 /* ─── pagination ─── */
@@ -714,11 +451,14 @@ return (
      amount={0.6}
      className="relative h-full w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[760px] mx-auto flex flex-col items-center justify-center gap-2 text-center pt-6"
    >
-   <div className="flex items-center gap-2">
-      <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
+   <div className="inline-flex items-center gap-2 rounded-full border border-[#ccdeef] bg-[#f0f6fa] px-3 py-1.5">
+      <span
+        className="size-1.5 shrink-0 rounded-full"
+        style={{ background: "linear-gradient(135deg, #005ea4 0%, #006fc2 100%)" }}
+      />
          <span
-         className="text-[14px] sm:text-[16px] font-medium text-[#6a7282] tracking-[-0.01em]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
+         className="text-[11px] sm:text-[12px] font-medium text-[#232323] uppercase tracking-[1.2px] whitespace-nowrap"
+         style={{ fontFamily: "Poppins, sans-serif" }}
          >
          {t("hero.badge")}
          </span>
@@ -727,12 +467,12 @@ return (
          <SplitHeading
            as="h1"
            text={t("hero.title")}
-           className="text-[28px] sm:text-[38px] lg:text-[44px] font-semibold text-[#0d2138] leading-[38px] sm:leading-[48px] lg:leading-[56px] tracking-[-0.01em]"
+           className="text-[28px] sm:text-[38px] lg:text-[52px] font-medium text-[#101010] leading-[1.2] tracking-[-1.5px]"
            style={{ fontFamily: "Poppins, sans-serif" }}
            amount={0.6}
          />
          <p
-         className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.01em] max-w-[560px]"
+         className="text-[14px] sm:text-[16px] lg:text-[18px] font-medium text-[#4f4f4f] leading-[1.5] tracking-[-0.01em] max-w-[618px]"
          style={{ fontFamily: "Montserrat, sans-serif" }}
          >
          {t("hero.subtitle")}
@@ -939,6 +679,33 @@ return (
 {/* ── Listings Grid ── */}
 <section className="bg-white py-8 sm:py-10 lg:py-14">
    <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto">
+      {/* Section heading */}
+      <Reveal className="flex flex-col items-center gap-5 text-center mb-10 sm:mb-12" amount={0.4}>
+         <div className="flex items-center gap-3 w-full max-w-[380px]">
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
+            <span
+              className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("grid.badge")}
+            </span>
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
+         </div>
+         <div className="max-w-[573px]">
+            <SplitHeading
+              as="h2"
+              text={t("grid.title")}
+              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            />
+            <p
+              className="mt-3 text-[14px] sm:text-[16px] text-[#4f4f4f]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("grid.subtitle")}
+            </p>
+         </div>
+      </Reveal>
       {/* Results header */}
       <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8" amount={0.5}>
          <h2
@@ -979,7 +746,7 @@ return (
       >
          {listings.map((item) => (
          <RevealItem key={item.slug}>
-           <PropertyCard item={item} />
+           <PropertyCard property={item} />
          </RevealItem>
          ))}
       </Reveal>
@@ -1027,15 +794,25 @@ return (
    <div className="might">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto">
          {/* Section heading */}
-         <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
+         <Reveal className="flex flex-col items-center gap-5 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
+            <div className="flex items-center gap-3 w-full max-w-[380px]">
+               <div className="h-px flex-1 bg-[#e2e5ea]" />
+               <span
+                 className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
+                 style={{ fontFamily: "Montserrat, sans-serif" }}
+               >
+                 {t("suggestions.badge")}
+               </span>
+               <div className="h-px flex-1 bg-[#e2e5ea]" />
+            </div>
             <SplitHeading
               as="h2"
               text={t("suggestions.title")}
-              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-[50px] xl:leading-[56px] tracking-[-0.01em]"
+              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             />
             <p
-            className="text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] text-[#2b3038] tracking-[-0.01em] max-w-[520px]"
+            className="-mt-2 text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] text-[#4f4f4f] tracking-[-0.01em] max-w-[520px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             {t("suggestions.subtitle")}
@@ -1045,7 +822,7 @@ return (
          <Reveal className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6" stagger={0.12} amount={0.15}>
             {suggestions.map((item) => (
             <RevealItem key={item.slug}>
-              <PropertyCard item={item} />
+              <PropertyCard property={item} />
             </RevealItem>
             ))}
          </Reveal>
@@ -1053,6 +830,7 @@ return (
    </div>
 </section>
 ) : null}
+<ConsultationBanner />
 {isMapOpen ? (
   <PropertyMapModal listings={mapListings} onClose={() => setIsMapOpen(false)} />
 ) : null}

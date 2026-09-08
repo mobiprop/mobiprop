@@ -1,8 +1,13 @@
 {
   "hero": {
-    "badge": "Listing",
-    "title": "Featured Luxury Listings",
-    "subtitle": "Discover a wide range of properties, from cozy apartments to luxurious estates, tailored to suit every need and budget."
+    "badge": "Find the Perfect Place",
+    "title": "Trusted Real Estate Experts in Argentina",
+    "subtitle": "Whether you're buying your first home or investing in your future, we offer expert advice and personalized options."
+  },
+  "grid": {
+    "badge": "Explore Properties",
+    "title": "Explore Listings",
+    "subtitle": "Handpicked premium properties across Buenos Aires and surrounding areas — quality, location, and lifestyle guaranteed."
   },
   "searchBar": {
     "locationLabel": "Location",
@@ -47,7 +52,8 @@
     "beds": "Beds",
     "baths": "Baths",
     "perMonthSuffix": "/mo",
-    "priceOnRequest": "Price on request"
+    "priceOnRequest": "Price on request",
+    "viewProperty": "View Property"
   },
   "map": {
     "title": "Property Map",
@@ -77,6 +83,7 @@
     "pageOption": "Page {{page}}"
   },
   "suggestions": {
+    "badge": "Recommended",
     "title": "You might also like",
     "subtitle": "We have over +10 years of experience in the real estate market"
   },

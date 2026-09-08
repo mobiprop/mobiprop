@@ -1,8 +1,13 @@
 {
   "hero": {
-    "badge": "Propiedades",
-    "title": "Propiedades Exclusivas Destacadas",
-    "subtitle": "Descubrí una amplia variedad de propiedades pensadas para adaptarse a cada necesidad y presupuesto."
+    "badge": "Encontrá el Lugar Perfecto",
+    "title": "Expertos Inmobiliarios de Confianza en Argentina",
+    "subtitle": "Ya sea que estés comprando tu primera casa o invirtiendo en tu futuro, te ofrecemos asesoramiento experto y opciones personalizadas."
+  },
+  "grid": {
+    "badge": "Explorá Propiedades",
+    "title": "Explorá Nuestros Listados",
+    "subtitle": "Propiedades premium seleccionadas en Buenos Aires y alrededores — calidad, ubicación y estilo de vida garantizados."
   },
   "searchBar": {
     "locationLabel": "Ubicación",
@@ -47,7 +52,8 @@
     "beds": "Dormitorios",
     "baths": "Baños",
     "perMonthSuffix": "/mes",
-    "priceOnRequest": "Consultar precio"
+    "priceOnRequest": "Consultar precio",
+    "viewProperty": "Ver Propiedad"
   },
   "map": {
     "title": "Mapa de Propiedades",
@@ -77,6 +83,7 @@
     "pageOption": "Página {{page}}"
   },
   "suggestions": {
+    "badge": "Recomendado",
     "title": "También te podría interesar",
     "subtitle": "Contamos con más de 10 años de experiencia en el mercado inmobiliario"
   },
