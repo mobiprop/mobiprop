@@ -208,8 +208,10 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
     <header
       className={
         isHome
-          ? `fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-              transparent ? "bg-transparent" : "bg-[#f9fafb] border-b border-[#c2c7d3]"
+          ? `fixed inset-x-0 z-50 transition-colors duration-300 ${
+              transparent
+                ? "top-4 sm:top-5 bg-transparent"
+                : "top-0 bg-[#f9fafb] border-b border-[#c2c7d3]"
             }`
           : "sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]"
       }
