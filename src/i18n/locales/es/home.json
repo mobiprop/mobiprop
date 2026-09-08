@@ -9,7 +9,7 @@
     "locationLabel": "Ubicación",
     "locationPlaceholder": "Ingresá ciudad, zona o dirección",
     "propertyTypeLabel": "Tipo de Propiedad",
-    "priceLabel": "Precio",
+    "priceLabel": "Rango de Precio",
     "searchButton": "Buscar Propiedades",
     "propertyTypeOptions": {
       "any": "Todos los tipos de propiedad",

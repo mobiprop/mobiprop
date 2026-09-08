@@ -9,7 +9,7 @@
     "locationLabel": "Location",
     "locationPlaceholder": "Enter city, area, or address",
     "propertyTypeLabel": "Property Type",
-    "priceLabel": "Price",
+    "priceLabel": "Price Range",
     "searchButton": "Search Properties",
     "propertyTypeOptions": {
       "any": "All property types",
