@@ -215,8 +215,11 @@ export function HeroSection() {
   }
 
   return (
-    <section ref={heroRef} className="w-full">
-      <div className="relative h-[760px] sm:h-[820px] lg:h-[850px] xl:h-[873px] 2xl:h-[950px] w-full overflow-hidden">
+    <section
+      ref={heroRef}
+      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1920px] mx-auto pt-4 sm:pt-5"
+    >
+      <div className="relative h-[760px] sm:h-[820px] lg:h-[850px] xl:h-[873px] 2xl:h-[950px] w-full overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""
@@ -227,11 +230,18 @@ export function HeroSection() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(180deg, rgba(5,22,44,0.15) 0%, rgba(5,22,44,0.1) 45%, rgba(20,20,20,0.2) 75%, rgba(10,10,10,0.4) 100%)",
+              "linear-gradient(180deg, rgba(5,22,44,0.054) 0%, rgba(5,22,44,0.036) 45%, rgba(81,81,81,0.071) 74.8%, rgba(102,102,102,0.071) 86.25%, rgba(248,250,252,0.046) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.1) 54%, rgba(0,0,0,0.4) 100%)",
           }}
         />
 
-        <div className="relative z-10 mx-auto flex h-full max-w-[1920px] flex-col px-4 pt-[70px] pb-6 sm:px-8 sm:pt-[80px] lg:px-12 2xl:px-16">
+        <div className="relative z-10 flex h-full flex-col px-4 pt-[70px] pb-6 sm:px-8 sm:pt-[80px] lg:px-12 2xl:px-16">
           <motion.div
             className="flex max-w-[720px] flex-col gap-4 sm:gap-5"
             initial={{ opacity: 0, y: 40 }}
@@ -239,7 +249,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
-              <span className="size-1.5 shrink-0 rounded-full bg-white" />
+              <span className="size-1.5 shrink-0 rounded-full bg-[#fafafa]" />
               <span
                 className="text-[11px] uppercase tracking-[1.2px] text-white sm:text-[12px]"
                 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
@@ -249,7 +259,7 @@ export function HeroSection() {
             </div>
 
             <h1
-              className="text-[32px] leading-[39px] text-white sm:text-[44px] sm:leading-[52px] lg:text-[52px] lg:leading-[62px] xl:text-[60px] xl:leading-[70px] 2xl:text-[68px] 2xl:leading-[78px]"
+              className="text-[32px] leading-[39px] text-white sm:text-[44px] sm:leading-[52px] lg:text-[52px] lg:leading-[62px] xl:text-[60px] xl:leading-[74.8px] 2xl:text-[68px] 2xl:leading-[82px]"
               style={{ fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif", fontWeight: 400 }}
             >
               {t("hero.titlePrefix")}
@@ -259,7 +269,7 @@ export function HeroSection() {
             </h1>
 
             <p
-              className="max-w-[560px] text-[15px] leading-[1.45] text-white/90 sm:text-[18px] lg:text-[20px] 2xl:text-[22px]"
+              className="max-w-[592px] text-[15px] leading-[1.45] text-white/90 sm:text-[18px] lg:text-[20px] 2xl:text-[22px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("hero.subtitle")}

@@ -121,7 +121,7 @@ function ProfileMenu({ user }: { user: NavUser }) {
 
 function Logo({ transparent }: { transparent?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2" aria-label="Mobi Prop home">
+    <Link href="/" className="flex items-center gap-2.5" aria-label="Mobi Prop home">
       <Image
         src={transparent ? "/mobi-prop-logo-white.svg" : "/mobi-prop-logo-color.svg"}
         alt=""
@@ -239,9 +239,9 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <Link
             key={link.href}
             href={link.href}
-            className={`rounded-full px-4 py-2 2xl:px-5 2xl:py-2.5 text-[15px] 2xl:text-[16px] leading-6 transition-colors ${
+            className={`rounded-full px-4 py-2 2xl:px-5 2xl:py-2.5 text-[16px] leading-6 transition-colors ${
               isActive(link.href)
-                ? "bg-white/60 text-[#0a0d14] backdrop-blur-lg"
+                ? "bg-white/90 text-[#0a0d14] backdrop-blur-lg"
                 : "text-white hover:bg-white/10"
             }`}
             style={{ fontFamily: "Poppins, sans-serif" }}
