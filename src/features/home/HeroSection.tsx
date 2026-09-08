@@ -221,7 +221,7 @@ export function HeroSection() {
          margin/width sub-pixel split to round asymmetrically left vs
          right. The parent's own padding (not a calc() subtraction) is
          what creates the mobile edge gutter. */}
-      <div className="relative w-full max-w-[var(--space-fluid-container-max)] overflow-hidden rounded-[20px]">
+      <div className="hero-fill-height relative flex w-full max-w-[var(--space-fluid-container-max)] flex-col overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""
@@ -243,12 +243,15 @@ export function HeroSection() {
           }}
         />
 
-        {/* min-h keeps the photo from collapsing before content loads; actual
-           height is intrinsic (content + padding), never a fixed px, so it
-           holds correct proportions continuously across every viewport width
-           instead of only at hand-tuned breakpoints. */}
+        {/* flex-1 stretches this to the card's full hero-fill-height; the
+           parent card is a column flex, so this is the sole flex item and
+           fills 100% of it. min-h is a defensive floor, not the driver of
+           height anymore. justify-between pins the text block at the top
+           and the search bar at the bottom, absorbing any extra vertical
+           space between them instead of leaving it stranded below the
+           search bar on tall viewports. */}
         <div
-          className="relative z-10 flex min-h-[500px] flex-col pb-6"
+          className="relative z-10 flex min-h-[500px] flex-1 flex-col justify-between pb-6"
           style={{ paddingInline: "var(--space-fluid-section-px)" }}
         >
           <div style={{ paddingTop: "var(--space-fluid-hero-pt)" }}>
@@ -261,7 +264,7 @@ export function HeroSection() {
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
                 <span className="size-1.5 shrink-0 rounded-full bg-[#fafafa]" />
                 <span
-                  className="text-[12px] uppercase tracking-[1.2px] text-white"
+                  className="text-[11px] uppercase tracking-[1.2px] text-white"
                   style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
                 >
                   {t("hero.badge")}
@@ -296,9 +299,10 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Search bar */}
+          {/* Search bar — justify-between on the parent pins this to the
+             bottom of the hero; no margin-top needed to create the gap. */}
           <motion.div
-            className="mt-10 w-full max-w-[1360px] sm:mt-14"
+            className="w-full max-w-[1360px]"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}

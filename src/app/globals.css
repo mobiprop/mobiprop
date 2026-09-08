@@ -21,9 +21,9 @@
    *   slope   = (b - a) / (1440 - 375) * 100   (vw units)
    *   intercept = a - 375 * slope / 100
    */
-  --text-fluid-h1: clamp(2rem, 1.38rem + 2.63vw, 3.75rem); /* 32px -> 60px: hero h1 */
+  --text-fluid-h1: clamp(1.75rem, 1.2rem + 2.35vw, 3.3125rem); /* 28px -> 53px: hero h1 */
   --text-fluid-h2: clamp(1.75rem, 1.22rem + 2.25vw, 3.25rem); /* 28px -> 52px: secondary hero h1 (listings) */
-  --text-fluid-subtitle: clamp(0.9375rem, 0.83rem + 0.47vw, 1.25rem); /* 15px -> 20px: hero subtitle */
+  --text-fluid-subtitle: clamp(0.84375rem, 0.745rem + 0.42vw, 1.125rem); /* 13.5px -> 18px: hero subtitle */
   --text-fluid-subtitle-sm: clamp(0.875rem, 0.79rem + 0.38vw, 1.125rem); /* 14px -> 18px: secondary hero subtitle */
 
   --space-fluid-hero-pt: clamp(3.4375rem, 0.69rem + 11.74vw, 11.25rem); /* 55px -> 180px: hero content top offset */
@@ -54,17 +54,45 @@
  */
 @media (min-width: 1440px) {
   :root {
-    --text-fluid-h1: clamp(3.75rem, 4.1667vw, 10rem); /* 60px -> 160px */
+    --text-fluid-h1: clamp(3.3125rem, 3.6806vw, 8.8333rem); /* 53px -> 141.33px */
     --text-fluid-h2: clamp(3.25rem, 3.6111vw, 8.6667rem); /* 52px -> 138.67px */
-    --text-fluid-subtitle: clamp(1.25rem, 1.3889vw, 3.3333rem); /* 20px -> 53.33px */
+    --text-fluid-subtitle: clamp(1.125rem, 1.25vw, 3rem); /* 18px -> 48px */
     --text-fluid-subtitle-sm: clamp(1.125rem, 1.25vw, 3rem); /* 18px -> 48px */
 
-    --space-fluid-hero-pt: clamp(11.25rem, 12.5vw, 30rem); /* 180px -> 480px */
+    /* --space-fluid-hero-pt deliberately NOT continued here — it holds at
+       its base clamp's 180px ceiling past 1440px instead of the usual
+       proportional-to-3840px treatment. It's pure empty space above the
+       heading, not content, and the home hero now has a ~1000px height
+       cap (.hero-fill-height): letting it keep growing to 480px at 4K was
+       most of what pushed hero content past that cap on wide monitors
+       without adding anything readability needs the way text size does. */
     --space-fluid-hero-pt-sm: clamp(5.9375rem, 6.5972vw, 15.8333rem); /* 95px -> 253.33px */
     --space-fluid-section-px: clamp(3rem, 3.3333vw, 8rem); /* 48px -> 128px */
     --space-fluid-nav-h: clamp(5rem, 5.5556vw, 13.3333rem); /* 80px -> 213.33px */
     --space-fluid-container-max: clamp(90rem, 100vw, 240rem); /* 1440px -> 3840px */
   }
+}
+
+/*
+ * Fill the viewport height on the home hero, capped so it doesn't become
+ * absurdly tall on an ultrawide or 4K display — but still able to grow
+ * past the cap if the content itself (e.g. a mobile search bar with its
+ * fields stacked) genuinely needs more room than that. min() bakes the
+ * cap directly into the target value rather than using a separate
+ * max-height: max-height loses to min-height when they conflict (CSS
+ * spec — min-height always wins a tie), and min-height is exactly what
+ * `100dvh` on a tall monitor would be, silently defeating the cap.
+ *
+ * Two declarations, not one: `dvh` (dynamic viewport height) excludes the
+ * mobile browser address bar, so the hero doesn't jump in height as it
+ * shows/hides on scroll — but it's not supported everywhere, and an
+ * unsupported unit invalidates only its own declaration (here, the whole
+ * min() expression that uses it), so the plain `vh` line above it is what
+ * actually applies as the fallback.
+ */
+.hero-fill-height {
+  min-height: min(100vh, 1000px);
+  min-height: min(100dvh, 1000px);
 }
 
 @theme inline {
