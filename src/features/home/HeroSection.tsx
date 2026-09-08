@@ -215,11 +215,13 @@ export function HeroSection() {
   }
 
   return (
-    <section
-      ref={heroRef}
-      className="w-[calc(100%-32px)] max-w-[1440px] mx-auto pt-4"
-    >
-      <div className="relative w-full overflow-hidden rounded-[20px]">
+    <section ref={heroRef} className="flex w-full justify-center px-4 pt-4">
+      {/* justify-center on a w-full parent centers this box — no mx-auto,
+         no width-reducing calc() on the card itself, so there's no
+         margin/width sub-pixel split to round asymmetrically left vs
+         right. The parent's own padding (not a calc() subtraction) is
+         what creates the mobile edge gutter. */}
+      <div className="relative w-full max-w-[1440px] overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""

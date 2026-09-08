@@ -210,16 +210,21 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
     <header
       className={
         isHome
-          ? `fixed inset-x-0 z-50 transition-colors duration-300 ${
+          ? `fixed inset-x-0 z-50 flex flex-col items-center transition-colors duration-300 ${
               transparent
                 ? "top-4 bg-transparent"
                 : "top-0 bg-[#f9fafb] border-b border-[#c2c7d3]"
             }`
-          : "sticky top-0 z-50 bg-[#f9fafb] border-b border-[#c2c7d3]"
+          : "sticky top-0 z-50 flex flex-col items-center bg-[#f9fafb] border-b border-[#c2c7d3]"
       }
     >
+  {/* items-center on the header (a column flex) centers this box on the
+     cross axis — no mx-auto, no width-reducing calc(), so there's no
+     margin/width sub-pixel split to round asymmetrically between the
+     left and right side. The single fluid padding token is the only
+     gutter; nothing is subtracted from the width to make room for it. */}
   <motion.div
-    className="w-[calc(100%-32px)] max-w-[1440px] mx-auto flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    className="flex w-full max-w-[1440px] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
     style={{ height: "var(--space-fluid-nav-h)", paddingInline: "var(--space-fluid-section-px)" }}
     variants={headerContainer}
     initial="hidden"
@@ -347,7 +352,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
   {/* Mobile Menu Dropdown */}
   {menuOpen && (
     <div
-      className="lg:hidden bg-white border-t border-[#e5e7eb] py-5 shadow-lg"
+      className="lg:hidden w-full bg-white border-t border-[#e5e7eb] py-5 shadow-lg"
       style={{ paddingInline: "var(--space-fluid-section-px)" }}
     >
       <nav className="flex flex-col gap-2">

@@ -411,7 +411,7 @@ function applyModalFilters(state: FiltersState) {
 return (
 <>
 {/* ── Hero ── */}
-<section ref={heroRef} className="relative min-h-[420px] overflow-hidden border-b border-black/10">
+<section ref={heroRef} className="relative flex min-h-[420px] justify-center overflow-hidden border-b border-black/10">
    {/* bg photo */}
    <div className="absolute inset-0 overflow-hidden">
       <motion.img
@@ -449,7 +449,7 @@ return (
    <Reveal
      as="div"
      amount={0.6}
-     className="relative w-[calc(100%-32px)] max-w-[760px] mx-auto flex flex-col items-center gap-2 pb-8 text-center"
+     className="relative flex w-full max-w-[760px] flex-col items-center gap-2 px-4 pb-8 text-center"
      style={{ paddingTop: "var(--space-fluid-hero-pt-sm)" }}
    >
    <div className="inline-flex items-center gap-2 rounded-full border border-[#ccdeef] bg-[#f0f6fa] px-3 py-1.5">
