@@ -85,7 +85,7 @@ function SearchField({
       >
         {label}
       </p>
-      <div className="flex h-[46px] items-center gap-2.5 rounded-xl border border-[#e9e9e9] bg-[#fafafa] px-4">
+      <div className="flex h-[46px] items-center gap-2 2xl:gap-2.5 rounded-xl border border-[#e9e9e9] bg-[#fafafa] px-3 2xl:px-4">
         {icon}
         {children}
         <ChevronDown />
@@ -217,9 +217,9 @@ export function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto pt-4 sm:pt-5"
+      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1600px] mx-auto pt-4 sm:pt-5"
     >
-      <div className="relative h-[760px] sm:h-[820px] lg:h-[850px] xl:h-[873px] w-full overflow-hidden rounded-[20px]">
+      <div className="relative h-[760px] sm:h-[820px] lg:h-[850px] xl:h-[873px] 2xl:h-[950px] w-full overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""
@@ -234,7 +234,7 @@ export function HeroSection() {
           }}
         />
 
-        <div className="relative z-10 flex h-full flex-col px-4 pt-[70px] pb-6 sm:px-8 sm:pt-[80px] lg:px-12">
+        <div className="relative z-10 flex h-full flex-col px-4 pt-[70px] pb-6 sm:px-8 sm:pt-[80px] lg:px-12 2xl:px-16">
           <motion.div
             className="flex max-w-[720px] flex-col gap-4 sm:gap-5"
             initial={{ opacity: 0, y: 40 }}
@@ -252,7 +252,7 @@ export function HeroSection() {
             </div>
 
             <h1
-              className="text-[32px] leading-[39px] text-white sm:text-[44px] sm:leading-[52px] lg:text-[52px] lg:leading-[62px] xl:text-[60px] xl:leading-[70px]"
+              className="text-[32px] leading-[39px] text-white sm:text-[44px] sm:leading-[52px] lg:text-[52px] lg:leading-[62px] xl:text-[60px] xl:leading-[70px] 2xl:text-[68px] 2xl:leading-[78px]"
               style={{ fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif", fontWeight: 400 }}
             >
               {t("hero.titlePrefix")}
@@ -262,7 +262,7 @@ export function HeroSection() {
             </h1>
 
             <p
-              className="max-w-[560px] text-[15px] leading-[1.45] text-white/90 sm:text-[18px] lg:text-[20px]"
+              className="max-w-[560px] text-[15px] leading-[1.45] text-white/90 sm:text-[18px] lg:text-[20px] 2xl:text-[22px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("hero.subtitle")}
@@ -271,7 +271,7 @@ export function HeroSection() {
 
           {/* Search bar */}
           <motion.div
-            className="mt-auto w-full max-w-[1360px]"
+            className="mt-auto w-full max-w-[1360px] 2xl:max-w-[1510px]"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
@@ -300,7 +300,7 @@ export function HeroSection() {
               })}
             </div>
 
-            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] sm:flex-row sm:items-end sm:gap-5 sm:p-6">
+            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] sm:p-6 xl:gap-3 xl:p-5 xl:flex-row xl:items-end 2xl:gap-5 2xl:p-6">
               <SearchField label={t("hero.locationLabel")} icon={<PinIcon />}>
                 <div ref={locationRef} className="relative min-w-0 flex-1">
                   <input
@@ -340,13 +340,13 @@ export function HeroSection() {
                 </div>
               </SearchField>
 
-              <div className="hidden h-[46px] w-px bg-[#e9e9e9] sm:block" />
+              <div className="hidden h-[46px] w-px bg-[#e9e9e9] xl:block" />
 
               <SearchField label={t("hero.propertyTypeLabel")} icon={<BuildingIcon />}>
                 <FieldDropdown options={propertyTypeOptions} selectedIndex={typeIndex} onSelect={setTypeIndex} />
               </SearchField>
 
-              <div className="hidden h-[46px] w-px bg-[#e9e9e9] sm:block" />
+              <div className="hidden h-[46px] w-px bg-[#e9e9e9] xl:block" />
 
               <SearchField label={t("hero.priceLabel")} icon={<DollarIcon />}>
                 <FieldDropdown options={priceOptions} selectedIndex={priceIndex} onSelect={setPriceIndex} />

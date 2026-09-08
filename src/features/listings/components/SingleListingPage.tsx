@@ -918,7 +918,7 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
   const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null;
 
   return (
-    <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-16">
+    <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto py-8 sm:py-12 lg:py-16">
       <h2
         className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
         style={{
@@ -1053,7 +1053,7 @@ export function SingleListingPageContent({
     <div className="w-full bg-white">
       <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       {/* Breadcrumb */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-5">
+      <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto py-5">
         <p
           className="text-[#0d2138]"
           style={{
@@ -1069,7 +1069,7 @@ export function SingleListingPageContent({
       </div>
 
       {/* Photo Gallery */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto">
+      <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
           {/* Main Image */}
           <div className="hover-shine relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
@@ -1505,7 +1505,7 @@ export function SingleListingPageContent({
 
       {/* Description */}
 
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+      <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto py-6 sm:py-8">
         <h2
           className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
           style={{
@@ -1529,7 +1529,7 @@ export function SingleListingPageContent({
       </div>
 
       {/* Property Details Stats heading */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto pt-3 sm:pt-4">
+      <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto pt-3 sm:pt-4">
         <h2
           className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
           style={{
@@ -1543,7 +1543,7 @@ export function SingleListingPageContent({
       </div>
       {/* Property Details Stats */}
       <div className="bg-[#F8FAFC]">
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-7">
+        <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto py-7">
           <div className="bg-[#f8fafc] rounded-[4px] overflow-hidden">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
               {stats.map((stat, i) => {
@@ -1638,7 +1638,7 @@ export function SingleListingPageContent({
 
       {/* Features & Amenities */}
       {listingAmenities.length > 0 ? (
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-[100px]">
+        <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto py-8 sm:py-12 lg:py-[100px]">
           <h2
             className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
             style={{
@@ -1682,7 +1682,7 @@ export function SingleListingPageContent({
 
       {/* On the Map — hidden until the listing has geocoded coordinates */}
       {listing.latitude !== null && listing.longitude !== null ? (
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+        <div className="w-[calc(100%-35px)] max-w-[1600px] mx-auto py-6 sm:py-8">
           <h2
             className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
             style={{
