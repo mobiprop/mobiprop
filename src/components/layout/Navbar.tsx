@@ -10,7 +10,6 @@ import { motion, type Variants } from "framer-motion";
 import { signOut } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/client";
 import type { NavUser } from "@/lib/nav-user";
-import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 function initialsOf(name: string) {
   return name
@@ -38,7 +37,10 @@ function Avatar({ user, size }: { user: NavUser; size: "sm" | "md" }) {
   }
 
   return (
-    <span className={`${sizeClass} rounded-full bg-[#1f5b97] text-white flex items-center justify-center font-semibold shrink-0`} style={poppins}>
+    <span
+      className={`${sizeClass} rounded-full text-white flex items-center justify-center font-semibold shrink-0`}
+      style={{ ...poppins, background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)" }}
+    >
       {initialsOf(user.name)}
     </span>
   );
@@ -269,7 +271,6 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
     {/* Desktop Buttons */}
     <motion.div className="hidden lg:flex items-center gap-3 justify-self-end" variants={headerItem}>
-      <LanguageSwitcher />
       {user ? (
         <ProfileMenu user={user} />
       ) : transparent ? (
@@ -302,8 +303,8 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
           <Link
             href="/register"
-            className="bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors 2xl:px-6 2xl:py-3 2xl:text-[15px]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
+            className="rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white transition-opacity hover:opacity-90 2xl:px-6 2xl:py-3 2xl:text-[15px]"
+            style={{ fontFamily: "Poppins, sans-serif", background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)" }}
           >
             {t("signup")}
           </Link>
@@ -363,10 +364,6 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         ))}
       </nav>
 
-      <div className="mt-4 px-4">
-        <LanguageSwitcher />
-      </div>
-
       {user ? (
         <div className="mt-5 flex flex-col gap-2 border-t border-[#e5e7eb] pt-4">
           <div className="flex items-center gap-3 px-4 py-2">
@@ -417,8 +414,8 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <Link
             href="/register"
             onClick={() => setMenuOpen(false)}
-            className="text-center bg-[#1f5b97] border border-[#1f5b97] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-white hover:bg-[#174a7d] transition-colors"
-            style={{ fontFamily: "Poppins, sans-serif" }}
+            className="text-center rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+            style={{ fontFamily: "Poppins, sans-serif", background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)" }}
           >
             {t("signup")}
           </Link>
