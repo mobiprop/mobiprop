@@ -224,7 +224,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
      left and right side. The single fluid padding token is the only
      gutter; nothing is subtracted from the width to make room for it. */}
   <motion.div
-    className="flex w-full max-w-[1440px] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    className="flex w-full max-w-[var(--space-fluid-container-max)] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
     style={{ height: "var(--space-fluid-nav-h)", paddingInline: "var(--space-fluid-section-px)" }}
     variants={headerContainer}
     initial="hidden"

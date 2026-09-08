@@ -418,7 +418,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
   return (
     <main className="min-h-full bg-[#f8fafc] px-4 py-4 sm:px-5 sm:py-5 lg:px-6">
-      <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-4 sm:gap-5">
+      <div className="mx-auto flex w-full max-w-[var(--space-fluid-container-max)] min-w-0 flex-col gap-4 sm:gap-5">
         {/* Header */}
         <header className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">

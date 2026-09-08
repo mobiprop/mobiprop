@@ -189,7 +189,7 @@ export function Agents({
 
   return (
     <section className="overflow-hidden bg-white py-16 lg:py-20">
-      <div className="mx-auto w-[calc(100%_-_32px)] min-w-0 max-w-[1440px] sm:w-[calc(100%_-_35px)]">
+      <div className="mx-auto w-[calc(100%_-_32px)] min-w-0 max-w-[var(--space-fluid-container-max)] sm:w-[calc(100%_-_35px)]">
         {/* Header */}
         <div className="mb-8 flex flex-col items-center gap-5 sm:mb-10 lg:mb-12">
           <div className="flex items-center gap-3 w-full max-w-[380px]">

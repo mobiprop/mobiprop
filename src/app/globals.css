@@ -11,9 +11,10 @@
    *
    * Each is interpolated between a 375px mobile reference and Figma's
    * 1440px desktop frame (the two sizes the design was actually specified
-   * at); below 375px it holds at the min, above 1440px it holds at the max
-   * (the shared max-w-[1440px] container is what keeps growing beyond
-   * that, not these tokens — see max-w-[1440px] usages).
+   * at); below 375px it holds at the min. Above 1440px, the min-width:1440px
+   * override block further down continues scaling every token (this one and
+   * --space-fluid-container-max) proportionally up to a 3840px (4K) ceiling
+   * instead of freezing at the 1440px value — see that block for why.
    *
    * clamp(min, intercept + slope*vw, max) where, for a value going from
    * `a` px at 375px viewport to `b` px at 1440px viewport:
@@ -29,6 +30,41 @@
   --space-fluid-hero-pt-sm: clamp(3.75rem, 2.98rem + 3.29vw, 5.9375rem); /* 60px -> 95px: secondary hero top offset (listings) */
   --space-fluid-section-px: clamp(1rem, 0.3rem + 3vw, 3rem); /* 16px -> 48px: shared page-content gutter (nav + hero) */
   --space-fluid-nav-h: clamp(4.375rem, 4.16rem + 0.94vw, 5rem); /* 70px -> 80px: nav bar height */
+
+  /* Shared page-content container cap, replacing every max-w-[1440px]
+     usage. Flat at 1440px here; see the min-width:1440px block below for
+     what happens past it. */
+  --space-fluid-container-max: 1440px;
+}
+
+/*
+ * Past Figma's 1440px frame, a page built at a fixed 1440px content width
+ * (the block above) stops growing — every wide-monitor pixel beyond it
+ * becomes plain margin. At 1920px that's already 240px of dead space per
+ * side; by 2560px it's more than half the screen, and the whole page reads
+ * as shrunken and adrift rather than "the 1440 design, on a bigger
+ * screen." Fluid images/type genuinely need an upper bound (see the note
+ * on --space-fluid-container-max above) — the fix isn't removing the
+ * bound, it's raising it far enough that ordinary wide monitors never hit
+ * it. This block continues every token past 1440px at the SAME ratio to
+ * viewport width it already had exactly at 1440px (so there is no visible
+ * jump at the boundary) up to 3840px (4K), where it holds steady — the
+ * design keeps its 1440px proportions intact, just larger, across
+ * ordinary desktop, wide, and 4K monitors alike.
+ */
+@media (min-width: 1440px) {
+  :root {
+    --text-fluid-h1: clamp(3.75rem, 4.1667vw, 10rem); /* 60px -> 160px */
+    --text-fluid-h2: clamp(3.25rem, 3.6111vw, 8.6667rem); /* 52px -> 138.67px */
+    --text-fluid-subtitle: clamp(1.25rem, 1.3889vw, 3.3333rem); /* 20px -> 53.33px */
+    --text-fluid-subtitle-sm: clamp(1.125rem, 1.25vw, 3rem); /* 18px -> 48px */
+
+    --space-fluid-hero-pt: clamp(11.25rem, 12.5vw, 30rem); /* 180px -> 480px */
+    --space-fluid-hero-pt-sm: clamp(5.9375rem, 6.5972vw, 15.8333rem); /* 95px -> 253.33px */
+    --space-fluid-section-px: clamp(3rem, 3.3333vw, 8rem); /* 48px -> 128px */
+    --space-fluid-nav-h: clamp(5rem, 5.5556vw, 13.3333rem); /* 80px -> 213.33px */
+    --space-fluid-container-max: clamp(90rem, 100vw, 240rem); /* 1440px -> 3840px */
+  }
 }
 
 @theme inline {

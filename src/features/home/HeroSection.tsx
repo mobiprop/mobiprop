@@ -221,7 +221,7 @@ export function HeroSection() {
          margin/width sub-pixel split to round asymmetrically left vs
          right. The parent's own padding (not a calc() subtraction) is
          what creates the mobile edge gutter. */}
-      <div className="relative w-full max-w-[1440px] overflow-hidden rounded-[20px]">
+      <div className="relative w-full max-w-[var(--space-fluid-container-max)] overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""

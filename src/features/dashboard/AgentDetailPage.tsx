@@ -235,7 +235,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
 
   return (
     <main className="min-h-full bg-[#f8fafc] px-3 py-4 sm:px-4 sm:py-5 lg:px-5">
-      <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-4">
+      <div className="mx-auto flex w-full max-w-[var(--space-fluid-container-max)] min-w-0 flex-col gap-4">
         {/* Back link */}
         <Link
           href="/dashboard/agents"
