@@ -219,7 +219,8 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       }
     >
   <motion.div
-    className="w-[calc(100%-32px)] max-w-[1920px] mx-auto h-[70px] sm:h-[80px] flex items-center justify-between px-4 sm:px-[48px] lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    className="w-[calc(100%-32px)] max-w-[1920px] mx-auto flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    style={{ height: "var(--space-fluid-nav-h)", paddingInline: "var(--space-fluid-section-px)" }}
     variants={headerContainer}
     initial="hidden"
     animate="visible"
@@ -234,7 +235,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       className={
         transparent
           ? "hidden lg:flex items-center gap-1 justify-self-center rounded-full border border-white/30 bg-white/10 p-1"
-          : "hidden lg:flex items-center gap-8 justify-self-center bg-white border border-[#e5e7eb] rounded-[41px] px-7 py-3 shadow-[0px_-2px_12.5px_rgba(0,0,0,0.03)]"
+          : "hidden lg:flex items-center gap-3 justify-self-center rounded-full border border-[rgba(3,12,19,0.15)] bg-[#fafbff] p-1"
       }
       variants={headerItem}
     >
@@ -256,10 +257,10 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <Link
             key={link.href}
             href={link.href}
-            className={`text-[14px] font-medium leading-5 transition-colors ${
+            className={`rounded-full px-4 py-2 text-[16px] transition-colors ${
               isActive(link.href)
-                ? "text-[#232323]"
-                : "text-[#5e5e5e] hover:text-[#232323]"
+                ? "bg-[#e7edf2] text-[#005089]"
+                : "text-[#4f4f4f] hover:text-[#005089]"
             }`}
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
@@ -295,7 +296,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         <>
           <Link
             href="/login"
-            className="bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
+            className="flex h-11 items-center justify-center rounded-xl border border-[#e9e9e9] bg-white px-5 text-[14px] font-medium text-[#00223a] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("login")}
@@ -303,7 +304,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
           <Link
             href="/register"
-            className="rounded-[36px] px-5 py-[10px] text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+            className="flex h-11 items-center justify-center rounded-xl px-5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
             style={{ fontFamily: "Poppins, sans-serif", background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)" }}
           >
             {t("signup")}
@@ -345,7 +346,10 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   {/* Mobile Menu Dropdown */}
   {menuOpen && (
-    <div className="lg:hidden bg-white border-t border-[#e5e7eb] px-4 sm:px-[48px] py-5 shadow-lg">
+    <div
+      className="lg:hidden bg-white border-t border-[#e5e7eb] py-5 shadow-lg"
+      style={{ paddingInline: "var(--space-fluid-section-px)" }}
+    >
       <nav className="flex flex-col gap-2">
         {navLinks.map((link) => (
           <Link

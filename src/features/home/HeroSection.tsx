@@ -219,7 +219,7 @@ export function HeroSection() {
       ref={heroRef}
       className="w-[calc(100%-32px)] max-w-[1920px] mx-auto pt-4"
     >
-      <div className="relative h-[800px] sm:h-[873px] w-full overflow-hidden rounded-[20px]">
+      <div className="relative w-full overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""
@@ -241,8 +241,15 @@ export function HeroSection() {
           }}
         />
 
-        <div className="relative z-10 flex h-full flex-col px-4 pb-6 sm:px-[48px]">
-          <div className="pt-[55px] sm:pt-[180px]">
+        {/* min-h keeps the photo from collapsing before content loads; actual
+           height is intrinsic (content + padding), never a fixed px, so it
+           holds correct proportions continuously across every viewport width
+           instead of only at hand-tuned breakpoints. */}
+        <div
+          className="relative z-10 flex min-h-[500px] flex-col pb-6"
+          style={{ paddingInline: "var(--space-fluid-section-px)" }}
+        >
+          <div style={{ paddingTop: "var(--space-fluid-hero-pt)" }}>
             <motion.div
               className="flex max-w-[720px] flex-col gap-4"
               initial={{ opacity: 0, y: 40 }}
@@ -260,8 +267,13 @@ export function HeroSection() {
               </div>
 
               <h1
-                className="text-[32px] leading-[39px] text-white sm:text-[60px] sm:leading-[74.8px]"
-                style={{ fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif", fontWeight: 400 }}
+                className="text-white"
+                style={{
+                  fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "var(--text-fluid-h1)",
+                  lineHeight: 1.25,
+                }}
               >
                 {t("hero.titlePrefix")}
                 <span style={{ fontFamily: "'IvyPresto Display', Georgia, serif", fontStyle: "italic" }}>
@@ -270,8 +282,12 @@ export function HeroSection() {
               </h1>
 
               <p
-                className="max-w-[592px] text-[15px] leading-[1.45] text-white/90 sm:text-[20px]"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
+                className="max-w-[38ch] text-white/90"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontSize: "var(--text-fluid-subtitle)",
+                  lineHeight: 1.45,
+                }}
               >
                 {t("hero.subtitle")}
               </p>
@@ -280,7 +296,7 @@ export function HeroSection() {
 
           {/* Search bar */}
           <motion.div
-            className="mt-auto w-full max-w-[1360px]"
+            className="mt-10 w-full max-w-[1360px] sm:mt-14"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}

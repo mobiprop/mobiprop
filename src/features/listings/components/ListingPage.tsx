@@ -411,7 +411,7 @@ function applyModalFilters(state: FiltersState) {
 return (
 <>
 {/* ── Hero ── */}
-<section ref={heroRef} className="relative h-[400px] sm:h-[480px] overflow-hidden border-b border-black/10">
+<section ref={heroRef} className="relative min-h-[420px] overflow-hidden border-b border-black/10">
    {/* bg photo */}
    <div className="absolute inset-0 overflow-hidden">
       <motion.img
@@ -449,7 +449,8 @@ return (
    <Reveal
      as="div"
      amount={0.6}
-     className="relative h-full w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[760px] mx-auto flex flex-col items-center gap-2 text-center pt-[60px] sm:pt-[95px]"
+     className="relative w-[calc(100%-32px)] max-w-[760px] mx-auto flex flex-col items-center gap-2 pb-8 text-center"
+     style={{ paddingTop: "var(--space-fluid-hero-pt-sm)" }}
    >
    <div className="inline-flex items-center gap-2 rounded-full border border-[#ccdeef] bg-[#f0f6fa] px-3 py-1.5">
       <span
@@ -467,13 +468,13 @@ return (
          <SplitHeading
            as="h1"
            text={t("hero.title")}
-           className="text-[28px] sm:text-[38px] lg:text-[52px] font-medium text-[#101010] leading-[1.2] tracking-[-1.5px]"
-           style={{ fontFamily: "Poppins, sans-serif" }}
+           className="font-medium text-[#101010] leading-[1.2] tracking-[-1.5px]"
+           style={{ fontFamily: "Poppins, sans-serif", fontSize: "var(--text-fluid-h2)" }}
            amount={0.6}
          />
          <p
-         className="text-[14px] sm:text-[16px] lg:text-[18px] font-medium text-[#4f4f4f] leading-[1.5] tracking-[-0.01em] max-w-[618px]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
+         className="max-w-[38ch] font-medium text-[#4f4f4f] leading-[1.5] tracking-[-0.01em]"
+         style={{ fontFamily: "Montserrat, sans-serif", fontSize: "var(--text-fluid-subtitle-sm)" }}
          >
          {t("hero.subtitle")}
          </p>

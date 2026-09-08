@@ -3,6 +3,32 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /*
+   * Fluid design tokens — replace fixed per-breakpoint px values on layout-
+   * level spacing/type with a single continuous clamp() so the page holds
+   * correct proportions at every width, not just at tested breakpoints.
+   *
+   * Each is interpolated between a 375px mobile reference and Figma's
+   * 1440px desktop frame (the two sizes the design was actually specified
+   * at); below 375px it holds at the min, above 1440px it holds at the max
+   * (the shared max-w-[1920px] container is what keeps growing beyond
+   * that, not these tokens — see max-w-[1920px] usages).
+   *
+   * clamp(min, intercept + slope*vw, max) where, for a value going from
+   * `a` px at 375px viewport to `b` px at 1440px viewport:
+   *   slope   = (b - a) / (1440 - 375) * 100   (vw units)
+   *   intercept = a - 375 * slope / 100
+   */
+  --text-fluid-h1: clamp(2rem, 1.38rem + 2.63vw, 3.75rem); /* 32px -> 60px: hero h1 */
+  --text-fluid-h2: clamp(1.75rem, 1.22rem + 2.25vw, 3.25rem); /* 28px -> 52px: secondary hero h1 (listings) */
+  --text-fluid-subtitle: clamp(0.9375rem, 0.83rem + 0.47vw, 1.25rem); /* 15px -> 20px: hero subtitle */
+  --text-fluid-subtitle-sm: clamp(0.875rem, 0.79rem + 0.38vw, 1.125rem); /* 14px -> 18px: secondary hero subtitle */
+
+  --space-fluid-hero-pt: clamp(3.4375rem, 0.69rem + 11.74vw, 11.25rem); /* 55px -> 180px: hero content top offset */
+  --space-fluid-hero-pt-sm: clamp(3.75rem, 2.98rem + 3.29vw, 5.9375rem); /* 60px -> 95px: secondary hero top offset (listings) */
+  --space-fluid-section-px: clamp(1rem, 0.3rem + 3vw, 3rem); /* 16px -> 48px: shared page-content gutter (nav + hero) */
+  --space-fluid-nav-h: clamp(4.375rem, 4.16rem + 0.94vw, 5rem); /* 70px -> 80px: nav bar height */
 }
 
 @theme inline {
