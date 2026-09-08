@@ -226,7 +226,7 @@ export function HeroSection() {
           src={heroImg}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
-          style={{ y: imgY, scale: 1.12 }}
+          style={{ y: imgY, scale: 1.18 }}
         />
         <div
           className="absolute inset-0"
