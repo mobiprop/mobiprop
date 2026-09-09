@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { SectionHeading } from "./SectionHeading";
 
 import svgPaths from "@/assets/svg-6s7nojygyu";
 
@@ -141,35 +142,9 @@ export function FeaturedSpots() {
   const [spot1, spot2, spot3, spot4, spot5] = FEATURED_SPOTS;
 
   return (
-    <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-10">
-        {/* Header */}
-        <div className="flex flex-col items-center gap-5">
-          <div className="flex items-center gap-3 w-full max-w-[380px]">
-            <div className="h-px flex-1 bg-[#e2e5ea]" />
-            <span
-              className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {t("featuredSpots.badge")}
-            </span>
-            <div className="h-px flex-1 bg-[#e2e5ea]" />
-          </div>
-          <div className="text-center max-w-[434px]">
-            <h2
-              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              {t("featuredSpots.title")}
-            </h2>
-            <p
-              className="mt-3.5 text-[14px] sm:text-[16px] text-[#4f4f4f]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {t("featuredSpots.subtitle")}
-            </p>
-          </div>
-        </div>
+    <section className="bg-white home-section">
+      <div className="home-container flex flex-col items-center gap-10">
+        <SectionHeading badge={t("featuredSpots.badge")} title={t("featuredSpots.title")} subtitle={t("featuredSpots.subtitle")} />
 
         {/* Filter pills */}
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -201,41 +176,41 @@ export function FeaturedSpots() {
 
         {/* Bento grid: two uneven rows, matching the Figma layout */}
         <div className="flex flex-col gap-7 w-full">
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-[755fr_533fr] gap-6">
             <SpotCard
               spot={spot1}
               imgHeight="h-[260px] lg:h-[315px]"
-              widthClass="md:w-[57%]"
+              widthClass="min-w-0"
               sizes="(min-width: 768px) 57vw, 100vw"
               emphasize
             />
             <SpotCard
               spot={spot2}
               imgHeight="h-[260px] lg:h-[315px]"
-              widthClass="md:w-[41%]"
+              widthClass="min-w-0"
               sizes="(min-width: 768px) 41vw, 100vw"
               emphasize={false}
             />
           </div>
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[310fr_644fr_310fr] gap-6">
             <SpotCard
               spot={spot3}
               imgHeight="h-[220px] lg:h-[315px]"
-              widthClass="lg:w-[24%]"
+              widthClass="min-w-0"
               sizes="(min-width: 1024px) 24vw, 100vw"
               emphasize={false}
             />
             <SpotCard
               spot={spot4}
               imgHeight="h-[220px] lg:h-[315px]"
-              widthClass="lg:w-[49%]"
+              widthClass="min-w-0"
               sizes="(min-width: 1024px) 49vw, 100vw"
               emphasize={false}
             />
             <SpotCard
               spot={spot5}
               imgHeight="h-[220px] lg:h-[315px]"
-              widthClass="lg:w-[24%]"
+              widthClass="min-w-0"
               sizes="(min-width: 1024px) 24vw, 100vw"
               emphasize={false}
             />

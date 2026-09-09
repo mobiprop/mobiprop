@@ -106,9 +106,18 @@
     "title": "Servicios Inmobiliarios",
     "subtitle": "Te acompañamos en cada etapa del proceso inmobiliario con un servicio personalizado.",
     "services": [
-      { "title": "Ventas", "desc": "Nos especializamos en la compra y venta de propiedades." },
-      { "title": "Alquileres", "desc": "Gestionamos alquileres con procesos claros y seguimiento permanente." },
-      { "title": "Tasaciones", "desc": "Realizamos tasaciones profesionales basadas en información de mercado." }
+      {
+        "title": "Ventas",
+        "desc": "Nos especializamos en la compra y venta de propiedades."
+      },
+      {
+        "title": "Alquileres",
+        "desc": "Gestionamos alquileres con procesos claros y seguimiento permanente."
+      },
+      {
+        "title": "Tasaciones",
+        "desc": "Realizamos tasaciones profesionales basadas en información de mercado."
+      }
     ]
   },
   "agents": {
@@ -116,10 +125,26 @@
     "title": "Conocé al Equipo",
     "subtitle": "Propiedades premium seleccionadas, estilo de vida garantizado.",
     "team": [
-      { "name": "Matias Ulrich", "role": "Martillero & Corredor Público", "photo": "/team/matias-ulrich.webp" },
-      { "name": "Delfina Cabrera", "role": "Asesor Inmobiliario", "photo": "/team/delfina-cabrera.webp" },
-      { "name": "Delfina Barberio", "role": "Asesor Inmobiliario", "photo": "/team/delfina-barberio.webp" },
-      { "name": "Jeronimo Perez B.", "role": "Asesor Inmobiliario", "photo": "/team/jeronimo-perez.webp" }
+      {
+        "name": "Matias Ulrich",
+        "role": "Martillero & Corredor Público",
+        "photo": "/team/matias-ulrich.webp"
+      },
+      {
+        "name": "Delfina Cabrera",
+        "role": "Asesor Inmobiliario",
+        "photo": "/team/delfina-cabrera.webp"
+      },
+      {
+        "name": "Delfina Barberio",
+        "role": "Asesor Inmobiliario",
+        "photo": "/team/delfina-barberio.webp"
+      },
+      {
+        "name": "Jeronimo Perez B.",
+        "role": "Asesor Inmobiliario",
+        "photo": "/team/jeronimo-perez.webp"
+      }
     ]
   },
   "testimonial": {
@@ -146,5 +171,37 @@
     "badge": "Explorá Propiedades",
     "title": "Encontrá Tu Hogar Ideal",
     "subtitle": "Nuestros agentes expertos están listos para guiarte hacia la propiedad que merecés."
+  },
+  "explorer": {
+    "badge": "Propiedades",
+    "title": "Explorá nuestras propiedades",
+    "subtitle": "Filtrá por tipo de propiedad y conocé la ubicación de tu próximo lugar.",
+    "loading": "Cargando propiedades",
+    "error": "No pudimos cargar las propiedades. Intentá nuevamente.",
+    "retry": "Reintentar",
+    "empty": "Por el momento no hay propiedades en esta categoría.",
+    "reset": "Ver todas las propiedades",
+    "viewAll": "Explorar propiedades",
+    "noPhoto": "Foto próximamente",
+    "showOnMap": "Mostrar {{title}} en el mapa",
+    "results_one": "{{count}} propiedad",
+    "results_other": "{{count}} propiedades",
+    "mapLabel": "Ubicación de las propiedades",
+    "mapLoading": "Cargando el mapa…",
+    "mapUnavailable": "Conocé la ubicación",
+    "mapFallback": "Podés seguir explorando las propiedades y abrir sus ubicaciones en Google Maps.",
+    "openMap": "Abrir en Google Maps"
+  },
+  "aboutPreview": {
+    "badge": "Quiénes somos",
+    "title": "Confianza que se construye. Resultados que se ven.",
+    "description": "En Mobi Prop te acompañamos a comprar, vender y alquilar con claridad y confianza. Combinamos conocimiento del mercado local con un compromiso personal con tus objetivos.",
+    "cta": "Conocenos",
+    "specialty": "Un equipo que conoce tu zona",
+    "specialtyDescription": "Asesoramiento cercano, desde la primera visita hasta el cierre.",
+    "areaOne": "Zona Norte",
+    "areaOneDescription": "Casas, barrios privados y nuevos lugares para vivir.",
+    "areaTwo": "CABA",
+    "areaTwoDescription": "Vida urbana y oportunidades para comprar, vender o alquilar."
   }
 }

@@ -47,9 +47,9 @@ export function HowItWorks() {
   }[];
 
   return (
-    <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
-        <div className="flex w-full flex-col gap-7 lg:max-w-[624px]">
+    <section className="bg-white home-section">
+      <div className="home-container home-process-grid">
+        <div className="flex w-full flex-col gap-7 min-w-0">
           <div className="flex flex-col gap-5">
             <div className="flex items-center gap-2.5">
               <div
@@ -123,7 +123,7 @@ export function HowItWorks() {
           </div>
         </div>
 
-        <div className="relative h-[380px] sm:h-[480px] lg:h-[632px] w-full lg:w-[617px] shrink-0 rounded-[32px] overflow-hidden">
+        <div className="relative h-[380px] sm:h-[480px] lg:h-full lg:min-h-[560px] w-full min-w-0 rounded-[32px] overflow-hidden">
           <Image
             src="/spots/how-it-works.webp"
             alt=""

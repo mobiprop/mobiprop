@@ -37,10 +37,10 @@ export function FAQ() {
   const faqs = allFaqs.filter((f) => f.categoryId === "generalInformation");
 
   return (
-    <section className="bg-[#f0f6fa] py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col lg:flex-row gap-10 lg:gap-16">
+    <section className="bg-[#f0f6fa] home-section">
+      <div className="home-container flex flex-col lg:flex-row gap-10 lg:gap-16">
         {/* Left column */}
-        <div className="flex flex-col gap-5 lg:w-[420px] lg:shrink-0">
+        <div className="flex flex-col gap-5 lg:w-[35%] lg:shrink-0">
           <div className="flex flex-col gap-4">
             <h2
               className="text-[28px] sm:text-[34px] lg:text-[40px] font-medium text-[#00223a] leading-[1.3] tracking-[-0.4px]"
@@ -69,7 +69,7 @@ export function FAQ() {
         </div>
 
         {/* Right column */}
-        <Reveal className="flex-1 flex flex-col gap-4" stagger={0.08} amount={0.1}>
+        <Reveal className="min-w-0 flex-1 flex flex-col gap-4" stagger={0.08} amount={0.1}>
           {faqs.map((faq, i) => {
             const open = openIdx === i;
             return (
@@ -80,6 +80,9 @@ export function FAQ() {
                 <button
                   className="w-full flex items-center justify-between gap-4 text-left"
                   onClick={() => setOpenIdx(open ? -1 : i)}
+                  type="button"
+                  id={`home-faq-question-${faq.id}`}
+                  aria-controls={`home-faq-answer-${faq.id}`}
                   aria-expanded={open}
                 >
                   <span
@@ -93,6 +96,9 @@ export function FAQ() {
 
                 {open && (
                   <p
+                    id={`home-faq-answer-${faq.id}`}
+                    role="region"
+                    aria-labelledby={`home-faq-question-${faq.id}`}
                     className="mt-4 max-w-[637px] text-[14px] sm:text-[16px] lg:text-[18px] text-[#4f4f4f] leading-[1.5]"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >

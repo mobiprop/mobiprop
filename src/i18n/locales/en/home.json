@@ -106,9 +106,18 @@
     "title": "What we offer",
     "subtitle": "We help simplify selling and purchase decisions with a reliable service, speed & transparency",
     "services": [
-      { "title": "Sale", "desc": "We make finding your perfect property effortless and fast." },
-      { "title": "Rentals", "desc": "We make finding your perfect rental effortless in Florida neighborhoods." },
-      { "title": "Valuation", "desc": "We make understanding your home's value and best deals effortless." }
+      {
+        "title": "Sale",
+        "desc": "We make finding your perfect property effortless and fast."
+      },
+      {
+        "title": "Rentals",
+        "desc": "We make finding your perfect rental effortless in Florida neighborhoods."
+      },
+      {
+        "title": "Valuation",
+        "desc": "We make understanding your home's value and best deals effortless."
+      }
     ]
   },
   "agents": {
@@ -116,10 +125,26 @@
     "title": "Meet The Team",
     "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
     "team": [
-      { "name": "Matias Ulrich", "role": "Licensed Auctioneer & Real Estate Broker", "photo": "/team/matias-ulrich.webp" },
-      { "name": "Delfina Cabrera", "role": "Real Estate Advisor", "photo": "/team/delfina-cabrera.webp" },
-      { "name": "Delfina Barberio", "role": "Real Estate Advisor", "photo": "/team/delfina-barberio.webp" },
-      { "name": "Jeronimo Perez B.", "role": "Real Estate Advisor", "photo": "/team/jeronimo-perez.webp" }
+      {
+        "name": "Matias Ulrich",
+        "role": "Licensed Auctioneer & Real Estate Broker",
+        "photo": "/team/matias-ulrich.webp"
+      },
+      {
+        "name": "Delfina Cabrera",
+        "role": "Real Estate Advisor",
+        "photo": "/team/delfina-cabrera.webp"
+      },
+      {
+        "name": "Delfina Barberio",
+        "role": "Real Estate Advisor",
+        "photo": "/team/delfina-barberio.webp"
+      },
+      {
+        "name": "Jeronimo Perez B.",
+        "role": "Real Estate Advisor",
+        "photo": "/team/jeronimo-perez.webp"
+      }
     ]
   },
   "testimonial": {
@@ -146,5 +171,37 @@
     "badge": "Explore Properties",
     "title": "Find Your Perfect Home",
     "subtitle": "Our expert agents are ready to guide you to the property you deserve."
+  },
+  "explorer": {
+    "badge": "Property Listings",
+    "title": "Explore Listings",
+    "subtitle": "Use the filters to find your next place, then explore its location.",
+    "loading": "Loading properties",
+    "error": "We couldn’t load the properties. Please try again.",
+    "retry": "Try again",
+    "empty": "No properties match this category right now.",
+    "reset": "Show all properties",
+    "viewAll": "Explore Listings",
+    "noPhoto": "Photo coming soon",
+    "showOnMap": "Show {{title}} on the map",
+    "results_one": "{{count}} property",
+    "results_other": "{{count}} properties",
+    "mapLabel": "Property locations",
+    "mapLoading": "Loading the map…",
+    "mapUnavailable": "Explore the location",
+    "mapFallback": "You can still browse the properties and open their locations in Google Maps.",
+    "openMap": "Open in Google Maps"
+  },
+  "aboutPreview": {
+    "badge": "Who We Are",
+    "title": "Built on Trust, Driven by Results.",
+    "description": "Mobi Prop helps you buy, sell, and rent with clarity and confidence. We combine local market knowledge with a personal commitment to your goals.",
+    "cta": "About Us",
+    "specialty": "A team that knows your area",
+    "specialtyDescription": "Personal guidance, from the first visit to closing.",
+    "areaOne": "Zona Norte",
+    "areaOneDescription": "Homes, gated communities, and new places to call home.",
+    "areaTwo": "CABA",
+    "areaTwoDescription": "City living and opportunities to buy, sell, or rent."
   }
 }

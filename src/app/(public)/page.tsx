@@ -1,3 +1,5 @@
+import { AboutPreview } from "@/features/home/AboutPreview";
+import { ListingsExplorer } from "@/features/home/ListingsExplorer";
 import { HeroSection } from "@/features/home/HeroSection";
 import { FeaturedListings } from "@/features/home/FeaturedListings";
 import { FeaturedSpots } from "@/features/home/FeaturedSpots";
@@ -19,6 +21,8 @@ export default async function Home() {
       <FeaturedSpots />
       <HowItWorks />
       <Testimonial />
+      <ListingsExplorer />
+      <AboutPreview members={teamMembers} />
       <Agents members={teamMembers} />
       <FAQ />
       <Blog />

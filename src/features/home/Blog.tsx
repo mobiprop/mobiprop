@@ -48,8 +48,8 @@ export async function Blog() {
   if (posts.length === 0) return null;
 
   return (
-    <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-10">
+    <section className="bg-white home-section">
+      <div className="home-container flex flex-col items-center gap-10">
         <BlogHeader />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 w-full">

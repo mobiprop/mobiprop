@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { SectionHeading } from "./SectionHeading";
 
 const testimonialPerson =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/testimonial-placeholder.webp";
@@ -28,34 +29,9 @@ export function Testimonial() {
   };
 
   return (
-    <section className="bg-[#fafcff] py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-12">
-        <div className="flex flex-col items-center gap-5">
-          <div className="flex items-center gap-3 w-full max-w-[380px]">
-            <div className="h-px flex-1 bg-[#e2e5ea]" />
-            <span
-              className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {t("testimonial.badge")}
-            </span>
-            <div className="h-px flex-1 bg-[#e2e5ea]" />
-          </div>
-          <div className="text-center max-w-[600px]">
-            <h2
-              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              {t("testimonial.title")}
-            </h2>
-            <p
-              className="mt-3 text-[14px] sm:text-[16px] text-[#4f4f4f]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {t("testimonial.subtitle")}
-            </p>
-          </div>
-        </div>
+    <section className="bg-[#fafcff] home-section">
+      <div className="home-container flex flex-col items-center gap-12">
+        <SectionHeading badge={t("testimonial.badge")} title={t("testimonial.title")} subtitle={t("testimonial.subtitle")} />
 
         <div className="flex flex-col gap-8 rounded-2xl border border-[#e9e9e9] bg-white p-8 sm:p-10 max-w-[530px] w-full">
           <div className="flex items-center gap-1">

@@ -14,7 +14,7 @@ import { formatArea, formatBaths, formatBeds, listingDisplayPrice } from "../uti
 const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.webp";
 
-function MarkerIcon() {
+export function MarkerIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 11.6667 14.3333" fill="none">
       <path d={svgPaths.p1fff3000} stroke="#4F4F4F" strokeLinecap="round" strokeLinejoin="round" />
@@ -23,7 +23,7 @@ function MarkerIcon() {
   );
 }
 
-function AreaIcon() {
+export function AreaIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
       <path d="M16.25 7.5H12.5V3.75" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
@@ -34,7 +34,7 @@ function AreaIcon() {
   );
 }
 
-function BedIcon() {
+export function BedIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
       <path d={svgPaths.p48eb680} stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
@@ -45,7 +45,7 @@ function BedIcon() {
   );
 }
 
-function BathIcon() {
+export function BathIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
       <path d="M5.625 15V16.875" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
@@ -57,7 +57,7 @@ function BathIcon() {
   );
 }
 
-function ArrowUpRight({ color = "#005089" }: { color?: string }) {
+export function ArrowUpRight({ color = "#005089" }: { color?: string }) {
   return (
     <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
       <path
@@ -145,7 +145,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
 }
 
 /** "Venta", "Alquiler", or "Venta & Alquiler" for a dual sale-and-rent listing. */
-function operationBadge(property: PublicListingDto, t: (key: string) => string): string {
+export function operationBadge(property: PublicListingDto, t: (key: string) => string): string {
   if (property.operationType === "SALE_AND_RENT") {
     return `${t("card.sale")} & ${t("card.rent")}`;
   }
