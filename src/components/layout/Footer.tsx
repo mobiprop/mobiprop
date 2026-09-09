@@ -95,7 +95,7 @@ function FooterColumn({
           <Link
             key={link.href}
             href={link.href}
-            className="text-[16px] text-[#e4e4e4] hover:text-white transition-colors whitespace-nowrap"
+            className="text-[16px] text-[#e4e4e4] hover:text-white transition-colors leading-6"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {link.label}
@@ -148,8 +148,8 @@ export function Footer() {
         <img src={footerBg} alt="" className="h-full w-full object-cover" />
       </div>
 
-      <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[var(--space-fluid-container-max)] mx-auto py-16 flex flex-col gap-10">
-        <div className="flex flex-col lg:flex-row items-start justify-between gap-12">
+      <div className="site-footer-container relative z-10 mx-auto flex flex-col gap-[42px] pt-16 pb-8">
+        <div className="site-footer-grid">
           <div className="flex flex-col gap-7 w-full lg:max-w-[405px]">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2.5">
@@ -158,12 +158,12 @@ export function Footer() {
                   <span className="font-medium">Mobi</span> <span className="font-light">Prop</span>
                 </p>
               </div>
-              <p className="text-[16px] text-[#e4e4e4] leading-relaxed" style={{ fontFamily: "Montserrat, sans-serif" }}>
+              <p className="text-[16px] text-[#e4e4e4] leading-6" style={{ fontFamily: "Montserrat, sans-serif" }}>
                 {t("description", { ns: "footer" })}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="-mt-1 flex items-center gap-3">
               {socialLinks.map((social) => (
                 <span
                   key={social.name}
@@ -199,14 +199,14 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-16">
+          <div className="site-footer-links grid grid-cols-2 gap-8 sm:grid-cols-4">
             {columns.map((col) => (
               <FooterColumn key={col.heading} heading={col.heading} links={col.links} />
             ))}
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[14px] sm:text-[16px] text-[#b2b2b2] text-center sm:text-left" style={{ fontFamily: "Montserrat, sans-serif" }}>
             {t("copyright", { ns: "footer" })}
           </p>

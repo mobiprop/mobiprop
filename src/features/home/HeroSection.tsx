@@ -126,7 +126,7 @@ function FieldDropdown({
         {options[selectedIndex]?.label}
       </button>
       {open ? (
-        <div className="absolute top-[calc(100%+8px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
+        <div className="absolute bottom-[calc(100%+24px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
           {options.map((opt, index) => (
             <button
               key={opt.label}
@@ -251,8 +251,7 @@ export function HeroSection() {
            space between them instead of leaving it stranded below the
            search bar on tall viewports. */}
         <div
-          className="relative z-10 flex min-h-[500px] flex-1 flex-col justify-between pb-6"
-          style={{ paddingInline: "var(--space-fluid-section-px)" }}
+          className="home-hero-content relative z-10 flex min-h-[500px] flex-1 flex-col justify-between gap-12"
         >
           <div style={{ paddingTop: "var(--space-fluid-hero-pt)" }}>
             <motion.div
@@ -264,7 +263,7 @@ export function HeroSection() {
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
                 <span className="size-1.5 shrink-0 rounded-full bg-[#fafafa]" />
                 <span
-                  className="text-[11px] uppercase tracking-[1.2px] text-white"
+                  className="text-[12px] leading-4 uppercase tracking-[1.2px] text-white"
                   style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
                 >
                   {t("hero.badge")}
@@ -276,7 +275,7 @@ export function HeroSection() {
                 style={{
                   fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif",
                   fontWeight: 400,
-                  fontSize: "var(--text-fluid-h1)",
+                  fontSize: "clamp(32px, 4.167vw, 60px)",
                   lineHeight: 1.25,
                 }}
               >
@@ -287,10 +286,10 @@ export function HeroSection() {
               </h1>
 
               <p
-                className="max-w-[38ch] text-white/90"
+                className="max-w-[592px] text-white/90"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
-                  fontSize: "var(--text-fluid-subtitle)",
+                  fontSize: "clamp(16px, 1.389vw, 20px)",
                   lineHeight: 1.45,
                 }}
               >
@@ -302,7 +301,7 @@ export function HeroSection() {
           {/* Search bar — justify-between on the parent pins this to the
              bottom of the hero; no margin-top needed to create the gap. */}
           <motion.div
-            className="w-full max-w-[1360px]"
+            className="home-hero-search w-full self-center"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
@@ -331,7 +330,7 @@ export function HeroSection() {
               })}
             </div>
 
-            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] sm:p-6 xl:flex-row xl:items-end xl:gap-3">
+            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] lg:flex-row lg:items-end lg:gap-[18px] lg:pb-9">
               <SearchField label={t("hero.locationLabel")} icon={<PinIcon />}>
                 <div ref={locationRef} className="relative min-w-0 flex-1">
                   <input
@@ -351,7 +350,7 @@ export function HeroSection() {
                     aria-label={t("hero.locationLabel")}
                   />
                   {locationOpen && suggestions.length > 0 ? (
-                    <div className="absolute top-[calc(100%+8px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
+                    <div className="absolute bottom-[calc(100%+24px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
                       {suggestions.map((sugg) => (
                         <button
                           key={sugg}
@@ -371,13 +370,13 @@ export function HeroSection() {
                 </div>
               </SearchField>
 
-              <div className="hidden h-[46px] w-px bg-[#e9e9e9] xl:block" />
+              <div className="hidden h-[46px] w-px bg-[#e9e9e9] lg:block" />
 
               <SearchField label={t("hero.propertyTypeLabel")} icon={<BuildingIcon />}>
                 <FieldDropdown options={propertyTypeOptions} selectedIndex={typeIndex} onSelect={setTypeIndex} />
               </SearchField>
 
-              <div className="hidden h-[46px] w-px bg-[#e9e9e9] xl:block" />
+              <div className="hidden h-[46px] w-px bg-[#e9e9e9] lg:block" />
 
               <SearchField label={t("hero.priceLabel")} icon={<DollarIcon />}>
                 <FieldDropdown options={priceOptions} selectedIndex={priceIndex} onSelect={setPriceIndex} />

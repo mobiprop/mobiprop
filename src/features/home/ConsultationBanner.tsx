@@ -20,8 +20,8 @@ export function ConsultationBanner() {
       />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center gap-8 px-6 text-center">
-        <div className="flex flex-col items-center gap-5">
-          <div className="flex items-center gap-3 w-full max-w-[380px]">
+        <div className="flex w-full max-w-[866px] flex-col items-center gap-5">
+          <div className="flex items-center gap-3 w-full max-w-[866px]">
             <div className="h-px flex-1 bg-white/30" />
             <span
               className="text-[13px] sm:text-[14px] font-medium text-white whitespace-nowrap"
@@ -40,7 +40,7 @@ export function ConsultationBanner() {
               {t("cta.title")}
             </h2>
             <p
-              className="mt-3.5 text-[14px] sm:text-[16px] text-[#fbfbfb]"
+              className="mt-3.5 leading-[26px] text-[14px] sm:text-[16px] text-[#fbfbfb]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("cta.subtitle")}

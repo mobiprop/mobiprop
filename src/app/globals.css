@@ -73,26 +73,12 @@
   }
 }
 
-/*
- * Fill the viewport height on the home hero, capped so it doesn't become
- * absurdly tall on an ultrawide or 4K display — but still able to grow
- * past the cap if the content itself (e.g. a mobile search bar with its
- * fields stacked) genuinely needs more room than that. min() bakes the
- * cap directly into the target value rather than using a separate
- * max-height: max-height loses to min-height when they conflict (CSS
- * spec — min-height always wins a tie), and min-height is exactly what
- * `100dvh` on a tall monitor would be, silently defeating the cap.
- *
- * Two declarations, not one: `dvh` (dynamic viewport height) excludes the
- * mobile browser address bar, so the hero doesn't jump in height as it
- * shows/hides on scroll — but it's not supported everywhere, and an
- * unsupported unit invalidates only its own declaration (here, the whole
- * min() expression that uses it), so the plain `vh` line above it is what
- * actually applies as the fallback.
+/* Fit the hero inside the viewport gutters, up to the 873px design height.
+ * Stacked mobile content can still expand the card. Keep vh as a fallback.
  */
 .hero-fill-height {
-  min-height: min(100vh, 1000px);
-  min-height: min(100dvh, 1000px);
+  min-height: min(calc(100vh - 32px), 873px);
+  min-height: min(calc(100dvh - 32px), 873px);
 }
 
 @theme inline {
@@ -428,4 +414,22 @@ body {
   .home-listing-row { grid-template-columns: minmax(0,1fr); }
   .home-listing-photo { min-height: 210px; }
   .home-listings-map { min-height: 420px; }
+}
+
+/* Match the 1440px Figma frame without enlarging type on wide monitors. */
+.home-hero-content { padding: 0 clamp(20px, 3.333vw, 48px) 42px; }
+.home-hero-search { width: calc(100% - 32px); }
+.site-footer-container { width: 100%; max-width: 1440px; padding-inline: clamp(20px, 4.444vw, 64px); }
+.site-footer-grid { display: grid; gap: 48px; }
+@media (min-width: 1280px) {
+  .site-footer-grid { grid-template-columns: 405px minmax(0, 1fr); gap: clamp(48px, 9.86vw, 142px); }
+  .site-footer-links { grid-template-columns: .85fr 1.2fr 1fr 1.4fr; gap: clamp(24px, 3vw, 44px); }
+}
+@media (max-width: 767px) {
+  .home-hero-content { padding-bottom: 24px; }
+  .home-hero-search { width: 100%; }
+}
+
+@media (min-width: 1440px) {
+  .site-footer-links { grid-template-columns: 81px 157px 96px minmax(0, 1fr); gap: 102px; }
 }
