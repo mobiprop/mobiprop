@@ -244,7 +244,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap max-sm:text-[12px] max-sm:leading-[18px] max-sm:text-center"
     style={{ ...mont, fontWeight: 400 }}
   >
-    © 2026 Ulrich Propiedades
+    © 2026 Mobi Prop
   </span>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:hidden" />

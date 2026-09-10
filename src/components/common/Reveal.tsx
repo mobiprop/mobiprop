@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ type RevealDirection = "up" | "down" | "left" | "right" | "none";
 interface RevealProps {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
   /** Direction the content travels in from. */
   direction?: RevealDirection;
   /** Distance (px) traveled during the reveal. */
@@ -48,6 +49,7 @@ const offsetFor = (direction: RevealDirection, distance: number) => {
 export function Reveal({
   children,
   className,
+  style,
   direction = "up",
   distance = 30,
   delay = 0,
@@ -82,6 +84,7 @@ export function Reveal({
   return (
     <Component
       className={cn(className)}
+      style={style}
       variants={stagger ? container : item}
       initial="hidden"
       whileInView="visible"

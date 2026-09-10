@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { UserProfilePageContent } from "@/features/profile/UserProfilePage";
 
 export const metadata: Metadata = {
-  title: "My Profile — Ulrich Propiedades",
-  description: "View and manage your Ulrich Propiedades profile, saved properties, contracts and scheduled tours.",
+  title: "My Profile — Mobi Prop",
+  description: "View and manage your Mobi Prop profile, saved properties, contracts and scheduled tours.",
 };
 
 export default async function ProfilePage() {

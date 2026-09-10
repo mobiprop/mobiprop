@@ -1,54 +1,38 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Reveal, RevealItem } from "@/components/common/Reveal";
-import { SplitHeading } from "@/components/common/SplitHeading";
-
-const heroBg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
-const clouds =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.webp";
-const teamImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/ourstory-2026.webp";
-const expertiseImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/expertise-2026.webp";
-const aboutImg1 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/team-2026.webp";
-const aboutImg2 =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/about-13.webp";
-const ExpertiseMassageIcon =
-  "/assets/figma-temp/BlogPage/Expertise-massage.svg";
-const galleryRows = [
-  [
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-1-2026.webp",
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-2-2026.webp",
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-3-2026.webp",
-  ],
-  [
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-4-2026.webp",
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-5-2026.webp",
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-6-2026.webp",
-  ],
-  [
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-7-2026.webp",
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-8-2026.webp",
-    "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/gallery-9-2026.webp",
-  ],
-];
 
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
-const STAT_VALUES = ["100%", "360°", "24/7"];
+const heroImages = [
+  "/about/hero-1.webp",
+  "/about/hero-2.webp",
+  "/about/hero-3.webp",
+  "/about/hero-4.webp",
+  "/about/hero-5.webp",
+];
 
-/* ─── section tag (dot + label) ─── */
-function SectionTag({ label }: { label: string }) {
+const galleryImages = [
+  "/about/gallery-1.webp",
+  "/about/gallery-2.webp",
+  "/about/gallery-3.webp",
+  "/about/gallery-4.webp",
+  "/about/gallery-5.webp",
+];
+
+function SectionBadge({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-[7px] h-[7px] rounded-full bg-[#4896b6] shrink-0" />
+    <div className="flex items-center gap-2 bg-[#f0f6fa] border border-[#ccdeef] rounded-full px-3 py-1.5 w-fit">
       <span
-        className="text-[16px] font-medium text-[#6a7282] tracking-[-0.16px] leading-[24px]"
-        style={{ fontFamily: montserrat }}
+        className="size-1.5 rounded-full shrink-0"
+        style={{ background: "linear-gradient(135deg, #005ea4 0%, #006fc2 100%)" }}
+      />
+      <span
+        className="text-[12px] font-medium text-[#232323] uppercase tracking-[1.2px]"
+        style={{ fontFamily: poppins }}
       >
         {label}
       </span>
@@ -56,241 +40,179 @@ function SectionTag({ label }: { label: string }) {
   );
 }
 
-function CardIcon() {
+function GradientBadgeLabel({ label }: { label: string }) {
   return (
-    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-[12px] sm:rounded-[14px] bg-[#f3f4f6] flex items-center justify-center shrink-0">
-      <img
-        src={ExpertiseMassageIcon}
-        alt=""
-        className="w-[20px] h-[20px] sm:w-[26px] sm:h-[26px] object-contain"
-      />
+    <div className="flex items-center gap-2.5">
+      <span className="h-5 w-0.5 rounded-full shrink-0" style={{ background: "linear-gradient(96deg, #005ea4 0%, #006fc2 100%)" }} />
+      <span
+        className="bg-clip-text text-transparent text-[14px] font-medium uppercase tracking-wide"
+        style={{ fontFamily: montserrat, backgroundImage: "linear-gradient(170deg, #005ea4 0%, #006fc2 100%)" }}
+      >
+        {label}
+      </span>
     </div>
   );
 }
 
-export function AboutUsContent() {
+function ExpertiseIcon({ path }: { path: string }) {
+  return (
+    <div className="flex size-14 items-center justify-center rounded-xl border-[1.25px] border-[#e1edf5] bg-[#f0f6fa]">
+      <svg width="30" height="30" viewBox="0 0 30.5455 30.5455" fill="none">
+        <path d={path} stroke="#005089" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
+const EXPERTISE_ICON_PATHS = [
+  "M3.81836 12.0908L15.2729 3.81812L26.7274 12.0908V25.4545C26.7274 25.792 26.5934 26.1158 26.3547 26.3544C26.116 26.5931 25.7923 26.7272 25.4547 26.7272H5.09109C4.75354 26.7272 4.42982 26.5931 4.19113 26.3544C3.95245 26.1158 3.81836 25.792 3.81836 25.4545V12.0908Z M11.4553 26.7273V15.2727H19.0916V26.7273",
+  "M11.4553 14L15.2734 17.8182L28.0007 5.09091 M26.7274 15.2727V24.1818C26.7274 24.8568 26.4593 25.5043 25.9819 25.9817C25.5045 26.459 24.8571 26.7272 24.182 26.7272H6.36381C5.68872 26.7272 5.04127 26.459 4.56391 25.9817C4.08654 25.5043 3.81836 24.8568 3.81836 24.1818V6.36357C3.81836 5.68847 4.08654 5.04103 4.56391 4.56366C5.04127 4.0863 5.68872 3.81812 6.36381 3.81812H20.3638",
+  "M26.5252 5.86733C25.8752 5.21697 25.1033 4.70106 24.2538 4.34908C23.4043 3.99709 22.4938 3.81592 21.5743 3.81592C20.6548 3.81592 19.7442 3.99709 18.8948 4.34908C18.0453 4.70106 17.2734 5.21697 16.6234 5.86733L15.2743 7.21642L13.9252 5.86733C12.6121 4.55427 10.8313 3.8166 8.9743 3.8166C7.11735 3.8166 5.33645 4.55427 4.02339 5.86733C2.71033 7.1804 1.97266 8.96129 1.97266 10.8182C1.97266 12.6752 2.71033 14.4561 4.02339 15.7692L5.37248 17.1182L15.2743 27.0201L25.1761 17.1182L26.5252 15.7692C27.1756 15.1191 27.6915 14.3473 28.0435 13.4978C28.3955 12.6483 28.5766 11.7378 28.5766 10.8182C28.5766 9.89871 28.3955 8.98819 28.0435 8.1387C27.6915 7.28921 27.1756 6.51739 26.5252 5.86733Z",
+];
+
+export function AboutIntro() {
   const { t } = useTranslation("about");
-
-  const expertiseCards = t("expertise.cards", { returnObjects: true }) as {
-    title: string;
-    desc: string;
-  }[];
-
-  const stats = (
-    t("aboutSection.stats", { returnObjects: true }) as {
-      label: string;
-      desc: string;
-    }[]
-  ).map((s, i) => ({ ...s, value: STAT_VALUES[i] }));
+  const stats = t("stats", { returnObjects: true }) as { value: string; label: string; desc: string }[];
+  const cards = t("expertise.cards", { returnObjects: true }) as { title: string; desc: string }[];
 
   return (
     <>
-      {/* ── Hero ── */}
-      <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
-        <div className="absolute inset-0 overflow-hidden">
-          <img
-            src={heroBg}
-            alt=""
-            className="absolute w-full h-[110%] -top-[10%] object-cover"
-          />
-        </div>
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-          }}
-        />
-        <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
-          <img
-            src={clouds}
-            alt=""
-            className="absolute w-full h-full object-cover"
-          />
-        </div>
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
-          }}
-        />
-        <Reveal
-          as="div"
-          amount={0.6}
-          className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
-        >
-          <SectionTag label={t("hero.badge")} />
-
-          <SplitHeading
-            as="h1"
-            text={t("hero.title")}
-            className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
-            style={{ fontFamily: poppins }}
-            amount={0.6}
-          />
-
-          <p
-            className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
-            style={{ fontFamily: montserrat }}
-          >
-            {t("hero.subtitle")}
-          </p>
-        </Reveal>
-      </section>
-
-      {/* ── Our Story ── */}
-      <section className="bg-white">
-        <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
-          <Reveal className="flex flex-col items-center gap-4 sm:gap-5 text-center" amount={0.5}>
-            <SectionTag label={t("ourStory.badge")} />
-
-            <SplitHeading
-              as="h2"
-              text={t("ourStory.title")}
-              className="text-[23px] sm:text-[30px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.2] lg:leading-[56px] tracking-[-0.28px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[629px]"
+      {/* Hero */}
+      <section className="about-hero bg-white pb-0">
+        <div className="about-container flex flex-col items-center gap-10 sm:gap-14">
+          <Reveal as="div" amount={0.6} className="about-hero-heading flex flex-col items-center gap-3 text-center">
+            <SectionBadge label={t("hero.badge")} />
+            <h1
+              className="text-[34px] sm:text-[42px] lg:text-[52px] font-medium text-[#101010] leading-[1.2] tracking-[-1px] max-w-[300px] sm:max-w-[560px] lg:max-w-[693px]"
               style={{ fontFamily: poppins }}
-            />
-
+            >
+              {t("hero.title")}
+            </h1>
             <p
-              className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px] max-w-[820px]"
+              className="text-[15px] sm:text-[17px] lg:text-[18px] mt-2 text-[#4f4f4f] leading-[1.5] max-w-[320px] sm:max-w-[560px] lg:max-w-[693px]"
               style={{ fontFamily: montserrat }}
             >
-              {t("ourStory.paragraph")}
+              {t("hero.subtitle")}
             </p>
           </Reveal>
 
+          {/* Mobile/tablet: simple fixed-height 2-up grid, no stretch tricks needed. */}
+          <Reveal className="grid grid-cols-2 gap-4 sm:gap-5 w-full lg:hidden" stagger={0.1} amount={0.2}>
+            {[heroImages[1], heroImages[4], heroImages[2], heroImages[3]].map((src, i) => (
+              <RevealItem
+                key={src}
+                className={`rounded-2xl overflow-hidden h-[180px] sm:h-[240px] ${i >= 2 ? "hidden sm:block" : ""}`}
+              >
+                <img src={src} alt="" className="h-full w-full object-cover" />
+              </RevealItem>
+            ))}
+          </Reveal>
+
+          {/* Desktop: flex row so the fixed row height stretches its children reliably
+              (CSS Grid's implicit auto-row sizing doesn't stretch percentage-height
+              children the same way flex does). */}
+          <Reveal className="hidden lg:flex lg:flex-row gap-6 w-full h-[620px]" stagger={0.1} amount={0.2}>
+            <RevealItem className="flex-1 rounded-xl overflow-hidden h-full">
+              <img src={heroImages[0]} alt="" className="h-full w-full object-cover" />
+            </RevealItem>
+            <div className="flex flex-col gap-6 flex-1 h-full">
+              <RevealItem className="rounded-2xl overflow-hidden flex-1 min-h-0">
+                <img src={heroImages[1]} alt="" className="h-full w-full object-cover" />
+              </RevealItem>
+              <RevealItem className="rounded-2xl overflow-hidden flex-1 min-h-0">
+                <img src={heroImages[2]} alt="" className="h-full w-full object-cover" />
+              </RevealItem>
+            </div>
+            <div className="flex flex-col gap-6 flex-1 h-full">
+              <RevealItem className="rounded-xl overflow-hidden flex-1 min-h-0">
+                <img src={heroImages[3]} alt="" className="h-full w-full object-cover" />
+              </RevealItem>
+              <RevealItem className="rounded-2xl overflow-hidden flex-1 min-h-0">
+                <img src={heroImages[4]} alt="" className="h-full w-full object-cover" />
+              </RevealItem>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Story */}
+      <section className="about-section about-story-section bg-white">
+        <div className="about-container flex flex-col items-center gap-10 sm:gap-14">
+          <div className="flex w-full flex-col items-center gap-3.5">
+          <Reveal className="flex items-center gap-2.5 w-full max-w-[500px]" amount={0.5}>
+            <div className="h-px flex-1 bg-[#b0c9da]/60" />
+            <span className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap" style={{ fontFamily: montserrat }}>
+              {t("story.sectionLabel")}
+            </span>
+            <div className="h-px flex-1 bg-[#b0c9da]/60" />
+          </Reveal>
+          <h2
+            className="text-[28px] sm:text-[36px] lg:text-[44px] font-medium text-[#00223a] text-center tracking-[-1px] leading-tight lg:leading-[52px]"
+            style={{ fontFamily: poppins }}
+          >
+            {t("story.heading")}
+          </h2>
+          </div>
+
+          <div className="about-story-grid w-full">
+            <Reveal className="flex min-w-0 flex-col gap-6 w-full" amount={0.3}>
+              <h3 className="text-[26px] font-medium leading-[1.3] text-[#00223a]" style={{ fontFamily: poppins }}>{t("story.leftHeading")}</h3>
+              <div className="flex flex-col gap-5 text-[#4f4f4f]" style={{ fontFamily: montserrat }}>
+                <p className="text-[16px] leading-relaxed">{t("story.paragraph1")}</p>
+                <p className="text-[16px] leading-relaxed">{t("story.paragraph2")}</p>
+              </div>
+              <Link
+                href="/contact"
+                className="w-fit rounded-xl px-6 py-4 text-[16px] font-medium text-white"
+                style={{ fontFamily: poppins, background: "linear-gradient(161deg, #005ea4 0%, #006fc2 100%)" }}
+              >
+                {t("story.cta")}
+              </Link>
+            </Reveal>
+
+            <Reveal className="relative h-[300px] sm:h-[420px] lg:h-[569px] w-full min-w-0 rounded-[32px] overflow-hidden" scale={1.08} amount={0.2}>
+              <img src="/about/story.webp" alt="" className="h-full w-full object-cover" />
+            </Reveal>
+
+            <Reveal className="flex min-w-0 flex-col gap-8 sm:gap-[50px] w-full" stagger={0.12} amount={0.2}>
+              {(["vision", "mission", "commitment"] as const).map((key) => (
+                <RevealItem key={key} className="flex flex-col gap-3">
+                  <p className="text-[20px] sm:text-[22px] font-medium text-[#232323] tracking-[-0.11px]" style={{ fontFamily: poppins }}>
+                    {t(`story.${key}.title`)}
+                  </p>
+                  <p className="text-[15px] sm:text-[16px] text-[#4f4f4f] leading-relaxed" style={{ fontFamily: montserrat }}>
+                    {t(`story.${key}.desc`)}
+                  </p>
+                </RevealItem>
+              ))}
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="bg-[#f0f6fa]">
+        <div className="about-container">
           <Reveal
-            className="w-full rounded-[16px] sm:rounded-[20px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[656px]"
-            scale={1.1}
-            duration={1}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-y-10"
+            stagger={0.1}
             amount={0.3}
           >
-            <img
-              src={teamImg}
-              alt="Our team"
-              className="w-full h-full object-cover"
-            />
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ── Our Gallery ── */}
-      <section className="bg-white">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
-          <Reveal className="flex flex-col gap-2 max-w-[631px]" amount={0.5}>
-            <SectionTag label={t("gallery.badge")} />
-
-            <SplitHeading
-              as="h2"
-              text={t("gallery.title")}
-              className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px]"
-              style={{ fontFamily: poppins }}
-            />
-
-            <p
-              className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px] max-w-[501px]"
-              style={{ fontFamily: montserrat }}
-            >
-              {t("gallery.subtitle")}
-            </p>
-          </Reveal>
-
-          {/* image grid with top/bottom fade */}
-          <div className="relative">
-            <div className="flex flex-col gap-4 sm:gap-6">
-              {galleryRows.map((row, r) => (
-                <Reveal
-                  key={r}
-                  as="div"
-                  stagger={0.12}
-                  amount={0.15}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-                >
-                  {row.map((src, c) => (
-                    <RevealItem
-                      key={`${r}-${c}`}
-                      className="hover-shine h-[220px] sm:h-[280px] lg:h-[420px] rounded-[16px] sm:rounded-[20px] overflow-hidden"
-                    >
-                      <img
-                        src={src}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </RevealItem>
-                  ))}
-                </Reveal>
-              ))}
-            </div>
-
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[70px] sm:h-[100px] lg:h-[120px] bg-gradient-to-b from-white to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70px] sm:h-[100px] lg:h-[120px] bg-gradient-to-t from-white to-transparent" />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Our Expertise ── */}
-      <section className="bg-white">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col lg:flex-row gap-8 lg:gap-6 items-start">
-          {/* Left: heading + subtext + image */}
-          <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 lg:w-1/2">
-            <Reveal className="flex flex-col gap-2" amount={0.5}>
-              <SectionTag label={t("expertise.badge")} />
-
-              <SplitHeading
-                as="h2"
-                text={t("expertise.title")}
-                className="text-[26px] sm:text-[32px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[56px] tracking-[-0.3px] lg:tracking-[-0.44px] max-w-[540px]"
-                style={{ fontFamily: poppins }}
-              />
-
-              <p
-                className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[25.6px] max-w-[597px]"
-                style={{ fontFamily: montserrat }}
-              >
-                {t("expertise.subtitle")}
-              </p>
-            </Reveal>
-
-            <Reveal
-              className="rounded-[16px] overflow-hidden h-[220px] sm:h-[300px] lg:h-[406px] w-full"
-              scale={1.1}
-              duration={1}
-              amount={0.3}
-            >
-              <img
-                src={expertiseImg}
-                alt="Our expertise"
-                className="w-full h-full object-cover"
-              />
-            </Reveal>
-          </div>
-
-          {/* Right: cards */}
-          <Reveal
-            className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-4 sm:gap-5 lg:w-1/2 w-full"
-            stagger={0.15}
-            amount={0.2}
-          >
-            {expertiseCards.map((card) => (
+            {stats.map((s, i) => (
               <RevealItem
-                key={card.title}
-                className="bg-white border border-[#d1d5dc] rounded-[16px] p-5 sm:p-6 lg:p-[30px] flex flex-col gap-3 sm:gap-4"
+                key={s.label}
+                className={`flex flex-col items-center gap-1.5 text-center px-6 py-10 sm:py-14 ${
+                  i < stats.length - 1 ? "lg:border-r border-[#e9e9e9]" : ""
+                }`}
               >
-                <CardIcon />
-
-                <h3
-                  className="text-[20px] sm:text-[22px] lg:text-[28px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[36px] tracking-[-0.22px] lg:tracking-[-0.28px]"
-                  style={{ fontFamily: poppins }}
-                >
-                  {card.title}
-                </h3>
-
-                <p
-                  className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
-                >
-                  {card.desc}
+                <p className="text-[30px] sm:text-[38px] font-semibold text-[#005089]" style={{ fontFamily: poppins }}>
+                  {s.value}
+                </p>
+                <p className="text-[15px] sm:text-[16px] text-[#232323]" style={{ fontFamily: montserrat }}>
+                  {s.label}
+                </p>
+                <p className="text-[13px] sm:text-[14px] text-[#4f4f4f]" style={{ fontFamily: montserrat }}>
+                  {s.desc}
                 </p>
               </RevealItem>
             ))}
@@ -298,101 +220,100 @@ export function AboutUsContent() {
         </div>
       </section>
 
-      {/* ── About Ulrich + Stats ── */}
-      <section className="bg-white">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[1440px] mx-auto py-10 sm:py-14 lg:py-20 flex flex-col gap-8 lg:gap-12">
-          {/* Text block */}
-          <Reveal className="flex flex-col gap-3 sm:gap-4 max-w-[1196px]" amount={0.4}>
-            <SectionTag label={t("aboutSection.badge")} />
-
-            <div className="flex flex-col gap-5 sm:gap-6">
-              <SplitHeading
-                as="h2"
-                text={t("aboutSection.heading")}
-                className="text-[26px] sm:text-[30px] lg:text-[36px] font-semibold text-[#0d2138] leading-[1.25] lg:leading-[48px] tracking-[-0.3px] lg:tracking-[-0.36px] max-w-[761px]"
-                style={{ fontFamily: poppins }}
-              />
-
-              <div className="flex flex-col gap-4 sm:gap-6">
-                <p
-                  className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
+      {/* Expertise */}
+      <section className="about-section bg-white">
+        <div className="about-container about-expertise-grid">
+          <Reveal className="flex min-w-0 flex-col gap-8 sm:gap-10 lg:gap-[49px] w-full" amount={0.3}>
+            <div className="flex flex-col gap-3">
+              <GradientBadgeLabel label={t("expertise.badge")} />
+              <div className="flex flex-col gap-4">
+                <h2
+                  className="text-[28px] sm:text-[34px] lg:text-[40px] font-medium text-[#182226] tracking-[-1px] leading-tight"
+                  style={{ fontFamily: poppins }}
                 >
-                  {t("aboutSection.paragraph1")}
-                </p>
-
-                <p
-                  className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
-                  style={{ fontFamily: montserrat }}
-                >
-                  {t("aboutSection.paragraph2")}
+                  {t("expertise.title")}
+                </h2>
+                <p className="text-[16px] sm:text-[18px] text-[#4f4f4f] leading-relaxed" style={{ fontFamily: montserrat }}>
+                  {t("expertise.subtitle")}
                 </p>
               </div>
             </div>
+            <div className="h-[260px] sm:h-[380px] lg:h-[544px] w-full rounded-2xl overflow-hidden">
+              <img src="/about/expertise.webp" alt="" className="h-full w-full object-cover" />
+            </div>
           </Reveal>
 
-          {/* Images + stats */}
-          <div className="flex flex-col gap-6 sm:gap-8">
-            {/* two images */}
-            <Reveal className="grid grid-cols-2 gap-4 sm:gap-6" stagger={0.15} amount={0.2}>
-              <RevealItem className="hover-shine h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[16px] overflow-hidden">
-                <img
-                  src={aboutImg1}
-                  alt="Our story"
-                  className="w-full h-full object-cover"
-                />
+          <Reveal className="flex min-w-0 flex-col gap-5 w-full" stagger={0.12} amount={0.2}>
+            {cards.map((card, i) => (
+              <RevealItem
+                key={card.title}
+                className="flex min-h-[252px] flex-col justify-center gap-4 rounded-2xl border border-[#e9e9e9] bg-white p-6 sm:p-7"
+              >
+                <ExpertiseIcon path={EXPERTISE_ICON_PATHS[i]} />
+                <p className="text-[22px] sm:text-[24px] font-medium text-[#0d2138] tracking-[-0.12px]" style={{ fontFamily: poppins }}>
+                  {card.title}
+                </p>
+                <p className="text-[15px] sm:text-[16px] text-[#4f4f4f] leading-relaxed" style={{ fontFamily: montserrat }}>
+                  {card.desc}
+                </p>
               </RevealItem>
-
-              <RevealItem className="hover-shine h-[180px] sm:h-[240px] lg:h-[291px] rounded-[14px] sm:rounded-[12px] overflow-hidden">
-                <img
-                  src={aboutImg2}
-                  alt="Our story"
-                  className="w-full h-full object-cover"
-                />
-              </RevealItem>
-            </Reveal>
-
-            {/* stats with dividers */}
-            <Reveal
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-0"
-              stagger={0.15}
-              amount={0.3}
-            >
-              {stats.map((s, i) => (
-                <RevealItem
-                  key={s.label}
-                  className={`flex flex-col gap-3 sm:gap-4 ${
-                    i > 0 ? "sm:pl-6 lg:pl-10" : "sm:pr-6 lg:pr-10"
-                  }`}
-                >
-                  <div
-                    className="text-[24px] sm:text-[38px] lg:text-[44px] font-medium text-[#0d2138] leading-[1.15] lg:leading-[56px]"
-                    style={{ fontFamily: poppins }}
-                  >
-                    {s.value}
-                  </div>
-
-                  <div className="flex flex-col gap-2 sm:gap-3">
-                    <div
-                      className="text-[16px] sm:text-[18px] font-semibold text-[#2b3038] leading-[24px] sm:leading-[26px] tracking-[-0.16px] sm:tracking-[-0.18px]"
-                      style={{ fontFamily: poppins }}
-                    >
-                      {s.label}
-                    </div>
-
-                    <p
-                      className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.14px] sm:tracking-[-0.16px]"
-                      style={{ fontFamily: montserrat }}
-                    >
-                      {s.desc}
-                    </p>
-                  </div>
-                </RevealItem>
-              ))}
-            </Reveal>
-          </div>
+            ))}
+          </Reveal>
         </div>
       </section>
     </>
+  );
+}
+
+export function AboutGallery() {
+  const { t } = useTranslation("about");
+
+  return (
+    <section className="about-section bg-white">
+      <div className="about-container flex flex-col items-center gap-8 sm:gap-10 lg:gap-12">
+        <Reveal className="flex flex-col items-center gap-4 text-center" amount={0.4}>
+          <div className="flex items-center gap-3 w-full max-w-[456px]">
+            <div className="h-px flex-1 bg-[#b0c9da]/60" />
+            <span className="text-[13px] sm:text-[14px] text-[#5486b9] whitespace-nowrap" style={{ fontFamily: montserrat }}>
+              {t("gallery.badge")}
+            </span>
+            <div className="h-px flex-1 bg-[#b0c9da]/60" />
+          </div>
+          <h2
+            className="text-[28px] sm:text-[36px] lg:text-[44px] font-medium text-[#00223a] tracking-[-1px] leading-[52px] max-w-[607px]"
+            style={{ fontFamily: poppins }}
+          >
+            {t("gallery.title")}
+          </h2>
+          <p className="text-[15px] sm:text-[17px] lg:text-[18px] text-[#3e4447] max-w-[539px]" style={{ fontFamily: montserrat }}>
+            {t("gallery.subtitle")}
+          </p>
+        </Reveal>
+
+        <Reveal className="grid grid-cols-2 lg:grid-cols-[717fr_575fr] gap-4 sm:gap-5 w-full" stagger={0.1} amount={0.15}>
+          <RevealItem className="col-span-2 lg:col-span-1 h-[280px] sm:h-[420px] lg:h-[614px] rounded-2xl overflow-hidden">
+            <img src={galleryImages[0]} alt="" className="h-full w-full object-cover" />
+          </RevealItem>
+          <div className="col-span-2 lg:col-span-1 flex flex-col gap-4 sm:gap-5">
+            <div className="h-[160px] sm:h-[220px] lg:h-[186px] rounded-2xl overflow-hidden">
+              <img src={galleryImages[1]} alt="" className="h-full w-full object-cover" />
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-[235fr_320fr] gap-4 sm:gap-5">
+              <div className="h-[220px] sm:h-[380px] lg:h-[408px] rounded-2xl overflow-hidden">
+                <img src={galleryImages[2]} alt="" className="h-full w-full object-cover" />
+              </div>
+              <div className="flex flex-col gap-4 sm:gap-5">
+                <div className="h-[102px] sm:h-[180px] lg:h-[194px] rounded-2xl overflow-hidden">
+                  <img src={galleryImages[3]} alt="" className="h-full w-full object-cover" />
+                </div>
+                <div className="h-[102px] sm:h-[180px] lg:h-[194px] rounded-2xl overflow-hidden">
+                  <img src={galleryImages[4]} alt="" className="h-full w-full object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }

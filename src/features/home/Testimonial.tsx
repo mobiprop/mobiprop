@@ -1,30 +1,26 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import svgPaths from "@/assets/svg-6s7nojygyu";
+import { SectionHeading } from "./SectionHeading";
 
 const testimonialPerson =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/testimonial-placeholder.webp";
 
-function QuoteIcon() {
+function Star() {
   return (
-    <svg width="72" height="60" viewBox="0 0 81.2621 67.125" fill="none">
-      <g clipPath="url(#clip0_testimonial)">
-        <path d={svgPaths.p39af8780} fill="#6A7282" opacity="0.1" />
-      </g>
-      <defs>
-        <clipPath id="clip0_testimonial">
-          <rect width="81.2621" height="67.125" fill="white" />
-        </clipPath>
-      </defs>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M18.3039 8.97266L14.7883 12.0063L15.8594 16.543C15.9185 16.7892 15.9033 17.0475 15.8156 17.2851C15.728 17.5228 15.572 17.7291 15.3671 17.8781C15.1623 18.0271 14.9179 18.112 14.6649 18.1222C14.4118 18.1323 14.1614 18.0672 13.9453 17.9352L10 15.507L6.05234 17.9352C5.83627 18.0665 5.58617 18.1309 5.33355 18.1204C5.08092 18.1099 4.83705 18.0248 4.63266 17.876C4.42826 17.7271 4.27248 17.5211 4.18493 17.2839C4.09737 17.0467 4.08196 16.7889 4.14063 16.543L5.21563 12.0063L1.7 8.97266C1.50883 8.80743 1.37057 8.58954 1.30249 8.34621C1.23441 8.10287 1.23952 7.84487 1.3172 7.60443C1.39487 7.36398 1.54167 7.15175 1.73924 6.99424C1.93682 6.83672 2.17642 6.7409 2.42813 6.71875L7.0375 6.34687L8.81562 2.04375C8.91187 1.80923 9.07568 1.60863 9.28623 1.46745C9.49677 1.32627 9.74455 1.25089 9.99805 1.25089C10.2515 1.25089 10.4993 1.32627 10.7099 1.46745C10.9204 1.60863 11.0842 1.80923 11.1805 2.04375L12.9578 6.34687L17.5672 6.71875C17.8194 6.74008 18.0597 6.83536 18.258 6.99266C18.4563 7.14996 18.6037 7.36228 18.6819 7.60301C18.7601 7.84375 18.7654 8.1022 18.6974 8.34598C18.6293 8.58975 18.4908 8.80802 18.2992 8.97344L18.3039 8.97266Z"
+        fill="#F79009"
+      />
     </svg>
   );
 }
 
 export function Testimonial() {
   const { t } = useTranslation("home");
-  // Only one real client testimonial exists in the Figma design so far —
-  // shown as a single static quote until more are provided.
+  // Only one real client testimonial exists so far — shown as a single
+  // static card rather than padding out a carousel with placeholder ones.
   const testimonial = {
     quote: t("testimonial.quote"),
     name: t("testimonial.name"),
@@ -33,93 +29,43 @@ export function Testimonial() {
   };
 
   return (
-    <section className="bg-white py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
-        <div className="relative overflow-hidden flex flex-col lg:flex-row gap-8 sm:gap-10 lg:gap-[120px] xl:gap-[200px] justify-between">
-          {/* Background Logo Watermark - 3 Images */}
-          <div
-            className="home-img pointer-events-none absolute left-[35%] top-[58%] -translate-x-1/2 -translate-y-1/2
-            w-[469px] h-[317.9668884277344px] opacity-[0.04] rotate-0 z-0 flex flex-col items-center"
+    <section className="bg-[#fafcff] home-section">
+      <div className="home-container flex flex-col items-center gap-12">
+        <SectionHeading badge={t("testimonial.badge")} title={t("testimonial.title")} subtitle={t("testimonial.subtitle")} />
+
+        <div className="flex flex-col gap-8 rounded-2xl border border-[#e9e9e9] bg-white p-8 sm:p-10 max-w-[530px] w-full">
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} />
+            ))}
+          </div>
+
+          <blockquote
+            className="text-[18px] sm:text-[20px] text-[#00223a] leading-[1.5] tracking-[-0.4px]"
+            style={{ fontFamily: "Montserrat, sans-serif" }}
           >
+            &ldquo;{testimonial.quote}&rdquo;
+          </blockquote>
+
+          <div className="flex items-center gap-3">
             <img
-              src="/assets/figma-temp/BlogPage/Group-1.png"
-              alt="Ulrich"
-              className="w-full h-auto mb-3"
+              src={testimonial.image}
+              alt={testimonial.name}
+              className="size-12 rounded-full object-cover flex-shrink-0"
             />
-
-            <img
-              src="/assets/figma-temp/BlogPage/Group.png"
-              alt="Ulrich House"
-              className="w-full h-auto -mt-2 mb-3"
-            />
-
-            <img
-              src="/assets/figma-temp/BlogPage/Group-2.png"
-              alt="Propiedades"
-              className="w-full h-auto -mt-1"
-            />
-          </div>
-
-          {/* Left side - text */}
-          <div className="relative z-10 lg:w-[327px] flex-shrink-0 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
-                <span
-                  className="text-[16px] sm:text-[18px] font-medium text-[#6a7282]"
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                >
-                  {t("testimonial.badge")}
-                </span>
-              </div>
-
+            <div className="min-w-0">
               <p
-                className="text-[15px] sm:text-[18px] text-[#6a7282] leading-[24px] sm:leading-[26px]"
-                style={{ fontFamily: "Poppins, sans-serif" }}
+                className="text-[16px] sm:text-[18px] font-medium text-[#232323]"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                {t("testimonial.subtitle")}
+                {testimonial.name}
               </p>
-            </div>
-          </div>
-
-          {/* Right side - quote */}
-          <div className="relative z-10 flex-1 max-w-[831px]">
-            <div className="flex flex-col gap-4 sm:gap-5 min-h-[190px]">
-              <QuoteIcon />
-
-              <blockquote
-                className="text-[20px] sm:text-[24px] lg:text-[28px] font-medium text-[#232323] leading-[30px] sm:leading-[34px] lg:leading-[36px]"
-                style={{ fontFamily: "Poppins, sans-serif" }}
+              <p
+                className="text-[14px] sm:text-[16px] text-[#4f4f4f]"
+                style={{ fontFamily: "Montserrat, sans-serif" }}
               >
-                {testimonial.quote}
-              </blockquote>
-            </div>
-
-            {/* Author */}
-            <div className="flex items-center gap-3 sm:gap-4 mt-6 sm:mt-8">
-              <div className="w-[64px] h-[58px] sm:w-[80px] sm:h-[70px] rounded-[14px] sm:rounded-[16px] overflow-hidden flex-shrink-0">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="min-w-0">
-                <p
-                  className="text-[18px] sm:text-[20px] font-medium text-[#0d2138] leading-[28px] sm:leading-[32px]"
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                >
-                  {testimonial.name}
-                </p>
-
-                <p
-                  className="text-[13px] sm:text-[14px] text-[#2b3038]"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  {testimonial.role}
-                </p>
-              </div>
+                {testimonial.role}
+              </p>
             </div>
           </div>
         </div>

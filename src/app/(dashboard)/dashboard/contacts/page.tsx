@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { requireDashboardAccess } from "@/lib/auth";
 import { ContactsPage } from "@/features/dashboard/ContactsPage";
 
-export const metadata: Metadata = { title: "Contacts — Ulrich Propiedades" };
+export const metadata: Metadata = { title: "Contacts — Mobi Prop" };
 
 export default async function DashboardContactsPage() {
   const profile = await requireDashboardAccess("contacts:view");

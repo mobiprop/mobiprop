@@ -1,8 +1,13 @@
 {
   "hero": {
-    "badge": "Propiedades",
-    "title": "Propiedades Exclusivas Destacadas",
-    "subtitle": "Descubrí una amplia variedad de propiedades pensadas para adaptarse a cada necesidad y presupuesto."
+    "badge": "Encontrá el Lugar Perfecto",
+    "title": "Expertos Inmobiliarios de Confianza en Argentina",
+    "subtitle": "Ya sea que estés comprando tu primera casa o invirtiendo en tu futuro, te ofrecemos asesoramiento experto y opciones personalizadas."
+  },
+  "grid": {
+    "badge": "Explorá Propiedades",
+    "title": "Explorá Nuestros Listados",
+    "subtitle": "Propiedades premium seleccionadas en Buenos Aires y alrededores — calidad, ubicación y estilo de vida garantizados."
   },
   "searchBar": {
     "locationLabel": "Ubicación",
@@ -13,8 +18,8 @@
     "propertyTypePlaceholder": "Casa, departamento, oficina",
     "transactionTypeLabel": "Tipo de Transacción",
     "transactionTypePlaceholder": "Venta, Alquiler",
-    "moreFiltersButton": "Más Filtros",
-    "searchButton": "Buscar Propiedades"
+    "moreFiltersButton": "Filtros",
+    "searchButton": "Buscar"
   },
   "filterOptions": {
     "allTypes": "Todos los Tipos",
@@ -32,7 +37,10 @@
     "emptyErrorMessage": "Actualizá la página o intentá nuevamente en un momento.",
     "emptyNoResultsTitle": "Ninguna propiedad coincide con tu búsqueda",
     "emptyNoResultsMessage": "Probá ajustar tus filtros o buscar en otra ubicación.",
-    "clearFiltersButton": "Borrar todos los filtros"
+    "clearFiltersButton": "Borrar todos los filtros",
+    "sortLabel": "Ordenar propiedades",
+    "mostRecent": "Más recientes",
+    "oldest": "Más antiguas"
   },
   "card": {
     "removeSavedAriaLabel": "Quitar de guardados",
@@ -47,7 +55,8 @@
     "beds": "Dormitorios",
     "baths": "Baños",
     "perMonthSuffix": "/mes",
-    "priceOnRequest": "Consultar precio"
+    "priceOnRequest": "Consultar precio",
+    "viewProperty": "Ver Propiedad"
   },
   "map": {
     "title": "Mapa de Propiedades",
@@ -77,6 +86,7 @@
     "pageOption": "Página {{page}}"
   },
   "suggestions": {
+    "badge": "Recomendado",
     "title": "También te podría interesar",
     "subtitle": "Contamos con más de 10 años de experiencia en el mercado inmobiliario"
   },

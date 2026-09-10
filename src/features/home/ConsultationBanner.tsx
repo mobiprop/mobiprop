@@ -1,154 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const bgImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/contactformbg.webp";
-
-function ArrowRight() {
-  return (
-    <svg width="18" height="15" viewBox="0 0 16.4 13.6669" fill="none">
-      <path d={svgPaths.p3ae39900} fill="white" />
-    </svg>
-  );
-}
+const bgImg = "/hero/cta-footer-bg.webp";
 
 export function ConsultationBanner() {
-  const { t } = useTranslation("common");
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    topic: "",
-    message: "",
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  };
+  const { t } = useTranslation("home");
 
   return (
-    <section className="relative w-full py-12 sm:py-16 lg:py-20 overflow-hidden">
-  {/* Background */}
-  <div className="absolute inset-0">
-    <img src={bgImg} alt="" className="w-full h-full object-cover" />
-    <div className="absolute inset-0 bg-[rgba(10,25,53,0.35)]" />
-  </div>
-
-  {/* Card */}
-  <div className="relative z-10 w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto flex justify-center">
-    <div className="bg-white rounded-[18px] sm:rounded-[20px] p-5 sm:p-8 lg:p-10 w-full max-w-[540px] shadow-xl">
-      <h2
-        className="text-[26px] sm:text-[30px] lg:text-[36px] font-medium text-[#0d2138] leading-[34px] sm:leading-[38px] lg:leading-[1.3] mb-5 sm:mb-7"
-        style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-        {t("consultation.heading")}
-      </h2>
-
-      <div className="flex flex-col gap-3 sm:gap-4">
-        {/* Name */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {t("consultation.fullName")}
-          </label>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder={t("consultation.fullNamePlaceholder")}
-            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          />
-        </div>
-
-        {/* Email */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {t("consultation.email")}
-          </label>
-          <input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder={t("consultation.emailPlaceholder")}
-            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          />
-        </div>
-
-        {/* Topic */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {t("consultation.topic")}
-          </label>
-          <input
-            name="topic"
-            value={form.topic}
-            onChange={handleChange}
-            placeholder={t("consultation.topicPlaceholder")}
-            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#6a7282] outline-none focus:border-[#1e4f86] transition-colors"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          />
-        </div>
-
-        {/* Message */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {t("consultation.messages")}
-          </label>
-          <textarea
-            name="message"
-            value={form.message}
-            onChange={handleChange}
-            placeholder={t("consultation.messagesPlaceholder")}
-            rows={4}
-            className="w-full border border-[#d1d5dc] rounded-[10px] px-3 py-3 text-[14px] text-[#99a1af] outline-none focus:border-[#1e4f86] transition-colors resize-none"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          />
-        </div>
-      </div>
-
-      {/* Submit */}
-      <button
-        className="relative mt-5 sm:mt-6 w-full overflow-hidden flex items-center justify-center gap-3 py-[14px] rounded-[48px] text-white text-[14px] sm:text-[16px] font-medium transition-opacity hover:opacity-90 tracking-[-0.01em]"
+    <section className="relative w-full h-[400px] sm:h-[440px] lg:h-[483px] overflow-hidden">
+      <img src={bgImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div
+        className="absolute inset-0"
         style={{
-          fontFamily: "Montserrat, sans-serif",
-          background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-          border: "1px solid #0088ff",
+          background:
+            "linear-gradient(180deg, rgba(0,34,58,0.46) 0%, rgba(0,34,58,0.8) 53%, rgba(0,34,58,0.41) 100%)",
         }}
-      >
-        <span
-          className="absolute inset-0 opacity-25"
-          style={{
-            backgroundImage: "url('/assets/figma-temp/BlogPage/btn-img.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+      />
 
-        <span className="relative z-10 flex items-center justify-center gap-3">
-          {t("consultation.submit")}
-          <ArrowRight />
-        </span>
-      </button>
-    </div>
-  </div>
-</section>
+      <div className="relative z-10 flex h-full flex-col items-center justify-center gap-8 px-6 text-center">
+        <div className="flex w-full max-w-[866px] flex-col items-center gap-5">
+          <div className="flex items-center gap-3 w-full max-w-[866px]">
+            <div className="h-px flex-1 bg-white/30" />
+            <span
+              className="text-[13px] sm:text-[14px] font-medium text-white whitespace-nowrap"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("cta.badge")}
+            </span>
+            <div className="h-px flex-1 bg-white/30" />
+          </div>
+
+          <div className="max-w-[622px]">
+            <h2
+              className="text-[32px] sm:text-[38px] lg:text-[44px] font-normal text-white leading-tight tracking-[-1px]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              {t("cta.title")}
+            </h2>
+            <p
+              className="mt-3.5 leading-[26px] text-[14px] sm:text-[16px] text-[#fbfbfb]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("cta.subtitle")}
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/contact"
+          className="flex h-12 items-center justify-center rounded-[13px] px-7 text-[16px] font-medium text-white"
+          style={{
+            fontFamily: "Montserrat, sans-serif",
+            background: "linear-gradient(163deg, #005ea4 0%, #006fc2 100%)",
+          }}
+        >
+          {t("getInTouch", { ns: "common" })}
+        </Link>
+      </div>
+    </section>
   );
 }

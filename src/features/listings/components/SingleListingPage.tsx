@@ -776,7 +776,16 @@ function operationTypeLabel(t: TFunction, operationType: PublicListingDto["opera
   }
 }
 
+const detailIconNames: Record<string, string> = {
+  Type: "type", Price: "price", Beds: "beds", Baths: "baths", Size: "size",
+  Parking: "parking", "Lot Size": "lot-size", "Built in": "built-in",
+  Floors: "floors", "Property ID": "property-id", "Covered m²": "covered",
+  "Semi-covered m²": "semi-covered",
+};
+
 function statIcon(label: string): React.ReactNode {
+  const name = detailIconNames[label];
+  if (name) return <img src={`/listings/detail-${name}.svg`} width={20} height={20} alt="" aria-hidden="true" />;
   return statCatalog.find((s) => s.label === label)?.icon ?? null;
 }
 
@@ -918,9 +927,9 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
   const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null;
 
   return (
-    <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-16">
+    <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-8 sm:py-12 lg:py-16">
       <h2
-        className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+        className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
         style={{
           fontFamily: "Poppins, sans-serif",
           fontWeight: 500,
@@ -930,7 +939,7 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
         {t("sections.videoPreview")}
       </h2>
 
-      <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px] bg-[#0d2138]">
+      <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[240px] sm:h-[360px] lg:h-[442px] bg-[#0d2138]">
         {!videoUrl ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/60">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
@@ -1031,8 +1040,8 @@ export function SingleListingPageContent({
   const images = mainImage
     ? [mainImage, ...listing.images.filter((img) => img !== mainImage)]
     : listing.images;
-  const sideImages = images.slice(1, 4);
-  const hiddenCount = images.length - 4;
+  const sideImages = images.slice(1, 5);
+  const hiddenCount = images.length - 5;
 
   const stats = buildStats(listing, t);
   const listingAmenities = listing.amenities.map((key) => ({
@@ -1053,7 +1062,7 @@ export function SingleListingPageContent({
     <div className="w-full bg-white">
       <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       {/* Breadcrumb */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-5">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto pt-8 pb-[30px]">
         <p
           className="text-[#0d2138]"
           style={{
@@ -1069,10 +1078,10 @@ export function SingleListingPageContent({
       </div>
 
       {/* Photo Gallery */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto">
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
+        <div className="flex flex-col gap-4 lg:gap-6 items-start">
           {/* Main Image */}
-          <div className="hover-shine relative w-full lg:flex-1 rounded-[14px] sm:rounded-[20px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[536px]">
+          <div className="hover-shine relative w-full rounded-[16px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[560px]">
             <button
               type="button"
               onClick={() => mainImage && setLightboxIndex(0)}
@@ -1129,14 +1138,14 @@ export function SingleListingPageContent({
 
           {/* Side Images */}
           {sideImages.length > 0 ? (
-            <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2 sm:gap-4 w-full lg:w-[342px] lg:shrink-0">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 w-full">
               {sideImages.map((img, i) => (
                 <button
                   key={img.id}
                   type="button"
                   onClick={() => setLightboxIndex(i + 1)}
                   aria-label={t("gallery.openGalleryAtPhotoAria", { number: i + 2 })}
-                  className="hover-shine group relative rounded-[10px] sm:rounded-[12px] overflow-hidden h-[90px] sm:h-[130px] lg:h-[168px] cursor-pointer"
+                  className="hover-shine group relative rounded-[16px] overflow-hidden h-[120px] sm:h-[150px] lg:h-[206px] cursor-pointer"
                 >
                   <img
                     src={img.url}
@@ -1150,7 +1159,7 @@ export function SingleListingPageContent({
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
-                        setLightboxIndex(4);
+                        setLightboxIndex(5);
                       }}
                       className="absolute inset-0 flex items-center justify-center bg-black/55 text-white transition-colors group-hover:bg-black/65"
                     >
@@ -1173,7 +1182,7 @@ export function SingleListingPageContent({
           {/* Title & Location */}
           <div className="flex flex-col gap-2 max-w-full md:max-w-[520px]">
             <h1
-              className="text-[#232323] text-[22px] sm:text-[28px] lg:text-[32px] leading-[32px] sm:leading-[38px] lg:leading-[44px] line-clamp-2"
+              className="text-[#232323] text-[22px] sm:text-[28px] lg:text-[36px] leading-[32px] sm:leading-[38px] lg:leading-[48px] line-clamp-2"
               style={{
                 fontFamily: "Poppins, sans-serif",
                 fontWeight: 500,
@@ -1505,9 +1514,9 @@ export function SingleListingPageContent({
 
       {/* Description */}
 
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-6 sm:py-8">
         <h2
-          className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+          className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
           style={{
             fontFamily: "Poppins, sans-serif",
             fontWeight: 500,
@@ -1529,9 +1538,9 @@ export function SingleListingPageContent({
       </div>
 
       {/* Property Details Stats heading */}
-      <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto pt-3 sm:pt-4">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto pt-3 sm:pt-4">
         <h2
-          className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+          className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
           style={{
             fontFamily: "Poppins, sans-serif",
             fontWeight: 500,
@@ -1542,9 +1551,9 @@ export function SingleListingPageContent({
         </h2>
       </div>
       {/* Property Details Stats */}
-      <div className="bg-[#F8FAFC]">
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-7">
-          <div className="bg-[#f8fafc] rounded-[4px] overflow-hidden">
+      <div className="bg-white">
+        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto pb-0">
+          <div className="bg-[#fafcfe] border border-[#e9e9e9] rounded-[16px] overflow-hidden">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
               {stats.map((stat, i) => {
                 const isLastColLg = (i + 1) % 7 === 0 || i === stats.length - 1;
@@ -1559,7 +1568,7 @@ export function SingleListingPageContent({
                 return (
                   <div
                     key={stat.label}
-                    className={`relative min-h-[78px] px-4 py-6 sm:px-6 sm:py-6 flex flex-col justify-start text-left 
+                    className={`relative min-h-[117px] px-3 py-6 flex flex-col justify-center text-center 
                       ${isLastColLg ? "lg:border-r-0" : "lg:border-r lg:border-[#e5e7eb]"}
                       ${isLastRowLg ? "lg:border-b-0" : "lg:border-b lg:border-[#e5e7eb]"}
                       ${isLastColSm ? "sm:max-lg:border-r-0" : "sm:max-lg:border-r sm:max-lg:border-[#e5e7eb]"}
@@ -1568,24 +1577,24 @@ export function SingleListingPageContent({
                       ${isLastRowXs ? "max-sm:border-b-0" : "max-sm:border-b max-sm:border-[#e5e7eb]"}
                     `}
                   >
-                    <div className="flex flex-col items-center text-left lg:gap-0.5">
-                      <div className="mb-[10px] flex h-[22px] w-[22px] items-center justify-center text-[#0f1f35] [&>svg]:h-[28px] [&>svg]:w-[28px] [&>svg]:stroke-[1.8]">
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <div className="flex h-5 w-5 items-center justify-center text-[#0f1f35] [&>svg]:h-5 [&>svg]:w-5">
                         {stat.icon}
                       </div>
 
                       <p
-                        className="text-[#2b3038] text-[14px] sm:text-[16px] leading-[18px] lg:max-w-[135px]"
+                        className="text-black text-[14px] leading-[16.25px] lg:max-w-[150px]"
                         style={{
-                          fontFamily: "Montserrat, sans-serif",
-                          fontWeight: 600,
-                          letterSpacing: "-3%",
+                          fontFamily: "Poppins, sans-serif",
+                          fontWeight: 500,
+                          letterSpacing: "-0.03em",
                         }}
                       >
                         {t(STAT_LABEL_KEYS[stat.label] ?? stat.label)}
                       </p>
 
                       <p
-                        className="mt-[3px] flex items-center gap-[4px] text-[#2b3038]/60 text-[12px] sm:text-[16px] leading-[18px]"
+                        className="flex items-center gap-1 text-[#6c6c6c] text-[12px] leading-[16.25px]"
                         style={{
                           fontFamily: "Montserrat, sans-serif",
                           fontWeight: 400,
@@ -1638,9 +1647,9 @@ export function SingleListingPageContent({
 
       {/* Features & Amenities */}
       {listingAmenities.length > 0 ? (
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-8 sm:py-12 lg:py-[100px]">
+        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-8 sm:py-12 lg:py-[70px]">
           <h2
-            className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+            className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 500,
@@ -1650,18 +1659,18 @@ export function SingleListingPageContent({
             {t("sections.featuresAmenities")}
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {listingAmenities.map((item) => (
               <div
                 key={item.label}
-                className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[48px] sm:min-h-[50px]"
+                className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[55px]"
               >
                 <div className="shrink-0 flex items-center justify-center [&>svg]:w-[18px] [&>svg]:h-[18px] sm:[&>svg]:w-[20px] sm:[&>svg]:h-[20px]  [&_[fill]:not([fill=none])]:fill-[#1E4F86]">
                   {item.icon}
                 </div>
 
                 <span
-                  className="text-[#2b3038] text-[15px] sm:text-[16px] lg:text-[18px] leading-[20px] sm:leading-[22px]"
+                  className="text-[#2b3038] text-[14px] leading-[21px]"
                   style={{
                     fontFamily: "Poppins, sans-serif",
                     fontWeight: 500,
@@ -1682,9 +1691,9 @@ export function SingleListingPageContent({
 
       {/* On the Map — hidden until the listing has geocoded coordinates */}
       {listing.latitude !== null && listing.longitude !== null ? (
-        <div className="w-[calc(100%-35px)] max-w-[1440px] mx-auto py-6 sm:py-8">
+        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-6 sm:py-8">
           <h2
-            className="text-[#0d2138] mb-4 sm:mb-6 text-[22px] sm:text-[24px] leading-[28px]"
+            className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
             style={{
               fontFamily: "Poppins, sans-serif",
               fontWeight: 500,
@@ -1694,7 +1703,7 @@ export function SingleListingPageContent({
             {t("sections.onTheMap")}
           </h2>
 
-          <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[300px] sm:h-[400px] md:h-[470px] lg:h-[536px]">
+          <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[240px] sm:h-[360px] lg:h-[442px]">
             <PropertyLocationMap
               latitude={listing.latitude}
               longitude={listing.longitude}

@@ -1,7 +1,7 @@
 {
   "listHero": {
-    "badge": "Página del Blog",
-    "title": "Novedades del Mercado Inmobiliario Actual",
+    "badge": "Nuestro blog",
+    "title": "Noticias y artículos",
     "subtitle": "Mantenete al día con análisis de expertos, tendencias del mercado local y guías completas para compradores, vendedores e inversores."
   },
   "card": {
@@ -24,5 +24,18 @@
   "continueReading": {
     "badge": "Más Publicaciones",
     "title": "Seguí Leyendo"
+  },
+  "latest": {
+    "title": "Últimas novedades y tendencias",
+    "categories": [
+      "Todos",
+      "Guía de compra",
+      "Consejos de venta",
+      "Tendencias",
+      "Inversión",
+      "Diseño interior",
+      "Vida de lujo"
+    ],
+    "search": "Buscar artículos"
   }
 }

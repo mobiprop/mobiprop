@@ -1,8 +1,9 @@
+import { AboutPreview } from "@/features/home/AboutPreview";
+import { ListingsExplorer } from "@/features/home/ListingsExplorer";
 import { HeroSection } from "@/features/home/HeroSection";
 import { FeaturedListings } from "@/features/home/FeaturedListings";
 import { FeaturedSpots } from "@/features/home/FeaturedSpots";
-import { WhyUs } from "@/features/home/WhyUs";
-import { OurServices } from "@/features/home/OurServices";
+import { HowItWorks } from "@/features/home/HowItWorks";
 import { Agents } from "@/features/home/Agents";
 import { Testimonial } from "@/features/home/Testimonial";
 import { FAQ } from "@/features/home/FAQ";
@@ -18,10 +19,11 @@ export default async function Home() {
       <HeroSection />
       <FeaturedListings />
       <FeaturedSpots />
-      <WhyUs />
-      <OurServices />
-      <Agents members={teamMembers} />
+      <HowItWorks />
       <Testimonial />
+      <ListingsExplorer />
+      <AboutPreview members={teamMembers} />
+      <Agents members={teamMembers} />
       <FAQ />
       <Blog />
       <ConsultationBanner />

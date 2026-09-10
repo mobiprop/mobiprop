@@ -1,270 +1,35 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import svgPaths from "@/assets/svg-6s7nojygyu";
-import Slider from "react-slick";
+import type { PublicTeamMember } from "./getPublicTeam";
+import { SectionHeading } from "./SectionHeading";
 
-import type { PublicTeamMember } from "@/features/home/getPublicTeam";
+type Agent = { name: string; role: string; photo?: string | null };
 
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-
-// Fallback silhouette shown when a team member has no avatar uploaded yet.
-const agentPlaceholder =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/team-placeholder.webp";
-
-function InstagramIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
-      <path d={svgPaths.p24f75100} fill="#232323" />
-    </svg>
-  );
-}
-
-function LinkedinIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 16.25 16.25" fill="none">
-      <path d={svgPaths.p27b2a380} fill="#232323" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg width="14" height="15" viewBox="0 0 13.7548 15.0095" fill="none">
-      <path d={svgPaths.p478ee00} fill="#232323" />
-    </svg>
-  );
-}
-
-type Agent = {
-  name: string;
-  role: string;
-  photo: string;
-};
-
-function AgentArrow({
-  direction,
-  onClick,
-}: {
-  direction: "previous" | "next";
-  onClick?: () => void;
-}) {
-  const isPrevious = direction === "previous";
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={`${isPrevious ? "Previous" : "Next"} team member`}
-      className={`absolute top-[150px] z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#d1d5dc] bg-white text-[#0d2138] shadow-md transition active:scale-95 ${
-        isPrevious ? "left-3" : "right-3"
-      }`}
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path
-          d={isPrevious ? "M15 18L9 12L15 6" : "M9 18L15 12L9 6"}
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  );
-}
-
-function AgentCard({ agent }: { agent: Agent }) {
-  return (
-    <div className="flex w-full min-w-0 flex-col gap-4">
-      {/* Photo */}
-      <div className="relative h-[300px] w-full overflow-hidden rounded-[20px] lg:h-[372px]">
-        <img
-          src={agent.photo}
-          alt={agent.name}
-          draggable={false}
-          // Both current team photos are landscape shots where the subject
-          // stands right-of-center (office/garden space to their left), so a
-          // dead-center crop clips the right shoulder on the wide 2/3-up
-          // card (>=768px, matching the carousel's own breakpoint above).
-          // On the single-column mobile card the box is much narrower/
-          // taller, so the same shift would crop too much off the same
-          // side instead — keep that one centered, which was never
-          // reported broken.
-          // The >=768px card can also flip from a horizontal to a vertical
-          // crop as the window widens (card gets wider than it is tall
-          // relative to the source photo's aspect ratio), which instead
-          // crops the *top of the head* under a centered vertical position
-          // — bias the crop upward (18% from top) so headroom survives at
-          // every width up to the container's 1440px cap.
-          className="absolute inset-0 h-full w-full object-cover object-center md:object-[65%_18%]"
-        />
-      </div>
-
-      {/* Info */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p
-            className="text-[20px] font-medium leading-[28px] text-[#0d2138] lg:text-[24px]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {agent.name}
-          </p>
-
-          <p
-            className="mt-1 max-w-[160px] text-[14px] text-[#2b3038]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {agent.role}
-          </p>
-        </div>
-
-        <div className="flex flex-shrink-0 gap-2">
-          {[<InstagramIcon key="instagram" />, <LinkedinIcon key="linkedin" />, <XIcon key="x" />].map(
-            (icon, index) => (
-              <button
-                key={index}
-                type="button"
-                aria-label={`Social profile ${index + 1}`}
-                className="flex items-center justify-center rounded-[8px] border border-[#d1d5dc] bg-white p-2 transition-colors hover:bg-gray-50"
-              >
-                {icon}
-              </button>
-            ),
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function Agents({
-  members = [],
-}: {
-  members?: PublicTeamMember[];
-}) {
+export function Agents({ members = [] }: { members?: PublicTeamMember[] }) {
   const { t, i18n } = useTranslation("home");
-  const [slidesToShow, setSlidesToShow] = useState(3);
-
-  useEffect(() => {
-    const updateSlides = () => {
-      const width = Math.min(window.innerWidth, window.screen.width);
-
-      if (width < 768) {
-        setSlidesToShow(1);
-      } else if (width < 1024) {
-        setSlidesToShow(2);
-      } else {
-        setSlidesToShow(3);
-      }
-    };
-
-    updateSlides();
-
-    window.addEventListener("resize", updateSlides);
-    window.addEventListener("orientationchange", updateSlides);
-
-    return () => {
-      window.removeEventListener("resize", updateSlides);
-      window.removeEventListener("orientationchange", updateSlides);
-    };
-  }, []);
-
-  // Admin-selected team (Agents page → "Equipo del Sitio Web"). Falls back to
-  // the hardcoded home.json list when nobody is selected yet, so the section
-  // never renders empty on the live site.
-  const isSpanish = i18n.language?.startsWith("es") ?? false;
-
-  const agents: Agent[] =
-    members.length > 0
-      ? members.map((member) => ({
-          name: member.name,
-          role: isSpanish ? member.titleEs : member.titleEn,
-          photo: member.photo ?? agentPlaceholder,
-        }))
-      : (
-          t("agents.team", {
-            returnObjects: true,
-          }) as { name: string; role: string }[]
-        ).map((member) => ({ ...member, photo: agentPlaceholder }));
-
-  const effectiveSlidesToShow = Math.max(1, Math.min(slidesToShow, agents.length));
-  const canLoop = agents.length > effectiveSlidesToShow;
-
-  const settings = {
-    dots: true,
-    arrows: slidesToShow === 1 && canLoop,
-    prevArrow: <AgentArrow direction="previous" />,
-    nextArrow: <AgentArrow direction="next" />,
-    infinite: canLoop,
-    speed: 900,
-    cssEase: "ease-in-out",
-    slidesToShow: effectiveSlidesToShow,
-    slidesToScroll: 1,
-    autoplay: canLoop,
-    autoplaySpeed: 5000,
-    pauseOnHover: true,
-    swipeToSlide: true,
-    adaptiveHeight: false,
-    variableWidth: false,
-    centerMode: false,
-
-    appendDots: (dots: ReactNode) => (
-      <div>
-        <ul className="mt-6 flex items-center justify-center gap-1.5 sm:mt-8">
-          {dots}
-        </ul>
-      </div>
-    ),
-
-    customPaging: () => (
-      <div className="agent-custom-dot h-2 w-2 cursor-pointer rounded-full bg-[#6a7282] opacity-25 transition-all duration-300" />
-    ),
-  };
+  const isSpanish = i18n.language?.startsWith("es");
+  const agents: Agent[] = members.length
+    ? members.map((member) => ({ name: member.name, role: isSpanish ? member.titleEs : member.titleEn, photo: member.photo }))
+    : t("agents.team", { returnObjects: true }) as Agent[];
 
   return (
-    <section className="overflow-hidden bg-white py-16 lg:py-20">
-      <div className="mx-auto w-[calc(100%_-_32px)] min-w-0 max-w-[1440px] sm:w-[calc(100%_-_35px)]">
-        {/* Header */}
-        <div className="mb-8 flex flex-col items-center gap-3 sm:mb-10 sm:gap-4 lg:mb-12">
-          <div className="flex items-center gap-2">
-            <div className="h-[7px] w-[7px] rounded-full bg-[#4896b6]" />
-
-            <span
-              className="text-[14px] font-medium text-[#6a7282] sm:text-[16px]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {t("agents.badge")}
-            </span>
-          </div>
-
-          <h2
-            className="max-w-[500px] text-center text-[26px] font-semibold leading-[36px] text-[#232323] sm:text-[34px] sm:leading-[42px] lg:text-[44px] lg:leading-tight"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("agents.title")}
-          </h2>
-        </div>
-
-        {/* Slick Slider */}
-        <div className="agents-slider -mx-2 min-w-0 cursor-pointer sm:-mx-3">
-          <Slider key={`agents-slider-${slidesToShow}`} {...settings}>
-            {agents.map((agent, index) => (
-              <div
-                key={`${agent.name}-${index}`}
-                className="min-w-0 cursor-pointer px-2 sm:px-3"
-              >
-                <AgentCard agent={agent} />
+    <section className="home-section bg-white">
+      <div className="home-container flex flex-col items-center gap-10">
+        <SectionHeading badge={t("agents.badge")} title={t("agents.title")} subtitle={t("agents.subtitle")} />
+        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {agents.map((agent) => (
+            <article key={agent.name} className="flex min-w-0 flex-col items-center gap-6 rounded-2xl border border-[#f4f9ff] bg-[#f0f6fa] px-3 py-6 text-center">
+              <div className="relative flex size-[164px] items-center justify-center overflow-hidden rounded-full bg-[#ccdeef]">
+                {agent.photo ? <Image src={agent.photo} alt={agent.name} fill sizes="164px" className="object-cover" /> : <span aria-hidden="true" className="text-4xl text-[#005089]">{agent.name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span>}
               </div>
-            ))}
-          </Slider>
+              <div className="flex flex-col gap-2">
+                <h3 className="text-[22px] font-medium leading-snug tracking-[-0.12px] text-[#00223a] lg:text-2xl">{agent.name}</h3>
+                <p className="text-base leading-relaxed text-[#4f4f4f]" style={{ fontFamily: "Montserrat, sans-serif" }}>{agent.role}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>

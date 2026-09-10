@@ -1,14 +1,47 @@
 {
+  "description": "Ayudamos a cientos de familias e inversores a navegar el mercado inmobiliario de Buenos Aires con confianza y claridad.",
+  "address": "Las Amapolas 455, Manuel Alberti",
+  "phone": "+54 9 11 6920 0999",
+  "email": "hola@mobiprop.com.ar",
+  "copyright": "© 2026 Mobi Prop. Todos los derechos reservados. Matias Ulrich CSI 7311 T10-F309",
+  "columns": {
+    "company": {
+      "heading": "Empresa"
+    },
+    "explore": {
+      "heading": "Explorar"
+    },
+    "support": {
+      "heading": "Ayuda"
+    },
+    "legal": {
+      "heading": "Legal"
+    }
+  },
+  "links": {
+    "rentals": "Alquileres",
+    "commercial": "Comercial",
+    "careers": "Trabajá con nosotros",
+    "press": "Prensa",
+    "listWithUs": "Publicá con nosotros",
+    "newDevelopments": "Emprendimientos",
+    "helpCenter": "Centro de ayuda",
+    "contactUs": "Contactanos",
+    "accessibility": "Accesibilidad",
+    "termsOfService": "Términos del servicio",
+    "cookiePolicy": "Política de cookies",
+    "disclaimer": "Aviso legal",
+    "sitemap": "Mapa del sitio"
+  },
   "newsletterHeadline": "Encontrá tu próxima propiedad.",
   "newsletterSubtext": "Suscribite para recibir las últimas propiedades",
   "emailPlaceholder": "Ingresá tu correo electrónico",
   "subscribe": "Suscribirme",
   "navigationHeading": "Explorá",
   "officeHeading": "Conocénos",
-  "officeAddressLine1": "Tortugas Country Club,",
-  "officeAddressLine2": "Buenos Aires, Argentina, 1667",
+  "officeAddressLine1": "Las Amapolas 455,",
+  "officeAddressLine2": "Manuel Alberti, Buenos Aires",
   "contactHeading": "Contactanos",
-  "copyright": "Ulrich Propiedades © 2026. Todos los derechos reservados.",
   "subscribeModal": {
     "title": "Suscribite a nuestro newsletter",
     "subtitle": "Recibí las últimas propiedades y novedades del mercado en tu correo.",

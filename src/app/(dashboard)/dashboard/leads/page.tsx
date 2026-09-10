@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { requireDashboardAccess } from "@/lib/auth";
 import { LeadsPage } from "@/features/dashboard/LeadsPage";
 
-export const metadata: Metadata = { title: "Leads — Ulrich Propiedades" };
+export const metadata: Metadata = { title: "Leads — Mobi Prop" };
 
 export default async function DashboardLeadsPage() {
   const profile = await requireDashboardAccess("leads:view");

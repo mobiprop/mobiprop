@@ -94,7 +94,9 @@ export type PublishedBlogList = {
 export async function getPublishedBlogPosts({
   page = 1,
   pageSize = 9,
-}: { page?: number; pageSize?: number } = {}): Promise<PublishedBlogList> {
+  query = "",
+  category = "",
+}: { page?: number; pageSize?: number; query?: string; category?: string } = {}): Promise<PublishedBlogList> {
   const safePage = Math.max(1, Math.floor(page) || 1);
   const empty: PublishedBlogList = { posts: [], total: 0, page: safePage, pageSize, totalPages: 0 };
 
@@ -102,7 +104,7 @@ export async function getPublishedBlogPosts({
 
   try {
     await promoteDuePosts();
-    const where = { status: BlogStatus.PUBLISHED };
+    const where: Prisma.BlogPostWhereInput = { status: BlogStatus.PUBLISHED, ...(category ? { category } : {}), ...(query ? { OR: [{ title: { contains: query, mode: "insensitive" } }, { excerpt: { contains: query, mode: "insensitive" } }] } : {}) };
     const [rows, total] = await Promise.all([
       prisma.blogPost.findMany({
         where,

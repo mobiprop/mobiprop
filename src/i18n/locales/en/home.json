@@ -1,13 +1,15 @@
 {
   "hero": {
-    "title": "Your Gateway To Prestige Properties",
-    "subtitle": "Uncover a world of unique homes and unforgettable experiences. Your perfect getaway awaits just a search away!",
+    "badge": "Curated properties",
+    "titlePrefix": "Your gateway to ",
+    "titleAccent": "exclusive properties",
+    "subtitle": "We help you find the place you want to live, invest, or start a new chapter in.",
     "tabBuy": "Buy",
     "tabRent": "Rent",
     "locationLabel": "Location",
     "locationPlaceholder": "Enter city, area, or address",
     "propertyTypeLabel": "Property Type",
-    "priceLabel": "Price",
+    "priceLabel": "Price Range",
     "searchButton": "Search Properties",
     "propertyTypeOptions": {
       "any": "All property types",
@@ -27,17 +29,51 @@
     }
   },
   "featuredListings": {
-    "badge": "Properties",
-    "title": "Featured Luxury Listings",
-    "subtitle": "Handpicked exclusive properties that redefine luxury living",
+    "badge": "Explore Properties",
+    "title": "Explore Listings",
+    "subtitle": "Handpicked premium properties across Buenos Aires and surrounding areas — quality, location, and lifestyle guaranteed.",
     "filterSale": "For Sale",
     "filterRent": "For Rent",
-    "noneAvailable": "No {{filter}} listings available right now."
+    "noneAvailable": "No listings available right now.",
+    "viewAll": "View All Listings",
+    "viewProperty": "View Property"
   },
   "featuredSpots": {
-    "badge": "Location",
-    "title": "Featured Spots",
-    "subtitle": "Explore the areas with the most listings right now"
+    "badge": "Explore Places",
+    "title": "Find Your Place",
+    "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
+    "filters": {
+      "all": "All",
+      "gatedCommunities": "Gated Communities",
+      "apartments": "Apartments",
+      "lots": "Lots",
+      "offices": "Offices",
+      "retail": "Retail Space"
+    }
+  },
+  "howItWorks": {
+    "badge": "How It Works",
+    "title": "Three Steps to Your Dream Property",
+    "subtitle": "Our process is designed to be simple, transparent, and stress-free — from the first search to the final handshake.",
+    "statValue": "100+",
+    "statLabel": "Properties Sold",
+    "steps": [
+      {
+        "label": "STEP 01",
+        "title": "Search & Shortlist",
+        "description": "Browse our verified database. Save favourites, compare properties, and schedule viewings online."
+      },
+      {
+        "label": "STEP 02",
+        "title": "Visit & Evaluate",
+        "description": "Our specialists accompany you, provide market context, and answer every question you have."
+      },
+      {
+        "label": "STEP 03",
+        "title": "Close with Confidence",
+        "description": "Let us take care of the negotiations, legal reviews, and paperwork — all you need to do is sign."
+      }
+    ]
   },
   "whyUs": {
     "badge": "Why Us",
@@ -70,21 +106,50 @@
     "title": "What we offer",
     "subtitle": "We help simplify selling and purchase decisions with a reliable service, speed & transparency",
     "services": [
-      { "title": "Sale", "desc": "We make finding your perfect property effortless and fast." },
-      { "title": "Rentals", "desc": "We make finding your perfect rental effortless in Florida neighborhoods." },
-      { "title": "Valuation", "desc": "We make understanding your home's value and best deals effortless." }
+      {
+        "title": "Sale",
+        "desc": "We make finding your perfect property effortless and fast."
+      },
+      {
+        "title": "Rentals",
+        "desc": "We make finding your perfect rental effortless in Florida neighborhoods."
+      },
+      {
+        "title": "Valuation",
+        "desc": "We make understanding your home's value and best deals effortless."
+      }
     ]
   },
   "agents": {
-    "badge": "Agents",
-    "title": "Meet The Experts Who Make It Happen.",
+    "badge": "Team Members",
+    "title": "Meet The Team",
+    "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
     "team": [
-      { "name": "Rodolfo Ulrich", "role": "Licensed Auctioneer & Responsible Real Estate Broker" },
-      { "name": "Carola Buscaglia", "role": "Real Estate Advisor" }
+      {
+        "name": "Matias Ulrich",
+        "role": "Licensed Auctioneer & Real Estate Broker",
+        "photo": "/team/matias-ulrich.webp"
+      },
+      {
+        "name": "Delfina Cabrera",
+        "role": "Real Estate Advisor",
+        "photo": "/team/delfina-cabrera.webp"
+      },
+      {
+        "name": "Delfina Barberio",
+        "role": "Real Estate Advisor",
+        "photo": "/team/delfina-barberio.webp"
+      },
+      {
+        "name": "Jeronimo Perez B.",
+        "role": "Real Estate Advisor",
+        "photo": "/team/jeronimo-perez.webp"
+      }
     ]
   },
   "testimonial": {
     "badge": "Testimonials",
+    "title": "Why They Choose Us",
     "subtitle": "Here's what clients say about our work. True impressions, built from real projects, real partnerships, and results.",
     "quote": "From the very first contact we felt supported by a team that truly understood our needs. The whole process was clear, agile, and highly professional.",
     "name": "María y Nicolás",
@@ -92,11 +157,61 @@
   },
   "faq": {
     "badge": "FAQ",
-    "title": "Frequent Questions",
+    "title": "Got Questions? We've Got Answers!",
     "blurb": "Have more questions? Our team is happy to help."
   },
   "blog": {
-    "badge": "More Posts",
-    "title": "Continue Reading"
+    "badge": "Our Blog",
+    "title": "Recent Blogposts",
+    "subtitle": "Handpicked premium properties, lifestyle guaranteed.",
+    "readArticle": "Read Article",
+    "readMore": "Read More"
+  },
+  "cta": {
+    "badge": "Explore Properties",
+    "title": "Find Your Perfect Home",
+    "subtitle": "Our expert agents are ready to guide you to the property you deserve."
+  },
+  "explorer": {
+    "badge": "Property Listings",
+    "title": "Explore Listings",
+    "subtitle": "Use the filters to find your next place, then explore its location.",
+    "loading": "Loading properties",
+    "error": "We couldn’t load the properties. Please try again.",
+    "retry": "Try again",
+    "empty": "No properties match this category right now.",
+    "reset": "Show all properties",
+    "viewAll": "Explore Listings",
+    "noPhoto": "Photo coming soon",
+    "showOnMap": "Show {{title}} on the map",
+    "results_one": "{{count}} property",
+    "results_other": "{{count}} properties",
+    "mapLabel": "Property locations",
+    "mapLoading": "Loading the map…",
+    "mapUnavailable": "Explore the location",
+    "mapFallback": "You can still browse the properties and open their locations in Google Maps.",
+    "openMap": "Open in Google Maps"
+  },
+  "aboutPreview": {
+    "badge": "Who We Are",
+    "title": "Built on Trust, Driven by Results.",
+    "description": "Mobi Prop helps you buy, sell, and rent with clarity and confidence. We combine local market knowledge with a personal commitment to your goals.",
+    "cta": "About Us",
+    "specialty": "A team that knows your area",
+    "specialtyDescription": "Personal guidance, from the first visit to closing.",
+    "areaOne": "Zona Norte",
+    "areaOneDescription": "Homes, gated communities, and new places to call home.",
+    "areaTwo": "CABA",
+    "areaTwoDescription": "City living and opportunities to buy, sell, or rent.",
+    "customers": {
+      "value": "100+",
+      "label": "Happy Customers",
+      "description": "Across residential, commercial, and luxury markets nationwide."
+    },
+    "support": {
+      "value": "24/7",
+      "label": "Customer Support",
+      "description": "Trusted by hundreds of buyers, sellers, and investors."
+    }
   }
 }

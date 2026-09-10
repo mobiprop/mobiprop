@@ -8,8 +8,8 @@ type AuthLogoProps = {
 export function AuthLogo({ className = "shrink-0 px-10" }: AuthLogoProps) {
   return (
     <div className={className}>
-      <Link href="/" aria-label="Ulrich Propiedades home">
-        <Image src="/logo.svg" alt="Ulrich Propiedades" width={120} height={44} style={{ height: "auto" }} />
+      <Link href="/" aria-label="Mobi Prop home">
+        <Image src="/mobi-prop-logo-color.svg" alt="Mobi Prop" width={140} height={44} style={{ height: "auto" }} />
       </Link>
     </div>
   );

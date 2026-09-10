@@ -1,56 +1,73 @@
 {
   "hero": {
-    "badge": "Sobre Nosotros",
-    "title": "Más que una inmobiliaria, un aliado en cada operación.",
-    "subtitle": "Acompañamos a compradores, vendedores e inversores con asesoramiento profesional."
+    "badge": "Propiedades seleccionadas",
+    "title": "Tu próximo capítulo con nosotros",
+    "subtitle": "Ya sea que estés comprando tu primera casa o invirtiendo en tu futuro, te ofrecemos asesoramiento experto y opciones a tu medida."
   },
-  "ourStory": {
-    "badge": "Nuestra Historia",
-    "title": "Te contamos más sobre nosotros",
-    "paragraph": "Con más de 10 años en el rubro inmobiliario, en Ulrich Propiedades creemos que cada operación inmobiliaria merece un enfoque personalizado. Combinamos experiencia, innovación y atención al detalle para brindar un servicio transparente y eficiente, adaptado a las necesidades de cada cliente. Desde la tasación inicial hasta la escritura, acompañamos cada etapa del proceso con profesionalismo, asesoramiento constante y una estrategia comercial diseñada para obtener los mejores resultados."
+  "story": {
+    "sectionLabel": "Nuestra Historia",
+    "heading": "Nacimos de una necesidad real.",
+    "paragraph1": "En 2019, un grupo de profesionales del sector inmobiliario e ingenieros de software se unió para digitalizar el mercado inmobiliario argentino. Vimos cuánto tiempo, dinero y estrés les costaba a las familias encontrar su hogar.",
+    "paragraph2": "Hoy somos una plataforma en crecimiento, con presencia en Buenos Aires y agentes locales que conocen cada barrio en profundidad.",
+    "cta": "Contactanos",
+    "vision": {
+      "title": "Nuestra Visión",
+      "desc": "Ser el socio de confianza de cada familia e inversor que busca su próxima propiedad en Buenos Aires."
+    },
+    "mission": {
+      "title": "Nuestra Misión",
+      "desc": "Brindar un proceso claro, transparente y guiado por datos que fortalezca cada decisión inmobiliaria."
+    },
+    "commitment": {
+      "title": "Nuestro Compromiso",
+      "desc": "Nos enfocamos en la confianza, el acompañamiento y resultados sostenibles a largo plazo."
+    },
+    "leftHeading": "Nacida de una necesidad real del mercado."
+  },
+  "stats": [
+    {
+      "value": "12.400+",
+      "label": "Familias asesoradas",
+      "desc": "Desde Buenos Aires al sur del país"
+    },
+    {
+      "value": "3.800+",
+      "label": "Propiedades vendidas",
+      "desc": "En cinco ciudades argentinas"
+    },
+    {
+      "value": "98%",
+      "label": "Tasa de satisfacción",
+      "desc": "Según encuestas post-operación"
+    },
+    {
+      "value": "5 años",
+      "label": "En el mercado",
+      "desc": "Líderes en innovación inmobiliaria"
+    }
+  ],
+  "expertise": {
+    "badge": "Nuestra Experiencia",
+    "title": "Experiencia y Excelencia en Cada Detalle",
+    "subtitle": "Mobi Prop aporta claridad y confianza a cada etapa de tu compra — combinando visión de mercado y sensibilidad de diseño.",
+    "cards": [
+      {
+        "title": "Ventas y Asesoramiento",
+        "desc": "Guía experta en cada paso — desde la primera consulta hasta la entrega final, garantizando una compra fluida y segura."
+      },
+      {
+        "title": "Selección Premium de Propiedades",
+        "desc": "Cada propiedad es seleccionada por su diseño, calidad y confort, reflejando nuestro compromiso con lo moderno y minimalista."
+      },
+      {
+        "title": "Soporte Post-Venta",
+        "desc": "Nuestro compromiso no termina con la venta — estamos para que cada cliente se sienta acompañado y valorado."
+      }
+    ]
   },
   "gallery": {
     "badge": "Nuestra Galería",
-    "title": "Descubrí propiedades que inspiran",
-    "subtitle": "Una selección de propiedades que reflejan la calidad, el diseño y la diversidad del mercado inmobiliario."
-  },
-  "expertise": {
-    "badge": "Nuestra Experiencia",
-    "title": "Experiencia, estrategia y resultados en cada operación.",
-    "subtitle": "Brindamos un servicio integral para que comprar, vender o invertir sea una experiencia clara, eficiente y segura.",
-    "cards": [
-      {
-        "title": "Compra y Venta de Propiedades",
-        "desc": "Acompañamos todo el proceso de compraventa, desde la tasación y comercialización hasta la negociación y la escritura."
-      },
-      {
-        "title": "Comercialización Estratégica",
-        "desc": "Fotografía profesional, video, recorridos virtuales, campañas digitales y presencia en los principales portales inmobiliarios."
-      },
-      {
-        "title": "Asesoramiento Integral",
-        "desc": "Te acompañamos antes, durante y después de la operación para que cada decisión esté respaldada por información y experiencia."
-      }
-    ]
-  },
-  "aboutSection": {
-    "badge": "About Us",
-    "heading": "Construimos relaciones antes que operaciones.",
-    "paragraph1": "Cada cliente tiene objetivos diferentes. Por eso desarrollamos estrategias a medida para quienes buscan vender, comprar, alquilar o invertir, acompañándolos en cada etapa con compromiso, transparencia y profesionalismo.",
-    "paragraph2": "Nuestro objetivo no es simplemente cerrar una operación, sino convertirnos en un asesor inmobiliario de confianza para el largo plazo.",
-    "stats": [
-      {
-        "label": "Acompañamiento Personalizado",
-        "desc": "Cada cliente cuenta con asesoramiento profesional durante todas las etapas de la operación."
-      },
-      {
-        "label": "Servicio Integral",
-        "desc": "Te acompañamos desde la tasación y comercialización hasta la firma de la escritura."
-      },
-      {
-        "label": "Comunicación Permanente",
-        "desc": "Mantenemos un contacto constante para que siempre conozcas el estado de tu operación."
-      }
-    ]
+    "title": "Momentos Capturados con Estilo",
+    "subtitle": "Explorá imágenes de alta calidad que reflejan diseño, confort, ubicación y estilo de vida."
   }
 }

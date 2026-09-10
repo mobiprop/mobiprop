@@ -1,7 +1,7 @@
 {
   "hero": {
     "title": "Frequently Asked Questions",
-    "subtitle": "Find answers to the most common questions about buying, selling, and renting property with Ulrich Propiedades.",
+    "subtitle": "Find answers to the most common questions about buying, selling, and renting property with Mobi Prop.",
     "searchPlaceholder": "Search",
     "popularLabel": "Popular questions:",
     "popularTags": [
@@ -37,7 +37,7 @@
     {
       "id": "generalInformation-2",
       "categoryId": "generalInformation",
-      "question": "What makes Ulrich Propiedades different?",
+      "question": "What makes Mobi Prop different?",
       "answer": "We combine experience, technology, and proprietary processes to deliver a more organized, transparent, and efficient real estate experience."
     },
     {

@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { LoginPageContent } from "@/features/auth/LoginPage";
 
 export const metadata: Metadata = {
-  title: "Login — Ulrich Propiedades",
-  description: "Sign in to your Ulrich Propiedades account.",
+  title: "Login — Mobi Prop",
+  description: "Sign in to your Mobi Prop account.",
 };
 
 export default function LoginPage() {

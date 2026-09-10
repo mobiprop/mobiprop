@@ -4,65 +4,47 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { motion, useScroll, useTransform } from "framer-motion";
-import svgPaths from "@/assets/svg-6s7nojygyu";
 
-const heroImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/homehero-2026.webp";
+const heroImg = "/hero/hero-home.webp";
 
-function LocationIcon() {
+function PinIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 11.6667 14.3333" fill="none">
-      <path
-        d={svgPaths.p1fff3000}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d={svgPaths.p1a179d80}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M5.83333 13.8333C8.5 11.1667 11.1667 8.77885 11.1667 5.83333C11.1667 2.88781 8.77885 0.5 5.83333 0.5C2.88781 0.5 0.5 2.88781 0.5 5.83333C0.5 8.77885 3.16667 11.1667 5.83333 13.8333Z" stroke="#005089" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.83301 7.83331C6.93758 7.83331 7.83301 6.93788 7.83301 5.83331C7.83301 4.72874 6.93758 3.83331 5.83301 3.83331C4.72844 3.83331 3.83301 4.72874 3.83301 5.83331C3.83301 6.93788 4.72844 7.83331 5.83301 7.83331Z" stroke="#005089" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function BuildingIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 14.3333 13" fill="none">
-      <path
-        d={svgPaths.p3c430c00}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M7.83333 5.83333H11.0333C11.7801 5.83333 12.1534 5.83333 12.4387 5.97866C12.6895 6.10649 12.8935 6.31046 13.0213 6.56135C13.1667 6.84656 13.1667 7.21993 13.1667 7.96667V12.5M7.83333 12.5V2.63333C7.83333 1.8866 7.83333 1.51323 7.68801 1.22801C7.56018 0.97713 7.3562 0.773156 7.10532 0.645325C6.8201 0.500001 6.44674 0.500001 5.7 0.500001H3.3C2.55326 0.500001 2.17989 0.500001 1.89468 0.645325C1.6438 0.773156 1.43982 0.97713 1.31199 1.22801C1.16667 1.51323 1.16667 1.8866 1.16667 2.63333V12.5M13.8333 12.5H0.5M3.5 3.16667H5.5M3.5 5.83333H5.5M3.5 8.5H5.5" stroke="#005089" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function DollarIcon() {
   return (
-    <svg width="14" height="16" viewBox="0 0 9 14.3333" fill="none">
-      <path
-        d={svgPaths.p16a08f00}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
+      <path d="M2.5 9.83333C2.5 11.3061 3.69391 12.5 5.16667 12.5H7.83333C9.30609 12.5 10.5 11.3061 10.5 9.83333C10.5 8.36057 9.30609 7.16667 7.83333 7.16667H5.16667C3.69391 7.16667 2.5 5.97276 2.5 4.5C2.5 3.02724 3.69391 1.83333 5.16667 1.83333H7.83333C9.30609 1.83333 10.5 3.02724 10.5 4.5M6.5 0.5V13.8333" stroke="#005089" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function ChevronDown() {
   return (
-    <svg width="12" height="8" viewBox="0 0 11 6" fill="none">
-      <path
-        d="M0.5 0.5L5.5 5.5L10.5 0.5"
-        stroke="black"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="12" height="7" viewBox="0 0 12 7" fill="none">
+      <path d="M1 1L6 6L11 1" stroke="#9A9A9A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="white" strokeWidth="1.5" />
+      <path d="M11 11L14 14" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -85,14 +67,38 @@ const PRICE_VALUES = [
   { value: { min: "5000000", max: "" }, labelKey: "hero.priceOptions.over5m" },
 ] as const;
 
-/** Pill-styled dropdown matching the Figma hero search fields. */
-function HeroDropdown({
+/** Field label + value button matching the Figma search bar fields. */
+function SearchField({
+  label,
   icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-1 min-w-0 flex-col gap-1.5">
+      <p
+        className="text-[11px] sm:text-[12px] font-medium uppercase tracking-[0.6px] text-[#4f4f4f]"
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
+        {label}
+      </p>
+      <div className="flex h-[46px] items-center gap-2 rounded-xl border border-[#e9e9e9] bg-[#fafafa] px-3">
+        {icon}
+        {children}
+        <ChevronDown />
+      </div>
+    </div>
+  );
+}
+
+function FieldDropdown({
   options,
   selectedIndex,
   onSelect,
 }: {
-  icon: React.ReactNode;
   options: { label: string }[];
   selectedIndex: number;
   onSelect: (index: number) => void;
@@ -110,37 +116,30 @@ function HeroDropdown({
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative w-full">
+    <div ref={rootRef} className="relative min-w-0 flex-1">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-[50px] lg:h-[54px] w-full items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5 cursor-pointer"
+        className="w-full min-w-0 truncate text-left text-[14px] text-[#4f4f4f]"
+        style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        <div className="flex min-w-0 items-center gap-3 text-[#4a5565]">
-          {icon}
-          <span
-            className="truncate text-[14px]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {options[selectedIndex]?.label}
-          </span>
-        </div>
-        <ChevronDown />
+        {options[selectedIndex]?.label}
       </button>
       {open ? (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full z-50 max-h-[280px] overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
+        <div className="absolute bottom-[calc(100%+24px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
           {options.map((opt, index) => (
             <button
               key={opt.label}
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onSelect(index);
                 setOpen(false);
               }}
-              className={`w-full px-4 py-2.5 text-left text-[14px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
-                index === selectedIndex ? "text-[#00528f] font-medium" : "text-[#4a5565]"
+              className={`w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#f3f4f6] ${
+                index === selectedIndex ? "font-medium text-[#005089]" : "text-[#4f4f4f]"
               }`}
-              style={{ fontFamily: "Poppins, sans-serif" }}
+              style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {opt.label}
             </button>
@@ -174,7 +173,6 @@ export function HeroSection() {
   const [typeIndex, setTypeIndex] = useState(0);
   const [priceIndex, setPriceIndex] = useState(0);
 
-  // Available-location suggestions for the typed search.
   const [locationOpen, setLocationOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const locationRef = useRef<HTMLDivElement>(null);
@@ -217,199 +215,188 @@ export function HeroSection() {
   }
 
   return (
-    <section
-      ref={heroRef}
-      className="relative w-full min-h-[760px] sm:min-h-[820px] lg:min-h-[960px] xl:min-h-[950px]"
-    >
-      <div className="absolute inset-0 overflow-hidden">
+    <section ref={heroRef} className="flex w-full justify-center px-4 pt-4">
+      {/* justify-center on a w-full parent centers this box — no mx-auto,
+         no width-reducing calc() on the card itself, so there's no
+         margin/width sub-pixel split to round asymmetrically left vs
+         right. The parent's own padding (not a calc() subtraction) is
+         what creates the mobile edge gutter. */}
+      <div className="hero-fill-height relative flex w-full max-w-[var(--space-fluid-container-max)] flex-col overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
-          alt="Luxury property"
-          className="h-full w-full object-fill scale-[1.15]"
-          style={{ y: imgY }}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ y: imgY, scale: 1.18 }}
         />
-        <div className="absolute inset-0 bg-[rgba(20,78,128,0.12)]" />
-        <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.62)] to-[rgba(255,255,255,0.9)]" />
-      </div>
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, rgba(5,22,44,0.054) 0%, rgba(5,22,44,0.036) 45%, rgba(81,81,81,0.071) 74.8%, rgba(102,102,102,0.071) 86.25%, rgba(248,250,252,0.046) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.1) 54%, rgba(0,0,0,0.4) 100%)",
+          }}
+        />
 
-      <div className="relative z-10 flex min-h-[calc(100vh-70px)] flex-col items-center px-4 pt-[70px] pb-6 sm:pt-[90px] lg:pt-[95px]">
-  <motion.div
-    className="mx-auto max-w-[760px] text-center text-white"
-    initial={{ opacity: 0.2, y: 60, scale: 0.95 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    transition={{ duration: 1, ease: "easeOut" }}
-  >
-    <h1
-      className="mb-4 sm:mb-5 capitalize text-[32px] sm:text-[42px] md:text-[54px] lg:text-[60px] leading-[39px] sm:leading-[50px] md:leading-[64px] lg:leading-[70px]"
-      style={{
-        fontFamily: "Poppins, sans-serif",
-        fontWeight: 500,
-        letterSpacing: "0",
-      }}
-    >
-      {t("hero.title")}
-    </h1>
-
-    <p
-      className="mx-auto max-w-[620px] text-[14px] sm:text-[16px] lg:text-[17px] leading-[22px] sm:leading-[24px] opacity-95"
-      style={{
-        fontFamily: "Poppins, sans-serif",
-      }}
-    >
-      {t("hero.subtitle")}
-    </p>
-  </motion.div>
-
-  <motion.div
-    className="mt-auto w-full max-w-[1370px] px-0 pb-4 sm:px-4 lg:pb-6"
-    initial={{ opacity: 0, y: 40 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.7, ease: "easeOut", delay: 0.35 }}
-  >
-    <div className="flex pl-0">
-      <button
-        onClick={() => setActiveTab("buy")}
-        className={`h-[52px] sm:h-[56px] lg:h-[60px] w-[130px] sm:w-[145px] text-[14px] font-medium transition-all border-t border-l border-r rounded-tl-2xl ${
-          activeTab === "buy"
-            ? "bg-white text-[#00528f] border-[#e8e8e8]"
-            : "bg-[rgba(0,0,0,0.58)] text-white border-[#d5d5d552]"
-        }`}
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {t("hero.tabBuy")}
-      </button>
-
-      <button
-        onClick={() => setActiveTab("rent")}
-        className={`h-[52px] sm:h-[56px] lg:h-[60px] w-[130px] sm:w-[145px] text-[14px] font-normal transition-all border-t border-r ${
-          activeTab === "rent"
-            ? "bg-white text-[#00528f] border-[#e8e8e8]"
-            : "bg-[rgba(0,0,0,0.58)] text-white border-[#d5d5d552]"
-        }`}
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {t("hero.tabRent")}
-      </button>
-    </div>
-
-    <div className="rounded-b-[16px] rounded-tr-[16px] border border-[#e8e8e8] bg-white shadow-[0px_18px_45px_rgba(15,23,42,0.08)]">
-      <div className="flex flex-col items-stretch gap-4 p-4 sm:p-5 lg:flex-row lg:items-end lg:gap-5 lg:px-8 lg:py-6">
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("hero.locationLabel")}
-          </p>
-
-          <div ref={locationRef} className="relative w-full">
-            <div className="flex h-[50px] lg:h-[54px] items-center justify-between gap-3 rounded-[52px] border border-[#e2e5ea] bg-white px-4 lg:px-5">
-              <div className="flex min-w-0 flex-1 items-center gap-3 text-[#4a5565]">
-                <LocationIcon />
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => {
-                    setLocation(e.target.value);
-                    setLocationOpen(true);
-                  }}
-                  onFocus={() => setLocationOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSearch();
-                  }}
-                  placeholder={t("hero.locationPlaceholder")}
-                  className="w-full min-w-0 bg-transparent text-[16px] sm:text-[14px] text-[#0d2138] placeholder:text-[#4a5565] outline-none"
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                  aria-label={t("hero.locationLabel")}
-                />
+        {/* flex-1 stretches this to the card's full hero-fill-height; the
+           parent card is a column flex, so this is the sole flex item and
+           fills 100% of it. min-h is a defensive floor, not the driver of
+           height anymore. justify-between pins the text block at the top
+           and the search bar at the bottom, absorbing any extra vertical
+           space between them instead of leaving it stranded below the
+           search bar on tall viewports. */}
+        <div
+          className="home-hero-content relative z-10 flex min-h-[500px] flex-1 flex-col justify-between gap-12"
+        >
+          <div style={{ paddingTop: "clamp(112px, 14.583vw, 210px)" }}>
+            <motion.div
+              className="flex max-w-[720px] flex-col gap-4"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
+                <span className="size-1.5 shrink-0 rounded-full bg-[#fafafa]" />
+                <span
+                  className="text-[11px] leading-4 uppercase tracking-[1.2px] text-white"
+                  style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
+                >
+                  {t("hero.badge")}
+                </span>
               </div>
-              <ChevronDown />
+
+              <h1
+                className="text-white"
+                style={{
+                  fontFamily: "neue-haas-grotesk-display, Helvetica Neue, Arial, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "clamp(32px, 3.681vw, 53px)",
+                  lineHeight: 1.25,
+                }}
+              >
+                {t("hero.titlePrefix")}
+                <span style={{ fontFamily: "'ivypresto-display', Georgia, serif", fontStyle: "italic", fontWeight: 400 }}>
+                  {t("hero.titleAccent")}
+                </span>
+              </h1>
+
+              <p
+                className="max-w-[592px] text-white/90"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontSize: "clamp(16px, 1.25vw, 18px)",
+                  lineHeight: 1.45,
+                }}
+              >
+                {t("hero.subtitle")}
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Search bar — justify-between on the parent pins this to the
+             bottom of the hero; no margin-top needed to create the gap. */}
+          <motion.div
+            className="home-hero-search w-full self-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
+          >
+            <div className="flex w-fit">
+              {(["buy", "rent"] as const).map((tab) => {
+                const active = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={`relative h-12 px-7 text-[14px] font-medium capitalize tracking-[0.35px] transition-colors ${
+                      active
+                        ? "rounded-tl-xl bg-white text-[#005089] shadow-[0px_1px_1.5px_rgba(0,0,0,0.1)]"
+                        : "rounded-tr-xl bg-white/10 text-white"
+                    }`}
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                  >
+                    {tab === "buy" ? t("hero.tabBuy") : t("hero.tabRent")}
+                    {active && (
+                      <span className="absolute bottom-[6px] left-1/2 h-0.5 w-[42px] -translate-x-1/2 rounded-full bg-[#005089]" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {locationOpen && suggestions.length > 0 ? (
-              <div className="absolute top-[calc(100%+6px)] left-0 w-full z-50 max-h-[280px] overflow-y-auto overscroll-contain rounded-[16px] border border-[#e2e5ea] bg-white py-1 shadow-lg">
-                {suggestions.map((sugg) => (
-                  <button
-                    key={sugg}
-                    type="button"
-                    onClick={() => {
-                      setLocation(sugg);
-                      setLocationOpen(false);
+            <div className="flex flex-col gap-4 rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white p-5 shadow-[0px_25px_25px_rgba(0,0,0,0.06)] lg:flex-row lg:items-end lg:gap-[18px] lg:pb-9">
+              <SearchField label={t("hero.locationLabel")} icon={<PinIcon />}>
+                <div ref={locationRef} className="relative min-w-0 flex-1">
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => {
+                      setLocation(e.target.value);
+                      setLocationOpen(true);
                     }}
-                    className="w-full truncate px-4 py-2.5 text-left text-[14px] text-[#4a5565] hover:bg-[#f3f4f6] transition-colors cursor-pointer"
-                    style={{ fontFamily: "Poppins, sans-serif" }}
-                  >
-                    {sugg}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
+                    onFocus={() => setLocationOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
+                    placeholder={t("hero.locationPlaceholder")}
+                    className="w-full min-w-0 bg-transparent text-[14px] text-[#4f4f4f] placeholder:text-[#9a9a9a] outline-none"
+                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    aria-label={t("hero.locationLabel")}
+                  />
+                  {locationOpen && suggestions.length > 0 ? (
+                    <div className="absolute bottom-[calc(100%+24px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
+                      {suggestions.map((sugg) => (
+                        <button
+                          key={sugg}
+                          type="button"
+                          onClick={() => {
+                            setLocation(sugg);
+                            setLocationOpen(false);
+                          }}
+                          className="w-full truncate px-4 py-2.5 text-left text-[14px] text-[#4f4f4f] transition-colors hover:bg-[#f3f4f6]"
+                          style={{ fontFamily: "Montserrat, sans-serif" }}
+                        >
+                          {sugg}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </SearchField>
+
+              <div className="hidden h-[46px] w-px bg-[#e9e9e9] lg:block" />
+
+              <SearchField label={t("hero.propertyTypeLabel")} icon={<BuildingIcon />}>
+                <FieldDropdown options={propertyTypeOptions} selectedIndex={typeIndex} onSelect={setTypeIndex} />
+              </SearchField>
+
+              <div className="hidden h-[46px] w-px bg-[#e9e9e9] lg:block" />
+
+              <SearchField label={t("hero.priceLabel")} icon={<DollarIcon />}>
+                <FieldDropdown options={priceOptions} selectedIndex={priceIndex} onSelect={setPriceIndex} />
+              </SearchField>
+
+              <button
+                onClick={handleSearch}
+                className="flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-xl px-6 text-[14px] font-medium text-white sm:mb-0"
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)",
+                }}
+              >
+                <SearchIcon />
+                {t("hero.searchButton")}
+              </button>
+            </div>
+          </motion.div>
         </div>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("hero.propertyTypeLabel")}
-          </p>
-
-          <HeroDropdown
-            icon={<BuildingIcon />}
-            options={propertyTypeOptions}
-            selectedIndex={typeIndex}
-            onSelect={setTypeIndex}
-          />
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p
-            className="text-[14px] font-medium text-[#0d2138]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {t("hero.priceLabel")}
-          </p>
-
-          <HeroDropdown
-            icon={<DollarIcon />}
-            options={priceOptions}
-            selectedIndex={priceIndex}
-            onSelect={setPriceIndex}
-          />
-        </div>
-
-        <button
-          onClick={handleSearch}
-          className="relative h-[50px] lg:h-[54px] flex-shrink-0 overflow-hidden whitespace-nowrap rounded-[48px] px-8 text-[15px] lg:text-[16px] font-medium text-white transition-opacity hover:opacity-90 lg:w-[212px] flex items-center justify-center gap-1"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-            border: "1px solid #0088ff",
-          }}
-        >
-          <span
-            className="absolute inset-0 opacity-25"
-            style={{
-              backgroundImage:
-                "url('/assets/figma-temp/BlogPage/btn-img.png')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-
-          <span className="relative z-10">{t("hero.searchButton")}</span>
-        </button>
       </div>
-    </div>
-  </motion.div>
-</div>
     </section>
   );
 }

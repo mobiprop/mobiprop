@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { requireDashboardAccess } from "@/lib/auth";
 import { LeadDetailPage } from "@/features/dashboard/LeadDetailPage";
 
-export const metadata: Metadata = { title: "Lead Details — Ulrich Propiedades" };
+export const metadata: Metadata = { title: "Lead Details — Mobi Prop" };
 
 export default async function DashboardLeadDetailPage({
   params,

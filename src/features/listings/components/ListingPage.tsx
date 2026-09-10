@@ -1,16 +1,14 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import { motion, useScroll, useTransform } from "framer-motion";
+
 import { queryKeys } from "@/lib/query-keys";
 import { useShallow } from "zustand/react/shallow";
 import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
-import svgPaths from "./svgPaths";
 import { FiltersModal, type FiltersState } from "./FiltersModal";
 import {
   LISTINGS_PAGE_SIZE as PAGE_SIZE,
@@ -24,302 +22,14 @@ import {
 } from "@/stores/useListingFilterStore";
 import type { PublicListingDto } from "../types/listing-dto";
 import { PropertyMapModal } from "@/components/maps/PropertyMapModal";
-import {
-  formatArea,
-  formatBaths,
-  formatBeds,
-  listingDisplayPrice,
-  listingTags,
-  propertyTypeLabel,
-} from "../utils/format";
-import { useSavedListings } from "@/hooks/useSavedListings";
-import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
-const heroImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
-const cloudsImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.webp";
-const fallbackImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
+import { propertyTypeLabel } from "../utils/format";
+import { PropertyCard } from "./PropertyCard";
+import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 /* ─── icon helpers ─── */
-function SquareArrowIcon() {
-return (
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-   <path
-      d="M16.25 7.5H12.5V3.75"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M3.75 12.5H7.5V16.25"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M12.5 16.25V12.5H16.25"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M7.5 3.75V7.5H3.75"
-      stroke="#2B3038"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-</svg>
-);
+function ChevronDown() {
+return <img src="/listings/chevron-down.svg" alt="" width={16} height={16} className="size-4 shrink-0" />;
 }
-function BedIcon({ color = "#2B3038" }: { color?: string }) {
-return (
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-   <path
-      d={svgPaths.p48eb680}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M1.875 16.25V3.75"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M1.875 13.125H19.375V16.25"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M8.75 6.25H1.875"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-</svg>
-);
-}
-function BathIcon({ color = "#2B3038" }: { color?: string }) {
-return (
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-   <path
-      d="M5.625 15V16.875"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d="M14.375 15V16.875"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d={svgPaths.p376e01f0}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d={svgPaths.p3f8783b0}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-   <path
-      d={svgPaths.p35ecd900}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.25"
-      />
-</svg>
-);
-}
-function PinIcon({ color = "#2B3038" }: { color?: string }) {
-return (
-<svg width="12" height="15" viewBox="0 0 11.6667 14.3333" fill="none">
-   <path
-      d={svgPaths.p1fff3000}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      />
-   <path
-      d={svgPaths.p1a179d80}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      />
-</svg>
-);
-}
-function HeartIcon({ filled }: { filled: boolean }) {
-return (
-<svg
-width="16"
-height="16"
-viewBox="0 0 16 16"
-fill={filled ? "#ef4444" : "none"}
->
-<path
-d={svgPaths.p2a65c600}
-stroke={filled ? "#ef4444" : "#6A7282"}
-strokeLinecap="round"
-strokeLinejoin="round"
-/>
-</svg>
-);
-}
-function ChevronDown({ color = "#6A7282" }: { color?: string }) {
-return (
-<svg width="12" height="7" viewBox="0 0 11.774 6.774" fill="none">
-   <path
-      d={svgPaths.p1485b700}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.77"
-      />
-</svg>
-);
-}
-function MapIcon() {
-return (
-<svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-   <path
-      d={svgPaths.p277d2000}
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.4"
-      />
-</svg>
-);
-}
-/* ─── card component (vertical only) ─── */
-function PropertyCard({ item }: { item: PublicListingDto }) {
-const { t } = useTranslation("listings");
-const [loginOpen, setLoginOpen] = useState(false);
-const { isSaved, toggleSave } = useSavedListings();
-const saved = isSaved(item.listingId);
-return (
-<>
-<LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-<Link
-   href={`/listings/${item.slug}`}
-   className="flex flex-col gap-[20px] items-start w-full group"
-   >
-{/* Image */}
-<div className="hover-shine relative w-full h-[296px] rounded-[16px] overflow-hidden flex-shrink-0">
-   <img
-      src={item.coverImageUrl ?? fallbackImg}
-      alt={item.title}
-      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-      />
-   {/* Tags top-left */}
-   <div className="absolute top-4 left-4 flex gap-1">
-      {listingTags(item, t).map((tag) => (
-      <span
-      key={tag}
-      className="bg-white opacity-90 px-3 py-[4px] rounded-[36px] text-[14px] text-[#0d2138]"
-      style={{ fontFamily: "Montserrat, sans-serif" }}
-      >
-      {tag}
-      </span>
-      ))}
-   </div>
-   {/* Heart button top-right */}
-   <button
-      onClick={(e) =>
-      {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleSave(item.listingId, () => setLoginOpen(true));
-      }}
-      aria-label={saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
-      className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"
-      >
-      <HeartIcon filled={saved} />
-   </button>
-</div>
-{/* Info */}
-<div className="flex flex-col gap-[10px] items-start w-full">
-   {/* Title row */}
-   <div className="flex items-center sm:items-start justify-between w-full pb-[10px] border-b border-[#e5e7eb]">
-      <div className="flex flex-col gap-[2px]">
-         <p
-         className="text-[18px] lg:text-[20px] font-medium text-[#0d2138] leading-[24px] line-clamp-2 max-w-[260px]"
-         style={{ fontFamily: "Poppins, sans-serif" }}
-         >
-         {item.title}
-         </p>
-         <div className="flex items-center gap-1">
-            <PinIcon color="#2B3038" />
-            <span
-            className="text-[14px] text-[#0d2138] leading-[20px] truncate max-w-[180px]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-            {item.location}
-            </span>
-         </div>
-      </div>
-      <p
-      className="text-[17px] sm:text-[18px] font-semibold text-[#2b3038] leading-[26px] whitespace-nowrap text-right"
-      style={{ fontFamily: "Poppins, sans-serif" }}
-      >
-      {listingDisplayPrice(item, t)}
-      </p>
-   </div>
-   {/* Stats row */}
-   <div className="flex items-center gap-5">
-      <div className="flex items-center gap-[7px]">
-         <SquareArrowIcon />
-         <span
-         className="text-[14px] text-[#2b3038]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         {formatArea(item.totalAreaM2)}
-         </span>
-      </div>
-      <div className="flex items-center gap-[7px]">
-         <BedIcon />
-         <span
-         className="text-[14px] text-[#2b3038]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         {formatBeds(item.bedrooms, t)}
-         </span>
-      </div>
-      <div className="flex items-center gap-[7px]">
-         <BathIcon />
-         <span
-         className="text-[14px] text-[#2b3038]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
-         >
-         {formatBaths(item.bathrooms, t)}
-         </span>
-      </div>
-   </div>
-</div>
-</Link>
-</>
-);
-}
+function MapIcon() { return <img src="/listings/map.svg" alt="" width={16} height={16} className="size-4" />; }
 /* ─── pagination ─── */
 function getPageItems(current: number, total: number): (number | "…")[] {
 if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -340,7 +50,7 @@ onChange: (p: number) => void;
 const { t } = useTranslation("listings");
 const items = getPageItems(current, total);
 return (
-<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full mt-8 sm:mt-10">
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full mt-6 min-h-[68px] px-[22px] py-4">
   <span
     className="text-[14px] sm:text-[16px] text-[#4B4F52] text-center sm:text-left"
     style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -348,15 +58,13 @@ return (
     {t("pagination.pageOf", { current, total })}
   </span>
 
-  <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
+  <div className="flex items-center justify-center gap-1 flex-wrap">
     <button
       onClick={() => onChange(Math.max(1, current - 1))}
       className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-white hover:bg-[#f8fafc] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       disabled={current === 1}
     >
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d={svgPaths.p2819c200} fill="#2b3038" />
-      </svg>
+      <img src="/listings/page-previous.svg" alt="" width={16} height={16} />
     </button>
 
     {items.map((p, i) =>
@@ -393,9 +101,7 @@ return (
       className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-white hover:bg-[#f8fafc] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       disabled={current === total}
     >
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d={svgPaths.p17c1c200} fill="#2b3038" />
-      </svg>
+      <img src="/listings/page-next.svg" alt="" width={16} height={16} />
     </button>
   </div>
 
@@ -489,12 +195,12 @@ function SearchBarDropdown<T extends string>({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3 cursor-pointer"
+        className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3 cursor-pointer"
       >
         <div className="flex items-center gap-[10px] min-w-0 flex-1">
           {icon}
           <span
-            className={`text-[16px] leading-[24px] truncate min-w-0 max-xl:text-[14px] ${
+            className={`text-[14px] leading-[20px] truncate min-w-0 max-xl:text-[14px] ${
               selected && selected.value !== "" ? "text-[#0d2138]" : "text-[#6a7282]"
             }`}
             style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -536,13 +242,10 @@ const { t } = useTranslation("listings");
 const propertyTypeOptions = useMemo(() => getPropertyTypeOptions(t), [t]);
 const transactionOptions = useMemo(() => getTransactionOptions(t), [t]);
 const heroRef = useRef<HTMLElement>(null);
-const { scrollYProgress } = useScroll({
-  target: heroRef,
-  offset: ["start start", "end start"],
-});
-const heroImgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+
 
 const [page, setPage] = useState(1);
+const [sort, setSort] = useState<"recent" | "oldest">("recent");
 const [isMapOpen, setIsMapOpen] = useState(false);
 const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
@@ -617,7 +320,7 @@ const { data: locData } = useQuery({
 });
 const locationSuggestions: string[] = (locData as { locations?: string[] } | undefined)?.locations ?? [];
 
-const { data, isLoading, isError } = useListingsQuery(page);
+const { data, isLoading, isError } = useListingsQuery(page, sort);
 const listings: PublicListingDto[] = useMemo(() => data?.listings ?? [], [data]);
 const total = data?.total ?? 0;
 
@@ -674,66 +377,44 @@ function applyModalFilters(state: FiltersState) {
 return (
 <>
 {/* ── Hero ── */}
-<section ref={heroRef} className="relative h-[360px] sm:h-[400px] overflow-hidden border-b border-black/10">
-   {/* bg photo */}
-   <div className="absolute inset-0 overflow-hidden">
-      <motion.img
-         src={heroImg}
-         alt=""
-         className="absolute w-full h-[130%] -top-[15%] object-cover"
-         style={{ y: heroImgY }}
-         />
+<section ref={heroRef} className="relative flex min-h-[457px] justify-center overflow-hidden border-b border-black/10">
+   <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+     <img src="/listings/hero.jpg" alt="" className="absolute max-w-none" style={{left: 0, top: -80, width: "100%", height: 537, objectFit: "cover"}} />
+     <div className="absolute rounded-[50%]" style={{left: "-15.995%", top: 245, width: "131.92%", height: 887.292, background: "rgba(211,233,255,.9)", filter: "blur(236.104px)"}} />
+     <div className="absolute rounded-[50%]" style={{left: "-8.579%", top: 366.669, width: "117.142%", height: 792.331, background: "rgba(71,169,255,.9)", filter: "blur(236.104px)"}} />
+     <div className="absolute rounded-[50%]" style={{left: "7.715%", top: 474.687, width: "84.555%", height: 652.857, background: "rgba(0,55,134,.9)", filter: "blur(236.104px)"}} />
+     <div className="absolute" style={{left: "-8.75%", top: -56, width: "117.847%", height: 543, background: "rgba(241,249,255,.95)", filter: "blur(192px)"}} />
    </div>
-   {/* gradient overlay */}
-   <div
-   className="absolute inset-0"
-   style={{
-   background:
-   "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-   }}
-   />
-   {/* cloud overlay */}
-   <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
-      <img
-         src={cloudsImg}
-         alt=""
-         className="absolute w-full h-full object-cover"
-         />
-   </div>
-   {/* EDF6FF gradient overlay */}
-   <div
-   className="absolute inset-0"
-   style={{
-   background:
-   "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
-   }}
-   />
    {/* Text content */}
    <Reveal
      as="div"
      amount={0.6}
-     className="relative h-full w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-[760px] mx-auto flex flex-col items-center justify-center gap-2 text-center pt-6"
+     className="relative flex w-full max-w-[725px] flex-col items-center gap-3 px-4 pb-8 text-center"
+     style={{ paddingTop: "87px" }}
    >
-   <div className="flex items-center gap-2">
-      <div className="w-[7px] h-[7px] rounded-full bg-[#4896b6]" />
+   <div className="inline-flex items-center gap-2 rounded-full border border-[#ccdeef] bg-[#f0f6fa] px-3 py-1.5">
+      <span
+        className="size-1.5 shrink-0 rounded-full"
+        style={{ background: "linear-gradient(135deg, #005ea4 0%, #006fc2 100%)" }}
+      />
          <span
-         className="text-[14px] sm:text-[16px] font-medium text-[#6a7282] tracking-[-0.01em]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
+         className="text-[11px] sm:text-[12px] font-medium text-[#232323] uppercase tracking-[1.2px] whitespace-nowrap"
+         style={{ fontFamily: "Poppins, sans-serif" }}
          >
          {t("hero.badge")}
          </span>
       </div>
-      <div className="flex flex-col gap-3 sm:gap-4 items-center">
+      <div className="flex flex-col gap-5 items-center">
          <SplitHeading
            as="h1"
            text={t("hero.title")}
-           className="text-[28px] sm:text-[38px] lg:text-[44px] font-semibold text-[#0d2138] leading-[38px] sm:leading-[48px] lg:leading-[56px] tracking-[-0.01em]"
-           style={{ fontFamily: "Poppins, sans-serif" }}
+           className="font-medium text-[#101010] leading-[1.2] tracking-[-1.5px]"
+           style={{ fontFamily: "Poppins, sans-serif", fontSize: "clamp(34px, 3.612vw, 52px)" }}
            amount={0.6}
          />
          <p
-         className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[22px] sm:leading-[24px] tracking-[-0.01em] max-w-[560px]"
-         style={{ fontFamily: "Montserrat, sans-serif" }}
+         className="max-w-[618px] font-medium text-[#4f4f4f] leading-[1.5] tracking-[-0.01em]"
+         style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(16px, 1.25vw, 18px)" }}
          >
          {t("hero.subtitle")}
          </p>
@@ -745,42 +426,21 @@ return (
   <Reveal
     delay={0.3}
     amount={0.6}
-    className="relative z-10 -mt-[69px] w-full max-w-[1440px] bg-white border border-[#e5e7eb] rounded-[24px] px-[10px] py-[10px] flex flex-col items-center justify-center min-h-[138px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
+    className="relative z-10 -mt-[70px] w-full max-w-[1091px] bg-white border border-[#e5e7eb] rounded-[16px] px-6 py-5 flex flex-col items-center justify-center min-h-[112px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
   <div className="flex flex-wrap gap-3.5 items-end justify-center w-full max-xl:grid max-xl:grid-cols-2 max-md:grid-cols-1 max-xl:gap-4">
     {/* Location */}
-    <div className="flex flex-col gap-3 items-start flex-1 min-w-[200px] max-w-[361px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[200px] max-w-[291px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
-        className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
+        className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.locationLabel")}
       </p>
 
       <div ref={locationRef} className="relative w-full">
-        <div className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3">
+        <div className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3">
           <div className="flex items-center gap-[10px] min-w-0 flex-1">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 14.7333 18.0667"
-              fill="none"
-              className="flex-shrink-0"
-            >
-              <path
-                d={svgPaths.p327f1700}
-                stroke="#6A7282"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.4"
-              />
-              <path
-                d={svgPaths.p131e2100}
-                stroke="#6A7282"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.4"
-              />
-            </svg>
+            <img src="/listings/location.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
 
             <input
               type="text"
@@ -794,7 +454,7 @@ return (
                 if (e.key === "Enter") commitLocation(locationInput);
               }}
               placeholder={t("searchBar.locationPlaceholder")}
-              className="w-full min-w-0 bg-transparent text-[16px] text-[#0d2138] placeholder:text-[#6a7282] leading-[24px] outline-none max-xl:text-[14px]"
+              className="w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] placeholder:text-[#6a7282] leading-[24px] outline-none max-xl:text-[14px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
               aria-label={t("searchBar.locationAriaLabel")}
             />
@@ -835,9 +495,9 @@ return (
     </div>
 
     {/* Property Type */}
-    <div className="flex flex-col gap-3 items-start flex-1 min-w-[180px] max-w-[307px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[180px] max-w-[247px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
-        className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
+        className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.propertyTypeLabel")}
@@ -845,21 +505,7 @@ return (
 
       <SearchBarDropdown
         icon={
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 16.4 17.011"
-            fill="none"
-            className="flex-shrink-0"
-          >
-            <path
-              d={svgPaths.p2e793b00}
-              stroke="#6A7282"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.4"
-            />
-          </svg>
+          <img src="/listings/home.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
         }
         placeholder={t("searchBar.propertyTypePlaceholder")}
         options={propertyTypeOptions}
@@ -869,9 +515,9 @@ return (
     </div>
 
     {/* Transaction Type */}
-    <div className="flex flex-col gap-3 items-start flex-1 min-w-[180px] max-w-[285px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[180px] max-w-[232px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
-        className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
+        className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.transactionTypeLabel")}
@@ -879,21 +525,7 @@ return (
 
       <SearchBarDropdown
         icon={
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 18.0667 16.4"
-            fill="none"
-            className="flex-shrink-0"
-          >
-            <path
-              d={svgPaths.p11b8b2c0}
-              stroke="#6A7282"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.4"
-            />
-          </svg>
+          <img src="/listings/building.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
         }
         placeholder={t("searchBar.transactionTypePlaceholder")}
         options={transactionOptions}
@@ -903,18 +535,18 @@ return (
     </div>
 
     {/* Buttons */}
-    <div className="flex items-center gap-[15px] flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row max-md:flex-col max-xl:items-stretch max-xl:gap-3">
+    <div className="flex items-center gap-2.5 flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row max-md:flex-col max-xl:items-stretch max-xl:gap-3">
       <button
         onClick={() => setIsFiltersOpen(true)}
-        className="bg-white border border-[#e5e7eb] rounded-[60px] px-5 py-3 text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
+        className="flex items-center justify-center gap-2.5 h-11 bg-[#fcfcfc] border border-[#e9e9e9] rounded-xl px-4 py-2.5 text-[14px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        {t("searchBar.moreFiltersButton")}
+        <img src="/listings/filters.svg" alt="" width={16} height={16} className="size-4 shrink-0" />{t("searchBar.moreFiltersButton")}
       </button>
 
       <button
         onClick={() => commitLocation(locationInput)}
-        className="relative h-[48px] w-[231px] overflow-hidden whitespace-nowrap rounded-[48px] px-6 py-3 text-[16px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
+        className="relative h-[44px] w-[120px] overflow-hidden whitespace-nowrap rounded-xl px-4 py-2.5 text-[14px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
         style={{
           fontFamily: "Poppins, sans-serif",
           background: "linear-gradient(to bottom, #005ea4, #006fc2)",
@@ -930,36 +562,73 @@ return (
           }}
         />
 
-        <span className="relative z-10">{t("searchBar.searchButton")}</span>
+        <img src="/listings/search.svg" alt="" width={18} height={18} className="relative size-[18px] shrink-0" /><span className="relative z-10">{t("searchBar.searchButton")}</span>
       </button>
     </div>
   </div>
 </Reveal>
 </div>
 {/* ── Listings Grid ── */}
-<section className="bg-white py-8 sm:py-10 lg:py-14">
-   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
+<section className="bg-white pt-16 pb-12 sm:pt-24 lg:pt-[150px] lg:pb-[150px]">
+   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
+      {/* Section heading */}
+      <Reveal className="flex flex-col items-center gap-5 text-center mb-10 sm:mb-[50px]" amount={0.4}>
+         <div className="flex items-center gap-3 w-full max-w-[866px]">
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
+            <span
+              className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("grid.badge")}
+            </span>
+            <div className="h-px flex-1 bg-[#e2e5ea]" />
+         </div>
+         <div className="max-w-[573px]">
+            <SplitHeading
+              as="h2"
+              text={t("grid.title")}
+              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight lg:leading-[52px] tracking-[-1px]"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            />
+            <p
+              className="mt-3 text-[14px] sm:text-[16px] text-[#4f4f4f]"
+              style={{ fontFamily: "Montserrat, sans-serif" }}
+            >
+              {t("grid.subtitle")}
+            </p>
+         </div>
+      </Reveal>
       {/* Results header */}
-      <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8" amount={0.5}>
+      <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4" amount={0.5}>
          <h2
-         className="text-[20px] sm:text-[22px] lg:text-[24px] font-semibold text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.01em]"
+         className="text-[14px] font-normal text-[#4f4f4f] leading-[21px] tracking-[-0.01em]"
          style={{ fontFamily: "Poppins, sans-serif" }}
          >
          {resultsHeading}
          </h2>
+         <div className="flex items-center gap-3">
+           <div className="relative flex items-center h-10 rounded-xl border border-[#e9e9e9] bg-white">
+             <img src="/listings/sort.svg" alt="" width={16} height={16} className="pointer-events-none absolute left-4" />
+             <select aria-label={t("results.sortLabel")} value={sort} onChange={(event) => { setSort(event.target.value as "recent" | "oldest"); setPage(1); }} className="h-full appearance-none rounded-xl bg-transparent pl-10 pr-10 text-[14px] text-[#00223a]" style={{fontFamily: "Montserrat, sans-serif"}}>
+               <option value="recent">{t("results.mostRecent")}</option>
+               <option value="oldest">{t("results.oldest")}</option>
+             </select>
+             <img src="/listings/sort-chevron.svg" alt="" width={16} height={16} className="pointer-events-none absolute right-4" />
+           </div>
          <button
             onClick={() =>
             setIsMapOpen(true)}
-            className="w-fit flex items-center gap-2 bg-[#1E4F86] px-5 py-2.5 rounded-full text-[14px] text-white font-medium hover:bg-[#17446f] transition-colors cursor-pointer"
+            className="w-fit flex items-center gap-2 bg-gradient-to-br from-[#005ea4] to-[#006fc2] h-10 px-4 py-2.5 rounded-xl text-[14px] text-white font-medium hover:bg-[#17446f] transition-colors cursor-pointer"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             <MapIcon />
             {t("results.mapButton")}
          </button>
+         </div>
       </Reveal>
       {/* Card grid */}
       {isLoading ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8">
          {Array.from({ length: 6 }).map((_, i) => (
          <div key={i} className="flex flex-col gap-[20px] w-full animate-pulse">
             <div className="w-full h-[296px] rounded-[16px] bg-[#eef1f5]" />
@@ -973,13 +642,13 @@ return (
       ) : listings.length > 0 ? (
       <Reveal
         key={`${filterKey}-${safePage}`}
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8"
         stagger={0.08}
         amount={0.1}
       >
          {listings.map((item) => (
          <RevealItem key={item.slug}>
-           <PropertyCard item={item} />
+           <PropertyCard property={item} />
          </RevealItem>
          ))}
       </Reveal>
@@ -1023,19 +692,29 @@ return (
 </section>
 {/* ── You Might Also Like ── */}
 {suggestions.length > 0 ? (
-<section className="bg-white pt-4 pb-16 lg:pb-20">
+<section className="bg-white pb-16 lg:pb-[120px]">
    <div className="might">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1440px] mx-auto">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
          {/* Section heading */}
-         <Reveal className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
+         <Reveal className="flex flex-col items-center gap-5 mb-8 sm:mb-10 text-center" amount={0.4}>
+            <div className="flex items-center gap-3 w-full max-w-[866px]">
+               <div className="h-px flex-1 bg-[#e2e5ea]" />
+               <span
+                 className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
+                 style={{ fontFamily: "Montserrat, sans-serif" }}
+               >
+                 {t("suggestions.badge")}
+               </span>
+               <div className="h-px flex-1 bg-[#e2e5ea]" />
+            </div>
             <SplitHeading
               as="h2"
               text={t("suggestions.title")}
-              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-semibold text-[#0d2138] leading-[36px] sm:leading-[42px] lg:leading-[50px] xl:leading-[56px] tracking-[-0.01em]"
+              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-medium text-[#00223a] leading-tight lg:leading-[52px] tracking-[-1px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             />
             <p
-            className="text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] text-[#2b3038] tracking-[-0.01em] max-w-[520px]"
+            className="-mt-2 text-[14px] sm:text-[15px] lg:text-[16px] leading-[22px] sm:leading-[24px] text-[#4f4f4f] tracking-[-0.01em] max-w-[520px]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             {t("suggestions.subtitle")}
@@ -1045,7 +724,7 @@ return (
          <Reveal className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6" stagger={0.12} amount={0.15}>
             {suggestions.map((item) => (
             <RevealItem key={item.slug}>
-              <PropertyCard item={item} />
+              <PropertyCard property={item} />
             </RevealItem>
             ))}
          </Reveal>
@@ -1053,6 +732,7 @@ return (
    </div>
 </section>
 ) : null}
+<ConsultationBanner />
 {isMapOpen ? (
   <PropertyMapModal listings={mapListings} onClose={() => setIsMapOpen(false)} />
 ) : null}

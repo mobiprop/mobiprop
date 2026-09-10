@@ -4,7 +4,7 @@ import { AcceptInvitePageContent } from "@/features/auth/AcceptInvitePage";
 import { getInvitationByToken } from "@/features/auth/staff-actions";
 
 export const metadata: Metadata = {
-  title: "Accept Invitation — Ulrich Propiedades",
+  title: "Accept Invitation — Mobi Prop",
   description: "Complete your staff account setup.",
 };
 

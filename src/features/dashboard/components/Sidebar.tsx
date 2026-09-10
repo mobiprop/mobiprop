@@ -157,7 +157,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
           >
             <img
               src="/logo.svg"
-              alt="Ulrich Propiedades"
+              alt="Mobi Prop"
               className="h-8 w-auto max-w-[190px] object-contain sm:h-9 lg:max-w-full"
             />
           </Link>

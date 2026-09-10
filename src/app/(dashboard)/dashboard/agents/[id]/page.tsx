@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { requireDashboardAccess } from "@/lib/auth";
 import { AgentDetailPage } from "@/features/dashboard/AgentDetailPage";
 
-export const metadata: Metadata = { title: "Agent Detail — Ulrich Propiedades" };
+export const metadata: Metadata = { title: "Agent Detail — Mobi Prop" };
 
 export default async function DashboardAgentDetailPage({
   params,

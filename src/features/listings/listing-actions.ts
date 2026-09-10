@@ -1181,6 +1181,7 @@ export async function reorderListingImages(
 // ── Public listings (no auth — ACTIVE only, safe fields only) ─────────────────
 
 export type PublicListingFilters = {
+  sort?: "recent" | "oldest";
   location?: string;
   propertyType?: string;
   transactionType?: string;
@@ -1247,7 +1248,7 @@ export async function listPublicListings(
     prisma.property.findMany({
       where,
       include: listingInclude,
-      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      orderBy: filters.sort ? [{ publishedAt: filters.sort === "oldest" ? "asc" : "desc" }, { id: "asc" }] : [{ isFeatured: "desc" }, { publishedAt: "desc" }],
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
