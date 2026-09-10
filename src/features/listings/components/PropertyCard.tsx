@@ -14,48 +14,13 @@ import { formatArea, formatBaths, formatBeds, listingDisplayPrice } from "../uti
 const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.webp";
 
-export function MarkerIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 11.6667 14.3333" fill="none">
-      <path d={svgPaths.p1fff3000} stroke="#4F4F4F" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={svgPaths.p1a179d80} stroke="#4F4F4F" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+export function MarkerIcon() { return <img src="/listings/card-location.svg" alt="" width={16} height={16} className="shrink-0" />; }
 
-export function AreaIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path d="M16.25 7.5H12.5V3.75" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M3.75 12.5H7.5V16.25" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M12.5 16.25V12.5H16.25" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M7.5 3.75V7.5H3.75" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-    </svg>
-  );
-}
+export function AreaIcon() { return <img src="/listings/area.svg" alt="" width={14} height={14} className="shrink-0" />; }
 
-export function BedIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path d={svgPaths.p48eb680} stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M1.875 16.25V3.75" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M1.875 13.125H19.375V16.25" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M8.75 6.25H1.875" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-    </svg>
-  );
-}
+export function BedIcon() { return <img src="/listings/bed.svg" alt="" width={14} height={14} className="shrink-0" />; }
 
-export function BathIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path d="M5.625 15V16.875" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d="M14.375 15V16.875" stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d={svgPaths.p376e01f0} stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d={svgPaths.p3f8783b0} stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-      <path d={svgPaths.p35ecd900} stroke="#191919" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.25" />
-    </svg>
-  );
-}
+export function BathIcon() { return <img src="/listings/bath.svg" alt="" width={14} height={14} className="shrink-0" />; }
 
 export function ArrowUpRight({ color = "#005089" }: { color?: string }) {
   return (
@@ -69,17 +34,7 @@ export function ArrowUpRight({ color = "#005089" }: { color?: string }) {
 }
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 20 20"
-      fill="none"
-      style={{ transform: direction === "left" ? "scaleX(-1)" : undefined }}
-    >
-      <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#191919" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+return <img src={`/listings/${direction === "left" ? "previous" : "next"}.svg`} alt="" width={14.29} height={14.29} />;
 }
 
 function ImageCarousel({ property }: { property: PublicListingDto }) {
@@ -115,7 +70,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
               type="button"
               onClick={(e) => go(e, -1)}
               aria-label="Previous photo"
-              className="size-8 rounded-full bg-white/80 flex items-center justify-center shadow-sm"
+              className="size-8 rounded-full bg-white/50 flex items-center justify-center shadow-sm"
             >
               <ChevronIcon direction="left" />
             </button>
@@ -133,7 +88,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
               <span
                 key={img.id}
                 className={`h-1 rounded-full transition-all ${
-                  i === index ? "w-4 bg-white" : "w-1 bg-white/50"
+                  i === index ? "w-4 bg-white" : "w-[5px] bg-white/50"
                 }`}
               />
             ))}
@@ -189,14 +144,14 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
             aria-label={saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
             className="absolute top-[19px] right-[19px] bg-white rounded-full size-8 flex items-center justify-center shadow-sm"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill={saved ? "#e74c3c" : "none"}>
+            {!saved ? <img src="/listings/heart.svg" alt="" width={18} height={18} /> : <svg width="18" height="18" viewBox="0 0 16 16" fill="#e74c3c">
               <path
                 d={svgPaths.p2a65c600}
                 stroke={saved ? "#e74c3c" : "#9A9A9A"}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-            </svg>
+            </svg>}
           </button>
         </div>
 
@@ -204,7 +159,7 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
         <div className="flex min-w-0 flex-col gap-5 px-[19px] pt-5 pb-[19px]">
           <div className="flex min-w-0 flex-col gap-3">
             <span
-              className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#00223a] tracking-[-0.5px] truncate"
+              className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#00223a] tracking-[-0.5px] leading-[28px] truncate"
               style={{ fontFamily: "Poppins, sans-serif" }}
             >
               {property.title}
@@ -213,7 +168,7 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
             <div className="flex min-w-0 items-center gap-1.5">
               <MarkerIcon />
               <span
-                className="text-[15px] sm:text-[16px] text-[#4f4f4f] truncate"
+                className="text-[15px] sm:text-[16px] text-[#4f4f4f] leading-[16px] truncate"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 {property.location}
@@ -226,28 +181,28 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-1.5">
                 <BedIcon />
-                <span className="text-[14px] sm:text-[15px] text-[#191919]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <span className="text-[14px] sm:text-[16px] leading-[20px] text-[#191919]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   {formatBeds(property.bedrooms, t)}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <BathIcon />
-                <span className="text-[14px] sm:text-[15px] text-[#191919]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <span className="text-[14px] sm:text-[16px] leading-[20px] text-[#191919]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   {formatBaths(property.bathrooms, t)}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <AreaIcon />
-                <span className="text-[14px] sm:text-[15px] text-[#191919]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <span className="text-[14px] sm:text-[16px] leading-[20px] text-[#191919]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   {formatArea(property.totalAreaM2)}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 lg:mt-2">
             <span
-              className="bg-clip-text text-transparent text-[19px] sm:text-[20px] lg:text-[22px] font-semibold whitespace-nowrap"
+              className="bg-clip-text text-transparent text-[19px] sm:text-[20px] lg:text-[22px] font-semibold leading-[32px] whitespace-nowrap"
               style={{
                 fontFamily: "Poppins, sans-serif",
                 backgroundImage: "linear-gradient(164deg, #005ea4 0%, #006fc2 100%)",
@@ -256,9 +211,9 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
               {listingDisplayPrice(property, t)}
             </span>
 
-            <span className="flex items-center gap-1 rounded-[13px] border border-[#ccdeef] bg-[#f0f6fa] pl-3.5 pr-3 py-2.5 text-[14px] sm:text-[15px] text-[#005089] whitespace-nowrap" style={{ fontFamily: "Montserrat, sans-serif" }}>
+            <span className="flex items-center gap-1 rounded-[13px] border border-[#ccdeef] bg-[#f0f6fa] pl-3.5 pr-3 py-[11px] text-[14px] sm:text-[16px] leading-[20px] text-[#005089] whitespace-nowrap" style={{ fontFamily: "Montserrat, sans-serif" }}>
               {t("card.viewProperty")}
-              <ArrowUpRight />
+              <img src="/listings/arrow-up-right.svg" alt="" width={20} height={20} className="size-5 shrink-0" />
             </span>
           </div>
         </div>

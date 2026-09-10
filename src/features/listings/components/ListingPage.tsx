@@ -4,12 +4,11 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import { motion, useScroll, useTransform } from "framer-motion";
+
 import { queryKeys } from "@/lib/query-keys";
 import { useShallow } from "zustand/react/shallow";
 import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
-import svgPaths from "./svgPaths";
 import { FiltersModal, type FiltersState } from "./FiltersModal";
 import {
   LISTINGS_PAGE_SIZE as PAGE_SIZE,
@@ -26,37 +25,11 @@ import { PropertyMapModal } from "@/components/maps/PropertyMapModal";
 import { propertyTypeLabel } from "../utils/format";
 import { PropertyCard } from "./PropertyCard";
 import { ConsultationBanner } from "@/features/home/ConsultationBanner";
-const heroImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
-const cloudsImg =
-"https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg.webp";
 /* ─── icon helpers ─── */
-function ChevronDown({ color = "#6A7282" }: { color?: string }) {
-return (
-<svg width="12" height="7" viewBox="0 0 11.774 6.774" fill="none">
-   <path
-      d={svgPaths.p1485b700}
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.77"
-      />
-</svg>
-);
+function ChevronDown() {
+return <img src="/listings/chevron-down.svg" alt="" width={16} height={16} className="size-4 shrink-0" />;
 }
-function MapIcon() {
-return (
-<svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-   <path
-      d={svgPaths.p277d2000}
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.4"
-      />
-</svg>
-);
-}
+function MapIcon() { return <img src="/listings/map.svg" alt="" width={16} height={16} className="size-4" />; }
 /* ─── pagination ─── */
 function getPageItems(current: number, total: number): (number | "…")[] {
 if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -77,7 +50,7 @@ onChange: (p: number) => void;
 const { t } = useTranslation("listings");
 const items = getPageItems(current, total);
 return (
-<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full mt-8 sm:mt-10">
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full mt-6 min-h-[68px] px-[22px] py-4">
   <span
     className="text-[14px] sm:text-[16px] text-[#4B4F52] text-center sm:text-left"
     style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -85,15 +58,13 @@ return (
     {t("pagination.pageOf", { current, total })}
   </span>
 
-  <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
+  <div className="flex items-center justify-center gap-1 flex-wrap">
     <button
       onClick={() => onChange(Math.max(1, current - 1))}
       className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-white hover:bg-[#f8fafc] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       disabled={current === 1}
     >
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d={svgPaths.p2819c200} fill="#2b3038" />
-      </svg>
+      <img src="/listings/page-previous.svg" alt="" width={16} height={16} />
     </button>
 
     {items.map((p, i) =>
@@ -130,9 +101,7 @@ return (
       className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-white hover:bg-[#f8fafc] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       disabled={current === total}
     >
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d={svgPaths.p17c1c200} fill="#2b3038" />
-      </svg>
+      <img src="/listings/page-next.svg" alt="" width={16} height={16} />
     </button>
   </div>
 
@@ -231,7 +200,7 @@ function SearchBarDropdown<T extends string>({
         <div className="flex items-center gap-[10px] min-w-0 flex-1">
           {icon}
           <span
-            className={`text-[16px] leading-[24px] truncate min-w-0 max-xl:text-[14px] ${
+            className={`text-[14px] leading-[20px] truncate min-w-0 max-xl:text-[14px] ${
               selected && selected.value !== "" ? "text-[#0d2138]" : "text-[#6a7282]"
             }`}
             style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -273,13 +242,10 @@ const { t } = useTranslation("listings");
 const propertyTypeOptions = useMemo(() => getPropertyTypeOptions(t), [t]);
 const transactionOptions = useMemo(() => getTransactionOptions(t), [t]);
 const heroRef = useRef<HTMLElement>(null);
-const { scrollYProgress } = useScroll({
-  target: heroRef,
-  offset: ["start start", "end start"],
-});
-const heroImgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+
 
 const [page, setPage] = useState(1);
+const [sort, setSort] = useState<"recent" | "oldest">("recent");
 const [isMapOpen, setIsMapOpen] = useState(false);
 const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
@@ -354,7 +320,7 @@ const { data: locData } = useQuery({
 });
 const locationSuggestions: string[] = (locData as { locations?: string[] } | undefined)?.locations ?? [];
 
-const { data, isLoading, isError } = useListingsQuery(page);
+const { data, isLoading, isError } = useListingsQuery(page, sort);
 const listings: PublicListingDto[] = useMemo(() => data?.listings ?? [], [data]);
 const total = data?.total ?? 0;
 
@@ -412,39 +378,13 @@ return (
 <>
 {/* ── Hero ── */}
 <section ref={heroRef} className="relative flex min-h-[457px] justify-center overflow-hidden border-b border-black/10">
-   {/* bg photo */}
-   <div className="absolute inset-0 overflow-hidden">
-      <motion.img
-         src={heroImg}
-         alt=""
-         className="absolute w-full h-[130%] -top-[15%] object-cover"
-         style={{ y: heroImgY }}
-         />
+   <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+     <img src="/listings/hero.jpg" alt="" className="absolute max-w-none" style={{left: 0, top: -80, width: "100%", height: 537, objectFit: "cover"}} />
+     <div className="absolute rounded-[50%]" style={{left: "-15.995%", top: 245, width: "131.92%", height: 887.292, background: "rgba(211,233,255,.9)", filter: "blur(236.104px)"}} />
+     <div className="absolute rounded-[50%]" style={{left: "-8.579%", top: 366.669, width: "117.142%", height: 792.331, background: "rgba(71,169,255,.9)", filter: "blur(236.104px)"}} />
+     <div className="absolute rounded-[50%]" style={{left: "7.715%", top: 474.687, width: "84.555%", height: 652.857, background: "rgba(0,55,134,.9)", filter: "blur(236.104px)"}} />
+     <div className="absolute" style={{left: "-8.75%", top: -56, width: "117.847%", height: 543, background: "rgba(241,249,255,.95)", filter: "blur(192px)"}} />
    </div>
-   {/* gradient overlay */}
-   <div
-   className="absolute inset-0"
-   style={{
-   background:
-   "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-   }}
-   />
-   {/* cloud overlay */}
-   <div className="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
-      <img
-         src={cloudsImg}
-         alt=""
-         className="absolute w-full h-full object-cover"
-         />
-   </div>
-   {/* EDF6FF gradient overlay */}
-   <div
-   className="absolute inset-0"
-   style={{
-   background:
-   "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)",
-   }}
-   />
    {/* Text content */}
    <Reveal
      as="div"
@@ -500,28 +440,7 @@ return (
       <div ref={locationRef} className="relative w-full">
         <div className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3">
           <div className="flex items-center gap-[10px] min-w-0 flex-1">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 14.7333 18.0667"
-              fill="none"
-              className="flex-shrink-0"
-            >
-              <path
-                d={svgPaths.p327f1700}
-                stroke="#6A7282"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.4"
-              />
-              <path
-                d={svgPaths.p131e2100}
-                stroke="#6A7282"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.4"
-              />
-            </svg>
+            <img src="/listings/location.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
 
             <input
               type="text"
@@ -535,7 +454,7 @@ return (
                 if (e.key === "Enter") commitLocation(locationInput);
               }}
               placeholder={t("searchBar.locationPlaceholder")}
-              className="w-full min-w-0 bg-transparent text-[16px] text-[#0d2138] placeholder:text-[#6a7282] leading-[24px] outline-none max-xl:text-[14px]"
+              className="w-full min-w-0 bg-transparent text-[14px] text-[#0d2138] placeholder:text-[#6a7282] leading-[24px] outline-none max-xl:text-[14px]"
               style={{ fontFamily: "Montserrat, sans-serif" }}
               aria-label={t("searchBar.locationAriaLabel")}
             />
@@ -586,21 +505,7 @@ return (
 
       <SearchBarDropdown
         icon={
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 16.4 17.011"
-            fill="none"
-            className="flex-shrink-0"
-          >
-            <path
-              d={svgPaths.p2e793b00}
-              stroke="#6A7282"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.4"
-            />
-          </svg>
+          <img src="/listings/home.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
         }
         placeholder={t("searchBar.propertyTypePlaceholder")}
         options={propertyTypeOptions}
@@ -620,21 +525,7 @@ return (
 
       <SearchBarDropdown
         icon={
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 18.0667 16.4"
-            fill="none"
-            className="flex-shrink-0"
-          >
-            <path
-              d={svgPaths.p11b8b2c0}
-              stroke="#6A7282"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.4"
-            />
-          </svg>
+          <img src="/listings/building.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
         }
         placeholder={t("searchBar.transactionTypePlaceholder")}
         options={transactionOptions}
@@ -647,10 +538,10 @@ return (
     <div className="flex items-center gap-2.5 flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row max-md:flex-col max-xl:items-stretch max-xl:gap-3">
       <button
         onClick={() => setIsFiltersOpen(true)}
-        className="bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 text-[14px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
+        className="flex items-center justify-center gap-2.5 h-11 bg-[#fcfcfc] border border-[#e9e9e9] rounded-xl px-4 py-2.5 text-[14px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
-        {t("searchBar.moreFiltersButton")}
+        <img src="/listings/filters.svg" alt="" width={16} height={16} className="size-4 shrink-0" />{t("searchBar.moreFiltersButton")}
       </button>
 
       <button
@@ -671,7 +562,7 @@ return (
           }}
         />
 
-        <span className="relative z-10">{t("searchBar.searchButton")}</span>
+        <img src="/listings/search.svg" alt="" width={18} height={18} className="relative size-[18px] shrink-0" /><span className="relative z-10">{t("searchBar.searchButton")}</span>
       </button>
     </div>
   </div>
@@ -681,7 +572,7 @@ return (
 <section className="bg-white pt-16 pb-12 sm:pt-24 lg:pt-[150px] lg:pb-[150px]">
    <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
       {/* Section heading */}
-      <Reveal className="flex flex-col items-center gap-5 text-center mb-10 sm:mb-12" amount={0.4}>
+      <Reveal className="flex flex-col items-center gap-5 text-center mb-10 sm:mb-[50px]" amount={0.4}>
          <div className="flex items-center gap-3 w-full max-w-[866px]">
             <div className="h-px flex-1 bg-[#e2e5ea]" />
             <span
@@ -696,7 +587,7 @@ return (
             <SplitHeading
               as="h2"
               text={t("grid.title")}
-              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
+              className="text-[28px] sm:text-[34px] lg:text-[44px] font-medium text-[#00223a] leading-tight lg:leading-[52px] tracking-[-1px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             />
             <p
@@ -715,15 +606,25 @@ return (
          >
          {resultsHeading}
          </h2>
+         <div className="flex items-center gap-3">
+           <div className="relative flex items-center h-10 rounded-xl border border-[#e9e9e9] bg-white">
+             <img src="/listings/sort.svg" alt="" width={16} height={16} className="pointer-events-none absolute left-4" />
+             <select aria-label={t("results.sortLabel")} value={sort} onChange={(event) => { setSort(event.target.value as "recent" | "oldest"); setPage(1); }} className="h-full appearance-none rounded-xl bg-transparent pl-10 pr-10 text-[14px] text-[#00223a]" style={{fontFamily: "Montserrat, sans-serif"}}>
+               <option value="recent">{t("results.mostRecent")}</option>
+               <option value="oldest">{t("results.oldest")}</option>
+             </select>
+             <img src="/listings/sort-chevron.svg" alt="" width={16} height={16} className="pointer-events-none absolute right-4" />
+           </div>
          <button
             onClick={() =>
             setIsMapOpen(true)}
-            className="w-fit flex items-center gap-2 bg-[#1E4F86] px-5 py-2.5 rounded-full text-[14px] text-white font-medium hover:bg-[#17446f] transition-colors cursor-pointer"
+            className="w-fit flex items-center gap-2 bg-gradient-to-br from-[#005ea4] to-[#006fc2] h-10 px-4 py-2.5 rounded-xl text-[14px] text-white font-medium hover:bg-[#17446f] transition-colors cursor-pointer"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             <MapIcon />
             {t("results.mapButton")}
          </button>
+         </div>
       </Reveal>
       {/* Card grid */}
       {isLoading ? (
@@ -795,7 +696,7 @@ return (
    <div className="might">
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
          {/* Section heading */}
-         <Reveal className="flex flex-col items-center gap-5 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
+         <Reveal className="flex flex-col items-center gap-5 mb-8 sm:mb-10 text-center" amount={0.4}>
             <div className="flex items-center gap-3 w-full max-w-[866px]">
                <div className="h-px flex-1 bg-[#e2e5ea]" />
                <span
@@ -809,7 +710,7 @@ return (
             <SplitHeading
               as="h2"
               text={t("suggestions.title")}
-              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-medium text-[#00223a] leading-tight tracking-[-0.5px]"
+              className="text-[28px] sm:text-[34px] lg:text-[40px] xl:text-[44px] font-medium text-[#00223a] leading-tight lg:leading-[52px] tracking-[-1px]"
               style={{ fontFamily: "Poppins, sans-serif" }}
             />
             <p

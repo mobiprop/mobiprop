@@ -37,7 +37,10 @@
     "emptyErrorMessage": "Please refresh the page or try again in a moment.",
     "emptyNoResultsTitle": "No properties match your search",
     "emptyNoResultsMessage": "Try adjusting your filters or searching a different location.",
-    "clearFiltersButton": "Clear all filters"
+    "clearFiltersButton": "Clear all filters",
+    "sortLabel": "Sort properties",
+    "mostRecent": "Most Recent",
+    "oldest": "Oldest First"
   },
   "card": {
     "removeSavedAriaLabel": "Remove from saved",

@@ -6,7 +6,7 @@ import { useListingFilterStore } from "@/stores/useListingFilterStore";
 
 /** Cards per page on the public listings grid. Server-paginated — keep in
  *  sync with the `pageSize` the grid asks for. */
-export const LISTINGS_PAGE_SIZE = 15;
+export const LISTINGS_PAGE_SIZE = 9;
 
 async function fetchListings(filters: Record<string, unknown>) {
   const params = new URLSearchParams();
@@ -33,7 +33,7 @@ async function fetchListings(filters: Record<string, unknown>) {
 
 /** Paginated grid results — one server-fetched page of `LISTINGS_PAGE_SIZE`
  *  listings plus the total match count, not the whole result set. */
-export function useListingsQuery(page: number) {
+export function useListingsQuery(page: number, sort: "recent" | "oldest" = "recent") {
   // useShallow keeps this selector from returning a new object every render
   // (required with Zustand v5 to avoid infinite re-render loops).
   const filters = useListingFilterStore(
@@ -51,7 +51,7 @@ export function useListingsQuery(page: number) {
     }))
   );
 
-  const queryFilters = { ...filters, page, pageSize: LISTINGS_PAGE_SIZE };
+  const queryFilters = { ...filters, page, pageSize: LISTINGS_PAGE_SIZE, sort };
 
   return useQuery({
     queryKey: queryKeys.listings(queryFilters),

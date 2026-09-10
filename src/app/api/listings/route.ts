@@ -24,6 +24,7 @@ export const GET = withApiErrorHandling("listings.publicList", async (request: R
   const params = new URL(request.url).searchParams;
 
   const filters: PublicListingFilters = {
+    sort: params.get("sort") === "oldest" ? "oldest" : params.get("sort") === "recent" ? "recent" : undefined,
     location: params.get("location") ?? undefined,
     propertyType: params.get("propertyType") ?? undefined,
     transactionType: params.get("transactionType") ?? undefined,

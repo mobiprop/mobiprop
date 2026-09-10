@@ -37,7 +37,10 @@
     "emptyErrorMessage": "Actualizá la página o intentá nuevamente en un momento.",
     "emptyNoResultsTitle": "Ninguna propiedad coincide con tu búsqueda",
     "emptyNoResultsMessage": "Probá ajustar tus filtros o buscar en otra ubicación.",
-    "clearFiltersButton": "Borrar todos los filtros"
+    "clearFiltersButton": "Borrar todos los filtros",
+    "sortLabel": "Ordenar propiedades",
+    "mostRecent": "Más recientes",
+    "oldest": "Más antiguas"
   },
   "card": {
     "removeSavedAriaLabel": "Quitar de guardados",
