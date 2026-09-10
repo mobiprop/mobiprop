@@ -18,8 +18,8 @@
     "propertyTypePlaceholder": "Casa, departamento, oficina",
     "transactionTypeLabel": "Tipo de Transacción",
     "transactionTypePlaceholder": "Venta, Alquiler",
-    "moreFiltersButton": "Más Filtros",
-    "searchButton": "Buscar Propiedades"
+    "moreFiltersButton": "Filtros",
+    "searchButton": "Buscar"
   },
   "filterOptions": {
     "allTypes": "Todos los Tipos",

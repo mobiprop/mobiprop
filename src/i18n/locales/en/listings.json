@@ -18,8 +18,8 @@
     "propertyTypePlaceholder": "Select property type",
     "transactionTypeLabel": "Transaction Type",
     "transactionTypePlaceholder": "Select transaction",
-    "moreFiltersButton": "More Filters",
-    "searchButton": "Search Properties"
+    "moreFiltersButton": "Filters",
+    "searchButton": "Search"
   },
   "filterOptions": {
     "allTypes": "All Types",

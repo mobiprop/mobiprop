@@ -273,7 +273,7 @@ export function HeroSection() {
               <h1
                 className="text-white"
                 style={{
-                  fontFamily: "Neue Haas Grotesk Display Pro, Helvetica Neue, Arial, sans-serif",
+                  fontFamily: "neue-haas-grotesk-display, Helvetica Neue, Arial, sans-serif",
                   fontWeight: 400,
                   fontSize: "clamp(32px, 3.681vw, 53px)",
                   lineHeight: 1.25,

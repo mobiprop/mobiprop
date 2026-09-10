@@ -226,7 +226,7 @@ function SearchBarDropdown<T extends string>({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3 cursor-pointer"
+        className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3 cursor-pointer"
       >
         <div className="flex items-center gap-[10px] min-w-0 flex-1">
           {icon}
@@ -411,7 +411,7 @@ function applyModalFilters(state: FiltersState) {
 return (
 <>
 {/* ── Hero ── */}
-<section ref={heroRef} className="relative flex min-h-[420px] justify-center overflow-hidden border-b border-black/10">
+<section ref={heroRef} className="relative flex min-h-[457px] justify-center overflow-hidden border-b border-black/10">
    {/* bg photo */}
    <div className="absolute inset-0 overflow-hidden">
       <motion.img
@@ -449,8 +449,8 @@ return (
    <Reveal
      as="div"
      amount={0.6}
-     className="relative flex w-full max-w-[760px] flex-col items-center gap-2 px-4 pb-8 text-center"
-     style={{ paddingTop: "var(--space-fluid-hero-pt-sm)" }}
+     className="relative flex w-full max-w-[725px] flex-col items-center gap-3 px-4 pb-8 text-center"
+     style={{ paddingTop: "87px" }}
    >
    <div className="inline-flex items-center gap-2 rounded-full border border-[#ccdeef] bg-[#f0f6fa] px-3 py-1.5">
       <span
@@ -464,17 +464,17 @@ return (
          {t("hero.badge")}
          </span>
       </div>
-      <div className="flex flex-col gap-3 sm:gap-4 items-center">
+      <div className="flex flex-col gap-5 items-center">
          <SplitHeading
            as="h1"
            text={t("hero.title")}
            className="font-medium text-[#101010] leading-[1.2] tracking-[-1.5px]"
-           style={{ fontFamily: "Poppins, sans-serif", fontSize: "var(--text-fluid-h2)" }}
+           style={{ fontFamily: "Poppins, sans-serif", fontSize: "clamp(34px, 3.612vw, 52px)" }}
            amount={0.6}
          />
          <p
-         className="max-w-[38ch] font-medium text-[#4f4f4f] leading-[1.5] tracking-[-0.01em]"
-         style={{ fontFamily: "Montserrat, sans-serif", fontSize: "var(--text-fluid-subtitle-sm)" }}
+         className="max-w-[618px] font-medium text-[#4f4f4f] leading-[1.5] tracking-[-0.01em]"
+         style={{ fontFamily: "Montserrat, sans-serif", fontSize: "clamp(16px, 1.25vw, 18px)" }}
          >
          {t("hero.subtitle")}
          </p>
@@ -486,19 +486,19 @@ return (
   <Reveal
     delay={0.3}
     amount={0.6}
-    className="relative z-10 -mt-[69px] w-full max-w-[var(--space-fluid-container-max)] bg-white border border-[#e5e7eb] rounded-[24px] px-[10px] py-[10px] flex flex-col items-center justify-center min-h-[138px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
+    className="relative z-10 -mt-[70px] w-full max-w-[1091px] bg-white border border-[#e5e7eb] rounded-[16px] px-6 py-5 flex flex-col items-center justify-center min-h-[112px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
   <div className="flex flex-wrap gap-3.5 items-end justify-center w-full max-xl:grid max-xl:grid-cols-2 max-md:grid-cols-1 max-xl:gap-4">
     {/* Location */}
-    <div className="flex flex-col gap-3 items-start flex-1 min-w-[200px] max-w-[361px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[200px] max-w-[291px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
-        className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
+        className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.locationLabel")}
       </p>
 
       <div ref={locationRef} className="relative w-full">
-        <div className="w-full bg-white border border-[#e5e7eb] rounded-[90px] px-3 py-3 flex items-center justify-between gap-3">
+        <div className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3">
           <div className="flex items-center gap-[10px] min-w-0 flex-1">
             <svg
               width="20"
@@ -576,9 +576,9 @@ return (
     </div>
 
     {/* Property Type */}
-    <div className="flex flex-col gap-3 items-start flex-1 min-w-[180px] max-w-[307px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[180px] max-w-[247px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
-        className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
+        className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.propertyTypeLabel")}
@@ -610,9 +610,9 @@ return (
     </div>
 
     {/* Transaction Type */}
-    <div className="flex flex-col gap-3 items-start flex-1 min-w-[180px] max-w-[285px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[180px] max-w-[232px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
-        className="text-[16px] text-[#0d2138] leading-[24px] tracking-[-0.16px] max-xl:text-[14px]"
+        className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.transactionTypeLabel")}
@@ -644,10 +644,10 @@ return (
     </div>
 
     {/* Buttons */}
-    <div className="flex items-center gap-[15px] flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row max-md:flex-col max-xl:items-stretch max-xl:gap-3">
+    <div className="flex items-center gap-2.5 flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row max-md:flex-col max-xl:items-stretch max-xl:gap-3">
       <button
         onClick={() => setIsFiltersOpen(true)}
-        className="bg-white border border-[#e5e7eb] rounded-[60px] px-5 py-3 text-[16px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
+        className="bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 text-[14px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         {t("searchBar.moreFiltersButton")}
@@ -655,7 +655,7 @@ return (
 
       <button
         onClick={() => commitLocation(locationInput)}
-        className="relative h-[48px] w-[231px] overflow-hidden whitespace-nowrap rounded-[48px] px-6 py-3 text-[16px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
+        className="relative h-[44px] w-[120px] overflow-hidden whitespace-nowrap rounded-xl px-4 py-2.5 text-[14px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
         style={{
           fontFamily: "Poppins, sans-serif",
           background: "linear-gradient(to bottom, #005ea4, #006fc2)",
@@ -678,11 +678,11 @@ return (
 </Reveal>
 </div>
 {/* ── Listings Grid ── */}
-<section className="bg-white py-8 sm:py-10 lg:py-14">
-   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[var(--space-fluid-container-max)] mx-auto">
+<section className="bg-white pt-16 pb-12 sm:pt-24 lg:pt-[150px] lg:pb-[150px]">
+   <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
       {/* Section heading */}
       <Reveal className="flex flex-col items-center gap-5 text-center mb-10 sm:mb-12" amount={0.4}>
-         <div className="flex items-center gap-3 w-full max-w-[380px]">
+         <div className="flex items-center gap-3 w-full max-w-[866px]">
             <div className="h-px flex-1 bg-[#e2e5ea]" />
             <span
               className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
@@ -708,9 +708,9 @@ return (
          </div>
       </Reveal>
       {/* Results header */}
-      <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 sm:mb-8" amount={0.5}>
+      <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4" amount={0.5}>
          <h2
-         className="text-[20px] sm:text-[22px] lg:text-[24px] font-semibold text-[#0d2138] leading-[28px] sm:leading-[32px] tracking-[-0.01em]"
+         className="text-[14px] font-normal text-[#4f4f4f] leading-[21px] tracking-[-0.01em]"
          style={{ fontFamily: "Poppins, sans-serif" }}
          >
          {resultsHeading}
@@ -727,7 +727,7 @@ return (
       </Reveal>
       {/* Card grid */}
       {isLoading ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8">
          {Array.from({ length: 6 }).map((_, i) => (
          <div key={i} className="flex flex-col gap-[20px] w-full animate-pulse">
             <div className="w-full h-[296px] rounded-[16px] bg-[#eef1f5]" />
@@ -741,7 +741,7 @@ return (
       ) : listings.length > 0 ? (
       <Reveal
         key={`${filterKey}-${safePage}`}
-        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8 sm:gap-y-10"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8"
         stagger={0.08}
         amount={0.1}
       >
@@ -791,12 +791,12 @@ return (
 </section>
 {/* ── You Might Also Like ── */}
 {suggestions.length > 0 ? (
-<section className="bg-white pt-4 pb-16 lg:pb-20">
+<section className="bg-white pb-16 lg:pb-[120px]">
    <div className="might">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[var(--space-fluid-container-max)] mx-auto">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
          {/* Section heading */}
          <Reveal className="flex flex-col items-center gap-5 mb-8 sm:mb-10 lg:mb-12 text-center" amount={0.4}>
-            <div className="flex items-center gap-3 w-full max-w-[380px]">
+            <div className="flex items-center gap-3 w-full max-w-[866px]">
                <div className="h-px flex-1 bg-[#e2e5ea]" />
                <span
                  className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap"
