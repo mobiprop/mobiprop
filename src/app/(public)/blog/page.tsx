@@ -17,25 +17,21 @@ const PAGE_SIZE = 9;
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; category?: string }>;
 }) {
-  const { page } = await searchParams;
-  const requestedPage = Math.max(1, Number(page) || 1);
-
-  // Page 1 promotes the newest post to the featured hero, so it needs one extra
-  // row to still fill the grid beneath it.
-  const isFirstPage = requestedPage === 1;
-  const { posts, totalPages } = await getPublishedBlogPosts({
-    page: requestedPage,
-    pageSize: isFirstPage ? PAGE_SIZE + 1 : PAGE_SIZE,
-  });
-
-  const featured = isFirstPage ? posts[0] ?? null : null;
-  const gridPosts = isFirstPage ? posts.slice(1) : posts;
+  const { page, q = "", category = "" } = await searchParams;
+  const requestedPage = Math.max(1, Math.floor(Number(page)) || 1);
+  const [{ posts, totalPages }, highlights] = await Promise.all([
+    getPublishedBlogPosts({ page: requestedPage, pageSize: PAGE_SIZE, query: q.trim(), category }),
+    getPublishedBlogPosts({ page: 1, pageSize: 5 }),
+  ]);
+  const featured = highlights.posts[0] ?? null;
+  const gridPosts = posts;
 
   return (
     <BlogPageContent
       posts={gridPosts}
+      highlights={highlights.posts.slice(1)}
       featured={featured}
       currentPage={requestedPage}
       totalPages={totalPages}

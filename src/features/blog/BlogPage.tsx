@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
@@ -61,7 +62,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="hover-shine relative block w-full h-[360px] sm:h-[420px] lg:h-[539px] rounded-[16px] sm:rounded-[20px] overflow-hidden group"
+      className="hover-shine relative block w-full h-[360px] sm:h-[420px] lg:h-[420px] rounded-[16px] sm:rounded-[24px] overflow-hidden group"
     >
       <img
         src={coverFor(post, 0)}
@@ -77,7 +78,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
         }}
       />
 
-      <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 lg:p-10">
+      <div className="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
         {/* badge */}
         <span
           className="self-start bg-white/90 rounded-[36px] px-3 py-1 text-[12px] sm:text-[14px] text-[#0d2138] tracking-[-0.14px]"
@@ -90,7 +91,7 @@ function FeaturedBlog({ post }: { post: BlogPostDto }) {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4">
           <div className="flex flex-col gap-4 sm:gap-5 max-w-[695px]">
             <h2
-              className="text-[22px] sm:text-[26px] lg:text-[36px] font-semibold text-white leading-[1.25] lg:leading-[48px] tracking-[-0.36px] line-clamp-3"
+              className="text-[22px] sm:text-[26px] lg:text-[28px] font-semibold text-white leading-[1.25] lg:leading-[36px] tracking-[-0.36px] line-clamp-3"
               style={{ fontFamily: poppins }}
             >
               {post.title}
@@ -129,7 +130,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
       className="flex flex-col gap-4 sm:gap-5 cursor-pointer group"
     >
       {/* image */}
-      <div className="hover-shine relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[20px] overflow-hidden">
+      <div className="hover-shine relative h-[220px] sm:h-[260px] lg:h-[296px] rounded-[16px] sm:rounded-[24px] overflow-hidden">
         <img
           src={coverFor(post, index)}
           alt={post.title}
@@ -263,17 +264,26 @@ function Pagination({
 /* ─── main export ─── */
 type BlogPageContentProps = {
   posts: BlogPostDto[];
+  highlights: BlogPostDto[];
   featured: BlogPostDto | null;
   currentPage: number;
   totalPages: number;
 };
 
-export function BlogPageContent({ posts, featured, currentPage, totalPages }: BlogPageContentProps) {
+export function BlogPageContent({ posts, highlights, featured, currentPage, totalPages }: BlogPageContentProps) {
   const router = useRouter();
+  const params = useSearchParams();
+  const [query, setQuery] = useState(params.get("q") ?? "");
+  const category = params.get("category") ?? "";
+  function navigate(values: Record<string, string>) {
+    const next = new URLSearchParams(params.toString());
+    for (const [key, value] of Object.entries(values)) value ? next.set(key, value) : next.delete(key);
+    router.push(`/blog?${next.toString()}`);
+  }
   const { t } = useTranslation("blog");
 
   function goToPage(page: number) {
-    router.push(page <= 1 ? "/blog" : `/blog?page=${page}`);
+    navigate({page: page <= 1 ? "" : String(page)});
   }
 
   const hasContent = Boolean(featured) || posts.length > 0;
@@ -281,7 +291,7 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative h-[360px] lg:h-[408px] overflow-hidden border-b border-black/10">
+      <section className="relative h-[360px] lg:h-[386px] overflow-hidden border-b border-black/10">
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <img src={heroBgOverlay} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         <div
@@ -304,12 +314,12 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
           <SplitHeading
             as="h1"
             text={t("listHero.title")}
-            className="text-[28px] sm:text-[34px] lg:text-[44px] font-semibold text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[56px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[644px]"
+            className="text-[28px] sm:text-[34px] lg:text-[52px] font-medium text-[#0d2138] leading-[1.18] sm:leading-[1.25] lg:leading-[62.4px] tracking-[-0.3px] sm:tracking-[-0.44px] max-w-[340px] sm:max-w-[767px]"
             style={{ fontFamily: poppins }}
             amount={0.6}
           />
           <p
-            className="text-[14px] sm:text-[16px] text-[#2b3038] leading-[21px] sm:leading-[24px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[560px]"
+            className="text-[16px] sm:text-[18px] font-medium text-[#4f4f4f] leading-[27px] tracking-[-0.12px] sm:tracking-[-0.16px] max-w-[320px] sm:max-w-[730px]"
             style={{ fontFamily: montserrat }}
           >
             {t("listHero.subtitle")}
@@ -318,15 +328,36 @@ export function BlogPageContent({ posts, featured, currentPage, totalPages }: Bl
       </section>
 
       {/* ── Content ── */}
-      <div className="w-[calc(100%-28px)] sm:w-[calc(100%-35px)] max-w-[var(--space-fluid-container-max)] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
+      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
         {hasContent ? (
-          <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[60px] w-full">
+          <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[70px] w-full">
             {featured && (
-              <Reveal key={`featured-${currentPage}`} amount={0.2}>
-                <FeaturedBlog post={featured} />
-              </Reveal>
+              <div className="grid gap-[30px] lg:grid-cols-[minmax(0,802fr)_minmax(0,480fr)]">
+                <Reveal amount={0.2}><FeaturedBlog post={featured} /></Reveal>
+                <div className="flex flex-col gap-5">
+                  {highlights.map((post, index) => <Link key={post.id} href={`/blog/${post.slug}`} className="flex gap-4 border-b border-[#ebedf2] pb-4">
+                    <img src={coverFor(post, index)} alt="" className="h-[72px] w-[100px] shrink-0 rounded-[10px] object-cover" />
+                    <div className="min-w-0 flex flex-col gap-2">
+                      <h2 className="line-clamp-2 text-[14px] font-medium leading-5 text-[#0a0d14]" style={{fontFamily:poppins}}>{post.title}</h2>
+                      <p className="text-[12px] leading-[18px] text-[#4f4f4f]" style={{fontFamily:montserrat}}>{post.author} · {postDate(post)}</p>
+                    </div>
+                  </Link>)}
+                </div>
+              </div>
             )}
 
+            <div className="flex flex-col gap-7">
+              <h2 className="text-[28px] lg:text-[36px] font-medium leading-[44px] text-[#0a0d14]" style={{fontFamily:poppins}}>{t("latest.title")}</h2>
+              <div className="flex flex-col xl:flex-row gap-6 justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {["", "Buying Guide", "Selling Tips", "Market Trends", "Investment", "Interior Design", "Luxury Living"].map((value, index) => <button key={value} onClick={() => navigate({category:value,page:""})} className={`rounded-[10px] px-4 py-2 text-[14px] leading-5 border ${category === value ? "bg-[#005089] border-[#005089] text-white" : "bg-[#f0f6fa] border-[#ccdeef] text-[#4f4f4f]"}`}>{t(`latest.categories.${index}`)}</button>)}
+                </div>
+                <form onSubmit={(event) => {event.preventDefault();navigate({q:query.trim(),page:""});}} className="flex h-11 shrink-0 items-center gap-2 rounded-xl border border-[#e9e9e9] px-4 xl:w-[280px]">
+                  <input value={query} onChange={event => setQuery(event.target.value)} placeholder={t("latest.search")} aria-label={t("latest.search")} className="min-w-0 flex-1 bg-transparent text-[14px] outline-none" />
+                  <button type="submit" aria-label={t("latest.search")}><span aria-hidden="true" className="block size-[18px] bg-[#005089]" style={{mask: "url(/listings/search.svg) center / contain no-repeat", WebkitMask: "url(/listings/search.svg) center / contain no-repeat"}} /></button>
+                </form>
+              </div>
+            </div>
             {posts.length > 0 && (
               <Reveal
                 key={`grid-${currentPage}`}
