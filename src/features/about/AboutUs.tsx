@@ -78,18 +78,18 @@ export function AboutIntro() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-white pt-12 sm:pt-16 lg:pt-20 pb-10 sm:pb-14 lg:pb-16">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-10 sm:gap-14">
-          <Reveal as="div" amount={0.6} className="flex flex-col items-center gap-3 text-center">
+      <section className="about-hero bg-white pb-0">
+        <div className="about-container flex flex-col items-center gap-10 sm:gap-14">
+          <Reveal as="div" amount={0.6} className="about-hero-heading flex flex-col items-center gap-3 text-center">
             <SectionBadge label={t("hero.badge")} />
             <h1
-              className="text-[34px] sm:text-[42px] lg:text-[52px] font-medium text-[#101010] leading-[1.15] tracking-[-1px] max-w-[300px] sm:max-w-[560px] lg:max-w-[820px]"
+              className="text-[34px] sm:text-[42px] lg:text-[52px] font-medium text-[#101010] leading-[1.2] tracking-[-1px] max-w-[300px] sm:max-w-[560px] lg:max-w-[693px]"
               style={{ fontFamily: poppins }}
             >
               {t("hero.title")}
             </h1>
             <p
-              className="text-[15px] sm:text-[17px] lg:text-[18px] text-[#4f4f4f] leading-relaxed max-w-[320px] sm:max-w-[560px] lg:max-w-[693px]"
+              className="text-[15px] sm:text-[17px] lg:text-[18px] mt-2 text-[#4f4f4f] leading-[1.5] max-w-[320px] sm:max-w-[560px] lg:max-w-[693px]"
               style={{ fontFamily: montserrat }}
             >
               {t("hero.subtitle")}
@@ -111,7 +111,7 @@ export function AboutIntro() {
           {/* Desktop: flex row so the fixed row height stretches its children reliably
               (CSS Grid's implicit auto-row sizing doesn't stretch percentage-height
               children the same way flex does). */}
-          <Reveal className="hidden lg:flex lg:flex-row gap-6 w-full h-[500px]" stagger={0.1} amount={0.2}>
+          <Reveal className="hidden lg:flex lg:flex-row gap-6 w-full h-[620px]" stagger={0.1} amount={0.2}>
             <RevealItem className="flex-1 rounded-xl overflow-hidden h-full">
               <img src={heroImages[0]} alt="" className="h-full w-full object-cover" />
             </RevealItem>
@@ -136,9 +136,10 @@ export function AboutIntro() {
       </section>
 
       {/* Story */}
-      <section className="bg-white py-12 sm:py-16 lg:py-20">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-10 sm:gap-14">
-          <Reveal className="flex items-center gap-3 w-full max-w-[500px]" amount={0.5}>
+      <section className="about-section about-story-section bg-white">
+        <div className="about-container flex flex-col items-center gap-10 sm:gap-14">
+          <div className="flex w-full flex-col items-center gap-3.5">
+          <Reveal className="flex items-center gap-2.5 w-full max-w-[500px]" amount={0.5}>
             <div className="h-px flex-1 bg-[#b0c9da]/60" />
             <span className="text-[13px] sm:text-[14px] text-[#3373a1] whitespace-nowrap" style={{ fontFamily: montserrat }}>
               {t("story.sectionLabel")}
@@ -146,14 +147,16 @@ export function AboutIntro() {
             <div className="h-px flex-1 bg-[#b0c9da]/60" />
           </Reveal>
           <h2
-            className="text-[28px] sm:text-[36px] lg:text-[44px] font-medium text-[#00223a] text-center tracking-[-1px] leading-tight"
+            className="text-[28px] sm:text-[36px] lg:text-[44px] font-medium text-[#00223a] text-center tracking-[-1px] leading-tight lg:leading-[52px]"
             style={{ fontFamily: poppins }}
           >
             {t("story.heading")}
           </h2>
+          </div>
 
-          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-11 w-full">
-            <Reveal className="flex flex-col gap-6 w-full lg:max-w-[373px] lg:shrink-0" amount={0.3}>
+          <div className="about-story-grid w-full">
+            <Reveal className="flex min-w-0 flex-col gap-6 w-full" amount={0.3}>
+              <h3 className="text-[26px] font-medium leading-[1.3] text-[#00223a]" style={{ fontFamily: poppins }}>{t("story.leftHeading")}</h3>
               <div className="flex flex-col gap-5 text-[#4f4f4f]" style={{ fontFamily: montserrat }}>
                 <p className="text-[16px] leading-relaxed">{t("story.paragraph1")}</p>
                 <p className="text-[16px] leading-relaxed">{t("story.paragraph2")}</p>
@@ -167,11 +170,11 @@ export function AboutIntro() {
               </Link>
             </Reveal>
 
-            <Reveal className="relative h-[300px] sm:h-[420px] lg:h-[569px] w-full lg:w-[474px] shrink-0 rounded-[32px] overflow-hidden" scale={1.08} amount={0.2}>
+            <Reveal className="relative h-[300px] sm:h-[420px] lg:h-[569px] w-full min-w-0 rounded-[32px] overflow-hidden" scale={1.08} amount={0.2}>
               <img src="/about/story.webp" alt="" className="h-full w-full object-cover" />
             </Reveal>
 
-            <Reveal className="flex flex-col gap-8 sm:gap-10 w-full lg:max-w-[379px]" stagger={0.12} amount={0.2}>
+            <Reveal className="flex min-w-0 flex-col gap-8 sm:gap-[50px] w-full" stagger={0.12} amount={0.2}>
               {(["vision", "mission", "commitment"] as const).map((key) => (
                 <RevealItem key={key} className="flex flex-col gap-3">
                   <p className="text-[20px] sm:text-[22px] font-medium text-[#232323] tracking-[-0.11px]" style={{ fontFamily: poppins }}>
@@ -189,7 +192,7 @@ export function AboutIntro() {
 
       {/* Stats */}
       <section className="bg-[#f0f6fa]">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto">
+        <div className="about-container">
           <Reveal
             className="grid grid-cols-2 lg:grid-cols-4 gap-y-10"
             stagger={0.1}
@@ -218,9 +221,9 @@ export function AboutIntro() {
       </section>
 
       {/* Expertise */}
-      <section className="bg-white py-12 sm:py-16 lg:py-20">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-8">
-          <Reveal className="flex flex-col gap-8 sm:gap-10 lg:gap-12 w-full lg:max-w-[613px]" amount={0.3}>
+      <section className="about-section bg-white">
+        <div className="about-container about-expertise-grid">
+          <Reveal className="flex min-w-0 flex-col gap-8 sm:gap-10 lg:gap-[49px] w-full" amount={0.3}>
             <div className="flex flex-col gap-3">
               <GradientBadgeLabel label={t("expertise.badge")} />
               <div className="flex flex-col gap-4">
@@ -240,11 +243,11 @@ export function AboutIntro() {
             </div>
           </Reveal>
 
-          <Reveal className="flex flex-col gap-5 w-full lg:max-w-[667px]" stagger={0.12} amount={0.2}>
+          <Reveal className="flex min-w-0 flex-col gap-5 w-full" stagger={0.12} amount={0.2}>
             {cards.map((card, i) => (
               <RevealItem
                 key={card.title}
-                className="flex flex-col gap-4 rounded-2xl border border-[#e9e9e9] bg-white p-6 sm:p-7"
+                className="flex min-h-[252px] flex-col justify-center gap-4 rounded-2xl border border-[#e9e9e9] bg-white p-6 sm:p-7"
               >
                 <ExpertiseIcon path={EXPERTISE_ICON_PATHS[i]} />
                 <p className="text-[22px] sm:text-[24px] font-medium text-[#0d2138] tracking-[-0.12px]" style={{ fontFamily: poppins }}>
@@ -266,8 +269,8 @@ export function AboutGallery() {
   const { t } = useTranslation("about");
 
   return (
-    <section className="bg-white py-12 sm:py-16 lg:py-20">
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto flex flex-col items-center gap-8 sm:gap-10 lg:gap-12">
+    <section className="about-section bg-white">
+      <div className="about-container flex flex-col items-center gap-8 sm:gap-10 lg:gap-12">
         <Reveal className="flex flex-col items-center gap-4 text-center" amount={0.4}>
           <div className="flex items-center gap-3 w-full max-w-[456px]">
             <div className="h-px flex-1 bg-[#b0c9da]/60" />
@@ -277,7 +280,7 @@ export function AboutGallery() {
             <div className="h-px flex-1 bg-[#b0c9da]/60" />
           </div>
           <h2
-            className="text-[28px] sm:text-[36px] lg:text-[44px] font-medium text-[#00223a] tracking-[-1px] leading-tight max-w-[700px]"
+            className="text-[28px] sm:text-[36px] lg:text-[44px] font-medium text-[#00223a] tracking-[-1px] leading-[52px] max-w-[607px]"
             style={{ fontFamily: poppins }}
           >
             {t("gallery.title")}
@@ -287,23 +290,23 @@ export function AboutGallery() {
           </p>
         </Reveal>
 
-        <Reveal className="grid grid-cols-2 lg:grid-cols-[1fr_0.8fr] gap-4 sm:gap-5 w-full" stagger={0.1} amount={0.15}>
+        <Reveal className="grid grid-cols-2 lg:grid-cols-[717fr_575fr] gap-4 sm:gap-5 w-full" stagger={0.1} amount={0.15}>
           <RevealItem className="col-span-2 lg:col-span-1 h-[280px] sm:h-[420px] lg:h-[614px] rounded-2xl overflow-hidden">
             <img src={galleryImages[0]} alt="" className="h-full w-full object-cover" />
           </RevealItem>
           <div className="col-span-2 lg:col-span-1 flex flex-col gap-4 sm:gap-5">
-            <div className="h-[160px] sm:h-[220px] rounded-2xl overflow-hidden">
+            <div className="h-[160px] sm:h-[220px] lg:h-[186px] rounded-2xl overflow-hidden">
               <img src={galleryImages[1]} alt="" className="h-full w-full object-cover" />
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:gap-5">
-              <div className="h-[220px] sm:h-[380px] rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-2 lg:grid-cols-[235fr_320fr] gap-4 sm:gap-5">
+              <div className="h-[220px] sm:h-[380px] lg:h-[408px] rounded-2xl overflow-hidden">
                 <img src={galleryImages[2]} alt="" className="h-full w-full object-cover" />
               </div>
               <div className="flex flex-col gap-4 sm:gap-5">
-                <div className="h-[102px] sm:h-[180px] rounded-2xl overflow-hidden">
+                <div className="h-[102px] sm:h-[180px] lg:h-[194px] rounded-2xl overflow-hidden">
                   <img src={galleryImages[3]} alt="" className="h-full w-full object-cover" />
                 </div>
-                <div className="h-[102px] sm:h-[180px] rounded-2xl overflow-hidden">
+                <div className="h-[102px] sm:h-[180px] lg:h-[194px] rounded-2xl overflow-hidden">
                   <img src={galleryImages[4]} alt="" className="h-full w-full object-cover" />
                 </div>
               </div>

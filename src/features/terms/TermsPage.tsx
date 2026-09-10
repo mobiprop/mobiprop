@@ -93,7 +93,8 @@ function TermsContent() {
       {sections.map((s, i) => (
         <div
           key={s.heading}
-          className="flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]"
+          id={i === 3 ? "property-accuracy" : undefined}
+          className="scroll-mt-28 flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]"
         >
           <h2
             className="text-[24px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
@@ -125,7 +126,7 @@ function TermsContent() {
       ))}
 
       {/* Contact information */}
-      <div className="flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]">
+      <div className="scroll-mt-28 flex flex-col gap-[14px] sm:gap-[17px] lg:gap-[20px]">
         <h2
           className="text-[22px] sm:text-[25px] lg:text-[28px] font-semibold text-[#0d2138] leading-[30px] sm:leading-[33px] lg:leading-[36px] tracking-[-0.22px] sm:tracking-[-0.25px] lg:tracking-[-0.28px]"
           style={{ fontFamily: poppins }}

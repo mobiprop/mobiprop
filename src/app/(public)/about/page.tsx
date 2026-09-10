@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Blog } from "@/features/home/Blog";
 import { FAQ } from "@/features/home/FAQ";
 import { Agents } from "@/features/home/Agents";
 import { Testimonial } from "@/features/home/Testimonial";
@@ -22,6 +23,7 @@ export default async function AboutPage() {
       <Agents members={teamMembers} />
       <AboutGallery />
       <FAQ />
+      <Blog />
       <ConsultationBanner />
     </>
   );

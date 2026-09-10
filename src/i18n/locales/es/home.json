@@ -202,6 +202,16 @@
     "areaOne": "Zona Norte",
     "areaOneDescription": "Casas, barrios privados y nuevos lugares para vivir.",
     "areaTwo": "CABA",
-    "areaTwoDescription": "Vida urbana y oportunidades para comprar, vender o alquilar."
+    "areaTwoDescription": "Vida urbana y oportunidades para comprar, vender o alquilar.",
+    "customers": {
+      "value": "100+",
+      "label": "Clientes felices",
+      "description": "En propiedades residenciales, comerciales y de lujo."
+    },
+    "support": {
+      "value": "24/7",
+      "label": "Atención al cliente",
+      "description": "La confianza de compradores, vendedores e inversores."
+    }
   }
 }

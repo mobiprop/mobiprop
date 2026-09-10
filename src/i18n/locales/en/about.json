@@ -1,12 +1,12 @@
 {
   "hero": {
     "badge": "Curated properties",
-    "title": "Your Next Chapter Starts Here",
+    "title": "Your Next Chapter with Us",
     "subtitle": "Whether you're buying your first home or investing in your future, we offer expert advice and personalized options."
   },
   "story": {
     "sectionLabel": "Our Story",
-    "heading": "Born from a real need in the market.",
+    "heading": "Built from a real need.",
     "paragraph1": "In 2019, a group of real estate professionals and software engineers came together to digitize the Argentine real estate market. We saw how much time, money, and stress it cost families to find their home.",
     "paragraph2": "Today we're a growing platform with a presence in Buenos Aires and local agents who know every neighborhood in depth.",
     "cta": "Contact Us",
@@ -21,7 +21,8 @@
     "commitment": {
       "title": "Our Commitment",
       "desc": "We focus on trust, hands-on support, and sustainable long-term results."
-    }
+    },
+    "leftHeading": "Born from a real need in the market."
   },
   "stats": [
     {

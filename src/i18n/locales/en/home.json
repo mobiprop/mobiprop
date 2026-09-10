@@ -202,6 +202,16 @@
     "areaOne": "Zona Norte",
     "areaOneDescription": "Homes, gated communities, and new places to call home.",
     "areaTwo": "CABA",
-    "areaTwoDescription": "City living and opportunities to buy, sell, or rent."
+    "areaTwoDescription": "City living and opportunities to buy, sell, or rent.",
+    "customers": {
+      "value": "100+",
+      "label": "Happy Customers",
+      "description": "Across residential, commercial, and luxury markets nationwide."
+    },
+    "support": {
+      "value": "24/7",
+      "label": "Customer Support",
+      "description": "Trusted by hundreds of buyers, sellers, and investors."
+    }
   }
 }

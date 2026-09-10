@@ -1,12 +1,12 @@
 {
   "hero": {
     "badge": "Propiedades seleccionadas",
-    "title": "Tu Próximo Capítulo Empieza Acá",
+    "title": "Tu próximo capítulo con nosotros",
     "subtitle": "Ya sea que estés comprando tu primera casa o invirtiendo en tu futuro, te ofrecemos asesoramiento experto y opciones a tu medida."
   },
   "story": {
     "sectionLabel": "Nuestra Historia",
-    "heading": "Nacida de una necesidad real del mercado.",
+    "heading": "Nacimos de una necesidad real.",
     "paragraph1": "En 2019, un grupo de profesionales del sector inmobiliario e ingenieros de software se unió para digitalizar el mercado inmobiliario argentino. Vimos cuánto tiempo, dinero y estrés les costaba a las familias encontrar su hogar.",
     "paragraph2": "Hoy somos una plataforma en crecimiento, con presencia en Buenos Aires y agentes locales que conocen cada barrio en profundidad.",
     "cta": "Contactanos",
@@ -21,7 +21,8 @@
     "commitment": {
       "title": "Nuestro Compromiso",
       "desc": "Nos enfocamos en la confianza, el acompañamiento y resultados sostenibles a largo plazo."
-    }
+    },
+    "leftHeading": "Nacida de una necesidad real del mercado."
   },
   "stats": [
     {

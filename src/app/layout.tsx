@@ -23,6 +23,7 @@ export default async function RootLayout({
   return (
     <html lang={lang} className="h-full antialiased">
       <head>
+        <link rel="stylesheet" href="https://use.typekit.net/oqa5ack.css" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

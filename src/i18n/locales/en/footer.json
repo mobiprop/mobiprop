@@ -5,14 +5,33 @@
   "email": "hola@mobiprop.com.ar",
   "copyright": "© 2026 Mobi Prop. All rights reserved. Matias Ulrich CSI 7311 T10-F309",
   "columns": {
-    "company": { "heading": "Company" },
-    "explore": { "heading": "Explore" },
-    "support": { "heading": "Support" },
-    "legal": { "heading": "Legal" }
+    "company": {
+      "heading": "Company"
+    },
+    "explore": {
+      "heading": "Explore"
+    },
+    "support": {
+      "heading": "Support"
+    },
+    "legal": {
+      "heading": "Legal"
+    }
   },
   "links": {
     "rentals": "Rentals",
-    "commercial": "Commercial"
+    "commercial": "Commercial",
+    "careers": "Careers",
+    "press": "Press",
+    "listWithUs": "List with Us",
+    "newDevelopments": "New Developments",
+    "helpCenter": "Help Center",
+    "contactUs": "Contact Us",
+    "accessibility": "Accessibility",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "disclaimer": "Disclaimer",
+    "sitemap": "Sitemap"
   },
   "newsletterHeadline": "From concept sketches to final execution.",
   "newsletterSubtext": "Subscribe our news letter",

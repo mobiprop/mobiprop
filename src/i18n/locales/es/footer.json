@@ -5,14 +5,33 @@
   "email": "hola@mobiprop.com.ar",
   "copyright": "© 2026 Mobi Prop. Todos los derechos reservados. Matias Ulrich CSI 7311 T10-F309",
   "columns": {
-    "company": { "heading": "Empresa" },
-    "explore": { "heading": "Explorar" },
-    "support": { "heading": "Ayuda" },
-    "legal": { "heading": "Legal" }
+    "company": {
+      "heading": "Empresa"
+    },
+    "explore": {
+      "heading": "Explorar"
+    },
+    "support": {
+      "heading": "Ayuda"
+    },
+    "legal": {
+      "heading": "Legal"
+    }
   },
   "links": {
     "rentals": "Alquileres",
-    "commercial": "Comercial"
+    "commercial": "Comercial",
+    "careers": "Trabajá con nosotros",
+    "press": "Prensa",
+    "listWithUs": "Publicá con nosotros",
+    "newDevelopments": "Emprendimientos",
+    "helpCenter": "Centro de ayuda",
+    "contactUs": "Contactanos",
+    "accessibility": "Accesibilidad",
+    "termsOfService": "Términos del servicio",
+    "cookiePolicy": "Política de cookies",
+    "disclaimer": "Aviso legal",
+    "sitemap": "Mapa del sitio"
   },
   "newsletterHeadline": "Encontrá tu próxima propiedad.",
   "newsletterSubtext": "Suscribite para recibir las últimas propiedades",

@@ -9,18 +9,22 @@ const footerBg = "/hero/cta-footer-bg.webp";
 const socialLinks = [
   {
     name: "Instagram",
+    href: "https://instagram.com/mobiprop",
     path: "M12.75 1.5H5.25C3.17893 1.5 1.5 3.17893 1.5 5.25V12.75C1.5 14.8211 3.17893 16.5 5.25 16.5H12.75C14.8211 16.5 16.5 14.8211 16.5 12.75V5.25C16.5 3.17893 14.8211 1.5 12.75 1.5Z M9 12C10.6569 12 12 10.6569 12 9C12 7.34315 10.6569 6 9 6C7.34315 6 6 7.34315 6 9C6 10.6569 7.34315 12 9 12Z",
   },
   {
     name: "Facebook",
+    href: "https://www.facebook.com/mobiprop",
     path: "M13.5 1.5H11.25C10.2554 1.5 9.30161 1.89509 8.59835 2.59835C7.89509 3.30161 7.5 4.25544 7.5 5.25V7.5H5.25V10.5H7.5V16.5H10.5V10.5H12.75L13.5 7.5H10.5V5.25C10.5 5.05109 10.579 4.86032 10.7197 4.71967C10.8603 4.57902 11.0511 4.5 11.25 4.5H13.5V1.5Z",
   },
   {
     name: "LinkedIn",
+    href: "https://linkedin.com/company/mobiprop",
     path: "M12 6C13.1935 6 14.3381 6.47411 15.182 7.31802C16.0259 8.16193 16.5 9.30653 16.5 10.5V15.75H13.5V10.5C13.5 10.1022 13.342 9.72064 13.0607 9.43934C12.7794 9.15804 12.3978 9 12 9C11.6022 9 11.2206 9.15804 10.9393 9.43934C10.658 9.72064 10.5 10.1022 10.5 10.5V15.75H7.5V10.5C7.5 9.30653 7.97411 8.16193 8.81802 7.31802C9.66193 6.47411 10.8065 6 12 6Z M4.5 6.75H1.5V15.75H4.5V6.75Z",
   },
   {
     name: "WhatsApp",
+    href: "https://wa.me/5491180306000",
     path: "M15.75 8.625C15.7526 9.6149 15.5213 10.5914 15.075 11.475C14.5458 12.5338 13.7323 13.4244 12.7256 14.047C11.7189 14.6695 10.5587 14.9995 9.375 15C8.3851 15.0026 7.40859 14.7713 6.525 14.325L2.25 15.75L3.675 11.475C3.2287 10.5914 2.99742 9.6149 3 8.625C3.00046 7.44132 3.33046 6.28114 3.95304 5.27441C4.57562 4.26769 5.46619 3.45418 6.525 2.925C7.40859 2.4787 8.3851 2.24742 9.375 2.25H9.75C11.3133 2.33624 12.7898 2.99607 13.8969 4.10314C15.0039 5.21022 15.6638 6.68674 15.75 8.25V8.625Z",
   },
 ];
@@ -93,7 +97,7 @@ function FooterColumn({
       <div className="flex flex-col gap-2">
         {links.map((link) => (
           <Link
-            key={link.href}
+            key={link.label}
             href={link.href}
             className="text-[16px] text-[#e4e4e4] hover:text-white transition-colors leading-6"
             style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -116,28 +120,36 @@ export function Footer() {
         { label: t("home", { ns: "navigation" }), href: "/" },
         { label: t("about", { ns: "navigation" }), href: "/about" },
         { label: t("blog", { ns: "navigation" }), href: "/blog" },
+        { label: t("links.careers"), href: "mailto:hola@mobiprop.com.ar?subject=Careers" },
+        { label: t("links.press"), href: "mailto:hola@mobiprop.com.ar?subject=Press" },
       ],
     },
     {
       heading: t("columns.explore.heading", { ns: "footer" }),
       links: [
         { label: t("listings", { ns: "navigation" }), href: "/listings" },
-        { label: t("links.rentals", { ns: "footer" }), href: "/listings?transactionType=RENT" },
+        { label: t("links.listWithUs"), href: "/contact" },
+        { label: t("links.newDevelopments"), href: "mailto:hola@mobiprop.com.ar?subject=New%20developments" },
         { label: t("links.commercial", { ns: "footer" }), href: "/listings?propertyType=COMMERCIAL_OFFICE" },
+        { label: t("links.rentals", { ns: "footer" }), href: "/listings?transactionType=RENT" },
       ],
     },
     {
       heading: t("columns.support.heading", { ns: "footer" }),
       links: [
+        { label: t("links.helpCenter"), href: "/faq" },
+        { label: t("links.contactUs"), href: "/contact" },
         { label: t("faq", { ns: "navigation" }), href: "/faq" },
-        { label: t("contact", { ns: "navigation" }), href: "/contact" },
+        { label: t("links.accessibility"), href: "mailto:hola@mobiprop.com.ar?subject=Website%20accessibility" },
       ],
     },
     {
       heading: t("columns.legal.heading", { ns: "footer" }),
       links: [
         { label: t("privacyPolicy", { ns: "navigation" }), href: "/privacy-policy" },
-        { label: t("termsConditions", { ns: "navigation" }), href: "/terms-conditions" },
+        { label: t("links.termsOfService"), href: "/terms-conditions" },
+        { label: t("links.cookiePolicy"), href: "/privacy-policy" },
+        { label: t("links.disclaimer"), href: "/terms-conditions#property-accuracy" },
       ],
     },
   ];
@@ -165,13 +177,16 @@ export function Footer() {
 
             <div className="-mt-1 flex items-center gap-3">
               {socialLinks.map((social) => (
-                <span
+                <a
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   key={social.name}
                   aria-label={social.name}
-                  className="flex size-[38px] items-center justify-center rounded-[10px] border border-white/10 bg-white/[0.06]"
+                  className="flex size-[38px] items-center justify-center rounded-[10px] border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
-                  <SocialIcon path={social.path} />
-                </span>
+                  {social.name === "WhatsApp" ? <span aria-hidden="true" className="size-[18px] bg-[#f0f6fa]" style={{ mask: "url(/icons/brand-whatsapp.svg) center / contain no-repeat", WebkitMask: "url(/icons/brand-whatsapp.svg) center / contain no-repeat" }} /> : <SocialIcon path={social.path} />}
+                </a>
               ))}
             </div>
 
@@ -210,13 +225,15 @@ export function Footer() {
           <p className="text-[14px] sm:text-[16px] text-[#b2b2b2] text-center sm:text-left" style={{ fontFamily: "Montserrat, sans-serif" }}>
             {t("copyright", { ns: "footer" })}
           </p>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <Link href="/privacy-policy" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white transition-colors" style={{ fontFamily: "Montserrat, sans-serif" }}>
               {t("privacyPolicy", { ns: "navigation" })}
             </Link>
             <Link href="/terms-conditions" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white transition-colors" style={{ fontFamily: "Montserrat, sans-serif" }}>
-              {t("termsConditions", { ns: "navigation" })}
+              {t("links.termsOfService")}
             </Link>
+            <Link href="/privacy-policy" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.cookiePolicy")}</Link>
+            <Link href="/site-map" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.sitemap")}</Link>
           </div>
         </div>
       </div>

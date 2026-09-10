@@ -253,7 +253,7 @@ export function HeroSection() {
         <div
           className="home-hero-content relative z-10 flex min-h-[500px] flex-1 flex-col justify-between gap-12"
         >
-          <div style={{ paddingTop: "var(--space-fluid-hero-pt)" }}>
+          <div style={{ paddingTop: "clamp(112px, 14.583vw, 210px)" }}>
             <motion.div
               className="flex max-w-[720px] flex-col gap-4"
               initial={{ opacity: 0, y: 40 }}
@@ -263,7 +263,7 @@ export function HeroSection() {
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5">
                 <span className="size-1.5 shrink-0 rounded-full bg-[#fafafa]" />
                 <span
-                  className="text-[12px] leading-4 uppercase tracking-[1.2px] text-white"
+                  className="text-[11px] leading-4 uppercase tracking-[1.2px] text-white"
                   style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
                 >
                   {t("hero.badge")}
@@ -273,14 +273,14 @@ export function HeroSection() {
               <h1
                 className="text-white"
                 style={{
-                  fontFamily: "Neue Haas Grotesk Display Pro, Poppins, sans-serif",
+                  fontFamily: "Neue Haas Grotesk Display Pro, Helvetica Neue, Arial, sans-serif",
                   fontWeight: 400,
-                  fontSize: "clamp(32px, 4.167vw, 60px)",
+                  fontSize: "clamp(32px, 3.681vw, 53px)",
                   lineHeight: 1.25,
                 }}
               >
                 {t("hero.titlePrefix")}
-                <span style={{ fontFamily: "'IvyPresto Display', Georgia, serif", fontStyle: "italic" }}>
+                <span style={{ fontFamily: "'ivypresto-display', Georgia, serif", fontStyle: "italic", fontWeight: 400 }}>
                   {t("hero.titleAccent")}
                 </span>
               </h1>
@@ -289,7 +289,7 @@ export function HeroSection() {
                 className="max-w-[592px] text-white/90"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
-                  fontSize: "clamp(16px, 1.389vw, 20px)",
+                  fontSize: "clamp(16px, 1.25vw, 18px)",
                   lineHeight: 1.45,
                 }}
               >
