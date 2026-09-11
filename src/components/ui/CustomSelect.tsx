@@ -35,7 +35,7 @@ export function CustomSelect({children, className, style, id, onChange, onInvali
       onInvalid={e => { e.preventDefault(); wrapper.current?.querySelector("button")?.focus(); onInvalid?.(e); }}>
       {children}
     </select>
-    <SearchableSelect id={id} ariaLabel={props["aria-label"] ?? props.name ?? options[0]?.label}
+    <SearchableSelect id={id} ariaLabel={props["aria-label"] ?? options[0]?.label ?? props.name}
       value={value} options={options} placeholder={options[0]?.label ?? "Seleccionar"}
       searchable={false} disabled={props.disabled} hasError={props["aria-invalid"] === true}
       triggerClassName={className} triggerStyle={style}
