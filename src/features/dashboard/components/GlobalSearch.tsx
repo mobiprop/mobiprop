@@ -269,7 +269,7 @@ export function GlobalSearch() {
       </div>
 
       {showDropdown && (
-        <div className="absolute top-full left-0 mt-2 w-[440px] bg-white border border-[#e5e7eb] rounded-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 overflow-hidden">
+        <div className="mobi-dropdown-menu absolute top-full left-0 mt-2 w-[440px] bg-white border border-[#e5e7eb] rounded-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 overflow-hidden">
           {isFetching && !hasResults ? (
             <div className="flex items-center justify-center py-8 gap-2 text-[#6a7282]">
               <Loader2 size={16} className="animate-spin" />

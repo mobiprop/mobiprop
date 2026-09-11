@@ -122,7 +122,7 @@ function RowMenu({ label, ariaLabel, items }: { label: string; ariaLabel: string
           <div
             ref={menuRef}
             role="menu"
-            className="fixed z-[9999] w-[200px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+            className="mobi-dropdown-menu fixed z-[9999] w-[200px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
             style={{ top: position.top, left: position.left }}
           >
             {items.map((item) => (

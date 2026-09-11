@@ -337,7 +337,7 @@ function RowActions({
 
             <div
               role="menu"
-              className="fixed z-[9999] min-w-[164px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white py-1 shadow-[0_12px_30px_rgba(15,23,42,0.16)]"
+              className="mobi-dropdown-menu fixed z-[9999] min-w-[164px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white py-1 shadow-[0_12px_30px_rgba(15,23,42,0.16)]"
               style={{ top: position.top, left: position.left, ...uiFont }}
               onClick={(event) => event.stopPropagation()}
             >

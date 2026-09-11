@@ -454,6 +454,7 @@ body {
 @media (min-width: 1280px) and (pointer: fine) {
   body:has([data-public-site]) {
     --public-viewport-height: calc(100svh / .9);
+    --hero-viewport-factor: .9;
     --space-fluid-container-max: calc(max(1440px, min(100vw, 3840px)) / .9);
     zoom: .9;
     min-height: var(--public-viewport-height);
@@ -472,7 +473,44 @@ body {
    outer gutters. The flex content keeps the search near the lower edge. */
 @media (min-width: 1024px) {
   .hero-fill-height {
-    min-height: calc(100vh - 32px);
-    min-height: calc(100dvh - 32px);
+    min-height: calc(100vh / var(--hero-viewport-factor, 1) - 32px);
+    min-height: calc(100dvh / var(--hero-viewport-factor, 1) - 32px);
   }
 }
+
+/* One dropdown language across the public site and CRM. */
+.mobi-select-trigger, .mobi-select-bare {
+  display: flex; width: 100%; min-width: 0; align-items: center; gap: 10px;
+  text-align: left; font: 400 14px/1.5 Montserrat, sans-serif; color: #4f4f4f;
+  cursor: pointer;
+}
+.mobi-select-trigger { min-height: 44px; padding: 10px 14px; border: 1px solid #e9e9e9; border-radius: 16px; background: #f9f9f9; }
+.mobi-select-bare { background: transparent; border: 0; padding: 0; }
+.mobi-select-small { min-height: 40px; }
+.mobi-select-trigger:focus-visible,.mobi-select-bare:focus-visible { outline: 2px solid #005089; outline-offset: 2px; }
+.mobi-select-trigger[aria-invalid="true"] { border-color: #e7000b; }
+.mobi-select-trigger:disabled { opacity: .55; cursor: not-allowed; }
+.mobi-native-select { position: relative; min-width: 0; }
+.mobi-dropdown-menu {
+  border: 1px solid #e9e9e9 !important; border-radius: 16px !important;
+  background: #fff !important; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1) !important;
+  font-family: Montserrat, sans-serif !important; color: #4f4f4f;
+}
+.mobi-select-panel { z-index: 10050; display: flex; flex-direction: column; overflow: hidden; }
+.mobi-select-options { overflow-y: auto; overscroll-behavior: contain; padding-block: 4px; min-height: 0; outline: none; }
+.mobi-dropdown-option, .mobi-dropdown-menu [role="option"] {
+  width: 100%; padding: 10px 16px !important; text-align: left; font: 400 14px/1.5 Montserrat, sans-serif !important;
+  color: #4f4f4f !important; white-space: normal; overflow-wrap: anywhere; background: transparent !important;
+  cursor: pointer; border-radius: 0;
+}
+.mobi-dropdown-menu > button, .mobi-dropdown-menu > a {
+  padding: 10px 16px !important; font-family: Montserrat, sans-serif !important;
+  font-size: 14px !important; line-height: 1.5; white-space: normal; overflow-wrap: anywhere;
+}
+.mobi-dropdown-option:hover:not(:disabled), .mobi-dropdown-menu [role="option"]:hover,
+.mobi-dropdown-option[data-active="true"], .mobi-dropdown-menu > button:hover, .mobi-dropdown-menu > a:hover { background: #f3f4f6 !important; }
+.mobi-dropdown-option[aria-selected="true"],.mobi-dropdown-menu [role="option"][aria-selected="true"] { color: #005089 !important; font-weight: 500 !important; }
+.mobi-dropdown-option:disabled { opacity: .45; cursor: not-allowed; }
+.mobi-select-search { display: flex; flex-shrink: 0; align-items: center; gap: 8px; border-bottom: 1px solid #e9e9e9; padding: 10px 16px; }
+.mobi-select-search input { width: 100%; min-width: 0; outline: 0; font: 400 14px/1.5 Montserrat,sans-serif; }
+.mobi-select-message { padding: 10px 16px; font-size: 14px; }

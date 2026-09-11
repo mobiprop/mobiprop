@@ -263,7 +263,7 @@ function AgentActionsMenu({
           <div
             ref={menuRef}
             role="menu"
-            className="fixed z-[9999] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg"
+            className="mobi-dropdown-menu fixed z-[9999] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg"
             style={{ top: position.top, left: position.left, width: position.width }}
           >
             {canEdit && (

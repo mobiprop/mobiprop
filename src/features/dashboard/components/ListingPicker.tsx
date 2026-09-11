@@ -183,7 +183,7 @@ export function ListingPicker({
         }}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`flex w-full min-w-0 items-center justify-between gap-2 rounded-[8px] bg-white px-3 text-left text-[12px] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:opacity-60 ${TONE_STYLES[tone]}`}
+        className={`mobi-select-trigger flex w-full min-w-0 items-center justify-between gap-2 rounded-[8px] bg-white px-3 text-left text-[12px] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:opacity-60 ${TONE_STYLES[tone]}`}
         style={mont}
       >
         <span className={`truncate ${value ? "text-[#0d2138]" : "text-[#99a1af]"}`}>
@@ -210,7 +210,7 @@ export function ListingPicker({
               left: position.left,
               width: position.width,
             }}
-            className="z-50 overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg"
+            className="mobi-dropdown-menu z-50 overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg"
           >
             <div className="flex items-center gap-2 border-b border-[#f3f4f6] px-3 py-2">
               <Search size={15} className="shrink-0 text-[#9ca3af]" />

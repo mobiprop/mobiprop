@@ -165,7 +165,7 @@ export function ContactPicker({
         }}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-[10px] border bg-white px-3 text-left text-[12px] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`mobi-select-trigger flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-[10px] border bg-white px-3 text-left text-[12px] outline-none transition-colors focus:border-[#1e4f86] disabled:cursor-not-allowed disabled:opacity-60 ${
           hasError ? "border-[#e7000b]" : "border-[#e5e7eb]"
         }`}
         style={mont}
@@ -183,7 +183,7 @@ export function ContactPicker({
             ref={panelRef}
             role="listbox"
             style={{ position: "fixed", top: position.top, left: position.left, width: position.width }}
-            className="z-50 overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg"
+            className="mobi-dropdown-menu z-50 overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg"
           >
             <div className="flex items-center gap-2 border-b border-[#f3f4f6] px-3 py-2">
               <Search size={15} className="shrink-0 text-[#9ca3af]" />

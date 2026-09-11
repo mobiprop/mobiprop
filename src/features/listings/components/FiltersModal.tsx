@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/ui/Select";
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +11,6 @@ function IconDollar() { return <img src="/pages/filter-2464-4782.svg" alt="" wid
 function IconBed() { return <img src="/pages/filter-2464-4802.svg" alt="" width={18} height={18}/>; }
 function IconBath() { return <img src="/pages/filter-2464-4819.svg" alt="" width={18} height={18}/>; }
 function IconGrid() { return <img src="/pages/filter-2464-4841.svg" alt="" width={18} height={18}/>; }
-function IconChevron() { return <img src="/pages/filter-2464-4807.svg" alt="" width={18} height={18}/>; }
 function IconCreditCard({active}:{active:boolean}) { return <span aria-hidden="true" className="inline-block size-4 shrink-0" style={{backgroundColor:active?"#005089":"#6a7282",mask:"url(/pages/filter-2464-4851.svg) center / contain no-repeat",WebkitMask:"url(/pages/filter-2464-4851.svg) center / contain no-repeat"}}/>; }
 function IconFlame({active}:{active:boolean}) { return <span aria-hidden="true" className="inline-block size-4 shrink-0" style={{backgroundColor:active?"#005089":"#6a7282",mask:"url(/pages/filter-2464-4856.svg) center / contain no-repeat",WebkitMask:"url(/pages/filter-2464-4856.svg) center / contain no-repeat"}}/>; }
 function IconRadiant({active}:{active:boolean}) { return <span aria-hidden="true" className="inline-block size-4 shrink-0" style={{backgroundColor:active?"#005089":"#6a7282",mask:"url(/pages/filter-2464-4860.svg) center / contain no-repeat",WebkitMask:"url(/pages/filter-2464-4860.svg) center / contain no-repeat"}}/>; }
@@ -54,8 +54,6 @@ export function FiltersModal({ onClose, onApply, initialValues }: {
   const [minArea, setMinArea] = useState(initialValues?.minArea ?? "");
   const [maxArea, setMaxArea] = useState(initialValues?.maxArea ?? "");
   const [amenities, setAmenities] = useState<Set<Amenity>>(() => new Set([...(initialValues?.amenities ?? [])].filter((a): a is Amenity => amenityList.some(item => item.label === a))));
-  const [bedroomOpen, setBedroomOpen] = useState(false);
-  const [bathroomOpen, setBathroomOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -174,65 +172,14 @@ export function FiltersModal({ onClose, onApply, initialValues }: {
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
 
-              {/* Bedrooms dropdown */}
-              <div className="relative h-12 sm:h-[52px]">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <IconBed />
-                </div>
-                <button
-                  onClick={() => { setBedroomOpen((o) => !o); setBathroomOpen(false); }}
-                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#e9e9e9] bg-[#fcfcfc] pl-11 pr-4 text-left flex items-center justify-between sm:rounded-[16px] sm:pl-12"
-                >
-                  <span className="text-[14px] leading-6 tracking-[-0.16px] text-[#6a7282] sm:text-[16px]" style={{ fontFamily: montserrat }}>
-                    {bedrooms === "Any" ? t("filtersModal.bedroomsLabel") : bedroomOptionLabel(bedrooms)}
-                  </span>
-                  <IconChevron />
-                </button>
-                {bedroomOpen && (
-                  <div className="absolute top-[50px] sm:top-[54px] left-0 w-full bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg z-30 py-1">
-                    {bedroomOptions.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => { setBedrooms(opt); setBedroomOpen(false); }}
-                        className={`w-full px-4 py-2 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors ${bedrooms === opt ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"}`}
-                        style={{ fontFamily: montserrat }}
-                      >
-                        {bedroomOptionLabel(opt)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Bathrooms dropdown */}
-              <div className="relative h-12 sm:h-[52px]">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <IconBath />
-                </div>
-                <button
-                  onClick={() => { setBathroomOpen((o) => !o); setBedroomOpen(false); }}
-                  className="h-12 w-full sm:h-[52px] rounded-[12px] border border-[#e9e9e9] bg-[#fcfcfc] pl-11 pr-4 text-left flex items-center justify-between sm:rounded-[16px] sm:pl-12"
-                >
-                  <span className="text-[14px] leading-6 tracking-[-0.16px] text-[#6a7282] sm:text-[16px]" style={{ fontFamily: montserrat }}>
-                    {bathrooms === "Any" ? t("filtersModal.bathroomsLabel") : bathroomOptionLabel(bathrooms)}
-                  </span>
-                  <IconChevron />
-                </button>
-                {bathroomOpen && (
-                  <div className="absolute top-[50px] sm:top-[54px] left-0 w-full bg-white border border-[#e5e7eb] rounded-[12px] shadow-lg z-30 py-1">
-                    {bathroomOptions.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => { setBathrooms(opt); setBathroomOpen(false); }}
-                        className={`w-full px-4 py-2 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors ${bathrooms === opt ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"}`}
-                        style={{ fontFamily: montserrat }}
-                      >
-                        {bathroomOptionLabel(opt)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <SearchableSelect icon={<IconBed />} searchable={false}
+                ariaLabel={t("filtersModal.bedroomsLabel")} placeholder={t("filtersModal.bedroomsLabel")}
+                value={bedrooms} onChange={setBedrooms}
+                options={bedroomOptions.map(value => ({value, label: bedroomOptionLabel(value)}))} />
+              <SearchableSelect icon={<IconBath />} searchable={false}
+                ariaLabel={t("filtersModal.bathroomsLabel")} placeholder={t("filtersModal.bathroomsLabel")}
+                value={bathrooms} onChange={setBathrooms}
+                options={bathroomOptions.map(value => ({value, label: bathroomOptionLabel(value)}))} />
 
               {/* Min Area */}
               <div className="relative h-12 sm:h-[52px]">

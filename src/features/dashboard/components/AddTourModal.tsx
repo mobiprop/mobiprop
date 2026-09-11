@@ -275,7 +275,7 @@ export function AddTourModal({ onClose, onCreated, leadId, initialValues }: Prop
                   />
                 </div>
                 {listings.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-10 bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg mt-1 max-h-40 overflow-y-auto">
+                  <div className="mobi-dropdown-menu absolute top-full left-0 right-0 z-10 bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg mt-1 max-h-40 overflow-y-auto">
                     {listings.map((l) => (
                       <button
                         key={l.id}

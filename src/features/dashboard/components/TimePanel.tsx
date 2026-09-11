@@ -94,7 +94,7 @@ export function TimePanel({ value, onSelect, onClose, align = "left", inline = f
 
   return (
     <div
-      className={`${positionCls} w-[180px] bg-white border border-[#dfe1e7] rounded-[12px] shadow-[0px_16px_32px_-1px_rgba(128,136,151,0.2)] z-50 overflow-hidden`}
+      className={`mobi-dropdown-menu ${positionCls} w-[180px] bg-white border border-[#dfe1e7] rounded-[12px] shadow-[0px_16px_32px_-1px_rgba(128,136,151,0.2)] z-50 overflow-hidden`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="px-3 py-2 border-b border-[#e6e6e6]">

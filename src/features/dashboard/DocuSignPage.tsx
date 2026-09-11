@@ -770,7 +770,7 @@ function EnvelopeRow({ envelope, canVoid, canResend }: { envelope: DocusignEnvel
                   />
                   <div
                     role="menu"
-                    className="fixed z-[9999] w-[160px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
+                    className="mobi-dropdown-menu fixed z-[9999] w-[160px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
                     style={{ top: menuPosition.top, left: menuPosition.left }}
                     onClick={(event) => event.stopPropagation()}
                   >

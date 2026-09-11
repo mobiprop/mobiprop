@@ -314,7 +314,7 @@ return (
             </div>
 
             {showContactDropdown && contacts.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[220px] overflow-y-auto rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg">
+              <div className="mobi-dropdown-menu absolute left-0 right-0 top-full z-30 mt-1 max-h-[220px] overflow-y-auto rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg">
                 {contacts.map((contact) => (
                   <button
                     key={contact.id}
@@ -492,7 +492,7 @@ return (
             </div>
 
             {showListingDropdown && listings.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[220px] overflow-y-auto rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg">
+              <div className="mobi-dropdown-menu absolute left-0 right-0 top-full z-30 mt-1 max-h-[220px] overflow-y-auto rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg">
                 {listings.map((listing) => (
                   <button
                     key={listing.id}

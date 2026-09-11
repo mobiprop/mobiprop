@@ -1,5 +1,7 @@
 "use client";
 
+import { CustomSelect } from "@/components/ui/CustomSelect";
+
 import { useMemo, useRef, useState } from "react";
 import { X, Check, Upload, FileText, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -289,7 +291,7 @@ export function ImportContactsModal({ lists, initialListId, onClose }: ImportCon
                 <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>
                   {t("importModal.step2.addToListLabel")} <span className="text-[#dc2626]">*</span>
                 </span>
-                <select
+                <CustomSelect
                   value={listId}
                   onChange={(e) => setListId(e.target.value)}
                   className="min-h-[44px] w-full rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 text-[13px] text-[#0d2138] focus:border-[#1e4f86] focus:outline-none"
@@ -300,7 +302,7 @@ export function ImportContactsModal({ lists, initialListId, onClose }: ImportCon
                       {list.name} ({list.memberCount})
                     </option>
                   ))}
-                </select>
+                </CustomSelect>
                 {!selectedList?.isSystem && (
                   <p className="text-[12px] text-[#6a7282]" style={mont}>
                     {t("importModal.step2.autoAddedNote")}

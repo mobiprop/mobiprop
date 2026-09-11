@@ -1,4 +1,6 @@
 "use client";
+
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { PageBackdrop } from "@/components/common/PageHero";
@@ -60,7 +62,7 @@ export function ContactPageContent() {
      <label><span className="sr-only">Nombre completo</span><input className={inputClass} name="name" autoComplete="name" placeholder="Nombre completo*" required minLength={2} maxLength={150}/></label>
      <label><span className="sr-only">Correo electrónico</span><input className={inputClass} name="email" type="email" autoComplete="email" placeholder="Correo electrónico*" required maxLength={254}/></label>
      <label><span className="sr-only">Teléfono</span><input className={inputClass} name="phone" type="tel" autoComplete="tel" placeholder="Teléfono*" maxLength={50} required/></label>
-     <label><span className="sr-only">¿Qué servicio te interesa?</span><select className={`${inputClass} ${styles.select}`} name="service" defaultValue=""><option value="" disabled>¿Qué servicio te interesa?</option><option>Comprar una propiedad</option><option>Vender una propiedad</option><option>Alquilar una propiedad</option><option>Tasación de una propiedad</option><option>Otro</option></select></label>
+     <label><span className="sr-only">¿Qué servicio te interesa?</span><CustomSelect className={inputClass} name="service" defaultValue=""><option value="" disabled>¿Qué servicio te interesa?</option><option>Comprar una propiedad</option><option>Vender una propiedad</option><option>Alquilar una propiedad</option><option>Tasación de una propiedad</option><option>Otro</option></CustomSelect></label>
      <label className={styles.message}><span className="sr-only">Tu mensaje</span><textarea className={inputClass} name="message" placeholder="Tu mensaje" required minLength={10} maxLength={5000}/></label>
     </div>
     <div hidden aria-hidden="true"><label>Sitio web<input name="website" tabIndex={-1} autoComplete="off"/></label></div>

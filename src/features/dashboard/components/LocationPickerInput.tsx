@@ -91,7 +91,7 @@ export function LocationPickerInput({
       />
 
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg">
+        <div className="mobi-dropdown-menu absolute z-20 mt-1 w-full overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg">
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.id}
@@ -113,7 +113,7 @@ export function LocationPickerInput({
 
       {isOpen && !isLoading && suggestions.length === 0 && (
         <div
-          className="absolute z-20 mt-1 w-full rounded-[10px] border border-[#d7dde5] bg-white px-3.5 py-2.5 text-[13px] text-[#6a7282] shadow-lg"
+          className="mobi-dropdown-menu absolute z-20 mt-1 w-full rounded-[10px] border border-[#d7dde5] bg-white px-3.5 py-2.5 text-[13px] text-[#6a7282] shadow-lg"
           style={mont}
         >
           {t("locationPicker.noMatchingLocation")}

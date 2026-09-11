@@ -366,7 +366,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               {isPeriodOpen && (
                 <div
                   role="listbox"
-                  className="absolute right-0 z-20 mt-1.5 w-full min-w-[180px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg lg:w-auto"
+                  className="mobi-dropdown-menu absolute right-0 z-20 mt-1.5 w-full min-w-[180px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white shadow-lg lg:w-auto"
                 >
                   {PERIOD_OPTIONS.map((option) => (
                     <button

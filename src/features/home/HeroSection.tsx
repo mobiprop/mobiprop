@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/ui/Select";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -94,60 +95,11 @@ function SearchField({
   );
 }
 
-function FieldDropdown({
-  options,
-  selectedIndex,
-  onSelect,
-}: {
-  options: { label: string }[];
-  selectedIndex: number;
-  onSelect: (index: number) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div ref={rootRef} className="relative min-w-0 flex-1">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="w-full min-w-0 truncate text-left text-[14px] text-[#4f4f4f]"
-        style={{ fontFamily: "Montserrat, sans-serif" }}
-      >
-        {options[selectedIndex]?.label}
-      </button>
-      {open ? (
-        <div className="absolute top-[calc(100%+16px)] left-0 z-50 max-h-[280px] w-full overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
-          {options.map((opt, index) => (
-            <button
-              key={opt.label}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(index);
-                setOpen(false);
-              }}
-              className={`w-full px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#f3f4f6] ${
-                index === selectedIndex ? "font-medium text-[#005089]" : "text-[#4f4f4f]"
-              }`}
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
+function FieldDropdown({options, selectedIndex, onSelect}: {options: {label: string}[]; selectedIndex: number; onSelect: (index: number) => void}) {
+  return <SearchableSelect bare searchable={false} className="flex-1"
+    value={String(selectedIndex)} onChange={v => onSelect(Number(v))}
+    options={options.map((o, i) => ({value: String(i), label: o.label}))}
+    placeholder={options[0]?.label ?? "Seleccionar"} />;
 }
 
 export function HeroSection() {
@@ -353,7 +305,7 @@ export function HeroSection() {
                     aria-label={t("hero.locationLabel")}
                   />
                   {locationOpen && suggestions.length > 0 ? (
-                    <div className="absolute top-[calc(100%+16px)] left-0 z-50 max-h-[280px] w-full overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
+                    <div className="mobi-dropdown-menu absolute top-[calc(100%+16px)] left-0 z-50 max-h-[280px] w-full overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
                       {suggestions.map((sugg) => (
                         <button
                           key={sugg}

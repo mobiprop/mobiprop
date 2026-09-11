@@ -1,5 +1,7 @@
 "use client";
 
+import { CustomSelect } from "@/components/ui/CustomSelect";
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -419,7 +421,7 @@ function CampaignRow({ campaign, canManage, canSend, onEdit, onMetrics }: {
           <MoreVertical size={16} />
         </button>
         {menuOpen && (
-          <div className="absolute right-5 top-12 z-50 w-[190px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
+          <div className="mobi-dropdown-menu absolute right-5 top-12 z-50 w-[190px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
             <button type="button" onClick={() => { setMenuOpen(false); onMetrics(); }} className="flex h-9 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[12px] font-medium text-[#0d2138] hover:bg-[#f8fafc]" style={mont}>
               <BarChart3 size={13} /> {t("campaigns.row.viewMetrics")}
             </button>
@@ -486,7 +488,7 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
               style={mont}
             />
           </div>
-          <select
+          <CustomSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "ALL" | EmailCampaignStatus)}
             className="min-h-[38px] rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3 text-[12px] text-[#0d2138] focus:border-[#1e4f86] focus:outline-none"
@@ -496,7 +498,7 @@ function CampaignsTab({ canManage, canSend, onEdit }: {
             {Object.keys(STATUS_BADGE).map((status) => (
               <option key={status} value={status}>{t(`campaignStatus.${status}`)}</option>
             ))}
-          </select>
+          </CustomSelect>
           <div className="flex-1" />
           <span className="text-[12px] text-[#6a7282]" style={mont}>{t("campaigns.count", { count: filtered.length })}</span>
         </div>

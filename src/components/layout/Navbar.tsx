@@ -91,7 +91,7 @@ function ProfileMenu({ user }: { user: NavUser }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[220px] bg-white border border-[#e5e7eb] rounded-[14px] shadow-[0px_16px_40px_-8px_rgba(88,92,95,0.16)] py-2 z-50">
+        <div className="mobi-dropdown-menu absolute right-0 mt-2 w-[220px] bg-white border border-[#e5e7eb] rounded-[14px] shadow-[0px_16px_40px_-8px_rgba(88,92,95,0.16)] py-2 z-50">
           <div className="px-4 py-2 border-b border-[#f3f4f6]">
             <p className="text-[14px] font-medium text-[#0d2138] truncate" style={poppins}>{user.name}</p>
             <p className="text-[12px] text-[#6a7282] truncate" style={poppins}>{user.email}</p>

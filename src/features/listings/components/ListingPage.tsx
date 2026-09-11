@@ -1,4 +1,7 @@
 "use client";
+import { SearchableSelect } from "@/components/ui/Select";
+
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { PageBackdrop } from "@/components/common/PageHero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -110,7 +113,7 @@ return (
   </div>
 
   <div className="relative w-full sm:w-auto">
-    <select
+    <CustomSelect
       value={current}
       onChange={(e) => onChange(Number(e.target.value))}
       className="appearance-none w-full sm:w-auto bg-white border border-[#e5e7eb] rounded-full pl-4 pr-9 py-2 text-[14px] text-[#2b3038] cursor-pointer hover:bg-[#f8fafc] transition-colors"
@@ -122,11 +125,9 @@ return (
           {t("pagination.pageOption", { page: p })}
         </option>
       ))}
-    </select>
+    </CustomSelect>
 
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-      <ChevronDown />
-    </span>
+
   </div>
 </div>
 );
@@ -168,77 +169,11 @@ const MODAL_AMENITY_KEYS: Record<string, string> = {
 };
 
 /* ─── search-bar dropdown (styled like the Figma pill fields) ─── */
-function SearchBarDropdown<T extends string>({
-  icon,
-  placeholder,
-  options,
-  value,
-  onChange,
-}: {
-  icon: React.ReactNode;
-  placeholder: string;
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (value: T) => void;
+function SearchBarDropdown<T extends string>({icon, placeholder, options, value, onChange}: {
+  icon: React.ReactNode; placeholder: string; options: {value: T; label: string}[]; value: T; onChange: (value: T) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  const selected = options.find((o) => o.value === value);
-  return (
-    <div ref={rootRef} className="relative w-full" onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); rootRef.current?.querySelector("button")?.focus(); } }}>
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3 cursor-pointer"
-      >
-        <div className="flex items-center gap-[10px] min-w-0 flex-1">
-          {icon}
-          <span
-            className={`text-[14px] leading-[20px] truncate min-w-0 max-xl:text-[14px] ${
-              selected && selected.value !== "" ? "text-[#0d2138]" : "text-[#6a7282]"
-            }`}
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {selected && selected.value !== "" ? selected.label : placeholder}
-          </span>
-        </div>
-        <span className="flex-shrink-0">
-          <ChevronDown />
-        </span>
-      </button>
-      {open ? (
-        <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 max-h-[280px] overflow-y-auto overscroll-contain">
-          {options.map((opt) => (
-            <button
-              key={opt.value || "all"}
-              type="button"
-              onClick={() => {
-                onChange(opt.value);
-                setOpen(false);
-              }}
-              className={`w-full px-4 py-2.5 text-left text-[15px] hover:bg-[#f3f4f6] transition-colors cursor-pointer ${
-                value === opt.value ? "text-[#1e4f86] font-medium" : "text-[#6a7282]"
-              }`}
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
+  return <SearchableSelect icon={icon} placeholder={placeholder} ariaLabel={placeholder}
+    searchable={false} options={options} value={value} onChange={next => onChange(next as T)} />;
 }
 
 /* ─── main export ─── */
@@ -476,7 +411,7 @@ return (
         </div>
 
         {locationOpen && locationSuggestions.length > 0 ? (
-          <div className="absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 max-h-[280px] overflow-y-auto overscroll-contain">
+          <div className="mobi-dropdown-menu absolute top-[calc(100%+6px)] left-0 w-full bg-white border border-[#e5e7eb] rounded-[16px] shadow-lg z-20 py-1 max-h-[280px] overflow-y-auto overscroll-contain">
             {locationSuggestions.map((sugg) => (
               <button
                 key={sugg}
@@ -607,12 +542,10 @@ return (
          </h2>
          <div className="flex items-center gap-3">
            <div className="relative flex items-center h-10 rounded-xl border border-[#e9e9e9] bg-white">
-             <img src="/listings/sort.svg" alt="" width={16} height={16} className="pointer-events-none absolute left-4" />
-             <select aria-label={t("results.sortLabel")} value={sort} onChange={(event) => { setSort(event.target.value as "recent" | "oldest"); setPage(1); }} className="h-full appearance-none rounded-xl bg-transparent pl-10 pr-10 text-[14px] text-[#00223a]" style={{fontFamily: "Montserrat, sans-serif"}}>
+             <CustomSelect aria-label={t("results.sortLabel")} value={sort} onChange={(event) => { setSort(event.target.value as "recent" | "oldest"); setPage(1); }} className="h-full appearance-none rounded-xl bg-transparent pl-10 pr-10 text-[14px] text-[#00223a]" style={{fontFamily: "Montserrat, sans-serif"}}>
                <option value="recent">{t("results.mostRecent")}</option>
                <option value="oldest">{t("results.oldest")}</option>
-             </select>
-             <img src="/listings/sort-chevron.svg" alt="" width={16} height={16} className="pointer-events-none absolute right-4" />
+             </CustomSelect>
            </div>
          <button
             onClick={() =>

@@ -316,7 +316,7 @@ function SaleActions({ row }: { row: SaleRow }) {
             ref={menuRef}
             role="menu"
             aria-label={t("overview.actionsFor", { name: row.agentName })}
-            className="fixed z-[100] w-[205px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white text-left shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+            className="mobi-dropdown-menu fixed z-[100] w-[205px] overflow-hidden rounded-[10px] border border-[#e5e7eb] bg-white text-left shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
             style={{ top: position.top, left: position.left }}
           >
             <button

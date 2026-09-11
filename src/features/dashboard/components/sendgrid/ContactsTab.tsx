@@ -558,7 +558,7 @@ export function ContactsTab({ canManage, canExport }: { canManage: boolean; canE
                               <MoreVertical size={15} />
                             </button>
                             {menuFor === list.id && (
-                              <div className="absolute right-5 top-14 z-10 w-[180px] overflow-visible rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
+                              <div className="mobi-dropdown-menu absolute right-5 top-14 z-10 w-[180px] overflow-visible rounded-[10px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]">
                                 <button
                                   type="button"
                                   onClick={() => { setMenuFor(null); setImportListId(list.id); setShowImport(true); }}

@@ -1,5 +1,7 @@
 "use client";
 
+import { CustomSelect } from "@/components/ui/CustomSelect";
+
 import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -75,7 +77,7 @@ export function AddToSendgridListModal({ contactIds, onClose, onAdded }: AddToSe
           ) : (
             <div className="flex flex-col gap-1.5">
               <span className="text-[13px] font-semibold text-[#0d2138]" style={mont}>{t("sendgridListModal.listLabel")}</span>
-              <select
+              <CustomSelect
                 value={selectedListId}
                 onChange={(e) => setListId(e.target.value)}
                 className="min-h-[44px] w-full rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] px-3.5 text-[13px] text-[#0d2138] focus:border-[#1e4f86] focus:outline-none"
@@ -86,7 +88,7 @@ export function AddToSendgridListModal({ contactIds, onClose, onAdded }: AddToSe
                     {list.name} ({list.memberCount})
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             </div>
           )}
         </div>
