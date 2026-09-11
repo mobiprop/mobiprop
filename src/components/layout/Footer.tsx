@@ -120,17 +120,12 @@ export function Footer() {
         { label: t("home", { ns: "navigation" }), href: "/" },
         { label: t("about", { ns: "navigation" }), href: "/about" },
         { label: t("blog", { ns: "navigation" }), href: "/blog" },
-        { label: t("links.careers"), href: "mailto:hola@mobiprop.com.ar?subject=Careers" },
-        { label: t("links.press"), href: "mailto:hola@mobiprop.com.ar?subject=Press" },
       ],
     },
     {
       heading: t("columns.explore.heading", { ns: "footer" }),
       links: [
         { label: t("listings", { ns: "navigation" }), href: "/listings" },
-        { label: t("links.listWithUs"), href: "/contact" },
-        { label: t("links.newDevelopments"), href: "mailto:hola@mobiprop.com.ar?subject=New%20developments" },
-        { label: t("links.commercial", { ns: "footer" }), href: "/listings?propertyType=COMMERCIAL_OFFICE" },
         { label: t("links.rentals", { ns: "footer" }), href: "/listings?transactionType=RENT" },
       ],
     },
@@ -140,7 +135,6 @@ export function Footer() {
         { label: t("links.helpCenter"), href: "/faq" },
         { label: t("links.contactUs"), href: "/contact" },
         { label: t("faq", { ns: "navigation" }), href: "/faq" },
-        { label: t("links.accessibility"), href: "mailto:hola@mobiprop.com.ar?subject=Website%20accessibility" },
       ],
     },
     {
@@ -149,7 +143,6 @@ export function Footer() {
         { label: t("privacyPolicy", { ns: "navigation" }), href: "/privacy-policy" },
         { label: t("links.termsOfService"), href: "/terms-conditions" },
         { label: t("links.cookiePolicy"), href: "/privacy-policy" },
-        { label: t("links.disclaimer"), href: "/terms-conditions#property-accuracy" },
       ],
     },
   ];
@@ -161,7 +154,7 @@ export function Footer() {
       </div>
 
       <div className="site-footer-container relative z-10 mx-auto flex flex-col gap-[42px] pt-16 pb-8">
-        <div className="site-footer-grid">
+        <div className="grid gap-12 xl:grid-cols-[405px_minmax(0,1fr)] xl:gap-12 min-[1440px]:gap-[214px]">
           <div className="flex flex-col gap-7 w-full lg:max-w-[405px]">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2.5">
@@ -214,7 +207,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="site-footer-links grid grid-cols-2 gap-8 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 min-[1440px]:grid-cols-[81px_76px_102px_128px] min-[1440px]:gap-[102px]">
             {columns.map((col) => (
               <FooterColumn key={col.heading} heading={col.heading} links={col.links} />
             ))}
@@ -225,7 +218,7 @@ export function Footer() {
           <p className="text-[14px] sm:text-[16px] text-[#b2b2b2] text-center sm:text-left" style={{ fontFamily: "Montserrat, sans-serif" }}>
             {t("copyright", { ns: "footer" })}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          <div className="flex flex-wrap items-center justify-center gap-y-2 [&>a]:px-5 [&>a+a]:border-l [&>a+a]:border-[#9a9a9a] [&>a:first-child]:pl-0 [&>a:last-child]:pr-0">
             <Link href="/privacy-policy" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white transition-colors" style={{ fontFamily: "Montserrat, sans-serif" }}>
               {t("privacyPolicy", { ns: "navigation" })}
             </Link>
