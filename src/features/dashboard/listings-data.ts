@@ -14,7 +14,7 @@ export const TYPE_LABELS: Record<PropertyType, string> = {
   APARTMENT: "Apartment",
   HOUSE: "House",
   COMMERCIAL_OFFICE: "Commercial Office",
-  LOT: "Lot",
+  LOT: "Lote",
   TOWNHOUSE: "Townhouse",
 };
 

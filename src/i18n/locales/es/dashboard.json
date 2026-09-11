@@ -158,7 +158,7 @@
     "HOUSE": "Casa",
     "COMMERCIAL_OFFICE": "Oficina Comercial",
     "LOT": "Lote",
-    "TOWNHOUSE": "Casa Adosada"
+    "TOWNHOUSE": "Townhouse"
   },
   "operationType": {
     "SALE": "Venta",

@@ -16,8 +16,8 @@
       "apartment": "Departamento",
       "house": "Casa",
       "commercialOffice": "Oficina Comercial",
-      "lot": "Terreno",
-      "townhouse": "Casa adosada"
+      "lot": "Lote",
+      "townhouse": "Townhouse"
     },
     "priceOptions": {
       "any": "Cualquier precio",
@@ -46,7 +46,7 @@
       "all": "Todos",
       "gatedCommunities": "Barrios Cerrados",
       "apartments": "Departamentos",
-      "lots": "Terrenos",
+      "lots": "Lotes",
       "offices": "Oficinas",
       "retail": "Locales Comerciales"
     }
