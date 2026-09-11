@@ -126,7 +126,7 @@ function FieldDropdown({
         {options[selectedIndex]?.label}
       </button>
       {open ? (
-        <div className="absolute bottom-[calc(100%+24px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
+        <div className="absolute top-[calc(100%+16px)] left-0 z-50 max-h-[280px] w-full overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
           {options.map((opt, index) => (
             <button
               key={opt.label}
@@ -215,13 +215,14 @@ export function HeroSection() {
   }
 
   return (
-    <section ref={heroRef} className="flex w-full justify-center px-4 pt-4">
+    <section ref={heroRef} className="relative z-20 flex w-full justify-center px-4 pt-4">
       {/* justify-center on a w-full parent centers this box — no mx-auto,
          no width-reducing calc() on the card itself, so there's no
          margin/width sub-pixel split to round asymmetrically left vs
          right. The parent's own padding (not a calc() subtraction) is
          what creates the mobile edge gutter. */}
-      <div className="hero-fill-height relative flex w-full max-w-[var(--space-fluid-container-max)] flex-col overflow-hidden rounded-[20px]">
+      <div className="hero-fill-height relative flex w-full max-w-[var(--space-fluid-container-max)] flex-col rounded-[20px]">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px]">
         <motion.img
           src={heroImg}
           alt=""
@@ -242,6 +243,8 @@ export function HeroSection() {
               "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.1) 54%, rgba(0,0,0,0.4) 100%)",
           }}
         />
+
+        </div>
 
         {/* flex-1 stretches this to the card's full hero-fill-height; the
            parent card is a column flex, so this is the sole flex item and
@@ -350,7 +353,7 @@ export function HeroSection() {
                     aria-label={t("hero.locationLabel")}
                   />
                   {locationOpen && suggestions.length > 0 ? (
-                    <div className="absolute bottom-[calc(100%+24px)] left-0 z-50 max-h-[280px] w-[260px] overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
+                    <div className="absolute top-[calc(100%+16px)] left-0 z-50 max-h-[280px] w-full overflow-y-auto overscroll-contain rounded-2xl border border-[#e9e9e9] bg-white py-1 shadow-lg">
                       {suggestions.map((sugg) => (
                         <button
                           key={sugg}

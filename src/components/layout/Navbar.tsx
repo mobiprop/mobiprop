@@ -286,7 +286,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         <>
           <Link
             href="/login"
-            className="flex h-11 w-[92px] items-center justify-center rounded-xl border border-white/30 bg-white/10 text-[14px] font-medium text-white transition-colors hover:bg-white/20"
+            className="whitespace-nowrap shrink-0 flex h-11 w-[92px] items-center justify-center rounded-xl border border-white/30 bg-white/10 text-[14px] font-medium text-white transition-colors hover:bg-white/20"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("login")}
@@ -294,7 +294,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
           <Link
             href="/register"
-            className="flex h-11 items-center justify-center rounded-xl border border-white bg-white px-6 text-[14px] font-medium text-[#232323] transition-colors hover:bg-gray-100"
+            className="whitespace-nowrap shrink-0 flex h-11 items-center justify-center rounded-xl border border-white bg-white px-6 text-[14px] font-medium text-[#232323] transition-colors hover:bg-gray-100"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("signup")}
@@ -304,7 +304,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
         <>
           <Link
             href="/login"
-            className="flex h-11 items-center justify-center rounded-xl border border-[#e9e9e9] bg-white px-5 text-[14px] font-medium text-[#00223a] hover:bg-gray-50 transition-colors"
+            className="whitespace-nowrap shrink-0 flex h-11 items-center justify-center rounded-xl border border-[#e9e9e9] bg-white px-5 text-[14px] font-medium text-[#00223a] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("login")}
@@ -312,7 +312,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
           <Link
             href="/register"
-            className="flex h-11 items-center justify-center rounded-xl px-5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
+            className="whitespace-nowrap shrink-0 flex h-11 items-center justify-center rounded-xl px-5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
             style={{ fontFamily: "Poppins, sans-serif", background: "linear-gradient(167deg, #005ea4 0%, #006fc2 100%)" }}
           >
             {t("signup")}
@@ -417,7 +417,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
           <Link
             href="/login"
             onClick={() => setMenuOpen(false)}
-            className="text-center bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
+            className="whitespace-nowrap text-center bg-white border border-[#e5e7eb] rounded-[36px] px-5 py-[11px] text-[14px] font-medium text-[#0d2138] hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             {t("login")}
