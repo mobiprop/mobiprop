@@ -1,5 +1,6 @@
 "use server";
 
+import { passwordAuthError } from "./password-policy";
 import { after } from "next/server";
 import { sendVerifiedWelcome } from "@/lib/verified-welcome";
 import type { ZodError } from "zod";
@@ -102,13 +103,13 @@ export async function signUpWithPassword(input: unknown): Promise<AuthActionResu
     options: { data: { full_name: fullName }, emailRedirectTo: `${APP_URL}/auth/callback` },
   });
 
-  if (error) return { error: error.message };
-  if (!data.user) return { error: "Could not create your account. Please try again." };
+  if (error) return { error: passwordAuthError(error) };
+  if (!data.user) return { error: passwordAuthError({}) };
 
   // Supabase doesn't error when the email is already registered (to prevent
   // account enumeration) — it returns an obfuscated user with no identities.
   if (data.user.identities?.length === 0) {
-    return { error: "This email is already registered. Please sign in instead." };
+    return { error: passwordAuthError({}) };
   }
 
   await upsertProfileForUser(data.user);
@@ -218,7 +219,7 @@ export async function updatePassword(input: unknown): Promise<AuthActionResult> 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
 
-  if (error) return { error: error.message };
+  if (error) return { error: passwordAuthError(error) };
   return {};
 }
 

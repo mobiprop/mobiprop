@@ -21,7 +21,7 @@ export function AuthField({ label, icon, reveal, onReveal, invalid, ...props }: 
   return <div className={styles.field}><label htmlFor={id}>{label}{props.required && <span className={styles.required}>*</span>}</label>
     <div className={`${styles.input} ${onReveal ? styles.password : ""}`} data-invalid={invalid || undefined}>
       <AuthIcon name={icon} /><input {...props} id={id} aria-invalid={invalid || undefined} />
-      {onReveal && <button className={styles.eye} type="button" onClick={onReveal} aria-label={reveal ? "Hide password" : "Show password"} aria-pressed={reveal}><AuthIcon name="eye" /></button>}
+      {onReveal && <button className={styles.eye} type="button" onClick={onReveal} aria-label={reveal ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={reveal}><AuthIcon name="eye" /></button>}
     </div></div>;
 }
 export function AuthSocials({ onGoogle, disabled }: { onGoogle: () => void; disabled: boolean }) {
