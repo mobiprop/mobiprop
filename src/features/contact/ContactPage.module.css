@@ -1,0 +1,71 @@
+/* Contact frame 2655:2896. Desktop coordinates use the 1440px Figma canvas. */
+.page { background: #fff; color: #232323; font-family: Montserrat, sans-serif; color-scheme: light; }
+.container { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: 64px; }
+.hero { position: relative; height: calc(466px - var(--space-fluid-nav-h) - 1px); isolation: isolate; }
+.backdrop { position: absolute; z-index: -1; inset: calc(-1 * var(--space-fluid-nav-h) - 1px) 0 0; overflow: hidden; background: white; pointer-events: none; }
+.heroImage { position: absolute; width: 1490px; max-width: none; height: 994px; left: calc(50% - 743px); top: -158px; object-fit: cover; }
+.heroScreen { position: absolute; width: 1697px; height: 517px; left: calc(50% - 846px); top: 24px; background: #f1f9ff; mix-blend-mode: screen; filter: blur(96px); }
+.heroBlur { position: absolute; top: 23px; left: 0; width: 100%; height: 443px; }
+.heroContent { margin-inline: auto; padding-top: calc(160px - var(--space-fluid-nav-h) - 1px); width: min(730px, calc(100% - 40px)); text-align: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #ccdeef; border-radius: 999px; background: #f0f6fa; padding: 6px 12px; color: #191919; font: 500 12px/16px Poppins, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+.eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #005089; }
+.hero h1 { margin: 14px 0 20px; font: 500 52px/1.2 Poppins, sans-serif; letter-spacing: -1.5px; color: #101010; }
+.heroContent > p { font-size: 18px; line-height: 27px; color: #4f4f4f; }
+.cards { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px; padding-top: 64px; }
+.card { display: flex; flex-direction: column; align-items: center; gap: 20px; min-height: 284px; border: 1px solid #e9e9e9; border-radius: 16px; padding: 39px 23px; background: #fff; text-align: center; }
+.card:hover { border-color: #548ab0; }
+.icon { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; flex-shrink: 0; border-radius: 14px; background: #e1edf5; }
+.cardText { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.cardTitle { color: #548ab0; font-size: 12px; font-weight: 500; line-height: 16.5px; letter-spacing: .8px; text-transform: uppercase; }
+.cardValue { font: 500 18px/23.375px Poppins, sans-serif; color: #232323; }
+.cardDescription { color: #4f4f4f; font-size: 14px; line-height: 19.5px; }
+.badge { border: 1px solid #ccdeef; border-radius: 999px; padding: 4px 12px; background: #edf6fc; color: #005089; font-size: 14px; line-height: 16.5px; }
+.form { margin-top: 130px; scroll-margin-top: 110px; }
+.formHeading { margin-bottom: 40px; }
+.formHeading h2 { font: 500 28px/35px Poppins, sans-serif; letter-spacing: -.5px; }
+.formHeading p { margin-top: 8px; font-size: 14px; line-height: 18px; color: #4f4f4f; }
+.fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 22px; }
+.field { display: block; width: 100%; height: 58px; border: 1px solid #e9e9e9; border-radius: 14px; padding: 16px 20px; background-color: #f0f6fa; color: #4f4f4f; font: 400 16px/24px Montserrat,sans-serif; letter-spacing: -.5px; outline: none; }
+.field::placeholder { color: #4f4f4f; opacity: 1; }
+.field:focus { border-color: #005089; box-shadow: 0 0 0 1px #005089; }
+.field:autofill { box-shadow: 0 0 0 100px #f0f6fa inset; -webkit-text-fill-color: #4f4f4f; }
+.select { appearance: none; padding-right: 48px; background-image: url('/pages/filter-2464-4807.svg'); background-repeat: no-repeat; background-position: right 20px center; background-size: 20px; }
+.message { grid-column: 1 / -1; }
+.message textarea { height: 154px; resize: vertical; }
+.formActions { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-top: 24px; }
+.consent { display: flex; align-items: center; gap: 12px; color: #4a5565; font-size: 14px; line-height: 20px; }
+.consent input { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: #005089; }
+.consent a { text-decoration: none; }
+.consent a:hover { text-decoration: underline; }
+.submit { height: 48px; border-radius: 12px; padding: 12px 24px; background: linear-gradient(175.543deg,#005ea4 14.497%,#006fc2 85.503%); color: white; font: 500 16px/22.5px Poppins,sans-serif; cursor: pointer; }
+.submit:disabled { opacity: .6; cursor: wait; }
+.status:not(:empty) { margin-top: 16px; font-size: 14px; }
+.location { margin-top: 140px; padding-bottom: 140px; }
+.locationHeading { max-width: 866px; margin: 0 auto 50px; text-align: center; }
+.locationLabel { display: flex; align-items: center; gap: 10px; color: #3373a1; font-size: 14px; line-height: 20px; }
+.locationLabel::before,.locationLabel::after { content: ''; height: 1px; background: #b0c9da; flex: 1; }
+.location h2 { margin-top: 14px; color: #00223a; font: 500 44px/52px Poppins,sans-serif; letter-spacing: -1px; }
+.locationHeading > p { max-width: 556px; margin: 16px auto 0; font-size: 16px; line-height: 26px; color: #4f4f4f; }
+.map { position: relative; height: 569px; overflow: hidden; border-radius: 20px; }
+.mapCard { position: absolute; z-index: 1; top: 20px; left: 20px; width: 288px; min-height: 146px; padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 10px 15px rgb(0 0 0 / .1),0 4px 6px rgb(0 0 0 / .1); }
+.mapCard h3 { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: -.16px; }
+.mapCard p { margin-top: 4px; font-size: 14px; line-height: 20px; color: #4f4f4f; letter-spacing: -.07px; }
+.mapActions { display: flex; gap: 8px; position: absolute; top: 19px; right: 20px; }
+.mapActions a { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9px; background: #f3f4f6; }
+.directions { display: inline-block; margin-top: 10px; font-size: 14px; color: #005089; text-decoration: underline; }
+.faq { padding: 71px 0 62px; min-height: 753px; }
+.faq > div { max-width: 1440px; padding-inline: 64px; gap: 79px; }
+.faq > div > div:first-child { width: 501px; }
+.faq > div > div:last-child { flex: 1; }
+.faq :global(.rounded-2xl) { padding: 26px 28px; box-shadow: none; min-height: 89px; }
+.faq :global(.rounded-2xl):has(button[aria-expanded=true]) { min-height: 200px; padding: 30px; }
+.faq button[aria-expanded] { gap: 12px; }
+.faq button[aria-expanded] > span { font-size: 22px; line-height: 30.8px; }
+.faq button[aria-expanded] + p { margin-top: 19px; font-size: 18px; line-height: 27px; }
+.faq > div > div:first-child > a { height: 48px; padding-block: 14px; line-height: 20px; }
+.cta { margin-top: 120px; }
+.page :is(a,button,input,select,textarea):focus-visible { outline: 2px solid #005089; outline-offset: 3px; }
+@media(min-width:1280px) { .cardDescription { white-space: nowrap; } }
+@media(max-width:1100px) { .container { padding-inline: 32px; } .cards { grid-template-columns: repeat(2,minmax(0,1fr)); } .form { margin-top: 80px; } .faq > div { padding-inline: 32px; gap: 40px; } .faq > div > div:first-child { width: 36%; } }
+@media(max-width:1023px) { .faq > div > div:first-child { width: 100%; } .faq { min-height: 0; } }
+@media(max-width:639px) { .container { padding-inline: 20px; } .hero { height: auto; min-height: 340px; } .heroContent { padding-block: 56px; } .hero h1 { font-size: 34px; letter-spacing: -1px; } .heroContent > p { font-size: 16px; line-height: 24px; } .cards { grid-template-columns: 1fr; padding-top: 40px; } .card { min-height: 0; padding: 32px 24px; } .fields { grid-template-columns: 1fr; } .form { margin-top: 64px; } .formActions { flex-direction: column; } .submit { align-self: flex-end; } .location { margin-top: 80px; padding-bottom: 80px; } .location h2 { font-size: 30px; line-height: 38px; } .map { height: 420px; } .mapCard { left: 12px; top: 12px; width: min(288px,calc(100% - 24px)); } .faq { padding-block: 48px; } .faq > div { padding-inline: 20px; } .faq button[aria-expanded] > span { font-size: 18px; line-height: 26px; } .faq button[aria-expanded] + p { font-size: 16px; line-height: 24px; } .cta { margin-top: 64px; } }

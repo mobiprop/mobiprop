@@ -190,6 +190,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
   // agree (isHome=false), then the real home-page look applies right after.
   const mounted = useMounted();
   const isHome = mounted && pathname === "/";
+  const isContact = pathname === "/contact";
 
   // On the homepage the navbar floats transparently over the hero photo,
   // then solidifies once scrolled past it — fixed (not sticky) throughout so
@@ -197,12 +198,12 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
   // plain sticky solid header.
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    if (!isHome) return;
+    if (!isHome && !isContact) return;
     const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isHome]);
+  }, [isHome, isContact]);
 
   const transparent = isHome && !scrolled && !menuOpen;
 
@@ -215,7 +216,9 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
                 ? "top-4 bg-transparent"
                 : "top-0 bg-[#f9fafb] border-b border-[#c2c7d3]"
             }`
-          : "sticky top-0 z-50 flex flex-col items-center bg-[#f9fafb] border-b border-[#c2c7d3]"
+          : isContact && !scrolled && !menuOpen
+            ? "sticky top-0 z-50 flex flex-col items-center bg-transparent border-b border-transparent"
+            : "sticky top-0 z-50 flex flex-col items-center bg-[#f9fafb] border-b border-[#c2c7d3]"
       }
     >
   {/* items-center on the header (a column flex) centers this box on the
@@ -225,7 +228,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
      gutter; nothing is subtracted from the width to make room for it. */}
   <motion.div
     className="flex w-full max-w-[var(--space-fluid-container-max)] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
-    style={{ height: "var(--space-fluid-nav-h)", paddingInline: "var(--space-fluid-section-px)" }}
+    style={{ height: "var(--space-fluid-nav-h)", paddingInline: isContact ? "clamp(20px, 4.444vw, 64px)" : "var(--space-fluid-section-px)", ...(isContact ? {maxWidth:1440} : {}) }}
     variants={headerContainer}
     initial="hidden"
     animate="visible"

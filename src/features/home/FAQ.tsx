@@ -30,14 +30,14 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 type FaqEntry = { id: string; categoryId: string; question: string; answer: string };
 
-export function FAQ() {
+export function FAQ({className = "", iconAssets, contactHref = "/contact"}: {className?: string; iconAssets?: {open: string; closed: string}; contactHref?: string} = {}) {
   const [openIdx, setOpenIdx] = useState(0);
   const { t } = useTranslation(["home", "faq", "common"]);
   const allFaqs = t("faqs", { ns: "faq", returnObjects: true }) as FaqEntry[];
   const faqs = allFaqs.filter((f) => f.categoryId === "generalInformation");
 
   return (
-    <section className="bg-[#f0f6fa] home-section">
+    <section className={`bg-[#f0f6fa] home-section ${className}`}>
       <div className="home-container flex flex-col lg:flex-row gap-10 lg:gap-16">
         {/* Left column */}
         <div className="flex flex-col gap-5 lg:w-[35%] lg:shrink-0">
@@ -57,7 +57,7 @@ export function FAQ() {
           </div>
 
           <Link
-            href="/contact"
+            href={contactHref}
             className="w-fit rounded-[13px] px-7 py-4 text-[16px] font-medium text-white"
             style={{
               fontFamily: "Montserrat, sans-serif",
@@ -91,7 +91,7 @@ export function FAQ() {
                   >
                     {faq.question}
                   </span>
-                  <ChevronIcon open={open} />
+                  {iconAssets ? <img src={open ? iconAssets.open : iconAssets.closed} alt="" width={37} height={37} className="shrink-0"/> : <ChevronIcon open={open} />}
                 </button>
 
                 {open && (

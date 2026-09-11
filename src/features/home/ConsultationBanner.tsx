@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 const bgImg = "/hero/cta-footer-bg.webp";
 
-export function ConsultationBanner() {
+export function ConsultationBanner({contactHref = "/contact"}: {contactHref?: string} = {}) {
   const { t } = useTranslation("home");
 
   return (
@@ -49,7 +49,7 @@ export function ConsultationBanner() {
         </div>
 
         <Link
-          href="/contact"
+          href={contactHref}
           className="flex h-12 items-center justify-center rounded-[13px] px-7 text-[16px] font-medium text-white"
           style={{
             fontFamily: "Montserrat, sans-serif",
