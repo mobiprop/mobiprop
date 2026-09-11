@@ -156,7 +156,7 @@ export function LoginPageContent() {
           </div>
           <div className={styles.actions}>
             <button className={styles.primary} type="submit" disabled={isSubmitting || isOAuthSubmitting}>{isSubmitting ? "Esperá un momento…" : mode === "password" ? "Iniciar sesión" : "Enviar código de acceso"}</button>
-            <div className={styles.support}><label><input type="checkbox" checked={keepLoggedIn} onChange={e=>setKeepLoggedIn(e.target.checked)} />Mantener mi sesión iniciada</label><Link href="/reset-password">¿Olvidaste tu contraseña?</Link></div>
+            <div className={styles.support}><label><input type="checkbox" checked={keepLoggedIn} onChange={e=>setKeepLoggedIn(e.target.checked)} />Mantene mi sesión</label><Link href="/reset-password">¿Olvidaste tu contraseña?</Link></div>
           </div>
           <AuthSocials onGoogle={()=>void handleOAuth("google")} disabled={isSubmitting || isOAuthSubmitting} />
           <p className={styles.account}>¿No tenés una cuenta? <Link href="/register">Creá una</Link></p>

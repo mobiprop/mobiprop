@@ -224,7 +224,7 @@ export function StaffLoginPageContent() {
                       {keepLoggedIn && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.667 7 9 1" stroke="#1e4f86" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                   </div>
-                  <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#666d80] whitespace-nowrap" style={mont}>Mantener mi sesión iniciada</span>
+                  <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#666d80] whitespace-nowrap" style={mont}>Mantene mi sesión</span>
                 </label>
                 <Link href="/reset-password" className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#1e4f86] whitespace-nowrap hover:underline" style={mont}>
                   ¿Olvidaste tu contraseña?
