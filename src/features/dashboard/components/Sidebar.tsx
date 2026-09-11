@@ -158,11 +158,11 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
             <img
               src="/mobi-prop-logo-color.svg"
               alt=""
-              width={30}
-              height={30}
-              className="size-[30px] shrink-0 object-contain"
+              width={22}
+              height={22}
+              className="size-[22px] shrink-0 object-contain"
             />
-            <span className="dashboard-wordmark ml-2.5 whitespace-nowrap text-[24px] leading-none text-[#232323]">
+            <span className="dashboard-wordmark ml-1.5 whitespace-nowrap text-[18px] leading-none text-[#232323]">
               <span className="font-medium">Mobi</span> <span className="font-light">Prop</span>
             </span>
           </Link>

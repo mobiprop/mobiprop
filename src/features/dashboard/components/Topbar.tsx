@@ -40,7 +40,7 @@ export function Topbar() {
       <GlobalSearch />
 
       {/* Right icons */}
-      <div className="ml-3 flex shrink-0 items-center gap-1 sm:ml-4 sm:gap-2 lg:gap-6">
+      <div className="ml-3 flex shrink-0 items-center gap-1 sm:ml-4 sm:gap-2 lg:gap-2">
         {/* Bell */}
         <div ref={bellRef} className="relative">
           <button
@@ -48,7 +48,7 @@ export function Topbar() {
             onClick={() => toggle("notifications")}
             aria-label={t("topbar.openNotificationsAria")}
             aria-expanded={open === "notifications"}
-            className={`relative flex size-9 items-center justify-center overflow-visible rounded-[9px] transition-colors ${open === "notifications"
+            className={`relative flex size-9 items-center justify-center overflow-visible rounded-[9px] border border-[#e9e9e9] transition-colors ${open === "notifications"
                 ? "bg-[#eff6ff] text-[#1e4f86]"
                 : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
               }`}
@@ -73,13 +73,13 @@ export function Topbar() {
         </div>
 
         {/* Calendar */}
-        {/* <div ref={calRef} className="relative">
+        <div ref={calRef} className="relative">
           <button
             type="button"
             onClick={() => toggle("calendar")}
             aria-label="Open calendar"
             aria-expanded={open === "calendar"}
-            className={`flex size-9 items-center justify-center rounded-[9px] transition-colors ${
+            className={`flex size-9 items-center justify-center rounded-[9px] border border-[#e9e9e9] transition-colors ${
               open === "calendar"
                 ? "bg-[#eff6ff] text-[#1e4f86]"
                 : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
@@ -93,7 +93,7 @@ export function Topbar() {
               <CalendarPanel onClose={() => setOpen(null)} />
             </div>
           )}
-        </div> */}
+        </div>
       </div>
     </header>
   );

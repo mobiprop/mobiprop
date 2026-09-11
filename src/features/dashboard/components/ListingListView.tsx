@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
-  Eye, SquarePen, Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2, MoreVertical,
+  Eye, SquarePen, Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2,
 } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
@@ -23,8 +21,10 @@ function Badge({
   label,
   style,
   className = "",
+  solid = false,
 }: {
   label: string;
+  solid?: boolean;
   style: { bg: string; text: string };
   /** Extra classes — e.g. a max-width + truncate cap for the desktop table,
    *  where "Oficina Comercial" or "Casa Adosada" would otherwise force the
@@ -35,115 +35,11 @@ function Badge({
   return (
     <span
       className={`inline-flex max-w-full items-center justify-center truncate px-3 py-1 rounded-[6px] text-[12px] font-medium ${className}`}
-      style={{ backgroundColor: `color-mix(in srgb, ${ink} 4%, white)`, color: ink, border: `1px solid color-mix(in srgb, ${ink} 30%, transparent)`, ...mont }}
+      style={{ backgroundColor: solid ? style.bg : `color-mix(in srgb, ${ink} 4%, white)`, color: solid ? (style.text === "#e17100" ? "#bb4d00" : style.text) : ink, border: solid ? "1px solid transparent" : `1px solid color-mix(in srgb, ${ink} 30%, transparent)`, ...mont }}
       title={label}
     >
       {label}
     </span>
-  );
-}
-
-// ── Row actions menu ──────────────────────────────────────────────────────────
-// Portal-rendered so the table's overflow-x-auto wrapper can't clip it on the
-// last row; flips above the trigger near the viewport bottom. Same pattern as
-// OpportunitiesPage.tsx's RowMenu — kept local since each dashboard table's
-// action set differs, but matches its behavior/styling for consistency.
-
-type RowMenuItem = { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean };
-
-function RowMenu({ label, ariaLabel, items }: { label: string; ariaLabel: string; items: RowMenuItem[] }) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
-
-  const updatePosition = () => {
-    const button = buttonRef.current;
-    if (!button) return;
-    const rect = button.getBoundingClientRect();
-    const menuWidth = 200;
-    const menuHeight = items.length * 40 + 12;
-    const gap = 6;
-    const padding = 8;
-
-    let left = rect.right - menuWidth;
-    let top = rect.bottom + gap;
-    if (left < padding) left = padding;
-    if (left + menuWidth > window.innerWidth - padding) left = window.innerWidth - menuWidth - padding;
-    if (top + menuHeight > window.innerHeight - padding) top = rect.top - menuHeight - gap;
-    setPosition({ top, left });
-  };
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    updatePosition();
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
-    return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, items.length]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleOutsideClick = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    const handleEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", handleOutsideClick);
-    window.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [open]);
-
-  return (
-    <>
-      <button
-        ref={buttonRef}
-        type="button"
-        title={label}
-        aria-label={ariaLabel}
-        aria-expanded={open}
-        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
-        className={`inline-flex size-8 items-center justify-center rounded-[8px] transition-colors ${
-          open ? "bg-[#eff6ff] text-[#1e4f86]" : "text-[#6a7282] hover:bg-[#f3f4f6] hover:text-[#0d2138]"
-        }`}
-      >
-        <MoreVertical size={16} />
-      </button>
-
-      {open &&
-        createPortal(
-          <div
-            ref={menuRef}
-            role="menu"
-            className="mobi-dropdown-menu fixed z-[9999] w-[200px] overflow-hidden rounded-[12px] border border-[#e5e7eb] bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.16)]"
-            style={{ top: position.top, left: position.left }}
-          >
-            {items.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                role="menuitem"
-                onClick={() => { setOpen(false); item.onClick(); }}
-                className={`flex h-9 w-full items-center gap-2.5 rounded-[8px] px-3 text-left text-[13px] font-medium transition-colors ${
-                  item.danger ? "text-[#fb2c36] hover:bg-[#fff1f2]" : "text-[#0d2138] hover:bg-[#f8fafc]"
-                }`}
-                style={mont}
-              >
-                {item.icon} {item.label}
-              </button>
-            ))}
-          </div>,
-          document.body,
-        )}
-    </>
   );
 }
 
@@ -236,13 +132,13 @@ return (
         <colgroup>
           <col style={{ width: "4%" }} />
           <col style={{ width: "9%" }} />
-          <col style={{ width: "25%" }} />
+          <col style={{ width: "22%" }} />
           <col style={{ width: "10%" }} />
           <col style={{ width: "12%" }} />
           <col style={{ width: "8%" }} />
           <col style={{ width: "10%" }} />
           <col style={{ width: "9%" }} />
-          <col style={{ width: "13%" }} />
+          <col style={{ width: "16%" }} />
         </colgroup>
 
         <thead>
@@ -395,60 +291,32 @@ return (
               <td className="px-3 py-4">
                 <Badge
                   label={td(`status.${listing.status}`)}
+                  solid
                   style={STATUS_BADGE[listing.status]}
                 />
               </td>
 
               {/* Actions */}
               <td className="px-2 py-4">
-                <div className="flex items-center justify-end gap-0.5">
+                <div className="grid grid-cols-3 justify-items-center gap-0.5 min-[1800px]:flex min-[1800px]:justify-end">
                   <a href={`/listings/${listing.slug}`} target="_blank" rel="noopener noreferrer" title={t("listings:card.viewProperty")} aria-label={`${t("listings:card.viewProperty")}: ${listing.title}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]">
                     <Eye size={17} strokeWidth={1.6} />
                   </a>
                   {actions.canUpdate && <button type="button" title={t("list.editTitle")} aria-label={`${t("list.editTitle")}: ${listing.title}`} onClick={() => actions.onEdit(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]"><SquarePen size={17} strokeWidth={1.6} /></button>}
                   {actions.canDelete && <button type="button" title={t("list.deleteTitle")} aria-label={`${t("list.deleteTitle")}: ${listing.title}`} onClick={() => actions.onDelete(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-red-50 hover:text-red-600"><Trash2 size={17} strokeWidth={1.6} /></button>}
-                <RowMenu
-                  label={t("list.actionsTitle")}
-                  ariaLabel={t("list.actionsAria", { title: listing.title })}
-                  items={([
-                    {
-                      label: t("list.copyLinkTitle"),
-                      icon: <Link2 size={16} />,
-                      onClick: () => handleCopyLink(listing),
-                    },
-                    actions.canPause && {
-                      label:
-                        listing.status === "ACTIVE"
-                          ? t("list.pauseTitle")
-                          : t("list.activateTitle"),
-                      icon:
-                        listing.status === "ACTIVE" ? (
-                          <Pause size={16} />
-                        ) : (
-                          <Play size={16} />
-                        ),
-                      onClick: () => actions.onToggleStatus(listing),
-                    },
-                    actions.canFeature && {
-                      label: listing.isFeatured
-                        ? t("list.removeFromFeaturedTitle")
-                        : t("list.markAsFeaturedTitle"),
-                      icon: (
-                        <Star
-                          size={16}
-                          className={
-                            listing.isFeatured
-                              ? "fill-[#f59e0b] text-[#f59e0b]"
-                              : undefined
-                          }
-                        />
-                      ),
-                      onClick: () => actions.onToggleFeatured(listing),
-                    },
-                  ] as (RowMenuItem | false)[]).filter(
-                    (item): item is RowMenuItem => Boolean(item),
+                  {actions.canFeature && (
+                    <button type="button" title={t(listing.isFeatured ? "list.removeFromFeaturedTitle" : "list.markAsFeaturedTitle")} aria-label={`${t(listing.isFeatured ? "list.removeFromFeaturedTitle" : "list.markAsFeaturedTitle")}: ${listing.title}`} aria-pressed={listing.isFeatured} onClick={() => actions.onToggleFeatured(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-amber-50">
+                      <Star size={17} strokeWidth={1.6} className={listing.isFeatured ? "fill-[#f59e0b] text-[#f59e0b]" : ""} />
+                    </button>
                   )}
-                />
+                  <button type="button" title={t("list.copyLinkTitle")} aria-label={`${t("list.copyLinkTitle")}: ${listing.title}`} onClick={() => handleCopyLink(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]">
+                    <Link2 size={17} strokeWidth={1.6} />
+                  </button>
+                  {actions.canPause && (
+                    <button type="button" title={t(listing.status === "ACTIVE" ? "list.pauseTitle" : "list.activateTitle")} aria-label={`${t(listing.status === "ACTIVE" ? "list.pauseTitle" : "list.activateTitle")}: ${listing.title}`} onClick={() => actions.onToggleStatus(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]">
+                      {listing.status === "ACTIVE" ? <Pause size={17} strokeWidth={1.6} /> : <Play size={17} strokeWidth={1.6} />}
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>
@@ -531,7 +399,8 @@ return (
 
                   <Badge
                     label={td(`status.${listing.status}`)}
-                    style={STATUS_BADGE[listing.status]}
+                    solid
+                  style={STATUS_BADGE[listing.status]}
                   />
                 </div>
 

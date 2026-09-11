@@ -78,7 +78,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
         fixed left-3 right-3 top-[72px] z-50
         max-h-[calc(100dvh-84px)]
         overflow-hidden rounded-[12px]
-        border border-[#dfe1e7]
+        border border-[#e9e9e9]
         bg-white
         shadow-[0px_16px_32px_-1px_rgba(128,136,151,0.2)]
 
@@ -92,10 +92,10 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
       onClick={(event) => event.stopPropagation()}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 border-b border-[#dfe1e7] px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
+      <div className="flex items-center justify-between gap-3 border-b border-[#e9e9e9] px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
         <div className="flex min-w-0 items-center gap-2">
           <span
-            className="truncate text-[14px] font-semibold text-[#0d2138] sm:text-[16px]"
+            className="truncate text-[14px] font-medium text-[#0d2138] sm:text-[16px]"
             style={mont}
           >
             {t("notificationsPanel.title")}
@@ -122,7 +122,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
             type="button"
             onClick={() => markAllRead.mutate()}
             className="
-              shrink-0 text-[11px] text-[#1b487a]
+              shrink-0 rounded-[6px] border border-[#e9e9e9] px-2 py-1 text-[11px] text-[#005089]
               transition-colors hover:text-[#1e4f86]
               sm:text-[13px]
               lg:text-[14px]
@@ -138,7 +138,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
       <div
         className="
           flex max-h-[calc(100dvh-190px)]
-          flex-col divide-y divide-[#dfe1e7]
+          flex-col divide-y divide-[#e9e9e9]
           overflow-y-auto
           sm:max-h-[420px]
         "
@@ -197,7 +197,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
                   <span
                     className="
                       min-w-0 truncate
-                      text-[12px] font-semibold
+                      text-[12px] font-medium
                       leading-5 text-[#0d2138]
                       sm:text-[14px]
                     "
@@ -214,7 +214,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
                       type="button"
                       aria-label={t("notificationsPanel.dismissAria")}
                       onClick={(event) => handleDismiss(event, notification.id)}
-                      className="rounded p-0.5 text-[#9aa1ad] opacity-0 transition-opacity hover:text-[#4a5565] group-hover:opacity-100"
+                      className="rounded p-0.5 text-[#9aa1ad] opacity-0 transition-opacity hover:text-[#4a5565] group-hover:opacity-100 focus-visible:opacity-100"
                     >
                       <X size={14} />
                     </button>
@@ -249,7 +249,7 @@ export function NotificationsPanel({ onClose }: NotificationsPanelProps) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between border-t border-[#dfe1e7] px-4 py-3 sm:px-5 sm:py-3.5 lg:px-6">
+      <div className="flex items-center justify-between border-t border-[#e9e9e9] px-4 py-3 sm:px-5 sm:py-3.5 lg:px-6">
         <Link
           href="/dashboard/notifications"
           onClick={onClose}

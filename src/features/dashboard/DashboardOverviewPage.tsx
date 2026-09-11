@@ -94,18 +94,18 @@ const METRIC_LABEL_KEY: Record<string, string> = {
 function MetricCardView({ card }: { card: MetricCard }) {
   const { t } = useTranslation("dashboard");
   const isUp = card.trendDirection === "up";
+  const sparkColor = card.iconColor;
   const chartData = card.sparkline.map((value, index) => ({ index, value }));
 
   return (
-    <div className="min-w-0 flex-1 rounded-[16px] border border-[#f3f4f6] bg-white p-[18px]">
+    <div className="min-w-0 flex-1 rounded-[12px] border border-[#e9e9e9] bg-white p-[18px]">
       <div className="mb-2 flex items-start justify-between">
         <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>
           {t(METRIC_LABEL_KEY[card.key] ?? card.label, { defaultValue: card.label })}
         </p>
 
         <span
-          className="flex size-9 items-center justify-center rounded-[10px]"
-          style={{ backgroundColor: card.iconBg }}
+          className="flex size-9 items-center justify-center rounded-[8px] border border-[#e9e9e9] bg-[#fbfbfb]"
         >
           <MetricIcon card={card} />
         </span>
@@ -132,7 +132,7 @@ function MetricCardView({ card }: { card: MetricCard }) {
         </div>
       ) : (
         <div className="mb-1 flex items-baseline gap-2">
-          <span className="text-[24px] font-semibold text-[#0d2138]" style={poppins}>
+          <span className="text-[28px] font-medium text-[#0d2138]" style={poppins}>
             {card.value}
           </span>
 
@@ -144,25 +144,12 @@ function MetricCardView({ card }: { card: MetricCard }) {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-1">
-        {isUp ? (
-          <ArrowUpRight size={14} className="text-[#00c950]" />
-        ) : (
-          <ArrowDownRight size={14} className="text-[#fb2c36]" />
-        )}
-
-        <div className="flex items-center gap-1 text-[12px]" style={mont}>
-          <span
-            className={`font-semibold ${isUp ? "text-[#00c950]" : "text-[#fb2c36]"
-              }`}
-          >
-            {card.trendValue}
-          </span>
-
-          <span className="font-normal text-[#6a7282]">
-            {card.trendText}
-          </span>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center gap-1.5 text-[11px]" style={mont}>
+        <span className={`inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 font-medium ${isUp ? "bg-[#dcfce7] text-[#008236]" : "bg-[#fff1f2] text-[#e11d48]"}`}>
+          {card.trendValue}
+          {isUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+        </span>
+        <span className="text-[#6c6c6c]">{card.trendText}</span>
       </div>
 
       <div className="h-7 w-full">
@@ -171,7 +158,7 @@ function MetricCardView({ card }: { card: MetricCard }) {
             <Area
               type="monotone"
               dataKey="value"
-              stroke={isUp ? "#00c950" : "#fb2c36"}
+              stroke={sparkColor}
               strokeWidth={1.8}
               fill="transparent"
               dot={false}
@@ -186,7 +173,7 @@ function MetricCardView({ card }: { card: MetricCard }) {
 
 function MetricCardSkeleton() {
   return (
-    <div className="min-w-0 flex-1 animate-pulse rounded-[16px] border border-[#f3f4f6] bg-white p-[18px]">
+    <div className="min-w-0 flex-1 animate-pulse rounded-[12px] border border-[#e9e9e9] bg-white p-[18px]">
       <div className="mb-4 h-4 w-2/3 rounded bg-[#f3f4f6]" />
       <div className="mb-2 h-6 w-1/2 rounded bg-[#f3f4f6]" />
       <div className="h-3 w-1/3 rounded bg-[#f3f4f6]" />
@@ -391,7 +378,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#fff1f2]">
-              <span className="text-[15px] font-bold text-[#ff3545]" style={poppins}>
+              <span className="text-[15px] font-bold text-[#005089]" style={poppins}>
                 $
               </span>
             </div>
@@ -404,7 +391,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
               </span>
             </div>
           </div>
-          <span className="h-2 w-2 rounded-full bg-[#ff3545] shrink-0" />
+          <span className="h-2 w-2 rounded-full bg-[#005089] shrink-0" />
         </div>
 
         {/* Net Revenue */}
@@ -436,7 +423,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#ff6b00"
+                stroke="#5c93cb"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -456,7 +443,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
               </span>
             </div>
           </div>
-          <span className="h-2 w-2 rounded-full bg-[#ff6b00] shrink-0" />
+          <span className="h-2 w-2 rounded-full bg-[#5c93cb] shrink-0" />
         </div>
       </div>
     </div>
@@ -592,7 +579,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
   };
 
   return (
-    <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-8">
+    <div className="flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-5 sm:py-5 lg:px-6">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
@@ -675,7 +662,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
       {/* Chart + locations */}
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Revenue / opportunities chart */}
-        <div className="min-w-0 flex-1 rounded-[14px] border border-[#f3f4f6] bg-white px-3 pb-3 pt-4 sm:px-4">
+        <div className="min-w-0 flex-1 rounded-[12px] border border-[#e9e9e9] bg-white px-3 pb-3 pt-4 sm:px-4">
           <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <h2 className="mb-3 text-[14px] font-semibold leading-5 text-[#0d2138]" style={mont}>
@@ -684,14 +671,14 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
 
               <div className="mb-1 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="size-1.5 shrink-0 rounded-full bg-[#ff3545]" />
+                  <span className="size-1.5 shrink-0 rounded-full bg-[#005089]" />
                   <span className="text-[10px] font-medium text-[#6a7282]" style={mont}>
                     {t("overview.tooltip.revenue")}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span className="size-1.5 shrink-0 rounded-full bg-[#ff6b00]" />
+                  <span className="size-1.5 shrink-0 rounded-full bg-[#5c93cb]" />
                   <span className="text-[10px] font-medium text-[#6a7282]" style={mont}>
                     {t("overview.tooltip.openOpportunities")}
                   </span>
@@ -713,13 +700,13 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                 )}
               </button>
 
-              <div className="grid min-w-0 flex-1 grid-cols-3 items-center rounded-[8px] bg-[#f3f4f6] p-[3px] md:flex md:flex-none">
+              <div className="grid min-w-0 flex-1 grid-cols-3 items-center gap-1 md:flex md:flex-none">
                 {CHART_TABS.map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setChartTab(tab)}
-                    className={`min-w-0 rounded-[6px] px-2 py-1.5 text-[10px] font-medium transition-colors sm:px-3 ${chartTab === tab ? "bg-white text-[#1e4f86] shadow-sm" : "text-[#99a1af]"
+                    className={`min-w-0 border-b-2 px-2 py-1.5 text-[10px] font-medium transition-colors sm:px-3 ${chartTab === tab ? "border-[#005089] text-[#005089]" : "border-transparent text-[#6c6c6c]"
                       }`}
                     style={mont}
                   >
@@ -730,19 +717,19 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
             </div>
           </div>
 
-          <div className="h-[210px] w-full min-w-0 sm:h-[230px] lg:h-[185px]">
+          <div className="h-[210px] w-full min-w-0 sm:h-[230px] lg:h-[220px]">
             {mounted && !chartQuery.isLoading && chartData.length > 0 && (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -28, bottom: 0 }}>
                   <defs>
                     <linearGradient id="grad-revenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ff3545" stopOpacity={0.18} />
-                      <stop offset="100%" stopColor="#ff3545" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#005089" stopOpacity={0.18} />
+                      <stop offset="100%" stopColor="#005089" stopOpacity={0} />
                     </linearGradient>
 
                     <linearGradient id="grad-opps" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ff6b00" stopOpacity={0.12} />
-                      <stop offset="100%" stopColor="#ff6b00" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#5c93cb" stopOpacity={0.12} />
+                      <stop offset="100%" stopColor="#5c93cb" stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
@@ -771,7 +758,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                   <Area
                     type="monotone"
                     dataKey="openOpportunities"
-                    stroke="#ff6b00"
+                    stroke="#5c93cb"
                     strokeWidth={1.8}
                     fill="url(#grad-opps)"
                     dot={false}
@@ -781,7 +768,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#ff3545"
+                    stroke="#005089"
                     strokeWidth={1.8}
                     fill="url(#grad-revenue)"
                     dot={false}
@@ -800,7 +787,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
         </div>
 
         {/* Locations */}
-        <div className="w-full min-w-0 shrink-0 rounded-[14px] border border-[#f3f4f6] bg-white p-4 lg:w-[292px]">
+        <div className="w-full min-w-0 shrink-0 rounded-[12px] border border-[#e9e9e9] bg-white p-4 lg:w-[292px]">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-[14px] font-semibold text-[#0d2138]" style={mont}>
               {t("overview.locations.title")}
@@ -809,7 +796,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
             <button
               type="button"
               onClick={() => router.push("/dashboard/locations")}
-              className="flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-[8px] bg-[#f3f4f6] px-3 text-[10px] font-medium text-[#6a7282]"
+              className="flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-[8px] border border-[#e9e9e9] bg-[#fbfbfb] px-3 text-[10px] font-medium text-[#6a7282]"
               style={mont}
             >
               <Plus size={13} strokeWidth={1.7} />
@@ -839,7 +826,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                   {location.name}
                 </span>
 
-                <span className="flex min-w-[30px] shrink-0 items-center justify-center rounded-[6px] bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#6a7282]" style={mont}>
+                <span className="flex min-w-[30px] shrink-0 items-center justify-center rounded-[4px] border border-[#e9e9e9] bg-[#f0f6fa] px-2 py-0.5 text-[10px] font-medium text-[#6a7282]" style={mont}>
                   {location.count}
                 </span>
               </div>
@@ -849,14 +836,14 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
       </div>
 
       {/* Total Sales */}
-      <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
+      <div className="overflow-hidden rounded-[12px] border border-[#e9e9e9] bg-white">
         {/* Header */}
-        <div className="border-b border-[#f3f4f6] p-4 sm:p-5">
-          <h2 className="mb-4 text-[14px] font-semibold text-[#0d2138] sm:mb-0 sm:text-[16px]" style={mont}>
+        <div className="flex flex-col gap-3 border-b border-[#e9e9e9] p-4 xl:flex-row xl:items-center xl:justify-between">
+          <h2 className="shrink-0 text-[14px] font-medium text-[#0d2138]" style={mont}>
             {t("overview.totalSales.title")}
           </h2>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:mt-4 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+          <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             {/* Search */}
             <div className="col-span-2 flex h-11 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-white px-3 focus-within:border-[#1e4f86] sm:h-9 sm:w-[180px]">
               <Search size={16} className="shrink-0 text-[#99a1af]" />
