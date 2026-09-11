@@ -32,7 +32,7 @@ export function ContactPageContent() {
  return <div className={styles.page}>
   <section className={styles.hero}>
    <div className={styles.backdrop} aria-hidden="true">
-    <img className={styles.heroImage} src="/listings/hero.jpg" alt="" />
+    <img className={styles.heroImage} src="/pages/contact-hero.webp" alt="" />
     <div className={styles.heroScreen}/>
     <img className={styles.heroBlur} src="/pages/contact-hero-blur.svg" alt="" />
    </div>

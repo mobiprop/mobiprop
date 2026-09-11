@@ -3,7 +3,7 @@
 .container { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: 64px; }
 .hero { position: relative; height: calc(466px - var(--space-fluid-nav-h) - 1px); isolation: isolate; }
 .backdrop { position: absolute; z-index: -1; inset: calc(-1 * var(--space-fluid-nav-h) - 1px) 0 0; overflow: hidden; background: white; pointer-events: none; }
-.heroImage { position: absolute; width: 1490px; max-width: none; height: 994px; left: calc(50% - 743px); top: -158px; object-fit: cover; }
+.heroImage { position: absolute; width: 100%; max-width: none; height: 466px; left: 0; top: 0; object-fit: cover; }
 .heroScreen { position: absolute; width: 1697px; height: 517px; left: calc(50% - 846px); top: 24px; background: #f1f9ff; mix-blend-mode: screen; filter: blur(96px); }
 .heroBlur { position: absolute; top: 23px; left: 0; width: 100%; height: 443px; }
 .heroContent { margin-inline: auto; padding-top: calc(160px - var(--space-fluid-nav-h) - 1px); width: min(730px, calc(100% - 40px)); text-align: center; }
