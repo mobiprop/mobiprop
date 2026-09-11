@@ -12,14 +12,15 @@
 .hero h1 { margin: 14px 0 20px; font: 500 52px/1.2 Poppins, sans-serif; letter-spacing: -1.5px; color: #101010; }
 .heroContent > p { font-size: 18px; line-height: 27px; color: #4f4f4f; }
 .cards { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px; padding-top: 64px; }
-.card { display: flex; flex-direction: column; align-items: center; gap: 20px; min-height: 284px; border: 1px solid #e9e9e9; border-radius: 16px; padding: 39px 23px; background: #fff; text-align: center; }
+.card { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; min-height: 284px; border: 1px solid #e9e9e9; border-radius: 16px; padding: 39px 23px; background: #fff; text-align: center; }
 .card:hover { border-color: #548ab0; }
 .icon { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; flex-shrink: 0; border-radius: 14px; background: #e1edf5; }
-.cardText { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.cardText { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.cardText > span { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .cardTitle { color: #548ab0; font-size: 12px; font-weight: 500; line-height: 16.5px; letter-spacing: .8px; text-transform: uppercase; }
 .cardValue { font: 500 18px/23.375px Poppins, sans-serif; color: #232323; }
 .cardDescription { color: #4f4f4f; font-size: 14px; line-height: 19.5px; }
-.badge { border: 1px solid #ccdeef; border-radius: 999px; padding: 4px 12px; background: #edf6fc; color: #005089; font-size: 14px; line-height: 16.5px; }
+.badge { max-width: 100%; margin-top: auto; overflow-wrap: anywhere; border: 1px solid #ccdeef; border-radius: 999px; padding: 4px 12px; background: #edf6fc; color: #005089; font-size: 14px; line-height: 16.5px; }
 .form { margin-top: 130px; scroll-margin-top: 110px; }
 .formHeading { margin-bottom: 40px; }
 .formHeading h2 { font: 500 28px/35px Poppins, sans-serif; letter-spacing: -.5px; }
@@ -65,7 +66,6 @@
 .faq > div > div:first-child > a { height: 48px; padding-block: 14px; line-height: 20px; }
 .cta { margin-top: 120px; }
 .page :is(a,button,input,select,textarea):focus-visible { outline: 2px solid #005089; outline-offset: 3px; }
-@media(min-width:1280px) { .cardDescription { white-space: nowrap; } }
 @media(max-width:1100px) { .container { padding-inline: 32px; } .cards { grid-template-columns: repeat(2,minmax(0,1fr)); } .form { margin-top: 80px; } .faq > div { padding-inline: 32px; gap: 40px; } .faq > div > div:first-child { width: 36%; } }
 @media(max-width:1023px) { .faq > div > div:first-child { width: 100%; } .faq { min-height: 0; } }
 @media(max-width:639px) { .container { padding-inline: 20px; } .hero { height: auto; min-height: 457px; } .heroContent { padding-block: 56px; } .hero h1 { font-size: 34px; letter-spacing: -1px; } .heroContent > p { font-size: 16px; line-height: 24px; } .cards { grid-template-columns: 1fr; padding-top: 40px; } .card { min-height: 0; padding: 32px 24px; } .fields { grid-template-columns: 1fr; } .form { margin-top: 64px; } .formActions { flex-direction: column; } .submit { align-self: flex-end; } .location { margin-top: 80px; padding-bottom: 80px; } .location h2 { font-size: 30px; line-height: 38px; } .map { height: 420px; } .mapCard { left: 12px; top: 12px; width: min(288px,calc(100% - 24px)); } .faq { padding-block: 48px; } .faq > div { padding-inline: 20px; } .faq button[aria-expanded] > span { font-size: 18px; line-height: 26px; } .faq button[aria-expanded] + p { font-size: 16px; line-height: 24px; } .cta { margin-top: 64px; } }
