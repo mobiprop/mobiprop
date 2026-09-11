@@ -1,4 +1,5 @@
 "use client";
+import { PageBackdrop } from "@/components/common/PageHero";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -382,13 +383,7 @@ return (
 <>
 {/* ── Hero ── */}
 <section ref={heroRef} className="relative flex min-h-[457px] justify-center overflow-hidden border-b border-black/10">
-   <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-     <img src="/listings/hero.jpg" alt="" className="absolute max-w-none" style={{left: 0, top: -80, width: "100%", height: 537, objectFit: "cover"}} />
-     <div className="absolute rounded-[50%]" style={{left: "-15.995%", top: 245, width: "131.92%", height: 887.292, background: "rgba(211,233,255,.9)", filter: "blur(236.104px)"}} />
-     <div className="absolute rounded-[50%]" style={{left: "-8.579%", top: 366.669, width: "117.142%", height: 792.331, background: "rgba(71,169,255,.9)", filter: "blur(236.104px)"}} />
-     <div className="absolute rounded-[50%]" style={{left: "7.715%", top: 474.687, width: "84.555%", height: 652.857, background: "rgba(0,55,134,.9)", filter: "blur(236.104px)"}} />
-     <div className="absolute" style={{left: "-8.75%", top: -56, width: "117.847%", height: 543, background: "rgba(241,249,255,.95)", filter: "blur(192px)"}} />
-   </div>
+   <PageBackdrop />
    {/* Text content */}
    <Reveal
      as="div"
@@ -678,7 +673,7 @@ return (
             useListingFilterStore.getState().resetFilters();
             setLocationInput("");
             }}
-            className="mt-2 rounded-full bg-[#1e4f86] px-6 py-2.5 text-[14px] text-white hover:bg-[#17446f] transition-colors cursor-pointer"
+            className="mt-2 min-h-12 rounded-xl border border-[#b3261e]/10 bg-[#fff3f3] px-[17px] py-3 text-[16px] font-medium leading-5 text-[#ef4444] hover:bg-red-100 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#005089]"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             {t("results.clearFiltersButton")}

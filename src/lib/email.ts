@@ -19,8 +19,8 @@ import {
 // back (the row is created); the email is just skipped and logged.
 // FROM must be a sender verified in the SendGrid account (Single Sender
 // Verification or a domain-authenticated address) or sends will be rejected.
-const FROM = process.env.MAIL_FROM ?? `${APP_NAME} <no-reply@ulrichpropiedades.com>`;
-const FROM_WELCOME = process.env.MAIL_FROM_WELCOME ?? `${APP_NAME} <hola@ulrichpropiedades.com>`;
+const FROM = process.env.MAIL_FROM ?? `${APP_NAME} <hola@mobiprop.com.ar>`;
+const FROM_WELCOME = process.env.MAIL_FROM_WELCOME ?? `${APP_NAME} <hola@mobiprop.com.ar>`;
 
 let configured = false;
 

@@ -1,6 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { PageBackdrop } from "@/components/common/PageHero";
 import styles from "./ContactPage.module.css";
 import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 import { FAQ } from "@/features/home/FAQ";
@@ -12,7 +13,7 @@ const cards = [
  {icon:"phone",title:"Phone",value:"+54 9 11 8030 6000",description:"Mon – Fri, 9:00 AM – 7:00 PM",action:"Call us",href:"tel:+5491180306000"},
  {icon:"whatsapp",title:"WhatsApp",value:"+54 9 11 8030 6000",description:"Quick replies, usually within minutes",action:"Fast reply",href:"https://wa.me/5491180306000"},
  {icon:"email",title:"Email",value:"hola@mobiprop.com.ar",description:"Available 24/7 — we reply within 24h",action:"24/7",href:"mailto:hola@mobiprop.com.ar"},
- {icon:"location",title:"Office",value:"Las Amapolas 455, Manuel Alberti",description:"Buenos Aires, Argentina · Open Mon–Fri",action:"",href:directions},
+ {icon:"location",title:"Office",value:"Las Amapolas 455",description:"Buenos Aires, Argentina · Open Mon–Fri",action:"",href:directions},
 ];
 const inputClass = styles.field;
 
@@ -31,11 +32,7 @@ export function ContactPageContent() {
  }
  return <div className={styles.page}>
   <section className={styles.hero}>
-   <div className={styles.backdrop} aria-hidden="true">
-    <img className={styles.heroImage} src="/pages/contact-hero.webp" alt="" />
-    <div className={styles.heroScreen}/>
-    <img className={styles.heroBlur} src="/pages/contact-hero-blur.svg" alt="" />
-   </div>
+   <PageBackdrop />
    <div className={styles.heroContent}>
     <span className={styles.eyebrow}>Get in touch</span>
     <h1>Let&apos;s Find Your<br/>Perfect Property</h1>

@@ -97,7 +97,7 @@ export async function signUpWithPassword(input: unknown): Promise<AuthActionResu
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: { data: { full_name: fullName }, emailRedirectTo: `${APP_URL}/auth/callback` },
   });
 
   if (error) return { error: error.message };
@@ -175,7 +175,7 @@ export async function resendSignUpOtp(email: string): Promise<AuthActionResult> 
   if (!parsed.success) return { error: firstIssueMessage(parsed.error) };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.resend({ type: "signup", email: parsed.data });
+  const { error } = await supabase.auth.resend({ type: "signup", email: parsed.data, options: { emailRedirectTo: `${APP_URL}/auth/callback` } });
 
   if (error) return { error: error.message };
   return {};

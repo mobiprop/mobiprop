@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PageBackdrop } from "@/components/common/PageHero";
 import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,8 +12,6 @@ import { Reveal, RevealItem } from "@/components/common/Reveal";
 import { SplitHeading } from "@/components/common/SplitHeading";
 import type { BlogPostDto } from "@/features/blog/types/blog-dto";
 
-const heroBg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/topimg2.webp";
-const heroBgOverlay = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/AboutUs/224a1a87c6d1fc7b05e65142626032911210d860.webp";
 const arrowRightWhite = "/assets/figma-temp/BlogPage/arrow-right-white.svg";
 const blogCardImg = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/blogimg1.webp";
 const blogCardImg1 = "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/worker.webp";
@@ -292,24 +291,12 @@ export function BlogPageContent({ posts, highlights, featured, currentPage, tota
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative h-[360px] lg:h-[386px] overflow-hidden border-b border-black/10">
-        <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        <img src={heroBgOverlay} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(167,189,221,0.97) 0%, rgba(255,255,255,0.77) 45%, white 63%)",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #EDF6FF 100%)" }}
-        />
+      <section className="relative min-h-[457px] overflow-hidden border-b border-black/10">
+        <PageBackdrop />
         <Reveal
           as="div"
           amount={0.6}
-          className="relative h-full flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
+          className="relative min-h-[457px] flex flex-col items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 text-center"
         >
           <SectionTag label={t("listHero.badge")} />
           <SplitHeading

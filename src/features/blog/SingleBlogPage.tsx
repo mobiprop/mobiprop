@@ -72,7 +72,7 @@ function BlogCard({ post, index }: { post: BlogPostDto; index: number }) {
 /* ─── Hero banner ─── */
 function HeroBanner({post}: {post: BlogPostDto}) {
  const {t}=useTranslation('blog');
- return <section className="relative isolate overflow-hidden px-4 py-12 sm:px-8 lg:min-h-[472px] lg:px-16 lg:pt-14 lg:pb-16">
+ return <section className="relative isolate overflow-hidden px-4 py-12 sm:px-8 min-h-[457px] lg:px-16 lg:pt-14 lg:pb-16">
   <PageBackdrop />
   <div className="relative mx-auto max-w-[1312px]">
    <nav className="mb-10 flex flex-wrap gap-2 text-xs text-[#4f4f4f]" aria-label={t('back')}><Link href="/">{t('home')}</Link><span>/</span><Link href="/blog">Blog</Link><span>/</span><span>{post.category??t('card.uncategorized')}</span></nav>

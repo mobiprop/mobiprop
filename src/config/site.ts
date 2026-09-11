@@ -1,9 +1,11 @@
+import { APP_URL } from "@/lib/constants";
+
 // Site-wide configuration
 
 export const siteConfig = {
   name: "Mobi Prop",
   description: "Tu inmobiliaria de confianza",
-  url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  url: APP_URL,
   ogImage: "/assets/og-image.png",
   links: {
     instagram: "https://instagram.com/mobiprop",

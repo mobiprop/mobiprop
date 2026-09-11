@@ -14,10 +14,10 @@ import { APP_NAME, APP_URL } from "@/lib/constants";
 // so campaign emails carry exactly the same brand shell as auth emails.
 export const BRAND = {
   navy: "#0d2138",
-  heroFrom: "#16406e",
-  heroTo: "#2f6cb5",
-  button: "#1e4f86",
-  link: "#2f6cb5",
+  heroFrom: "#005ea4",
+  heroTo: "#0077cc",
+  button: "#005ea4",
+  link: "#005089",
   text: "#1f2937",
   muted: "#6a7282",
   faint: "#9aa3af",
@@ -36,14 +36,13 @@ const px = (n: number) => `${n}px`;
 function logoTile(size: number): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="display:inline-table;">
     <tr><td align="center" valign="middle" bgcolor="#ffffff" style="width:${px(size)};height:${px(size)};border-radius:${px(Math.round(size * 0.28))};">
-      <img src="${APP_URL}/logo.png" width="${Math.round(size * 0.62)}" alt="${APP_NAME}" style="display:block;margin:0 auto;border:0;" />
+      <img src="${APP_URL}/assets/email/mobi-logo.png" width="${Math.round(size * 0.62)}" alt="${APP_NAME}" style="display:block;margin:0 auto;border:0;" />
     </td></tr>
   </table>`;
 }
 
 function wordmark(color: string): string {
-  return `<div style="font-family:${FONT};color:${color};font-size:18px;font-weight:700;letter-spacing:1px;line-height:1;">ULRICH</div>
-    <div style="font-family:${FONT};color:${color};font-size:8px;font-weight:500;letter-spacing:3px;line-height:1;margin-top:4px;">PROPIEDADES</div>`;
+  return `<div style="font-family:${FONT};color:${color};font-size:22px;font-weight:500;line-height:1.2;">Mobi <span style="font-weight:300;">Prop</span></div>`;
 }
 
 export function header(): string {
@@ -82,7 +81,7 @@ export function footer(): string {
     <div style="margin-top:8px;">${wordmark("#ffffff")}</div>
     <div style="font-family:${FONT};color:${BRAND.heroEyebrow};font-size:14px;margin-top:14px;">Bienes raíces premium, curados por expertos.</div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:13px;margin-top:18px;">
-      <a href="mailto:info@ulrichpropiedades.com" style="color:${BRAND.footerText};text-decoration:none;">info@ulrichpropiedades.com</a>
+      <a href="mailto:hola@mobiprop.com.ar" style="color:${BRAND.footerText};text-decoration:none;">hola@mobiprop.com.ar</a>
     </div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:12px;line-height:1.7;margin-top:16px;">
       &copy; ${year} ${APP_NAME}. Todos los derechos reservados.<br />
@@ -153,6 +152,7 @@ function layout(opts: {
 export function renderOtpEmail(params: {
   /** Verification code — real digits or a template var like `{{ .Token }}`. */
   code: string;
+  confirmationUrl?: string;
   /** Recipient email shown in the hero copy; omit for a generic line. */
   email?: string;
   expiresMinutes?: number;
@@ -160,7 +160,7 @@ export function renderOtpEmail(params: {
   device?: string;
   location?: string;
 }): string {
-  const { code, email, expiresMinutes = 60, requestedAt, device, location } = params;
+  const { code, email, confirmationUrl, expiresMinutes = 60, requestedAt, device, location } = params;
 
   const digits = /^\d{4,8}$/.test(code)
     ? code
@@ -194,7 +194,8 @@ export function renderOtpEmail(params: {
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;"><tr>
       <td style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:8px 18px;font-family:${FONT};font-size:13px;font-weight:600;color:#f97316;">&bull;&nbsp; El código expira en ${expiresMinutes} minutos</td>
     </tr></table>
-    ${securityNote(`Ulrich nunca te pedirá este código por teléfono o email. Nunca lo compartas con nadie.`)}
+    ${confirmationUrl ? button("Confirmar mi cuenta", confirmationUrl) : ""}
+    ${securityNote(`Mobi Prop nunca te pedirá este código por teléfono o email. Nunca lo compartas con nadie.`)}
     ${meta}
     <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:24px;text-align:center;">Si no solicitaste este código, podés ignorar este email de forma segura.</div>`;
 
@@ -202,7 +203,7 @@ export function renderOtpEmail(params: {
     preheader: `Tu código de verificación de ${APP_NAME}`,
     hero: {
       icon: "icon-shield.png",
-      eyebrow: "Autenticación de Dos Factores",
+      eyebrow: "Verificación de cuenta",
       title: "Verificá tu Identidad",
       subtitle: email
         ? `Te enviamos un código de 6 dígitos a <strong style="color:#ffffff;">${email}</strong>.<br />Ingresalo abajo para continuar.`

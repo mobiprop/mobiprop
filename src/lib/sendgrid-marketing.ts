@@ -2,7 +2,7 @@ import "server-only";
 
 // Server-only SendGrid client for the MARKETING/newsletter module. Kept fully
 // separate from src/lib/email.ts (transactional/auth mail): campaigns send
-// from mailing@ulrichpropiedades.com, carry an unsubscribe link, and honour
+// from hola@mobiprop.com.ar, carry an unsubscribe link, and honour
 // marketing unsubscribe status — none of which applies to OTP/reset mail.
 //
 // The API key lives in SENDGRID_API_KEY only. Nothing in this file is ever
@@ -15,8 +15,8 @@ import { APP_URL } from "@/lib/constants";
 const SENDGRID_API_BASE = "https://api.sendgrid.com/v3";
 
 /** Marketing sender — campaigns must never send from no-reply@. */
-export const NEWSLETTER_FROM_EMAIL = "mailing@ulrichpropiedades.com";
-export const NEWSLETTER_FROM_NAME = "Ulrich Propiedades";
+export const NEWSLETTER_FROM_EMAIL = "hola@mobiprop.com.ar";
+export const NEWSLETTER_FROM_NAME = "Mobi Prop";
 
 /** Max personalizations per SendGrid mail/send request (API limit is 1000). */
 const SEND_BATCH_SIZE = 500;
@@ -136,11 +136,11 @@ export function marketingFooterHtml(): string {
     <tr>
       <td style="padding:20px 24px;text-align:center;font-family:Arial,Helvetica,sans-serif;">
         <p style="margin:0 0 6px;font-size:12px;line-height:18px;color:#6a7282;">
-          You are receiving this email because you subscribed to updates from Ulrich Propiedades.
+          You are receiving this email because you subscribed to updates from Mobi Prop.
         </p>
         <p style="margin:0;font-size:12px;line-height:18px;color:#6a7282;">
           <a href="%unsubscribe_url%" style="color:#1e4f86;text-decoration:underline;">Unsubscribe</a>
-          &nbsp;·&nbsp; Ulrich Propiedades, Mar del Plata, Argentina
+          &nbsp;·&nbsp; Mobi Prop, Mar del Plata, Argentina
         </p>
       </td>
     </tr>

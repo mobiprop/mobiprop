@@ -25,7 +25,7 @@ test("generate email template files", () => {
 
   writeFileSync(
     path.join(supa, "confirm-signup.html"),
-    renderOtpEmail({ code: "{{ .Token }}", email: "{{ .Email }}", expiresMinutes: 60 }),
+    renderOtpEmail({ code: "{{ .Token }}", email: "{{ .Email }}", confirmationUrl: "{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email", expiresMinutes: 60 }),
   );
   writeFileSync(
     path.join(supa, "magic-link.html"),
@@ -49,17 +49,17 @@ test("generate email template files", () => {
   );
   writeFileSync(
     path.join(prev, "preview-magic-link.html"),
-    renderMagicLinkEmail({ url: "https://ulrich-propiedades.vercel.app/auth/callback?token=sample", code: "742916" }),
+    renderMagicLinkEmail({ url: "https://mobi-prop.vercel.app/auth/callback?token=sample", code: "742916" }),
   );
   writeFileSync(
     path.join(prev, "preview-reset.html"),
-    renderPasswordResetEmail({ url: "https://ulrich-propiedades.vercel.app/auth/reset?token=sample" }),
+    renderPasswordResetEmail({ url: "https://mobi-prop.vercel.app/auth/reset?token=sample" }),
   );
   writeFileSync(path.join(prev, "preview-welcome.html"), renderWelcomeEmail({ name: "James Whitmore" }));
   writeFileSync(
     path.join(prev, "preview-invite.html"),
     renderInvitationEmail({
-      inviteUrl: "https://ulrich-propiedades.vercel.app/register?invite=sample",
+      inviteUrl: "https://mobi-prop.vercel.app/register?invite=sample",
       roleLabel: "Agent",
       expiresInDays: 7,
     }),
