@@ -141,7 +141,7 @@ const optionalArea = (label: string) =>
     (value) => (value === "" || value === null || value === undefined ? undefined : Number(value)),
     z
       .number()
-      .int(`${label} must be a whole number`)
+      
       .positive(`${label} must be greater than 0`)
       .optional(),
   );
@@ -192,7 +192,7 @@ export const listingBaseSchema = z.object({
   // shown for non-LOT types; lot frontage/depth replace them for LOT (see
   // UploadListingModal, which renders the relevant subset per `type`).
   totalAreaM2: numberFromInput.pipe(
-    z.number({ error: "Total area is required" }).int().positive("Total area must be greater than 0"),
+    z.number({ error: "Total area is required" }).positive("Total area must be greater than 0"),
   ),
   coveredAreaM2: optionalArea("Covered area"),
   semiCoveredAreaM2: optionalArea("Semi-covered area"),

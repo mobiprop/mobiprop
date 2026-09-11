@@ -1469,7 +1469,8 @@ export function UploadListingModal({
                             id={`listing-${key}`}
                             type="number"
                             min="0"
-                            inputMode="numeric"
+                            step="any"
+                            inputMode="decimal"
                             {...register(key)}
                             placeholder={placeholder}
                             className={`${inputClass} ${borderClass(

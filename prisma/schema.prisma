@@ -312,12 +312,12 @@ model Property {
   // type (whole property area for non-LOT types, parcel area for LOT).
   // coveredAreaM2/semiCoveredAreaM2/lotSizeM2 apply to non-LOT types only;
   // lotFrontageM2/lotDepthM2 apply only when type is LOT.
-  totalAreaM2       Int?                  @map("total_area_m2")
-  coveredAreaM2     Int?                  @map("covered_area_m2")
-  semiCoveredAreaM2 Int?                  @map("semi_covered_area_m2")
-  lotSizeM2         Int?                  @map("lot_size_m2")
-  lotFrontageM2     Int?                  @map("lot_frontage_m2")
-  lotDepthM2        Int?                  @map("lot_depth_m2")
+  totalAreaM2       Float?                  @map("total_area_m2")
+  coveredAreaM2     Float?                  @map("covered_area_m2")
+  semiCoveredAreaM2 Float?                  @map("semi_covered_area_m2")
+  lotSizeM2         Float?                  @map("lot_size_m2")
+  lotFrontageM2     Float?                  @map("lot_frontage_m2")
+  lotDepthM2        Float?                  @map("lot_depth_m2")
   parkingSpaces     Int?                  @map("parking_spaces")
   yearBuilt         Int?                  @map("year_built")
   floors            Int?
