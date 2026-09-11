@@ -61,7 +61,8 @@ const AMENITY_KEYS = AMENITY_OPTIONS.map((a) => a.key) as [AmenityKey, ...Amenit
 // per-file cap and the storage bucket's fileSizeLimit — not Vercel's ~4.5MB
 // request-body limit.
 export const LISTING_IMAGE_MAX_BYTES = 15 * 1024 * 1024; // 15MB per file (originals; converted to WebP before upload)
-export const LISTING_IMAGE_MAX_COUNT = 40;
+// Preserve imported galleries (up to 54 photos) when editing existing listings.
+export const LISTING_IMAGE_MAX_COUNT = 60;
 export const LISTING_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const imageMimeSchema = z
