@@ -467,3 +467,12 @@ body {
     --space-fluid-container-max: max(1440px, min(100vw, 3840px));
   }
 }
+
+/* Fill the desktop viewport, including tall screens, with equal 16px
+   outer gutters. The flex content keeps the search near the lower edge. */
+@media (min-width: 1024px) {
+  .hero-fill-height {
+    min-height: calc(100vh - 32px);
+    min-height: calc(100dvh - 32px);
+  }
+}
