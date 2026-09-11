@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
-  Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2, MoreVertical,
+  Eye, SquarePen, Pencil, Trash2, MapPin, Pause, Play, Star, Check, Minus, Link2, MoreVertical,
 } from "lucide-react";
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
@@ -31,10 +31,11 @@ function Badge({
    *  whole Type column wide for every row. */
   className?: string;
 }) {
+  const ink = ({ "#bb4d00": "#fe623a", "#0069a8": "#005089", "#008236": "#00786f", "#e17100": "#fe623a", "#e7000b": "#5486b9" } as Record<string, string>)[style.text] ?? style.text;
   return (
     <span
       className={`inline-flex max-w-full items-center justify-center truncate px-3 py-1 rounded-[6px] text-[12px] font-medium ${className}`}
-      style={{ backgroundColor: style.bg, color: style.text, ...mont }}
+      style={{ backgroundColor: `color-mix(in srgb, ${ink} 4%, white)`, color: ink, border: `1px solid color-mix(in srgb, ${ink} 30%, transparent)`, ...mont }}
       title={label}
     >
       {label}
@@ -217,9 +218,9 @@ export function ListingListView({ listings, actions, selection }: ListingListVie
       .catch(() => toast.error(t("list.linkCopyFailed")));
   }
 return (
-  <div className="overflow-hidden rounded-[14px] border border-[#f3f4f6] bg-white">
+  <div className="dashboard-listings-table overflow-hidden rounded-[14px] border border-[#e9e9e9] bg-white">
     {/* Header */}
-    <div className="flex items-center p-4 sm:p-5">
+    <div className="flex min-h-[76px] items-center px-5 py-5">
       <h2
         className="text-[16px] font-semibold text-[#0d2138]"
         style={mont}
@@ -230,29 +231,18 @@ return (
 
     {/* Desktop table - same design */}
     <div className="hidden overflow-x-auto lg:block">
-      <table className="w-full table-fixed">
-        {/* table-fixed + colgroup, widths in % (not px): every column is a
-            fixed share of whatever the container actually is, so the table
-            always fills its width exactly — no fixed floor to fall short
-            of on a small laptop, no wasted gap on a big monitor. Auto
-            layout let a single long value (e.g. the "Oficina Comercial"
-            property type, or a listing priced for both sale and rent)
-            force that whole column, and the table itself, wider than the
-            viewport; each cell's content now truncates/wraps to whatever
-            pixel width its % resolves to at the current size instead.
-            Actions collapsed to a single "..." menu button (was 5 separate
-            icons), freeing space redistributed to the other columns so
-            they can run a bit larger while headers keep their full text. */}
+      <table className="w-full min-w-[1100px] table-fixed">
+        {/* Preserve bulk selection alongside the reference table's direct actions. */}
         <colgroup>
           <col style={{ width: "4%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "22%" }} />
+          <col style={{ width: "9%" }} />
+          <col style={{ width: "25%" }} />
+          <col style={{ width: "10%" }} />
           <col style={{ width: "12%" }} />
-          <col style={{ width: "15%" }} />
-          <col style={{ width: "6%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "11%" }} />
           <col style={{ width: "8%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "9%" }} />
+          <col style={{ width: "13%" }} />
         </colgroup>
 
         <thead>
@@ -277,7 +267,7 @@ return (
             ].map((heading) => (
               <th
                 key={heading}
-                className="truncate px-3 py-4 text-left text-[14px] font-medium text-[#6a7282]"
+                className="px-3 py-3 text-left text-[13px] font-medium leading-5 text-[#6c6c6c]"
                 style={mont}
                 title={heading}
               >
@@ -286,7 +276,7 @@ return (
             ))}
 
             <th
-              className="truncate px-3 py-4 text-left text-[14px] font-medium text-[#6a7282]"
+              className="px-3 py-3 text-left text-[13px] font-medium leading-5 text-[#6c6c6c]"
               style={mont}
               title={t("list.actionsTitle")}
             >
@@ -314,7 +304,7 @@ return (
               {/* Listing ID */}
               <td className="px-3 py-4">
                 <span
-                  className="block truncate text-[14px] font-medium text-[#1e4f86]"
+                  className="block truncate text-[14px] font-medium text-[#232323]"
                   style={mont}
                 >
                   {listing.listingId}
@@ -324,7 +314,7 @@ return (
               {/* Property */}
               <td className="px-3 py-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="relative size-10 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
+                  <div className="relative h-[52px] w-16 shrink-0 overflow-hidden rounded-[8px] bg-[#f3f4f6]">
                     <Image
                       src={
                         listing.coverImageUrl ??
@@ -332,14 +322,14 @@ return (
                       }
                       alt={listing.title}
                       fill
-                      sizes="40px"
+                      sizes="64px"
                       className="object-cover"
                     />
                   </div>
 
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span
-                      className="flex items-center gap-1.5 text-[14px] font-medium text-[#1e4f86]"
+                      className="flex items-center gap-1.5 text-[14px] font-medium text-[#232323]"
                       style={mont}
                     >
                       <span className="truncate">{listing.title}</span>
@@ -356,7 +346,7 @@ return (
                       className="flex items-center gap-1 text-[12px] text-[#6a7282]"
                       style={mont}
                     >
-                      <MapPin size={12} className="shrink-0" />
+                      <MapPin size={16} strokeWidth={1.6} className="shrink-0 text-[#005089]" />
                       <span className="truncate">{listing.location}</span>
                     </span>
                   </div>
@@ -374,7 +364,7 @@ return (
               {/* Price */}
               <td className="px-3 py-4">
                 <span
-                  className="block text-[14px] font-semibold leading-tight text-[#1E4F86]"
+                  className="block text-[14px] font-normal leading-5 text-[#232323]"
                   style={mont}
                 >
                   {formatListingPrice(listing, t)}
@@ -384,7 +374,7 @@ return (
               {/* Bedrooms */}
               <td className="px-3 py-4">
                 <span
-                  className="text-[14px] text-[#1E4F86]"
+                  className="text-[14px] text-[#4f4f4f]"
                   style={mont}
                 >
                   {listing.bedrooms ?? "—"}
@@ -394,7 +384,7 @@ return (
               {/* Operation type */}
               <td className="px-3 py-4">
                 <span
-                  className="block truncate text-[14px] text-[#1E4F86]"
+                  className="block truncate text-[14px] text-[#4f4f4f]"
                   style={mont}
                 >
                   {td(`operationType.${listing.operationType}`)}
@@ -410,7 +400,13 @@ return (
               </td>
 
               {/* Actions */}
-              <td className="px-3 py-4">
+              <td className="px-2 py-4">
+                <div className="flex items-center justify-end gap-0.5">
+                  <a href={`/listings/${listing.slug}`} target="_blank" rel="noopener noreferrer" title={t("listings:card.viewProperty")} aria-label={`${t("listings:card.viewProperty")}: ${listing.title}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]">
+                    <Eye size={17} strokeWidth={1.6} />
+                  </a>
+                  {actions.canUpdate && <button type="button" title={t("list.editTitle")} aria-label={`${t("list.editTitle")}: ${listing.title}`} onClick={() => actions.onEdit(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]"><SquarePen size={17} strokeWidth={1.6} /></button>}
+                  {actions.canDelete && <button type="button" title={t("list.deleteTitle")} aria-label={`${t("list.deleteTitle")}: ${listing.title}`} onClick={() => actions.onDelete(listing)} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-red-50 hover:text-red-600"><Trash2 size={17} strokeWidth={1.6} /></button>}
                 <RowMenu
                   label={t("list.actionsTitle")}
                   ariaLabel={t("list.actionsAria", { title: listing.title })}
@@ -419,11 +415,6 @@ return (
                       label: t("list.copyLinkTitle"),
                       icon: <Link2 size={16} />,
                       onClick: () => handleCopyLink(listing),
-                    },
-                    actions.canUpdate && {
-                      label: t("list.editTitle"),
-                      icon: <Pencil size={16} />,
-                      onClick: () => actions.onEdit(listing),
                     },
                     actions.canPause && {
                       label:
@@ -454,16 +445,11 @@ return (
                       ),
                       onClick: () => actions.onToggleFeatured(listing),
                     },
-                    actions.canDelete && {
-                      label: t("list.deleteTitle"),
-                      icon: <Trash2 size={16} />,
-                      onClick: () => actions.onDelete(listing),
-                      danger: true,
-                    },
                   ] as (RowMenuItem | false)[]).filter(
                     (item): item is RowMenuItem => Boolean(item),
                   )}
                 />
+                </div>
               </td>
             </tr>
           ))}
@@ -553,7 +539,7 @@ return (
                   className="mt-1 flex min-w-0 items-center gap-1 text-[12px] text-[#6a7282]"
                   style={mont}
                 >
-                  <MapPin size={12} className="shrink-0" />
+                  <MapPin size={16} strokeWidth={1.6} className="shrink-0 text-[#005089]" />
 
                   <span className="truncate">
                     {listing.location}

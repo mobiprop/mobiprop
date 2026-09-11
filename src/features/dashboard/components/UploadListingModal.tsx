@@ -64,7 +64,6 @@ import {
   PropertyOperationType,
   PropertyStatus,
   PropertyType,
-  ContactType,
   Currency,
 } from "@/generated/prisma/enums";
 import type { ContactDto } from "@/features/crm/types/crm-dto";
@@ -502,7 +501,6 @@ export function UploadListingModal({
         const contacts: ContactDto[] = json.contacts ?? [];
         setSellerContacts(
           contacts
-            .filter((c) => c.roles.includes(ContactType.SELLER))
             .map((c) => ({ id: c.id, fullName: c.fullName, contactId: c.contactId })),
         );
       })

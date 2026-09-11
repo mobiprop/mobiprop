@@ -10,8 +10,8 @@ import { PropertyCard } from "@/features/listings/components/PropertyCard";
 export function FeaturedListings() {
   const { t } = useTranslation("home");
 
-  const { data, isLoading, isError, refetch } = useHomeListings();
-  const properties = (data?.listings ?? []).slice(0, 6);
+  const { data, isLoading, isError, refetch } = useHomeListings(true);
+  const properties = (data?.listings ?? []).filter((property) => property.isFeatured).slice(0, 6);
 
   return (
     <section className="bg-white home-section">

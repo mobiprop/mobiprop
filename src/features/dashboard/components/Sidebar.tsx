@@ -156,10 +156,15 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
             className="flex min-w-0 items-center"
           >
             <img
-              src="/logo.svg"
-              alt="Mobi Prop"
-              className="h-8 w-auto max-w-[190px] object-contain sm:h-9 lg:max-w-full"
+              src="/mobi-prop-logo-color.svg"
+              alt=""
+              width={30}
+              height={30}
+              className="size-[30px] shrink-0 object-contain"
             />
+            <span className="dashboard-wordmark ml-2.5 whitespace-nowrap text-[24px] leading-none text-[#232323]">
+              <span className="font-medium">Mobi</span> <span className="font-light">Prop</span>
+            </span>
           </Link>
 
           {/* Mobile close button */}

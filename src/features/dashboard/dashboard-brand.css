@@ -1,0 +1,153 @@
+/* Figma Back-end Dashboard: visual tokens only. No dimensions, form structure,
+   permissions or interaction rules live here. :has scopes body portals too,
+   and stops these overrides when navigating back to the public website. */
+body:has(.dashboard-brand) {
+  color-scheme: light;
+  color: #232323;
+  background: #fdfdfd;
+  font-family: "Montserrat", sans-serif;
+}
+.dashboard-brand { color: #232323; font-family: "Montserrat", sans-serif; }
+.dashboard-brand main { background-color: #fdfdfd; }
+body:has(.dashboard-brand) :is(h1, h2, h3, h4, h5, h6),
+body:has(.dashboard-brand) p.font-semibold[class~="text-[#0d2138]"],
+body:has(.dashboard-brand) p.font-bold[class~="text-[#0d2138]"] {
+  font-family: "Poppins", sans-serif !important;
+  font-weight: 500;
+  color: #232323;
+}
+body:has(.dashboard-brand) label {
+  font-family: "Poppins", sans-serif !important;
+  font-weight: 400;
+}
+.dashboard-brand aside nav a {
+  font-family: "Poppins", sans-serif !important;
+  font-weight: 400;
+}
+.dashboard-brand .dashboard-wordmark { font-family: "Poppins", sans-serif; }
+body:has(.dashboard-brand) :is(input, textarea, select) {
+  font-family: "Montserrat", sans-serif;
+}
+body:has(.dashboard-brand) :is(button, a).font-semibold {
+  font-weight: 500;
+}
+
+body:has(.dashboard-brand) [class~="border-[#1a5ea8]"],
+body:has(.dashboard-brand) [class~="border-[#1e4f86]"],
+body:has(.dashboard-brand) [class~="border-[#235b96]"] { border-color: #005089; }
+
+body:has(.dashboard-brand) [class~="text-[#1E4F86]"],
+body:has(.dashboard-brand) [class~="text-[#1a5ea8]"],
+body:has(.dashboard-brand) [class~="text-[#1e4f86]"],
+body:has(.dashboard-brand) [class~="text-[#235b96]"] { color: #005089; }
+
+body:has(.dashboard-brand) [class~="text-[#0d2138]"],
+body:has(.dashboard-brand) [class~="text-[#1f2937]"] { color: #232323; }
+
+body:has(.dashboard-brand) [class~="border-[#1e4f86]/30"] { border-color: color-mix(in srgb, #005089 30%, transparent); }
+
+body:has(.dashboard-brand) [class~="border-[#e5e7eb]"] { border-color: #e9e9e9; }
+
+body:has(.dashboard-brand) [class~="bg-[#f9fafb]"] { background-color: #fdfdfd; }
+
+body:has(.dashboard-brand) [class~="ring-[#1e4f86]/15"] { --tw-ring-color: color-mix(in srgb, #005089 15%, transparent); }
+
+body:has(.dashboard-brand) [class~="bg-[#f3f4f6]"] { background-color: #fbfbfb; }
+
+body:has(.dashboard-brand) [class~="text-[#f9fafb]"] { color: #fdfdfd; }
+
+body:has(.dashboard-brand) [class~="bg-[#1E4F86]"],
+body:has(.dashboard-brand) [class~="bg-[#1e4f86]"],
+body:has(.dashboard-brand) [class~="bg-[#235b96]"] { background-color: #005089; }
+
+body:has(.dashboard-brand) [class~="ring-[#1e4f86]"] { --tw-ring-color: #005089; }
+
+body:has(.dashboard-brand) [class~="bg-[#0d2138]/60"] { background-color: color-mix(in srgb, #232323 60%, transparent); }
+
+body:has(.dashboard-brand) [class~="text-[#343a40]"],
+body:has(.dashboard-brand) [class~="text-[#374151]"] { color: #4f4f4f; }
+
+body:has(.dashboard-brand) [class~="bg-[#eff6ff]"] { background-color: #f0f6fa; }
+
+body:has(.dashboard-brand) [class~="border-[#1b487a]"] { border-color: #004574; }
+
+body:has(.dashboard-brand) [class~="accent-[#1e4f86]"] { accent-color: #005089; }
+
+body:has(.dashboard-brand) [class~="text-[#1B487A]"],
+body:has(.dashboard-brand) [class~="text-[#1b487a]"] { color: #004574; }
+
+body:has(.dashboard-brand) [class~="text-[#8490a3]"] { color: #6c6c6c; }
+
+body:has(.dashboard-brand) [class~="bg-[#0d2138]"] { background-color: #232323; }
+
+body:has(.dashboard-brand) [class~="bg-[#e5e7eb]"] { background-color: #e9e9e9; }
+
+body:has(.dashboard-brand) [class~="border-[#f3f4f6]"] { border-color: #fbfbfb; }
+
+body:has(.dashboard-brand) [class~="border-[#1e4f86]/25"] { border-color: color-mix(in srgb, #005089 25%, transparent); }
+
+body:has(.dashboard-brand) [class~="border-[#b9c8d9]"] { border-color: #b0c9da; }
+
+body:has(.dashboard-brand) [class~="border-[#1e4f86]/20"] { border-color: color-mix(in srgb, #005089 20%, transparent); }
+
+body:has(.dashboard-brand) [class~="disabled:bg-[#b9c8d9]"]:disabled { background-color: #b0c9da; }
+
+body:has(.dashboard-brand) [class~="focus-visible:ring-[#1e4f86]/25"]:focus-visible { --tw-ring-color: color-mix(in srgb, #005089 25%, transparent); }
+
+body:has(.dashboard-brand) [class~="disabled:bg-[#f3f4f6]"]:disabled,
+body:has(.dashboard-brand) [class~="focus-visible:bg-[#f3f4f6]"]:focus-visible,
+body:has(.dashboard-brand) [class~="hover:bg-[#f3f4f6]"]:hover { background-color: #fbfbfb; }
+
+body:has(.dashboard-brand) [class~="focus-within:border-[#1e4f86]/40"]:focus-within,
+body:has(.dashboard-brand) [class~="focus:border-[#1e4f86]/40"]:focus { border-color: color-mix(in srgb, #005089 40%, transparent); }
+
+body:has(.dashboard-brand) [class~="focus-within:border-[#1e4f86]"]:focus-within,
+body:has(.dashboard-brand) [class~="focus:border-[#1e4f86]"]:focus,
+body:has(.dashboard-brand) [class~="focus:border-[#235b96]"]:focus,
+body:has(.dashboard-brand) [class~="hover:border-[#1e4f86]"]:hover { border-color: #005089; }
+
+body:has(.dashboard-brand) [class~="disabled:border-[#b9c8d9]"]:disabled { border-color: #b0c9da; }
+
+body:has(.dashboard-brand) [class~="focus-within:ring-[#1e4f86]/15"]:focus-within,
+body:has(.dashboard-brand) [class~="focus:ring-[#1e4f86]/15"]:focus { --tw-ring-color: color-mix(in srgb, #005089 15%, transparent); }
+
+body:has(.dashboard-brand) [class~="hover:bg-[#1b487a]"]:hover { background-color: #004574; }
+
+body:has(.dashboard-brand) [class~="focus:border-[#0d2138]"]:focus { border-color: #232323; }
+
+body:has(.dashboard-brand) [class~="hover:text-[#0d2138]"]:hover { color: #232323; }
+
+body:has(.dashboard-brand) [class~="hover:bg-[#1e4f86]"]:hover { background-color: #005089; }
+
+body:has(.dashboard-brand) [class~="disabled:bg-[#f9fafb]"]:disabled,
+body:has(.dashboard-brand) [class~="hover:bg-[#f9fafb]"]:hover { background-color: #fdfdfd; }
+
+body:has(.dashboard-brand) [class~="focus-visible:ring-[#1e4f86]/40"]:focus-visible { --tw-ring-color: color-mix(in srgb, #005089 40%, transparent); }
+
+body:has(.dashboard-brand) [class~="focus-visible:ring-[#1e4f86]/30"]:focus-visible { --tw-ring-color: color-mix(in srgb, #005089 30%, transparent); }
+
+body:has(.dashboard-brand) [class~="focus-visible:ring-[#1e4f86]/20"]:focus-visible { --tw-ring-color: color-mix(in srgb, #005089 20%, transparent); }
+
+body:has(.dashboard-brand) [class~="hover:bg-[#eff6ff]"]:hover { background-color: #f0f6fa; }
+
+body:has(.dashboard-brand) [class~="hover:bg-[#0d2138]"]:hover { background-color: #232323; }
+
+body:has(.dashboard-brand) [class~="hover:text-[#1e4f86]"]:hover { color: #005089; }
+
+body:has(.dashboard-brand) [class~="focus-within:ring-[#1e4f86]/10"]:focus-within,
+body:has(.dashboard-brand) [class~="focus:ring-[#1e4f86]/10"]:focus { --tw-ring-color: color-mix(in srgb, #005089 10%, transparent); }
+
+/* Primary actions reuse the same gradient as the public site. */
+body:has(.dashboard-brand) :is(button, a)[class~="bg-[#1e4f86]"] {
+  background-image: linear-gradient(165deg, #005ea4 0%, #006fc2 100%);
+}
+body:has(.dashboard-brand) :is(button, a)[class~="bg-[#1e4f86]"]:hover:not(:disabled) {
+  background-image: linear-gradient(165deg, #005089 0%, #005ea4 100%);
+}
+body:has(.dashboard-brand) button[class~="bg-[#1e4f86]"]:disabled {
+  background-image: none;
+}
+body:has(.dashboard-brand) :is(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid #5c93cb;
+  outline-offset: 2px;
+}

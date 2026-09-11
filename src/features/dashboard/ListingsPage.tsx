@@ -91,18 +91,18 @@ function StatCard({
   icon,
 }: StatCardProps) {
   return (
-    <article className="flex min-h-[142px] min-w-0 flex-col justify-between rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-5">
+    <article className="flex min-h-[156px] min-w-0 flex-col justify-between rounded-[14px] border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] sm:p-5">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <p
-          className="min-w-0 text-[14px] font-medium leading-5 text-[#6a7282]"
+          className="min-w-0 text-[14px] font-normal leading-5 text-[#6c6c6c]"
           style={mont}
         >
           {label}
         </p>
 
         <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-[12px]"
-          style={{ backgroundColor: iconBg }}
+          className="flex size-10 shrink-0 items-center justify-center rounded-[10px] border border-[#e9e9e9] bg-[#fbfbfb]"
+          style={{ color: iconBg }}
         >
           {icon}
         </span>
@@ -110,7 +110,7 @@ function StatCard({
 
       <div className="mt-5 min-w-0">
         <p
-          className="truncate text-[24px] font-semibold leading-8 text-[#1B487A]"
+          className="truncate text-[26px] font-medium leading-8 text-[#0d2138]"
           style={poppins}
         >
           {value}
@@ -118,7 +118,7 @@ function StatCard({
 
         <p
           className={`mt-1 text-[14px] font-medium leading-5 ${
-            trendMuted ? "text-[#6a7282]" : "text-[#00a63e]"
+            trendMuted ? "text-[#6c6c6c]" : "text-[#00a63e]"
           }`}
           style={mont}
         >

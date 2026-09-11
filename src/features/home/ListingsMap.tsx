@@ -7,6 +7,7 @@ import type { PublicListingDto } from "@/features/listings/types/listing-dto";
 import { PropertyCard } from "@/features/listings/components/PropertyCard";
 import { buildOverlayClass, type PinOverlay } from "@/components/maps/PricePinOverlay";
 import { listingDisplayPrice } from "@/features/listings/utils/format";
+import { transitionMapLocation } from "./map-location-transition";
 
 export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
   listings: PublicListingDto[];
@@ -20,6 +21,9 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
   const popupCard = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const pins = useRef(new Map<string, PinOverlay>());
+  const previousLocation = useRef<{ lat: number; lng: number } | null>(null);
+  const cameraMoving = useRef(false);
+  const [moving, setMoving] = useState(false);
   const [popup, setPopup] = useState<{x:number;y:number}|null>(null);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -61,7 +65,7 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
       // Stack labels sharing a CRM location without changing their coordinates.
       const colocated = geo.filter(other => other.latitude === item.latitude && other.longitude === item.longitude);
       const offsetY = (colocated.findIndex(other => other.id === item.id) - (colocated.length - 1) / 2) * 34;
-      const marker = new Overlay(position, listingDisplayPrice(item, listingT), () => onSelect(item.id), offsetY);
+      const marker = new Overlay(position, listingDisplayPrice(item, listingT), () => { if (!cameraMoving.current) onSelect(item.id); }, offsetY);
       marker.setMap(map);
       currentPins.set(item.id,marker);
       return marker;
@@ -84,11 +88,20 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
       const halfWidth = Math.min(159, (container.current.offsetWidth - 32) / 2);
       setPopup({x:Math.max(halfWidth+16,Math.min(container.current.offsetWidth-halfWidth-16,(anchor.left-bounds.left)*scale)),y:Math.max(16,Math.min(container.current.offsetHeight - (popupCard.current?.offsetHeight ?? 500) - 16,(anchor.top-bounds.top)*scale + 16))});
     };
-    map.setZoom(selectedGeo.locationApproximate ? 15 : 17);
-    map.panTo({ lat: selectedGeo.latitude!, lng: selectedGeo.longitude! });
+    const destination = { lat: selectedGeo.latitude!, lng: selectedGeo.longitude! };
+    const previous = previousLocation.current;
+    previousLocation.current = destination;
+    const switchingLocation = !!previous && (previous.lat !== destination.lat || previous.lng !== destination.lng);
+    cameraMoving.current = true;
+    const start = window.setTimeout(() => setMoving(true), 0);
+    const cancelTransition = transitionMapLocation(map, destination, selectedGeo.locationApproximate ? 15 : 17, {
+      switchingLocation,
+      reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      onFinish: () => { window.clearTimeout(start); cameraMoving.current = false; setMoving(false); update(); },
+    });
     const listener = map.addListener("idle",update);
     update();
-    return () => listener.remove();
+    return () => { window.clearTimeout(start); cancelTransition(); cameraMoving.current = false; listener.remove(); };
   }, [selectedGeo, selectedId, ready]);
 
   const unavailable = !apiKey || failed || geo.length === 0;
@@ -99,7 +112,7 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
         <p className="text-xl font-medium text-[#00223a]">{t(unavailable ? "explorer.mapUnavailable" : "explorer.mapLoading")}</p>
         {unavailable && <p className="mx-auto max-w-sm text-center text-sm leading-relaxed">{t("explorer.mapFallback")}</p>}
       </div>}
-      {selected && <div ref={popupCard} className="absolute z-10 w-[318px] max-w-[calc(100%-32px)]" style={selectedGeo && popup ? {left:popup.x, top:popup.y,transform:"translateX(-50%)"} : {left:16,bottom:16}}>
+      {selected && <div ref={popupCard} className="absolute z-10 w-[318px] max-w-[calc(100%-32px)]" style={{...(selectedGeo && popup ? {left:popup.x, top:popup.y,transform:"translateX(-50%)"} : {left:16,bottom:16}), visibility: selectedGeo && moving ? "hidden" : "visible"}}>
         <PropertyCard key={selected.id} property={selected} compact onClose={onClose} />
         {selected.locationApproximate && selectedGeo && <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-[#4f4f4f]">Ubicación aproximada de la zona</p>}
         {!selectedGeo && <p role="status" className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-[#4f4f4f]">Ubicación aún no disponible</p>}
