@@ -1,18 +1,30 @@
 "use client";
 
-import { useId, type ReactNode, type InputHTMLAttributes } from "react";
+import { useEffect, useSyncExternalStore, useId, type ReactNode, type InputHTMLAttributes } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import staffStyles from "./StaffAuth.module.css";
 import styles from "./AuthDesign.module.css";
 
+const subscribePresentation = () => () => {};
 export { styles };
 export function AuthIcon({ name }: { name: string }) {
   return <img className={styles.icon} src={`/auth/${name}.svg`} alt="" width={20} height={20} />;
 }
 export function AuthShell({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
-  return <div data-public-site className={`${styles.shell} ${centered ? styles.centered : ""}`}>
-    <Link className={styles.logo} href="/" aria-label="Inicio de Mobi Prop"><img src="/auth/logo.svg" alt="" width={30} height={30} /><div>Mobi <span>Prop</span></div></Link>
+  const requestedStaff = useSearchParams().get("view") === "staff";
+  const pathname = usePathname();
+  const recovery = ["/reset-password", "/verify-otp", "/new-password", "/reset-success", "/password-reset-success"].includes(pathname);
+  const rememberedStaff = useSyncExternalStore(subscribePresentation, () => sessionStorage.getItem("mobi-auth-presentation") === "staff", () => false);
+  const staff = requestedStaff || (recovery && rememberedStaff);
+  useEffect(() => {
+    if(requestedStaff) sessionStorage.setItem("mobi-auth-presentation", "staff");
+    else if(!recovery) sessionStorage.removeItem("mobi-auth-presentation");
+  }, [recovery, requestedStaff]);
+  return <div data-public-site={staff ? undefined : true} className={`${staff ? staffStyles.recovery : ""} ${styles.shell} ${centered ? styles.centered : ""}`}>
+    {!staff && <Link className={styles.logo} href="/" aria-label="Inicio de Mobi Prop"><img src="/auth/logo.svg" alt="" width={30} height={30} /><div>Mobi <span>Prop</span></div></Link>}
     <main className={styles.main}>{children}</main>
-    {!centered && <div className={styles.photo}><img src="/auth/photo.webp" alt="Edificio mediterráneo blanco con persianas azules" width={704} height={948} fetchPriority="high" /></div>}
+    {!centered && !staff && <div className={styles.photo}><img src="/auth/photo.webp" alt="Edificio mediterráneo blanco con persianas azules" width={704} height={948} fetchPriority="high" /></div>}
     <footer className={styles.footer}><span>© 2026 Mobi Prop. Todos los derechos reservados</span><Link href="/privacy-policy">Privacidad</Link><Link href="/terms-conditions">Términos</Link></footer>
   </div>;
 }

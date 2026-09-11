@@ -10,7 +10,7 @@ test("sends separate branded messages to the team and visitor with correct reply
  expect(await sendContactEmails(data)).toEqual({teamSent:true,receiptSent:true});
  expect(mail.send).toHaveBeenCalledTimes(2);
  expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({to:"hola@mobiprop.com.ar",from:"Mobi Prop <hola@mobiprop.com.ar>",replyTo:"visitor@example.com"}));
- expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({to:"visitor@example.com",replyTo:"hola@mobiprop.com.ar",subject:"Recibimos tu consulta — Mobi Prop"}));
+ expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({to:"visitor@example.com",replyTo:"hola@mobiprop.com.ar",subject:"Recibimos tu consulta"}));
 });
 test("reports each provider failure without claiming the other email failed",async()=>{
  mail.send.mockRejectedValueOnce(new Error("unavailable"));

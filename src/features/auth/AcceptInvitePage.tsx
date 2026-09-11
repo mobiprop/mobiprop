@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { AuthRightPanel } from "./components/AuthRightPanel";
+import { StaffAuthPanel } from "./components/StaffAuthPanel";
+import staffStyles from "./components/StaffAuth.module.css";
 import { AuthBanner } from "./components/AuthBanner";
 import { AuthLogo } from "./components/AuthLogo";
 import { acceptAgentInvitation } from "./staff-actions";
@@ -132,7 +133,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
   // Invalid / expired invitation → friendly dead-end.
   if (invalidReason) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] flex w-full">
+      <div className={`${staffStyles.shell} ${staffStyles.legacy}`}>
         <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
           <AuthLogo />
           <div className="flex flex-1 items-center justify-center px-6">
@@ -149,13 +150,13 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
             </div>
           </div>
         </div>
-        <AuthRightPanel variant="staff" />
+        <StaffAuthPanel />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex w-full">
+    <div className={`${staffStyles.shell} ${staffStyles.legacy}`}>
       {banner && <AuthBanner type={banner.type} title={banner.title} message={banner.message} />}
 
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">
@@ -271,7 +272,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
 </div>
       </div>
 
-      <AuthRightPanel variant="staff" />
+      <StaffAuthPanel />
     </div>
   );
 }

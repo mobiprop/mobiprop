@@ -222,7 +222,7 @@ export async function sendContactEmails(data: ContactEmailData) {
     sendEmail({to:"hola@mobiprop.com.ar",from:sender,replyTo:data.email,
       subject:`Nueva consulta ${data.leadNumber} — Mobi Prop`,html:renderContactTeamNotification(data)}),
     sendEmail({to:data.email,from:sender,replyTo:from.email,
-      subject:"Recibimos tu consulta — Mobi Prop",html:renderContactReceipt(data)}),
+      subject:"Recibimos tu consulta",html:renderContactReceipt(data)}),
   ]);
   return {teamSent:team.sent,receiptSent:receipt.sent};
 }
