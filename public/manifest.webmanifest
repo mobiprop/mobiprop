@@ -1,12 +1,12 @@
 {
-  "name": "Ulrich Propiedades",
-  "short_name": "Ulrich",
-  "description": "Ulrich Propiedades real estate platform",
+  "name": "Mobi Prop",
+  "short_name": "Mobi Prop",
+  "description": "Propiedades exclusivas en venta y alquiler — Mobi Prop",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#111111",
+  "theme_color": "#005089",
   "icons": [
     {
       "src": "/icons/icon-192.png",
