@@ -47,7 +47,7 @@ export function formatRentPrice(value: number, currency: Currency, t: TFunction)
 }
 
 /** Primary display price: sale price first, rent price (with /mo) otherwise. */
-export function listingDisplayPrice(listing: PublicListingDto, t: TFunction): string {
+export function listingDisplayPrice(listing: Pick<PublicListingDto, "salePrice" | "rentPrice" | "saleCurrency" | "rentCurrency" | "operationType">, t: TFunction): string {
   if (listing.salePrice !== null && listing.operationType !== "RENT") {
     return formatSalePrice(listing.salePrice, listing.saleCurrency);
   }

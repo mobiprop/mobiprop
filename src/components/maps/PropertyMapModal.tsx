@@ -2,19 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { PropertyCard } from "@/features/listings/components/PropertyCard";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
-import { useSavedListings } from "@/hooks/useSavedListings";
 import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
 import {
   listingDisplayPrice,
-  listingTags,
   formatBeds,
   formatBaths,
   formatArea,
 } from "@/features/listings/utils/format";
+
+import { buildOverlayClass, type PinOverlay } from "./PricePinOverlay";
 
 /* ─── geometry helpers ─── */
 
@@ -44,290 +45,22 @@ function pointInPolygon(lat: number, lng: number, path: google.maps.LatLng[]): b
 
 /* ─── price-pin overlay ─── */
 
-type PinOverlay = google.maps.OverlayView & {
-  setSelected(v: boolean): void;
-  getAnchorRect(): DOMRect | null;
-};
-type PinOverlayCtor = new (
-  pos: google.maps.LatLngLiteral,
-  label: string,
-  onClick: () => void,
-) => PinOverlay;
-
-function buildOverlayClass(): PinOverlayCtor {
-  class PricePinOverlay extends google.maps.OverlayView {
-    private el: HTMLDivElement | null = null;
-    private _selected = false;
-
-    constructor(
-      private pos: google.maps.LatLngLiteral,
-      private label: string,
-      private handleClick: () => void,
-    ) {
-      super();
-    }
-
-    onAdd() {
-      this.el = document.createElement("div");
-      this.el.style.position = "absolute";
-      this.el.style.cursor = "pointer";
-      this.el.style.userSelect = "none";
-      this.render();
-      this.el.addEventListener("click", this.handleClick);
-      this.getPanes()?.overlayMouseTarget.appendChild(this.el);
-    }
-
-    setSelected(v: boolean) {
-      this._selected = v;
-      this.render();
-    }
-
-    private render() {
-      if (!this.el) return;
-      const bg = this._selected ? "#285f9c" : "#4896b6";
-      this.el.innerHTML = `
-        <div style="position:relative;transform:translate(-50%,-100%);padding-bottom:6px">
-          <div style="
-            background:${bg};color:white;padding:3px 9px;border-radius:6px;
-            font-size:12px;font-family:Montserrat,sans-serif;font-weight:500;
-            white-space:nowrap;box-shadow:0 2px 8px rgba(13,33,56,0.22);
-          ">${this.label}</div>
-          <div style="
-            position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
-            width:0;height:0;
-            border-left:5px solid transparent;border-right:5px solid transparent;
-            border-top:5px solid ${bg};
-          "></div>
-        </div>`;
-    }
-
-    draw() {
-      const proj = this.getProjection();
-      const pt = proj?.fromLatLngToDivPixel(new google.maps.LatLng(this.pos));
-      if (pt && this.el) {
-        this.el.style.left = `${pt.x}px`;
-        this.el.style.top = `${pt.y}px`;
-      }
-    }
-
-    /**
-     * Real on-screen position of the rendered bubble, post-transform. Used
-     * to anchor the React-rendered popup card, which lives outside Google's
-     * own overlay pane (so `fromLatLngToDivPixel` alone isn't enough — that
-     * pane carries its own CSS transform that this sidesteps entirely by
-     * reading the already-correct rendered position directly).
-     */
-    getAnchorRect(): DOMRect | null {
-      return this.el?.getBoundingClientRect() ?? null;
-    }
-
-    onRemove() {
-      if (this.el) {
-        this.el.removeEventListener("click", this.handleClick);
-        this.el.remove();
-        this.el = null;
-      }
-    }
-  }
-
-  return PricePinOverlay as unknown as PinOverlayCtor;
-}
-
 /* ─── sidebar listing card ─── */
 
-const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
-
-function SidebarCard({
-  item,
-  isSelected,
-  onClick,
-  t,
-}: {
-  item: PublicListingDto;
-  isSelected: boolean;
-  onClick: () => void;
-  t: TFunction;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`w-full text-left rounded-[12px] border p-3 transition-colors ${
-        isSelected
-          ? "border-[#285f9c] bg-[#f0f6ff]"
-          : "border-[#d8dee8] bg-white hover:border-[#a0b4cc]"
-      }`}
-    >
-      <div className="flex gap-3">
-        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-[8px] bg-[#eef1f5]">
-          <img
-            src={item.coverImageUrl ?? fallbackImg}
-            alt={item.title}
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="min-w-0 flex flex-col gap-[2px]">
-          <p
-            className="truncate text-[13px] font-medium text-[#0d2138] leading-[18px]"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {item.title}
-          </p>
-          <p
-            className="truncate text-[12px] text-[#6a7282] leading-[16px]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {item.location}
-          </p>
-          <p
-            className="text-[13px] font-semibold text-[#005ea4] leading-[18px] mt-0.5"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {listingDisplayPrice(item, t)}
-          </p>
-          <p
-            className="text-[11px] text-[#6a7282] leading-[15px]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {[formatBeds(item.bedrooms, t), formatBaths(item.bathrooms, t), formatArea(item.totalAreaM2)]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        </div>
-      </div>
-    </button>
-  );
+function SidebarCard({item,isSelected,onClick,t}: {item:PublicListingDto;isSelected:boolean;onClick:()=>void;t:TFunction}) {
+  return <button type="button" onClick={onClick} aria-pressed={isSelected} className={`w-full rounded-xl border p-4 text-left transition-colors ${isSelected ? "border-[#005089] bg-[#fbfbfb]" : "border-[#e9e9e9] bg-white hover:border-[#005089]"}`}>
+    <h3 className="break-words font-[Poppins] text-lg font-medium leading-[26px] text-[#232323]">{item.title}</h3>
+    <p className="mt-0.5 break-words text-sm leading-5 text-[#6c6c6c]">{item.location}</p>
+    <p className="mt-3 font-[Poppins] text-lg font-medium leading-[26px] text-[#005089]">{listingDisplayPrice(item,t)}</p>
+    <p className="mt-1 text-sm leading-5 text-[#6c6c6c]">{[formatBeds(item.bedrooms,t),formatBaths(item.bathrooms,t),formatArea(item.totalAreaM2)].filter(Boolean).join(" · ")}</p>
+  </button>;
 }
 
 /* ─── on-map property card (shown when a price pin is clicked) ─── */
 
-function MapPinIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 22s7-7.58 7-12A7 7 0 0 0 5 10c0 4.42 7 12 7 12Z"
-        stroke="#0d2138"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="10" r="2.4" stroke="#0d2138" strokeWidth="1.6" />
-    </svg>
-  );
-}
-
-function MapCardHeartIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill={filled ? "#ef4444" : "none"}>
-      <path
-        d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
-        stroke={filled ? "#ef4444" : "#6a7282"}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function MapPropertyCard({
-  item,
-  position,
-  onUnauth,
-  t,
-}: {
-  item: PublicListingDto;
-  position: { x: number; y: number };
-  onUnauth: () => void;
-  t: TFunction;
-}) {
-  const { isSaved, toggleSave } = useSavedListings();
-  const saved = isSaved(item.listingId);
-
-  // Anchored above the pin by default; flips below when the pin sits too
-  // close to the top of the map for the card to fit (e.g. a wide fitBounds
-  // view), so it never renders off-screen.
-  const CARD_HEIGHT_ESTIMATE = 280;
-  const placeBelow = position.y < CARD_HEIGHT_ESTIMATE;
-  const transform = placeBelow ? "translate(-50%, 14px)" : "translate(-50%, calc(-100% - 14px))";
-
-  return (
-    <div
-      className="absolute z-10 w-[220px] max-w-[calc(100%-16px)] sm:w-[260px]"
-      style={{ left: position.x, top: position.y, transform }}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      <Link
-        href={`/listings/${item.slug}`}
-        className="block overflow-hidden rounded-[12px] bg-white shadow-[0_12px_28px_rgba(13,33,56,0.3)]"
-      >
-        <div className="relative h-[110px] w-full sm:h-[140px]">
-          <img
-            src={item.coverImageUrl ?? fallbackImg}
-            alt={item.title}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-
-          <div className="absolute left-2 top-2 flex gap-1">
-            {listingTags(item, t).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-white/90 px-2 py-[2px] text-[10px] font-medium text-[#0d2138]"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleSave(item.listingId, onUnauth);
-            }}
-            aria-label={saved ? t("map.removeSavedAriaLabel") : t("map.saveAriaLabel")}
-            className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-white shadow-sm"
-          >
-            <MapCardHeartIcon filled={saved} />
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-1.5 p-3">
-          <div className="flex items-start justify-between gap-2">
-            <p
-              className="min-w-0 truncate text-[13px] font-medium text-[#0d2138]"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              {item.title}
-            </p>
-            <p
-              className="shrink-0 text-[13px] font-medium text-[#0d2138]"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              {listingDisplayPrice(item, t)}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <MapPinIcon />
-            <p
-              className="min-w-0 truncate text-[12px] text-[#0d2138]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              {item.location}
-            </p>
-          </div>
-
-          <p className="text-[12px] text-[#2b3038]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-            {[formatArea(item.totalAreaM2), formatBeds(item.bedrooms, t), formatBaths(item.bathrooms, t)]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        </div>
-      </Link>
-    </div>
-  );
+function MapPropertyCard({ item, position }: { item: PublicListingDto; position: { x:number; y:number }; onUnauth: () => void; t: TFunction }) {
+  const below = position.y < 390;
+  return <div className="absolute z-10 w-[318px] max-w-[calc(100%-24px)] shadow-xl rounded-2xl" style={{ left:position.x, top:position.y, transform:below ? "translate(-50%, 14px)" : "translate(-50%, calc(-100% - 14px))" }} onMouseDown={e => e.stopPropagation()}><PropertyCard property={item} compact /></div>;
 }
 
 /* ─── close icon ─── */

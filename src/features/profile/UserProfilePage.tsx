@@ -22,14 +22,8 @@ import type { MyTourDto } from "@/features/crm/types/crm-dto";
 import type { MyContractDto } from "@/features/integrations/docusign-actions";
 import { TOUR_STATUS_BADGE, CONTRACT_STATUS_BADGE } from "@/features/crm/tour-status-badge";
 import { format } from "date-fns";
-import type { PropertyType } from "@/generated/prisma/enums";
-import {
-  listingDisplayPrice,
-  formatArea,
-  formatBeds,
-  formatBaths,
-  propertyTypeLabel,
-} from "@/features/listings/utils/format";
+import type { Currency } from "@/generated/prisma/enums";
+import { PropertyCard, type PropertyCardData } from "@/features/listings/components/PropertyCard";
 
 /* ─── assets ─── */
 const clouds =
@@ -76,6 +70,8 @@ type SavedListing = {
   operationType: string;
   salePrice: number | null;
   rentPrice: number | null;
+  saleCurrency: Currency;
+  rentCurrency: Currency;
   bedrooms: number | null;
   bathrooms: number | null;
   totalAreaM2: number | null;
@@ -83,135 +79,8 @@ type SavedListing = {
   savedAt: string;
 };
 
-const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
-
-/* ─── Real Saved Property Card ─── */
-function SavedCard({
-  listing,
-  onRemove,
-}: {
-  listing: SavedListing;
-  onRemove: (id: string) => void;
-}) {
-  const { t } = useTranslation("accountProfile");
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRemove(listing.id);
-  };
-
-  const price = listingDisplayPrice(
-    {
-      salePrice: listing.salePrice,
-      rentPrice: listing.rentPrice,
-      operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
-    } as Parameters<typeof listingDisplayPrice>[0],
-    t,
-  );
-
-  const typeLabel = propertyTypeLabel(listing.type as PropertyType, t);
-  const opLabel = listing.operationType === "RENT" ? t("card.rent") : t("card.sale");
-
-  return (
-    <Link
-      href={`/listings/${listing.slug}`}
-      className="flex w-full flex-col items-start gap-[16px] sm:gap-[18px] lg:gap-[20px] group"
-    >
-      <div className="relative h-[220px] w-full shrink-0 overflow-hidden rounded-[14px] sm:h-[260px] sm:rounded-[16px] lg:h-[296px]">
-        <img
-          src={listing.coverImageUrl ?? fallbackImg}
-          alt={listing.title}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-        {/* Remove / unsave button */}
-        <button
-          onClick={handleRemove}
-          aria-label={t("card.removeSavedAria")}
-          className="absolute right-[12px] top-[12px] flex h-[32px] w-[32px] items-center justify-center rounded-full bg-white shadow-sm hover:bg-[#fff0f0] transition-colors sm:right-[16px] sm:top-[16px]"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="#e74c3c">
-            <path
-              d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
-              stroke="#e74c3c"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        {/* Badges */}
-        <div className="absolute left-[12px] top-[12px] flex flex-wrap gap-[4px] sm:left-[16px] sm:top-[16px]">
-          <span
-            className="rounded-[36px] bg-white bg-opacity-90 px-[10px] py-[3px] text-[12px] leading-[18px] text-[#0d2138] sm:px-[12px] sm:py-[4px] sm:text-[14px]"
-            style={{ fontFamily: montserrat }}
-          >
-            {opLabel}
-          </span>
-          <span
-            className="rounded-[36px] bg-white bg-opacity-90 px-[10px] py-[3px] text-[12px] leading-[18px] text-[#0d2138] sm:px-[12px] sm:py-[4px] sm:text-[14px]"
-            style={{ fontFamily: montserrat }}
-          >
-            {typeLabel}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-[10px] items-start w-full">
-        <div className="flex w-full flex-col items-start gap-[8px] border-b border-[#e5e7eb] pb-[10px] sm:flex-row sm:justify-between sm:gap-4">
-          <div className="flex flex-col gap-[2px]">
-            <p
-              className="max-w-full truncate text-[18px] font-medium leading-[28px] text-[#0d2138] sm:max-w-[260px] sm:leading-[32px]"
-              style={{ fontFamily: poppins }}
-            >
-              {listing.title}
-            </p>
-            <div className="flex gap-[4px] items-center">
-              <img src={iconLocation} alt="" className="w-[16px] h-[16px] shrink-0" />
-              <p
-                className="max-w-[230px] truncate text-[13px] text-[#0d2138] sm:max-w-[160px] sm:text-[14px]"
-                style={{ fontFamily: montserrat }}
-              >
-                {listing.location}
-              </p>
-            </div>
-          </div>
-          <p
-            className="shrink-0 whitespace-nowrap text-left text-[17px] font-semibold text-[#2b3038] sm:text-right sm:text-[17px]"
-            style={{ fontFamily: poppins }}
-          >
-            {price}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-[16px] gap-y-[8px] sm:gap-[20px]">
-          {listing.totalAreaM2 !== null && (
-            <div className="flex items-center gap-[6px] sm:gap-[8px]">
-              <img src={iconSqft} alt="" className="w-[20px] h-[20px] shrink-0" />
-              <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
-                {formatArea(listing.totalAreaM2)}
-              </span>
-            </div>
-          )}
-          {listing.bedrooms !== null && (
-            <div className="flex items-center gap-[6px] sm:gap-[8px]">
-              <img src={iconBed} alt="" className="w-[20px] h-[20px] shrink-0" />
-              <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
-                {formatBeds(listing.bedrooms, t)}
-              </span>
-            </div>
-          )}
-          {listing.bathrooms !== null && (
-            <div className="flex items-center gap-[6px] sm:gap-[8px]">
-              <img src={iconBath} alt="" className="w-[20px] h-[20px] shrink-0" />
-              <span className="text-[14px] text-[#2b3038]" style={{ fontFamily: montserrat }}>
-                {formatBaths(listing.bathrooms, t)}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
+function SavedCard({ listing, onRemove }: { listing: SavedListing; onRemove: (id: string) => void }) {
+  return <PropertyCard property={{...listing, listingId:listing.id, operationType:listing.operationType as PropertyCardData["operationType"]}} savedOverride onToggleSaved={() => onRemove(listing.id)} />;
 }
 
 /* ─── Hero / Profile Card ─── */
@@ -606,7 +475,7 @@ function SavedPropertiesSection({
   const contracts = contractsData ?? [];
 
   return (
-    <section className="mx-auto max-w-[var(--space-fluid-container-max)] px-4 py-[32px] sm:px-6 sm:py-[40px] lg:px-[76px] lg:py-[48px]">
+    <section className="property-section-container py-[32px] sm:py-[40px] lg:py-[48px]">
       {/* Tab bar */}
       <div className="flex flex-col">
         <div className="flex w-full items-center gap-[4px] overflow-x-auto pb-[2px] sm:gap-[8px]">

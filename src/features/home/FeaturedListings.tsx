@@ -15,7 +15,7 @@ export function FeaturedListings() {
 
   return (
     <section className="bg-white home-section">
-      <div className="home-container flex flex-col items-center gap-10">
+      <div className="property-section-container flex flex-col items-center gap-10">
         <SectionHeading badge={t("featuredListings.badge")} title={t("featuredListings.title")} subtitle={t("featuredListings.subtitle")} />
 
         {/* Grid */}
@@ -24,7 +24,7 @@ export function FeaturedListings() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex w-full flex-col gap-4 animate-pulse">
-                  <div className="h-[230px] sm:h-[250px] lg:h-[280px] w-full rounded-[16px] bg-[#eef1f5]" />
+                  <div className="aspect-[421/280] w-full rounded-[16px] bg-[#eef1f5]" />
                   <div className="h-5 w-2/3 rounded bg-[#eef1f5]" />
                   <div className="h-4 w-1/2 rounded bg-[#eef1f5]" />
                 </div>

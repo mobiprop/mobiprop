@@ -11,9 +11,6 @@ import { LoginPromptModal } from "@/components/modals/LoginPromptModal";
 import type { PublicListingDto } from "../types/listing-dto";
 import { formatArea, formatBaths, formatBeds, listingDisplayPrice } from "../utils/format";
 
-const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/HomePageFinal/featurelisting1.webp";
-
 export function MarkerIcon() { return <img src="/listings/card-location.svg" alt="" width={16} height={16} className="shrink-0" />; }
 
 export function AreaIcon() { return <img src="/listings/area.svg" alt="" width={14} height={14} className="shrink-0" />; }
@@ -37,12 +34,14 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 return <img src={`/listings/${direction === "left" ? "previous" : "next"}.svg`} alt="" width={14.29} height={14.29} />;
 }
 
-function ImageCarousel({ property }: { property: PublicListingDto }) {
+export type PropertyCardData = Pick<PublicListingDto, "slug" | "title" | "location" | "operationType" | "salePrice" | "rentPrice" | "saleCurrency" | "rentCurrency" | "bedrooms" | "bathrooms" | "totalAreaM2" | "coverImageUrl"> & { listingId: string; images?: PublicListingDto["images"] };
+
+function ImageCarousel({ property }: { property: PropertyCardData }) {
   const images = useMemo(() => {
-    const sorted = [...property.images].sort((a, b) => a.sortOrder - b.sortOrder);
+    const sorted = [...(property.images ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     return sorted.length > 0
       ? sorted
-      : [{ id: "fallback", url: property.coverImageUrl ?? fallbackImg, sortOrder: 0, isCover: true, altText: null }];
+      : property.coverImageUrl ? [{ id: "cover", url: property.coverImageUrl, sortOrder: 0, isCover: true, altText: null }] : [];
   }, [property.images, property.coverImageUrl]);
   const [index, setIndex] = useState(0);
   const active = images[index] ?? images[0];
@@ -54,14 +53,15 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
   }
 
   return (
-    <div className="hover-shine relative h-[230px] sm:h-[250px] lg:h-[280px] w-full overflow-hidden">
-      <Image
+    <div className="hover-shine relative aspect-[421/280] w-full overflow-hidden">
+      {active ? <Image
         src={active.url}
         alt={active.altText ?? property.title}
         fill
         sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+        style={{ objectFit: "cover", objectPosition: "center" }}
         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-      />
+      /> : <div className="flex h-full items-center justify-center bg-[#f0f6fa] text-sm text-[#4f4f4f]">Sin foto disponible</div>}
 
       {images.length > 1 && (
         <>
@@ -84,7 +84,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
             </button>
           </div>
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-            {images.map((img, i) => (
+            {images.map((img, i) => ({ img, i })).slice(Math.max(0, Math.min(index - 1, images.length - 3)), Math.max(0, Math.min(index - 1, images.length - 3)) + 3).map(({ img, i }) => (
               <span
                 key={img.id}
                 className={`h-1 rounded-full transition-all ${
@@ -100,7 +100,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
 }
 
 /** "Venta", "Alquiler", or "Venta & Alquiler" for a dual sale-and-rent listing. */
-export function operationBadge(property: PublicListingDto, t: (key: string) => string): string {
+export function operationBadge(property: Pick<PublicListingDto, "operationType">, t: (key: string) => string): string {
   if (property.operationType === "SALE_AND_RENT") {
     return `${t("card.sale")} & ${t("card.rent")}`;
   }
@@ -110,10 +110,10 @@ export function operationBadge(property: PublicListingDto, t: (key: string) => s
 /** Property card matching Figma's listing card (image carousel, navy operation
  * badge, gradient price, "Ver Propiedad" pill) — shared by the homepage's
  * featured listings and the /listings grid so both stay visually identical. */
-export function PropertyCard({ property }: { property: PublicListingDto }) {
+export function PropertyCard({ property, savedOverride, onToggleSaved, compact = false }: { property: PropertyCardData; savedOverride?: boolean; onToggleSaved?: () => void; compact?: boolean }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const { isSaved, toggleSave } = useSavedListings();
-  const saved = isSaved(property.listingId);
+  const saved = savedOverride ?? isSaved(property.listingId);
   const { t } = useTranslation("listings");
 
   return (
@@ -121,7 +121,7 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
       <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       <Link
         href={`/listings/${property.slug}`}
-        className="flex w-full min-w-0 flex-col rounded-[16px] border border-[#e9e9e9] bg-white overflow-hidden group"
+        className={`property-card ${compact ? "property-card-compact" : ""} flex h-full w-full min-w-0 flex-col rounded-[16px] border border-[#e9e9e9] bg-white overflow-hidden group`}
       >
         <div className="relative">
           <ImageCarousel property={property} />
@@ -139,7 +139,8 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              toggleSave(property.listingId, () => setLoginOpen(true));
+              if (onToggleSaved) onToggleSaved();
+              else toggleSave(property.listingId, () => setLoginOpen(true));
             }}
             aria-label={saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
             className="absolute top-[19px] right-[19px] bg-white rounded-full size-8 flex items-center justify-center shadow-sm"
@@ -156,7 +157,7 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
         </div>
 
         {/* Info */}
-        <div className="flex min-w-0 flex-col gap-5 px-[19px] pt-5 pb-[19px]">
+        <div className="property-card-body flex min-w-0 flex-1 flex-col gap-5 px-[19px] pt-5 pb-[19px]">
           <div className="flex min-w-0 flex-col gap-3">
             <span
               className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-[#00223a] tracking-[-0.5px] leading-[28px] truncate"
@@ -200,7 +201,7 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 lg:mt-2">
+          <div className="property-card-footer mt-auto flex flex-wrap items-center justify-between gap-3 pt-2">
             <span
               className="bg-clip-text text-transparent text-[19px] sm:text-[20px] lg:text-[22px] font-semibold leading-[32px] whitespace-nowrap"
               style={{
@@ -211,7 +212,7 @@ export function PropertyCard({ property }: { property: PublicListingDto }) {
               {listingDisplayPrice(property, t)}
             </span>
 
-            <span className="flex items-center gap-1 rounded-[13px] border border-[#ccdeef] bg-[#f0f6fa] pl-3.5 pr-3 py-[11px] text-[14px] sm:text-[16px] leading-[20px] text-[#005089] whitespace-nowrap" style={{ fontFamily: "Montserrat, sans-serif" }}>
+            <span className="property-card-cta flex items-center gap-1 rounded-[13px] border border-[#ccdeef] bg-[#f0f6fa] pl-3.5 pr-3 py-[11px] text-[14px] sm:text-[16px] leading-[20px] text-[#005089] whitespace-nowrap" style={{ fontFamily: "Montserrat, sans-serif" }}>
               {t("card.viewProperty")}
               <img src="/listings/arrow-up-right.svg" alt="" width={20} height={20} className="size-5 shrink-0" />
             </span>

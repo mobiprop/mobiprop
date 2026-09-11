@@ -4,14 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { queryKeys } from "@/lib/query-keys";
 import Link from "next/link";
-import type { PropertyType, Currency } from "@/generated/prisma/enums";
-import {
-  formatArea,
-  formatBaths,
-  formatBeds,
-  listingDisplayPrice,
-  propertyTypeLabel,
-} from "../utils/format";
+import type { Currency } from "@/generated/prisma/enums";
+import { PropertyCard, type PropertyCardData } from "./PropertyCard";
 
 type SavedListing = {
   id: string;
@@ -31,183 +25,8 @@ type SavedListing = {
   savedAt: string;
 };
 
-const fallbackImg =
-  "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/Listings/listing-1.webp";
-
-function PinIcon() {
-  return (
-    <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-      <path
-        d="M6 13S1 8.5 1 5a5 5 0 0 1 10 0c0 3.5-5 8-5 8Z"
-        stroke="#6a7282"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="6" cy="5" r="1.5" stroke="#6a7282" strokeWidth="1.25" />
-    </svg>
-  );
-}
-
-function AreaIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path d="M16.25 7.5H12.5V3.75" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3.75 12.5H7.5V16.25" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12.5 16.25V12.5H16.25" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M7.5 3.75V7.5H3.75" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function BedIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path d="M1.875 16.25V3.75" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M1.875 13.125H19.375V16.25" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="3.75" y="7.5" width="5" height="3.75" rx="1" stroke="#6a7282" strokeWidth="1.25" />
-      <rect x="10.625" y="7.5" width="7.5" height="3.75" rx="1" stroke="#6a7282" strokeWidth="1.25" />
-    </svg>
-  );
-}
-
-function BathIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-      <path d="M2.5 10h15v3.75a3.75 3.75 0 0 1-3.75 3.75H6.25A3.75 3.75 0 0 1 2.5 13.75V10Z" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2.5 10V5a2.5 2.5 0 0 1 5 0v5" stroke="#6a7282" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function SavedCard({
-  listing,
-  onRemove,
-}: {
-  listing: SavedListing;
-  onRemove: (id: string) => void;
-}) {
-  const { t } = useTranslation("savedListings");
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRemove(listing.id);
-  };
-
-  const displayPrice = listingDisplayPrice(
-    {
-      salePrice: listing.salePrice,
-      rentPrice: listing.rentPrice,
-      saleCurrency: listing.saleCurrency,
-      rentCurrency: listing.rentCurrency,
-      operationType: listing.operationType as "SALE" | "RENT" | "SALE_AND_RENT",
-    } as Parameters<typeof listingDisplayPrice>[0],
-    t,
-  );
-
-  return (
-    <Link
-      href={`/listings/${listing.slug}`}
-      className="group relative flex flex-col rounded-2xl overflow-hidden border border-[#e5e7eb] bg-white hover:shadow-md transition-shadow"
-    >
-      {/* Image */}
-      <div className="relative h-[200px] sm:h-[220px] overflow-hidden">
-        <img
-          src={listing.coverImageUrl ?? fallbackImg}
-          alt={listing.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-1.5">
-          <span
-            className="bg-white/90 px-2.5 py-0.5 rounded-full text-[12px] text-[#0d2138]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {listing.operationType === "RENT" ? t("card.rent") : t("card.sale")}
-          </span>
-          <span
-            className="bg-white/90 px-2.5 py-0.5 rounded-full text-[12px] text-[#0d2138]"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            {propertyTypeLabel(listing.type as PropertyType, t)}
-          </span>
-        </div>
-
-        {/* Remove button */}
-        <button
-          onClick={handleRemove}
-          aria-label={t("card.removeSavedAria")}
-          className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:bg-[#fff0f0] transition-colors disabled:opacity-50"
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="#e74c3c">
-            <path
-              d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
-              stroke="#e74c3c"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {/* Info */}
-      <div className="flex flex-col gap-2.5 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <p
-              className="text-[16px] font-medium text-[#0d2138] leading-[22px] truncate"
-              style={{ fontFamily: "Poppins, sans-serif" }}
-            >
-              {listing.title}
-            </p>
-            <div className="flex items-center gap-1">
-              <PinIcon />
-              <span
-                className="text-[13px] text-[#6a7282] truncate"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                {listing.location}
-              </span>
-            </div>
-          </div>
-          <p
-            className="text-[16px] font-semibold text-[#2b3038] whitespace-nowrap"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {displayPrice}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-4 pt-2 border-t border-[#f3f4f6]">
-          {listing.totalAreaM2 !== null && (
-            <div className="flex items-center gap-1.5">
-              <AreaIcon />
-              <span className="text-[12px] text-[#6a7282]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                {formatArea(listing.totalAreaM2)}
-              </span>
-            </div>
-          )}
-          {listing.bedrooms !== null && (
-            <div className="flex items-center gap-1.5">
-              <BedIcon />
-              <span className="text-[12px] text-[#6a7282]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                {formatBeds(listing.bedrooms, t)}
-              </span>
-            </div>
-          )}
-          {listing.bathrooms !== null && (
-            <div className="flex items-center gap-1.5">
-              <BathIcon />
-              <span className="text-[12px] text-[#6a7282]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                {formatBaths(listing.bathrooms, t)}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
+function SavedCard({ listing, onRemove }: { listing: SavedListing; onRemove: (id: string) => void }) {
+  return <PropertyCard property={{ ...listing, listingId: listing.id, operationType: listing.operationType as PropertyCardData["operationType"] }} savedOverride onToggleSaved={() => onRemove(listing.id)} />;
 }
 
 export function SavedListingsPageContent({ initialListings }: { initialListings: SavedListing[] }) {
@@ -228,7 +47,7 @@ export function SavedListingsPageContent({ initialListings }: { initialListings:
   const listings = data.listings;
 
   const removeMutation = useMutation({
-    mutationFn: (id: string) => fetch(`/api/saved-listings/${id}`, { method: "DELETE" }),
+    mutationFn: async (id: string) => { const response = await fetch(`/api/saved-listings/${id}`, { method: "DELETE" }); if (!response.ok) throw new Error("No se pudo quitar la propiedad de favoritos."); },
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<{ listings: SavedListing[] }>(queryKey);
@@ -246,7 +65,7 @@ export function SavedListingsPageContent({ initialListings }: { initialListings:
 
   return (
     <div
-      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[var(--space-fluid-container-max)] mx-auto py-10 sm:py-14"
+      className="w-[calc(100%-32px)] sm:w-[calc(100%-35px)] max-w-[1312px] mx-auto py-10 sm:py-14"
       style={{ fontFamily: "Montserrat, sans-serif" }}
     >
       {/* Header */}

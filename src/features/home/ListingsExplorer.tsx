@@ -34,7 +34,7 @@ export function ListingsExplorer() {
 
   return (
     <section className="home-section bg-white" aria-label={t("explorer.title")}>
-      <div className="home-container flex flex-col items-center gap-10">
+      <div className="property-section-container flex flex-col items-center gap-10">
         <SectionHeading badge={t("explorer.badge")} title={t("explorer.title")} subtitle={t("explorer.subtitle")} />
         <div className="flex flex-wrap justify-center gap-3" role="group" aria-label={t("hero.propertyTypeLabel")}>
           {FILTERS.map(([value, key]) => (
@@ -67,8 +67,8 @@ export function ListingsExplorer() {
                   <div className="home-listing-details">
                     <div className="flex items-start justify-between gap-2">
                       <Link href={`/listings/${property.slug}`} className="min-w-0">
-                        <p className="text-xl font-semibold text-[#0064af]">{listingDisplayPrice(property, listingT)}</p>
-                        <h3 className="mt-1 truncate text-sm text-[#4f4f4f]">{property.title}</h3>
+                        <p className="font-[Poppins] text-2xl font-semibold text-[#0064af]">{listingDisplayPrice(property, listingT)}</p>
+                        <h3 className="mt-1 line-clamp-2 text-base text-[#4f4f4f]">{property.title}</h3>
                       </Link>
                       <button type="button" aria-pressed={isSaved(property.listingId)} aria-label={isSaved(property.listingId) ? listingT("card.removeSavedAriaLabel") : listingT("card.saveAriaLabel")}
                         className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[#e9e9e9]"
@@ -79,11 +79,11 @@ export function ListingsExplorer() {
                     <button type="button" className="mt-3 flex min-w-0 items-center gap-1.5 text-left text-sm text-[#4f4f4f]" onClick={() => setSelectedId(property.id)} aria-pressed={selected?.id === property.id} aria-label={t("explorer.showOnMap", { title: property.title })}>
                       <MarkerIcon /><span className="truncate underline-offset-4 hover:underline">{property.location}</span>
                     </button>
-                    <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#e9e9e9] pt-3 text-xs text-[#191919]">
+                    <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#e9e9e9] pt-3 text-sm text-[#191919]">
                       <span className="flex items-center gap-1"><BedIcon />{formatBeds(property.bedrooms, listingT)}</span>
                       <span className="flex items-center gap-1"><BathIcon />{formatBaths(property.bathrooms, listingT)}</span>
                       <span className="flex items-center gap-1"><AreaIcon />{formatArea(property.totalAreaM2)}</span>
-                      <Link href={`/listings/${property.slug}`} className="ml-auto flex size-8 items-center justify-center rounded-full hover:bg-[#f0f6fa]" aria-label={`${listingT("card.viewProperty")}: ${property.title}`}><ArrowUpRight /></Link>
+                      <Link href={`/listings/${property.slug}`} className="ml-auto flex size-5 items-center justify-center rounded-full hover:bg-[#f0f6fa]" aria-label={`${listingT("card.viewProperty")}: ${property.title}`}><ArrowUpRight /></Link>
                     </div>
                   </div>
                 </article>

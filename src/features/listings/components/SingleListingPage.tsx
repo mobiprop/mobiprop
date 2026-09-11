@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Heart, Copy, Check, Share2, MapPin, ChevronRight } from "lucide-react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useSavedListings } from "@/hooks/useSavedListings";
@@ -9,7 +11,7 @@ import { ScheduleTourModal } from "./ScheduleTourModal";
 import { ImageLightbox } from "./ImageLightbox";
 import svgPaths from "./singleListingSvgPaths";
 import type { PublicListingAgent } from "../listing-actions";
-import type { ListingImageDto, PublicListingDto } from "../types/listing-dto";
+import type { PublicListingDto } from "../types/listing-dto";
 import type { AmenityKey } from "@/schemas/listing.schema";
 import { AMENITY_OPTIONS } from "@/schemas/listing.schema";
 import {
@@ -18,17 +20,6 @@ import {
   propertyTypeLabel,
 } from "../utils/format";
 import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
-
-// Below this native pixel size on its shorter side, stretching a photo across
-// the full-bleed hero box (object-cover) would upscale it noticeably — many
-// WordPress-migrated photos are this small. Below the threshold we letterbox
-// (object-contain on a blurred backdrop) instead of forcing the crop.
-const HERO_MIN_SAFE_DIMENSION = 800;
-
-function isHeroUnsafe(image: Pick<ListingImageDto, "width" | "height"> | null): boolean {
-  if (!image || image.width === null || image.height === null) return false;
-  return Math.min(image.width, image.height) < HERO_MIN_SAFE_DIMENSION;
-}
 
 const fallbackImg =
   "https://zkqcerjbcvpceiyvpqjz.supabase.co/storage/v1/object/public/Ulrich%20Assets/SingleListingPage/property-1.webp";
@@ -1002,13 +993,7 @@ function VideoPreviewSection({ videoUrl, title }: { videoUrl: string | null; tit
   );
 }
 
-export function SingleListingPageContent({
-  listing,
-  agent,
-}: {
-  listing: PublicListingDto;
-  agent: PublicListingAgent | null;
-}) {
+export function SingleListingPageContent({ listing }: { listing: PublicListingDto; agent: PublicListingAgent | null }) {
   const { t } = useTranslation(["listingDetail", "home"]);
   const [copied, setCopied] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -1016,878 +1001,87 @@ export function SingleListingPageContent({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const { isSaved, toggleSave } = useSavedListings();
   const saved = isSaved(listing.listingId);
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href).catch(() => undefined);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const shareUrl = typeof window === "undefined" ? "" : window.location.href;
-  const shareText = `${listing.title} — ${listing.location}`;
-  const openShare = (url: string) => window.open(url, "_blank", "noopener,noreferrer");
-
-  // Cover first, then the rest in their stored order — this is the order the
-  // lightbox pages through, so the thumbnails' indexes map straight into it.
-  // If the flagged cover is undersized, prefer a safer photo for the hero
-  // slot rather than upscaling it (see isHeroUnsafe) — the flagged cover
-  // still stays first among the side thumbnails/lightbox order otherwise.
-  const flaggedCover = listing.images.find((img) => img.isCover) ?? listing.images[0] ?? null;
-  const mainImage =
-    flaggedCover && isHeroUnsafe(flaggedCover)
-      ? (listing.images.find((img) => !isHeroUnsafe(img)) ?? flaggedCover)
-      : flaggedCover;
-  const images = mainImage
-    ? [mainImage, ...listing.images.filter((img) => img !== mainImage)]
-    : listing.images;
-  const sideImages = images.slice(1, 5);
-  const hiddenCount = images.length - 5;
-
+  const ordered = [...listing.images].sort((a,b) => a.sortOrder - b.sortOrder);
+  const cover = ordered.find(image => image.isCover) ?? ordered[0];
+  const images = cover ? [cover, ...ordered.filter(image => image.id !== cover.id)] : [];
   const stats = buildStats(listing, t);
-  const listingAmenities = listing.amenities.map((key) => ({
-    key,
-    label: t(AMENITY_LABEL_KEYS[key] ?? "", {
-      defaultValue: AMENITY_OPTIONS.find((opt) => opt.key === key)?.label ?? key,
-    }),
-    icon: amenityIcons.find((item) => item.key === key)?.icon ?? <AmenityCheckIcon />,
-  }));
-
-  const badges = [
-    operationTypeLabel(t, listing.operationType),
-    propertyTypeLabel(listing.type, t),
-    ...(listing.yearBuilt !== null ? [String(listing.yearBuilt)] : []),
-  ];
-
-  return (
-    <div className="w-full bg-white">
-      <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-      {/* Breadcrumb */}
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto pt-8 pb-[30px]">
-        <p
-          className="text-[#0d2138]"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            fontSize: 24,
-            fontWeight: 500,
-            letterSpacing: "-0.24px",
-            lineHeight: "28px",
-          }}
-        >
-          {t("propertyDetails")}
-        </p>
+  const address = [listing.fullAddress || listing.location, listing.city, listing.province, listing.country].filter(Boolean).join(", ");
+  const hasCoordinates = listing.latitude != null && listing.longitude != null;
+  const mapQuery = hasCoordinates ? `${listing.latitude},${listing.longitude}` : address;
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false),2000); } catch { setCopied(false); }
+  };
+  return <div className="single-property bg-white">
+    <div className="property-section-container">
+      <nav aria-label="Ruta de navegación" className="flex flex-wrap items-center gap-2 py-6 text-sm text-[#4f4f4f]">
+        <Link href="/listings" className="hover:underline">Propiedades</Link><ChevronRight size={14} /><span className="text-[#005089]">Detalle de la propiedad</span>
+      </nav>
+      <div className="relative aspect-[1312/560] min-h-[260px] overflow-hidden rounded-2xl">
+        {cover ? <button type="button" className="absolute inset-0 cursor-zoom-in" onClick={() => setLightboxIndex(0)} aria-label={t("gallery.openGalleryAria")}>
+          <img src={cover.url} alt={cover.altText ?? listing.title} className="h-full w-full object-cover" style={{objectFit:"cover",objectPosition:"center"}} />
+          <span className="absolute bottom-5 right-5 rounded-xl border border-[#e9e9e9] bg-white px-5 py-3 text-sm text-[#005089]">{t("gallery.viewPhotos")}</span>
+        </button> : <div className="flex h-full min-h-[260px] items-center justify-center bg-[#f0f6fa] text-[#4f4f4f]">Fotos no disponibles</div>}
       </div>
-
-      {/* Photo Gallery */}
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto">
-        <div className="flex flex-col gap-4 lg:gap-6 items-start">
-          {/* Main Image */}
-          <div className="hover-shine relative w-full rounded-[16px] overflow-hidden h-[280px] sm:h-[400px] lg:h-[560px]">
-            <button
-              type="button"
-              onClick={() => mainImage && setLightboxIndex(0)}
-              disabled={!mainImage}
-              aria-label={t("gallery.openGalleryAria")}
-              className="group absolute inset-0 h-full w-full cursor-zoom-in disabled:cursor-default"
-            >
-              {mainImage && isHeroUnsafe(mainImage) ? (
-                <>
-                  <img
-                    src={mainImage.url}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-50"
-                  />
-                  <img
-                    src={mainImage.url}
-                    alt={mainImage.altText ?? listing.title}
-                    className="relative h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                  />
-                </>
-              ) : (
-                <img
-                  src={mainImage?.url ?? fallbackImg}
-                  alt={mainImage?.altText ?? listing.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                />
-              )}
-
-              {/* Expand hint */}
-              {mainImage ? (
-                <span className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[12px] sm:text-[13px] text-white opacity-90 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {t("gallery.viewPhotos")}
-                </span>
-              ) : null}
-            </button>
-
-            {/* Badges */}
-            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-wrap gap-1.5 pointer-events-none">
-              {badges.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-white/90 px-2.5 sm:px-3 py-1 rounded-[36px] text-[#0d2138] text-[11px] sm:text-[14px]"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Side Images */}
-          {sideImages.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 w-full">
-              {sideImages.map((img, i) => (
-                <button
-                  key={img.id}
-                  type="button"
-                  onClick={() => setLightboxIndex(i + 1)}
-                  aria-label={t("gallery.openGalleryAtPhotoAria", { number: i + 2 })}
-                  className="hover-shine group relative rounded-[16px] overflow-hidden h-[120px] sm:h-[150px] lg:h-[206px] cursor-pointer"
-                >
-                  <img
-                    src={img.url}
-                    alt={img.altText ?? t("gallery.photoAlt", { title: listing.title, number: i + 1 })}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                  />
-
-                  {/* Last visible tile shows how many more photos exist and, when
-                  clicked, opens the gallery at the first hidden photo. */}
-                  {i === sideImages.length - 1 && hiddenCount > 0 ? (
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLightboxIndex(5);
-                      }}
-                      className="absolute inset-0 flex items-center justify-center bg-black/55 text-white transition-colors group-hover:bg-black/65"
-                    >
-                      <span
-                        className="text-[14px] sm:text-[18px] lg:text-[20px] whitespace-nowrap"
-                        style={{ fontFamily: "Poppins, sans-serif", fontWeight: 500 }}
-                      >
-                        {t("gallery.moreCount", { count: hiddenCount })}
-                      </span>
-                    </span>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          ) : null}
+      {images.length > 1 && <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-6">
+        {images.slice(1,5).map((image,index) => <button key={image.id} type="button" className="relative aspect-[310/206] overflow-hidden rounded-2xl" onClick={() => setLightboxIndex(index+1)} aria-label={t("gallery.openGalleryAtPhotoAria",{number:index+2})}>
+          <img src={image.url} alt={image.altText ?? listing.title} className="h-full w-full object-cover" style={{objectFit:"cover"}} />
+          {index === 3 && images.length > 5 && <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">+{images.length-5} fotos</span>}
+        </button>)}
+      </div>}
+      <div className="mt-10 flex flex-wrap items-start justify-between gap-6">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[28px] font-medium leading-tight tracking-[-.4px] text-[#00223a] sm:text-[40px]">{listing.title}</h1>
+          <p className="mt-2 flex items-start gap-2.5 text-base text-[#4f4f4f]"><MapPin size={18} className="mt-1 shrink-0" />{listing.fullAddress || listing.location}</p>
         </div>
-
-        {/* Property Info Row */}
-        <div className="mt-6 sm:mt-8 lg:mt-10 flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
-          {/* Title & Location */}
-          <div className="flex flex-col gap-2 max-w-full md:max-w-[520px]">
-            <h1
-              className="text-[#232323] text-[22px] sm:text-[28px] lg:text-[36px] leading-[32px] sm:leading-[38px] lg:leading-[48px] line-clamp-2"
-              style={{
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: 500,
-                letterSpacing: "-0.32px",
-              }}
-            >
-              {listing.title}
-            </h1>
-
-            <div
-              className="flex items-start sm:items-center gap-2 text-[rgba(0,0,0,0.62)] text-[13px] sm:text-[15px] lg:text-[16px]"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              <svg
-                className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] shrink-0 mt-[2px] sm:mt-0"
-                viewBox="0 0 18 18"
-                fill="none"
-              >
-                <path
-                  d={svgPaths.p23b22400}
-                  stroke="black"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeOpacity="0.7"
-                  strokeWidth="1.125"
-                />
-                <path
-                  d="M9 6.75V12.375"
-                  stroke="black"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeOpacity="0.7"
-                  strokeWidth="1.125"
-                />
-                <path
-                  d={svgPaths.p2e9ace80}
-                  stroke="black"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeOpacity="0.7"
-                  strokeWidth="1.125"
-                />
-              </svg>
-
-              <span className="leading-[20px]">
-                {listing.fullAddress || listing.location}
-              </span>
-            </div>
-          </div>
-
-          {/* Prices */}
-          <div className="flex flex-col sm:flex-row md:flex-col gap-3 sm:gap-6 md:gap-2">
-            {listing.salePrice !== null ? (
-              <div className="flex items-center justify-between sm:justify-start gap-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#1e4f86]" />
-                  <span
-                    className="text-[#1e4f86] text-[14px] sm:text-[16px]"
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {t("home:hero.tabBuy")}
-                  </span>
-                </div>
-
-                <span
-                  className="text-[#1e4f86] text-[20px] sm:text-[22px] lg:text-[24px]"
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 600,
-                    letterSpacing: "-0.24px",
-                  }}
-                >
-                  {formatSalePrice(listing.salePrice, listing.saleCurrency)}
-                </span>
-              </div>
-            ) : null}
-
-            {listing.rentPrice !== null ? (
-              <div className="flex items-center justify-between sm:justify-start gap-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#4896b6]" />
-                  <span
-                    className="text-[#4896b6] text-[14px] sm:text-[16px]"
-                    style={{
-                      fontFamily: "Montserrat, sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {t("home:hero.tabRent")}
-                  </span>
-                </div>
-
-                <span
-                  className="text-[#4896b6] text-[20px] sm:text-[22px] lg:text-[24px]"
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 600,
-                    letterSpacing: "-0.24px",
-                  }}
-                >
-                  {formatRentPrice(listing.rentPrice, listing.rentCurrency, t)}
-                </span>
-              </div>
-            ) : null}
-          </div>
+        <button type="button" onClick={() => setTourModalOpen(true)} className="min-h-12 shrink-0 rounded-[13px] border border-[#e9e9e9] bg-white px-6 py-3 text-base font-medium text-[#005089] hover:bg-[#f0f6fa]">Agendar visita</button>
+      </div>
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-6 border-b border-[#e9e9e9] pb-6">
+        <div className="flex flex-wrap items-center gap-6">
+          {listing.salePrice != null && <p className="flex flex-wrap items-center gap-3 text-[#005089]"><span className="text-sm">• Venta</span><strong className="text-[28px] font-semibold">{formatSalePrice(listing.salePrice,listing.saleCurrency)}</strong></p>}
+          {listing.rentPrice != null && <p className="flex flex-wrap items-center gap-3 text-[#2e99c6]"><span className="text-sm">• Alquiler</span><strong className="text-[28px] font-semibold">{formatRentPrice(listing.rentPrice,listing.rentCurrency,t)}</strong></p>}
         </div>
-        {/* Share Bar */}
-        <div className="mt-5 sm:mt-6 pb-6 border-b border-[#e5e7eb] flex flex-wrap items-center gap-3 sm:gap-4">
-          <span
-            className="text-[#2b3038] text-[14px] sm:text-[16px]"
-            style={{ fontFamily: "Montserrat, sans-serif", fontWeight: 500 }}
-          >
-            {t("share.label")}
-          </span>
-
-          {/* Social Icons */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Facebook */}
-            <button
-              onClick={() =>
-                openShare(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-                )
-              }
-              aria-label={t("share.facebookAria")}
-              className="w-6 h-6 rounded-full bg-[#1877F2] flex items-center justify-center cursor-pointer overflow-hidden shrink-0"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-6 h-6 relative top-[2px]"
-                fill="none"
-              >
-                <path
-                  d="M13.6 22V13.4H16.5L17 10H13.6V7.8C13.6 6.8 13.9 6.1 15.3 6.1H17.1V3.1C16.8 3.1 15.7 3 14.5 3C11.9 3 10.1 4.6 10.1 7.5V10H7.2V13.4H10.1V22H13.6Z"
-                  fill="white"
-                />
-              </svg>
-            </button>
-
-            {/* Twitter/X */}
-            <button
-              onClick={() =>
-                openShare(
-                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
-                )
-              }
-              aria-label={t("share.xAria")}
-              className="w-6 h-6 overflow-clip relative cursor-pointer shrink-0"
-            >
-              <svg viewBox="0 0 20 18" className="w-6 h-6">
-                <path d={svgPaths.p7cd5f00} fill="#000000" />
-              </svg>
-            </button>
-
-            {/* Instagram */}
-            <button
-              onClick={() => openShare("https://www.instagram.com/")}
-              aria-label={t("share.instagramAria")}
-              className="w-6 h-6 rounded-[6px] flex items-center justify-center overflow-hidden cursor-pointer shrink-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
-              }}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-[30px] h-[30px]"
-                fill="none"
-              >
-                <rect
-                  x="5"
-                  y="5"
-                  width="14"
-                  height="14"
-                  rx="4"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3.2"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-                <circle cx="16.6" cy="7.4" r="1.1" fill="white" />
-              </svg>
-            </button>
-
-            {/* LinkedIn */}
-            <button
-              onClick={() =>
-                openShare(
-                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-                )
-              }
-              aria-label={t("share.linkedinAria")}
-              className="w-6 h-6 overflow-clip relative cursor-pointer rounded-[3px] shrink-0"
-            >
-              <svg
-                viewBox="0 0 20 20"
-                fill="none"
-                className="absolute inset-0 w-full h-full"
-              >
-                <path
-                  d={svgPaths.p25763d00}
-                  fill="#0B65C2"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
-
-              <svg
-                viewBox="0 0 14 14"
-                fill="none"
-                className="absolute inset-[20.83%] w-[58.34%] h-[58.34%]"
-              >
-                <path
-                  d={svgPaths.p270e9700}
-                  fill="white"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
-            </button>
-
-            {/* WhatsApp */}
-            <button
-              onClick={() =>
-                openShare(
-                  `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`,
-                )
-              }
-              aria-label={t("share.whatsappAria")}
-              className="w-8 h-8 relative cursor-pointer shrink-0"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-[30px] h-[30px]"
-                fill="white"
-              >
-                <path d="M19.1 4.9A9.8 9.8 0 0 0 3.7 16.7L2.4 21.5l4.9-1.3A9.8 9.8 0 0 0 19.1 4.9Zm-7.1 14a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3a8 8 0 1 1 6.7 3.6Zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.6.1c-.2.3-.7.8-.8 1-.2.2-.3.2-.6.1-.2-.1-1-.4-2-1.2-.7-.7-1.2-1.5-1.4-1.7-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.6-1.5-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.2-.3-.3-.5-.4Z" />
-              </svg>
-
-              <svg
-                viewBox="0 0 18.2089 18.1286"
-                fill="none"
-                className="absolute inset-[11.84%] w-[76.29%] h-[75.53%]"
-              >
-                <path d={svgPaths.p36a91e00} fill="url(#wa_grad)" />
-                <defs>
-                  <linearGradient
-                    id="wa_grad"
-                    x1="8.919"
-                    x2="9.011"
-                    y1="1.088"
-                    y2="16.58"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop stopColor="#57D163" />
-                    <stop offset="1" stopColor="#23B33A" />
-                  </linearGradient>
-                </defs>
-              </svg>
-
-              <svg
-                viewBox="0 0 11.1241 10.271"
-                fill="none"
-                className="absolute w-[46.35%] h-[42.79%]"
-                style={{ inset: "28.61% 26.65% 28.59% 27%" }}
-              >
-                <path
-                  d={svgPaths.p3bc74772}
-                  fill="white"
-                  clipRule="evenodd"
-                  fillRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Copy Link */}
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-[32px] border border-[#d1d5dc] text-[#2b3038] text-[13px] sm:text-[14px] hover:bg-gray-50 transition-colors shrink-0"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14.2581 14.2447"
-              fill="none"
-            >
-              <path
-                d={svgPaths.p3d13b600}
-                stroke="#2B3038"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {copied ? t("share.copied") : t("share.copyLink")}
-          </button>
-
-          {/* Save button */}
-          <button
-            onClick={() => toggleSave(listing.listingId, () => setLoginOpen(true))}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-4xl border text-[13px] sm:text-[14px] transition-colors shrink-0 ${saved
-              ? "border-[#e74c3c] text-[#e74c3c] bg-[#fff5f5] hover:bg-[#ffe8e8]"
-              : "border-[#d1d5dc] text-[#2b3038] hover:bg-gray-50"
-              }`}
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-            aria-label={saved ? t("save.removeAria") : t("save.saveAria")}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill={saved ? "#e74c3c" : "none"}>
-              <path
-                d="M13.6 2.9a3.8 3.8 0 0 0-5.38 0L8 3.12l-.22-.22a3.8 3.8 0 0 0-5.38 5.38L8 13.87l5.6-5.59a3.8 3.8 0 0 0 0-5.38Z"
-                stroke={saved ? "#e74c3c" : "#6A7282"}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {saved ? t("save.saved") : t("save.save")}
-          </button>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[#4f4f4f]">
+          <button type="button" className="inline-flex items-center gap-1.5 hover:text-[#005089]" onClick={async () => { if(navigator.share) { try { await navigator.share({title:listing.title,url:window.location.href}); } catch {} } else await copyLink(); }}><Share2 size={16} />Compartir</button>
+          <button type="button" onClick={copyLink} className="inline-flex items-center gap-1.5 rounded-lg border border-[#ccdeef] bg-[#f0f6fa] px-3 py-2 text-[#005089]">{copied ? <Check size={14}/> : <Copy size={14}/>} {copied ? "Enlace copiado" : "Copiar enlace"}</button>
+          <button type="button" onClick={() => toggleSave(listing.listingId,() => setLoginOpen(true))} aria-pressed={saved} className="inline-flex items-center gap-1.5 rounded-lg border border-[#e9e9e9] px-3 py-2"><Heart size={16} className={saved ? "fill-red-500 text-red-500" : ""} />{saved ? "Guardada" : "Guardar"}</button>
         </div>
       </div>
-
-      {/* Description */}
-
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-6 sm:py-8">
-        <h2
-          className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: 500,
-            letterSpacing: "-0.24px",
-          }}
-        >
-          {t("sections.description")}
-        </h2>
-
-        <p
-          className="text-[#0d2138] text-[14px] sm:text-[15px] md:text-[16px] mb-4 leading-[22px] sm:leading-[24px] whitespace-pre-line"
-          style={{
-            fontFamily: "Montserrat, sans-serif",
-            letterSpacing: "-0.16px",
-          }}
-        >
-          {listing.description}
-        </p>
-      </div>
-
-      {/* Property Details Stats heading */}
-      <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto pt-3 sm:pt-4">
-        <h2
-          className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: 500,
-            letterSpacing: "-0.24px",
-          }}
-        >
-          {t("propertyDetails")}
-        </h2>
-      </div>
-      {/* Property Details Stats */}
-      <div className="bg-white">
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto pb-0">
-          <div className="bg-[#fafcfe] border border-[#e9e9e9] rounded-[16px] overflow-hidden">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
-              {stats.map((stat, i) => {
-                const isLastColLg = (i + 1) % 7 === 0 || i === stats.length - 1;
-                const isLastRowLg = i >= 7 * Math.floor((stats.length - 1) / 7);
-
-                const isLastColSm = (i + 1) % 3 === 0 || i === stats.length - 1;
-                const isLastRowSm = i >= 3 * Math.floor((stats.length - 1) / 3);
-
-                const isLastColXs = (i + 1) % 2 === 0 || i === stats.length - 1;
-                const isLastRowXs = i >= 2 * Math.floor((stats.length - 1) / 2);
-
-                return (
-                  <div
-                    key={stat.label}
-                    className={`relative min-h-[117px] px-3 py-6 flex flex-col justify-center text-center 
-                      ${isLastColLg ? "lg:border-r-0" : "lg:border-r lg:border-[#e5e7eb]"}
-                      ${isLastRowLg ? "lg:border-b-0" : "lg:border-b lg:border-[#e5e7eb]"}
-                      ${isLastColSm ? "sm:max-lg:border-r-0" : "sm:max-lg:border-r sm:max-lg:border-[#e5e7eb]"}
-                      ${isLastRowSm ? "sm:max-lg:border-b-0" : "sm:max-lg:border-b sm:max-lg:border-[#e5e7eb]"}
-                      ${isLastColXs ? "max-sm:border-r-0" : "max-sm:border-r max-sm:border-[#e5e7eb]"}
-                      ${isLastRowXs ? "max-sm:border-b-0" : "max-sm:border-b max-sm:border-[#e5e7eb]"}
-                    `}
-                  >
-                    <div className="flex flex-col items-center text-center gap-2">
-                      <div className="flex h-5 w-5 items-center justify-center text-[#0f1f35] [&>svg]:h-5 [&>svg]:w-5">
-                        {stat.icon}
-                      </div>
-
-                      <p
-                        className="text-black text-[14px] leading-[16.25px] lg:max-w-[150px]"
-                        style={{
-                          fontFamily: "Poppins, sans-serif",
-                          fontWeight: 500,
-                          letterSpacing: "-0.03em",
-                        }}
-                      >
-                        {t(STAT_LABEL_KEYS[stat.label] ?? stat.label)}
-                      </p>
-
-                      <p
-                        className="flex items-center gap-1 text-[#6c6c6c] text-[12px] leading-[16.25px]"
-                        style={{
-                          fontFamily: "Montserrat, sans-serif",
-                          fontWeight: 400,
-                        }}
-                      >
-                        {stat.value}
-
-                        {stat.copy && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigator.clipboard.writeText(stat.value)
-                            }
-                            className="inline-flex h-[12px] w-[12px] items-center justify-center text-[#0D2138]"
-                            aria-label={t("stats.copyPropertyIdAria")}
-                          >
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <rect
-                                x="9"
-                                y="9"
-                                width="11"
-                                height="11"
-                                rx="1.5"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              />
-                              <path
-                                d="M5 15H4.5C3.67 15 3 14.33 3 13.5V4.5C3 3.67 3.67 3 4.5 3H13.5C14.33 3 15 3.67 15 4.5V5"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      <section className="property-detail-section">
+        <h2>{t("sections.description")}</h2>
+        <p className="whitespace-pre-line break-words text-base leading-[26px] text-[#4f4f4f]">{listing.description}</p>
+      </section>
+      <section className="property-detail-section">
+        <h2>{t("propertyDetails")}</h2>
+        <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-[#e9e9e9] bg-[#fafcfe] sm:grid-cols-3 lg:grid-cols-7">
+          {stats.map(stat => <div key={stat.label} className="flex min-h-[117px] min-w-0 flex-col items-center justify-center gap-2 border-b border-r border-[#e9e9e9] px-3 py-6 text-center">
+            <span className="text-[#005089] [&>svg]:size-5 [&_path]:stroke-[#005089]">{stat.icon}</span>
+            <span className="text-sm font-medium">{t(STAT_LABEL_KEYS[stat.label] ?? stat.label)}</span>
+            <span className="break-words text-xs text-[#6c6c6c]">{stat.value}</span>
+          </div>)}
         </div>
-      </div>
-
-      {/* Features & Amenities */}
-      {listingAmenities.length > 0 ? (
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-8 sm:py-12 lg:py-[70px]">
-          <h2
-            className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
-            style={{
-              fontFamily: "Poppins, sans-serif",
-              fontWeight: 500,
-              letterSpacing: "-0.24px",
-            }}
-          >
-            {t("sections.featuresAmenities")}
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {listingAmenities.map((item) => (
-              <div
-                key={item.label}
-                className="bg-white border border-[#e5e7eb] rounded-[10px] sm:rounded-[12px] flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3 min-h-[55px]"
-              >
-                <div className="shrink-0 flex items-center justify-center [&>svg]:w-[18px] [&>svg]:h-[18px] sm:[&>svg]:w-[20px] sm:[&>svg]:h-[20px]  [&_[fill]:not([fill=none])]:fill-[#1E4F86]">
-                  {item.icon}
-                </div>
-
-                <span
-                  className="text-[#2b3038] text-[14px] leading-[21px]"
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    letterSpacing: "-0.18px",
-                  }}
-                >
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {/* Video Preview — always shown; falls back to "Preview Not Available"
-          when the listing has no video set. */}
-      <VideoPreviewSection videoUrl={listing.videoUrl} title={listing.title} />
-
-      {/* On the Map — hidden until the listing has geocoded coordinates */}
-      {listing.latitude !== null && listing.longitude !== null ? (
-        <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-6 sm:py-8">
-          <h2
-            className="text-[#0d2138] mb-5 text-[22px] sm:text-[24px] leading-[32px]"
-            style={{
-              fontFamily: "Poppins, sans-serif",
-              fontWeight: 500,
-              letterSpacing: "-0.24px",
-            }}
-          >
-            {t("sections.onTheMap")}
-          </h2>
-
-          <div className="relative rounded-[14px] sm:rounded-[20px] overflow-hidden h-[240px] sm:h-[360px] lg:h-[442px]">
-            <PropertyLocationMap
-              latitude={listing.latitude}
-              longitude={listing.longitude}
-              title={listing.title}
-            />
-
-            {/* Location Card */}
-            <div className="absolute top-3 left-3 sm:top-5 sm:left-5 w-[290px] max-w-[calc(100%-24px)] rounded-[14px] bg-white px-4 py-3.5 shadow-sm">
-              {/* Location Name */}
-              <p
-                className="mb-2 truncate text-[16px] leading-[22px] text-[#232323]"
-                style={{
-                  fontFamily: "Montserrat, sans-serif",
-                  fontWeight: 500,
-                  letterSpacing: "-0.16px",
-                }}
-              >
-                {listing.location}
-              </p>
-
-              {/* Full Address */}
-              <p
-                className="mb-3 truncate text-[14px] leading-[20px] text-[#6B6B6B]"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  fontWeight: 400,
-                  letterSpacing: "-0.14px",
-                }}
-              >
-                {listing.fullAddress}
-              </p>
-
-              {/* Rating and Reviews */}
-              <div className="flex items-center gap-2 whitespace-nowrap">
-                <span
-                  className="text-[16px] font-medium text-[#232323]"
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                >
-                  5.0
-                </span>
-
-                <div className="flex items-center gap-[2px] text-[19px] leading-none text-[#F5A000]">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <span key={index}>★</span>
-                  ))}
-                </div>
-
-                <span
-                  className="text-[14px] text-[#369BCB]"
-                  style={{ fontFamily: "Poppins, sans-serif" }}
-                >
-                  {t("map.reviewsCount", { count: (6546).toLocaleString() })}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Agent Contact Banner */}
-      <div className="w-[calc(100%-38px)] max-w-[1196px] mx-auto py-8 sm:py-12 lg:py-16">
-        <div className="bg-[#112b4a] rounded-[22px] sm:rounded-[28px] lg:rounded-[36px] relative overflow-hidden min-h-[auto] lg:min-h-[320px]">
-          {/* Background image */}
-          <div className="absolute inset-0">
-            <img
-              src={footerBgImg}
-              alt=""
-              className="w-full h-full object-cover opacity-10"
-            />
-          </div>
-
-          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-stretch gap-7 lg:gap-8 p-5 sm:p-8 lg:p-16">
-            {agent ? (
-              <>
-                {/* Left: Agent */}
-                <div className="flex flex-col items-start gap-4 sm:gap-5 lg:w-[280px]">
-                  <div className="rounded-full overflow-hidden w-[64px] h-[64px] sm:w-[80px] sm:h-[80px] shrink-0">
-                    <img
-                      src={agent.avatarUrl ?? agentImg}
-                      alt={agent.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <div>
-                    <p
-                      className="text-white text-[20px] sm:text-[24px] mb-1 leading-[28px] sm:leading-[32px]"
-                      style={{
-                        fontFamily: "Poppins, sans-serif",
-                        fontWeight: 500,
-                        letterSpacing: "-0.24px",
-                      }}
-                    >
-                      {agent.name}
-                    </p>
-
-                    <p
-                      className="text-white text-[14px] sm:text-[16px] opacity-80"
-                      style={{ fontFamily: "Montserrat, sans-serif" }}
-                    >
-                      {t("agentCard.role")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="hidden lg:block w-px bg-[#2B3038] self-stretch" />
-
-                {/* Mobile Divider */}
-                <div className="block lg:hidden w-full  bg-white/15" />
-              </>
-            ) : null}
-
-            {/* Middle: CTA text */}
-            <div className="flex flex-col gap-3 sm:gap-4 flex-1">
-              <h2
-                className="text-white text-[26px] sm:text-[30px] lg:text-[36px] leading-[34px] sm:leading-[40px] lg:leading-[48px]"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  fontWeight: 600,
-                  letterSpacing: "-0.36px",
-                }}
-              >
-                {t("agentCard.heading")}
-              </h2>
-
-              <p
-                className="text-white text-[14px] sm:text-[16px] opacity-80 leading-[22px] sm:leading-[24px]"
-                style={{
-                  fontFamily: "Montserrat, sans-serif",
-                  letterSpacing: "-0.16px",
-                }}
-              >
-                {t("agentCard.ctaTextBefore")}{" "}
-                {agent ? agent.name.split(" ")[0] : t("agentCard.ourTeam")}.
-                <br className="hidden sm:block" />
-                {t("agentCard.ctaTextAfter")}
-              </p>
-            </div>
-
-            {/* Right: Buttons */}
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 lg:gap-5 w-full lg:w-[257px] justify-center">
-              <button
-                onClick={() => setTourModalOpen(true)}
-                className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] transition-opacity hover:opacity-90"
-                style={{
-                  fontFamily: "Poppins, sans-serif",
-                  background: "linear-gradient(to bottom, #005ea4, #006fc2)",
-                  border: "1px solid #0088ff",
-                }}
-              >
-                {t("agentCard.scheduleVisit")}
-              </button>
-
-              <button
-                className="w-full rounded-[48px] px-6 sm:px-8 py-3.5 sm:py-4 text-white text-[14px] sm:text-[16px] border border-[#b9c8d9] hover:bg-white/10 transition-colors"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                {t("agentCard.sendInquiry")}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer spacer */}
-      <div className="h-8" />
-
-      {/* Full-screen image gallery */}
-      <ImageLightbox
-        images={images}
-        startIndex={lightboxIndex}
-        onClose={() => setLightboxIndex(null)}
-        title={listing.title}
-      />
-
-      {/* Tour request modal */}
-      {tourModalOpen && (
-        <ScheduleTourModal
-          propertyId={listing.id}
-          propertyTitle={listing.title}
-          onClose={() => setTourModalOpen(false)}
-        />
-      )}
+      </section>
+      {listing.amenities.length > 0 && <section className="property-detail-section">
+        <h2>{t("sections.featuresAmenities")}</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{listing.amenities.map(key => <div key={key} className="flex min-h-[55px] items-center gap-3 rounded-xl border border-[#e9e9e9] bg-[#fafcfe] px-5 py-3">
+          <span className="shrink-0 [&>svg]:size-5">{amenityIcons.find(item => item.key === key)?.icon ?? <AmenityCheckIcon />}</span>
+          <span className="text-sm text-[#4f4f4f]">{t(AMENITY_LABEL_KEYS[key] ?? "",{defaultValue:AMENITY_OPTIONS.find(item => item.key===key)?.label ?? key})}</span>
+        </div>)}</div>
+      </section>}
     </div>
-  );
+    <VideoPreviewSection videoUrl={listing.videoUrl} title={listing.title}/>
+    <section className="property-section-container property-detail-section pb-[70px]">
+      <h2>Qué hay cerca</h2>
+      <div className="relative h-[300px] overflow-hidden rounded-[20px] bg-[#f0f6fa] sm:h-[456px]">
+        <PropertyLocationMap latitude={listing.latitude ?? undefined} longitude={listing.longitude ?? undefined} address={hasCoordinates ? undefined : address || undefined} title={listing.title} zoom={hasCoordinates ? 15 : 13} />
+        {!hasCoordinates && <p className="absolute left-4 top-4 rounded-xl bg-white px-4 py-2 text-sm text-[#4f4f4f] shadow-sm">Ubicación aproximada de la zona</p>}
+        {mapQuery && <a className="absolute bottom-6 left-6 rounded-xl border border-[#e9e9e9] bg-white px-5 py-3 text-sm text-[#005089] shadow-sm" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`} target="_blank" rel="noopener noreferrer">Ver en Google Maps</a>}
+      </div>
+      <div className="mt-6 flex flex-wrap gap-3">
+        {[["Educación","escuelas"],["Compras","centros comerciales"],["Transporte","transporte público"],["Salud","centros de salud"],["Parques","parques"],["Restaurantes y cafés","restaurantes y cafés"]].map(([label,query]) => <a key={label} className="home-filter" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query+" cerca de "+address)}`} target="_blank" rel="noopener noreferrer">{label}</a>)}
+      </div>
+    </section>
+    <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)}/>
+    <ImageLightbox images={images} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} title={listing.title}/>
+    {tourModalOpen && <ScheduleTourModal propertyId={listing.id} propertyTitle={listing.title} onClose={() => setTourModalOpen(false)}/>}
+  </div>;
 }
