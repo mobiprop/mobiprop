@@ -94,7 +94,7 @@ export async function sendOtpEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `${params.code} is your ${APP_NAME} verification code`,
+    subject: `${params.code} es tu código de verificación de ${APP_NAME}`,
     html: renderOtpEmail({ ...params, email: params.to }),
   });
 }
@@ -119,7 +119,7 @@ export async function sendPasswordResetEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Reset your ${APP_NAME} password`,
+    subject: `Restablecé tu contraseña de ${APP_NAME}`,
     html: renderPasswordResetEmail(params),
   });
 }
@@ -138,7 +138,7 @@ export async function sendTourConfirmedEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Your tour is confirmed — ${APP_NAME}`,
+    subject: `Tu visita está confirmada — ${APP_NAME}`,
     html: renderTourConfirmedEmail({ ...params, ctaUrl: `${APP_URL}/profile` }),
   });
 }
@@ -157,7 +157,7 @@ export async function sendTourRequestedEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Your visit request was received — ${APP_NAME}`,
+    subject: `Recibimos tu solicitud de visita — ${APP_NAME}`,
     html: renderTourConfirmedEmail({ ...params, requested: true, ctaUrl: `${APP_URL}/profile` }),
   });
 }
@@ -205,7 +205,7 @@ export async function sendWelcomeEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Welcome to ${APP_NAME}`,
+    subject: `Te damos la bienvenida a ${APP_NAME}`,
     html: renderWelcomeEmail(params),
     from: FROM_WELCOME,
   });

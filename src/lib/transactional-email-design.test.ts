@@ -11,5 +11,5 @@ test('dynamic content is escaped and reset token is preserved',()=>{
 });
 test('visit requests do not claim agent confirmation',()=>{
  const html=renderVisitDesign({submittedName:'Test',tourNumber:'TR-1',scheduledAtLabel:'Tomorrow',durationLabel:'1 hour',ctaUrl:'https://example.com/profile',requested:true});
- expect(html).toContain('request has been received');expect(html).not.toContain('Your visit is confirmed');
+ expect(html).toContain('Recibimos tu solicitud de visita');expect(html).not.toContain('Tu visita está confirmada');
 });

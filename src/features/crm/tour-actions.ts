@@ -151,10 +151,10 @@ async function nextTourNumber(): Promise<string> {
 function formatTourDuration(minutes: number): string {
   if (minutes % 60 === 0) {
     const hours = minutes / 60;
-    return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+    return `${hours} ${hours === 1 ? "hora" : "horas"}`;
   }
-  if (minutes < 60) return `${minutes} minutes`;
-  return `${(minutes / 60).toFixed(1)} hours`;
+  if (minutes < 60) return `${minutes} minutos`;
+  return `${(minutes / 60).toLocaleString("es-AR", {maximumFractionDigits:1})} horas`;
 }
 
 // ── Include / DTO helpers ─────────────────────────────────────────────────────
@@ -784,7 +784,7 @@ export async function updateTourStatus(
         to: row.submittedEmail,
         submittedName: row.submittedName,
         tourNumber: row.tourNumber,
-        scheduledAtLabel: new Intl.DateTimeFormat("en-US", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short"}).format(row.scheduledAt) + " (Buenos Aires)",
+        scheduledAtLabel: new Intl.DateTimeFormat("es-AR", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short"}).format(row.scheduledAt) + " (Buenos Aires)",
         durationLabel: formatTourDuration(row.durationMinutes),
         propertyTitle: row.property?.title ?? null,
         propertyLocation: row.property?.location ?? null,
@@ -810,7 +810,7 @@ export async function updateTourStatus(
         to: row.submittedEmail,
         submittedName: row.submittedName,
         tourNumber: row.tourNumber,
-        scheduledAtLabel: new Intl.DateTimeFormat("en-US", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short"}).format(row.scheduledAt) + " (Buenos Aires)",
+        scheduledAtLabel: new Intl.DateTimeFormat("es-AR", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short"}).format(row.scheduledAt) + " (Buenos Aires)",
         propertyTitle: row.property?.title ?? null,
         propertyLocation: row.property?.location ?? null,
         cancellationReason: row.cancellationReason,
@@ -998,7 +998,7 @@ export async function requestPublicTour(
     after(async () => {
       const result = await sendTourRequestedEmail({
         to, submittedName: d.submittedName, tourNumber: tour.tourNumber,
-        scheduledAtLabel: new Intl.DateTimeFormat('en-US', {timeZone:'America/Argentina/Buenos_Aires',dateStyle:'full',timeStyle:'short'}).format(scheduledAt) + ' (Buenos Aires)',
+        scheduledAtLabel: new Intl.DateTimeFormat('es-AR', {timeZone:'America/Argentina/Buenos_Aires',dateStyle:'full',timeStyle:'short'}).format(scheduledAt) + ' (Buenos Aires)',
         durationLabel: formatTourDuration(d.durationMinutes), propertyTitle, propertyLocation, property: emailProperty,
       });
       if (!result.sent) console.error('[tour] Request email failed', result.error);
