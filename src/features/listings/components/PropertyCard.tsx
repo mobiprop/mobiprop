@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
@@ -111,7 +112,7 @@ export function operationBadge(property: Pick<PublicListingDto, "operationType">
 /** Property card matching Figma's listing card (image carousel, navy operation
  * badge, gradient price, "Ver Propiedad" pill) — shared by the homepage's
  * featured listings and the /listings grid so both stay visually identical. */
-export function PropertyCard({ property, savedOverride, onToggleSaved, compact = false }: { property: PropertyCardData; savedOverride?: boolean; onToggleSaved?: () => void; compact?: boolean }) {
+export function PropertyCard({ property, savedOverride, onToggleSaved, compact = false, onClose }: { property: PropertyCardData; savedOverride?: boolean; onToggleSaved?: () => void; compact?: boolean; onClose?: () => void }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const { isSaved, toggleSave } = useSavedListings();
   const saved = savedOverride ?? isSaved(property.listingId);
@@ -140,13 +141,14 @@ export function PropertyCard({ property, savedOverride, onToggleSaved, compact =
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (onToggleSaved) onToggleSaved();
+              if (onClose) onClose();
+              else if (onToggleSaved) onToggleSaved();
               else toggleSave(property.listingId, () => setLoginOpen(true));
             }}
-            aria-label={saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
+            aria-label={onClose ? "Cerrar propiedad en el mapa" : saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
             className="absolute top-[19px] right-[19px] bg-white rounded-full size-8 flex items-center justify-center shadow-sm"
           >
-            {!saved ? <img src="/listings/heart.svg" alt="" width={18} height={18} /> : <svg width="18" height="18" viewBox="0 0 16 16" fill="#e74c3c">
+            {onClose ? <X size={18} strokeWidth={1.5} className="text-[#005089]" /> : !saved ? <img src="/listings/heart.svg" alt="" width={18} height={18} /> : <svg width="18" height="18" viewBox="0 0 16 16" fill="#e74c3c">
               <path
                 d={svgPaths.p2a65c600}
                 stroke={saved ? "#e74c3c" : "#9A9A9A"}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SectionHeading } from "./SectionHeading";
 
@@ -19,6 +21,9 @@ function Star() {
 
 export function Testimonial() {
   const { t } = useTranslation("home");
+  const [current, setCurrent] = useState(0);
+  const previous = () => setCurrent(value => (value + 2) % 3);
+  const next = () => setCurrent(value => (value + 1) % 3);
   const testimonials = [{
     quote: t("testimonial.quote"),
     name: t("testimonial.name"),
@@ -40,12 +45,16 @@ export function Testimonial() {
   }];
 
   return (
-    <section className="bg-[#fafcff] home-section">
+    <section className="overflow-hidden bg-[#fafcff] py-[53px]" aria-label="Testimonios" aria-roledescription="carrusel" onKeyDown={event => { if (event.key === "ArrowLeft") previous(); if (event.key === "ArrowRight") next(); }}>
       <div className="home-container flex flex-col items-center gap-12">
         <SectionHeading badge={t("testimonial.badge")} title={t("testimonial.title")} subtitle={t("testimonial.subtitle")} />
 
-        <div className="grid w-full max-w-[1312px] grid-cols-1 gap-6 lg:grid-cols-3">
-        {testimonials.map(testimonial => <article key={testimonial.name} className="flex min-w-0 flex-col gap-8 rounded-2xl border border-[#e9e9e9] bg-white p-8 w-full">
+        <div className="relative w-full">
+        <div className="relative left-1/2 flex w-max -translate-x-1/2 items-stretch gap-6">
+        {[-1, 0, 1, 2].map((offset) => {
+          const testimonial = testimonials[(current + offset + testimonials.length) % testimonials.length];
+          return <article key={offset} aria-hidden={offset === -1 || offset === 2 ? true : undefined} className={`flex w-[calc(100vw-48px)] max-w-[530px] shrink-0 flex-col gap-8 rounded-2xl border border-[#e9e9e9] p-6 sm:w-[530px] sm:p-8 ${offset === -1 || offset === 2 ? "bg-[#fafafa]" : "bg-white"} ${offset === 2 ? "hidden lg:flex" : ""}`}>
+
           <div className="flex items-center gap-1" role="img" aria-label="5 de 5 estrellas">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} />
@@ -80,7 +89,14 @@ export function Testimonial() {
               </p>}
             </div>
           </div>
-        </article>)}
+        </article>;
+        })}
+        </div>
+        </div>
+        <div className="-mt-2 flex items-center gap-2">
+          <button type="button" onClick={previous} aria-label="Testimonio anterior" className="flex size-[52px] items-center justify-center rounded-xl border border-[#e9e9e9] bg-[#f0f6fa] text-[#6c6c6c] transition-colors hover:bg-[#e1edf5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#005089]"><ArrowLeft size={24} strokeWidth={1.5}/></button>
+          <button type="button" onClick={next} aria-label="Testimonio siguiente" className="flex size-[52px] items-center justify-center rounded-xl bg-[#005089] text-white transition-colors hover:bg-[#003d69] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#005089]"><ArrowRight size={24} strokeWidth={1.5}/></button>
+          <span className="sr-only" aria-live="polite">Testimonio {current + 1} de {testimonials.length}: {testimonials[current].name}</span>
         </div>
       </div>
     </section>

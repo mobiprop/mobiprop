@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
@@ -18,6 +17,7 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
   const { t } = useTranslation("home");
   const { t: listingT } = useTranslation("listings");
   const container = useRef<HTMLDivElement>(null);
+  const popupCard = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const pins = useRef(new Map<string, PinOverlay>());
   const [popup, setPopup] = useState<{x:number;y:number}|null>(null);
@@ -82,8 +82,9 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
       if (!bounds || !anchor || !container.current) return;
       const scale = container.current.offsetWidth / bounds.width;
       const halfWidth = Math.min(159, (container.current.offsetWidth - 32) / 2);
-      setPopup({x:Math.max(halfWidth+16,Math.min(container.current.offsetWidth-halfWidth-16,(anchor.left-bounds.left)*scale)),y:Math.max(16,Math.min(container.current.offsetHeight,(anchor.top-bounds.top)*scale))});
+      setPopup({x:Math.max(halfWidth+16,Math.min(container.current.offsetWidth-halfWidth-16,(anchor.left-bounds.left)*scale)),y:Math.max(16,Math.min(container.current.offsetHeight - (popupCard.current?.offsetHeight ?? 500) - 16,(anchor.top-bounds.top)*scale + 16))});
     };
+    map.setZoom(selectedGeo.locationApproximate ? 15 : 17);
     map.panTo({ lat: selectedGeo.latitude!, lng: selectedGeo.longitude! });
     const listener = map.addListener("idle",update);
     update();
@@ -96,11 +97,10 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
       <div ref={container} className="absolute inset-0" role="region" aria-label={t("explorer.mapLabel")} />
       {(!ready || unavailable) && <div className="absolute inset-x-4 top-4 rounded-2xl border border-[#ccdeef] bg-white p-5 text-center text-[#4f4f4f] shadow-sm" role="status">
         <p className="text-xl font-medium text-[#00223a]">{t(unavailable ? "explorer.mapUnavailable" : "explorer.mapLoading")}</p>
-        {unavailable && <p className="max-w-sm text-sm leading-relaxed">{t("explorer.mapFallback")}</p>}
+        {unavailable && <p className="mx-auto max-w-sm text-center text-sm leading-relaxed">{t("explorer.mapFallback")}</p>}
       </div>}
-      {selected && <div className="absolute z-10 w-[318px] max-w-[calc(100%-32px)]" style={selectedGeo && popup ? {left:popup.x, top:popup.y,transform:popup.y>420 ? "translate(-50%,calc(-100% - 12px))" : "translate(-50%,16px)"} : {left:16,bottom:16}}>
-        <button type="button" onClick={onClose} aria-label="Cerrar propiedad en el mapa" className="absolute left-3 top-12 z-20 flex size-9 items-center justify-center rounded-full border border-[#e9e9e9] bg-white text-[#005089] shadow-sm hover:bg-[#f0f6fa]"><X size={18} strokeWidth={1.5} /></button>
-        <PropertyCard key={selected.id} property={selected} compact />
+      {selected && <div ref={popupCard} className="absolute z-10 w-[318px] max-w-[calc(100%-32px)]" style={selectedGeo && popup ? {left:popup.x, top:popup.y,transform:"translateX(-50%)"} : {left:16,bottom:16}}>
+        <PropertyCard key={selected.id} property={selected} compact onClose={onClose} />
         {selected.locationApproximate && selectedGeo && <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-[#4f4f4f]">Ubicación aproximada de la zona</p>}
         {!selectedGeo && <p role="status" className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-[#4f4f4f]">Ubicación aún no disponible</p>}
         {externalQuery && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(externalQuery)}`} target="_blank" rel="noopener noreferrer" className="mt-2 block rounded-lg bg-white px-3 py-2 text-center text-sm text-[#005089] underline shadow-sm">{t("explorer.openMap")}</a>}
