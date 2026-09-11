@@ -228,7 +228,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
      left and right side. The single fluid padding token is the only
      gutter; nothing is subtracted from the width to make room for it. */}
   <motion.div
-    className="flex w-full max-w-[var(--space-fluid-container-max)] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
+    className="home-nav-inner flex w-full max-w-[var(--space-fluid-container-max)] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
     style={{ height: "var(--space-fluid-nav-h)", paddingInline: isContact ? "clamp(20px, 4.444vw, 64px)" : "var(--space-fluid-section-px)", ...(isContact ? {maxWidth:1440} : {}) }}
     variants={headerContainer}
     initial="hidden"
@@ -324,9 +324,11 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
     {/* Mobile Hamburger */}
     <motion.button
-      className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+      className="lg:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
       onClick={() => setMenuOpen(!menuOpen)}
       aria-label="Abrir o cerrar menú"
+      aria-expanded={menuOpen}
+      aria-controls="mobile-navigation"
       variants={headerItem}
     >
       <svg
@@ -359,7 +361,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
       className="lg:hidden w-full bg-white border-t border-[#e5e7eb] py-5 shadow-lg"
       style={{ paddingInline: "var(--space-fluid-section-px)" }}
     >
-      <nav className="flex flex-col gap-2">
+      <nav id="mobile-navigation" className="flex flex-col gap-2">
         {navLinks.map((link) => (
           <Link
             key={link.href}

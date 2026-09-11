@@ -97,14 +97,14 @@ export function SearchableSelect({ id, ariaLabel, value, onChange, options, plac
 
   function keyboard(event: React.KeyboardEvent) {
     if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); return; }
-    if (event.key === "Tab") { close(false); return; }
+    if (event.key === "Tab") { close(); return; }
     if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
       event.preventDefault();
       const enabled = filtered.map((o, i) => o.disabled ? -1 : i).filter(i => i >= 0);
       if (!enabled.length) return;
       const current = enabled.indexOf(active);
       setActive(event.key === "Home" ? enabled[0] : event.key === "End" ? enabled[enabled.length - 1] :
-        enabled[(current + (event.key === "ArrowDown" ? 1 : -1) + enabled.length) % enabled.length]);
+        enabled[current < 0 ? (event.key === "ArrowDown" ? 0 : enabled.length - 1) : (current + (event.key === "ArrowDown" ? 1 : -1) + enabled.length) % enabled.length]);
     } else if (event.key === "Enter" || (!searchable && event.key === " ")) {
       event.preventDefault(); if (filtered[active]) choose(filtered[active]);
     } else if (!searchable && event.key.length === 1) {
@@ -115,7 +115,7 @@ export function SearchableSelect({ id, ariaLabel, value, onChange, options, plac
 
   return <div className={`relative min-w-0 ${className}`}>
     <button ref={trigger} id={id} role="combobox" type="button" disabled={disabled}
-      aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open}
+      aria-label={ariaLabel ?? placeholder} aria-haspopup="listbox" aria-expanded={open}
       aria-controls={open ? uid : undefined} aria-invalid={hasError || undefined}
       onBlur={onBlur} onClick={() => open ? close() : show()}
       onKeyDown={e => { if (["ArrowDown", "ArrowUp"].includes(e.key)) { e.preventDefault(); show(e.key === "ArrowUp"); } }}
