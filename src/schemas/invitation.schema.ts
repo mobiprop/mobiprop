@@ -4,7 +4,7 @@ import { z } from "zod";
 // invited through this schema. Inviting an ADMIN additionally requires the
 // invitations:inviteAdmin permission — enforced in createAgentInvitation, not here.
 export const createInvitationSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+  email: z.string().trim().toLowerCase().email("Ingresá un correo electrónico válido"),
   role: z.enum(["AGENT", "MANAGER", "ADMIN"]),
   firstName: z.string().trim().min(1).optional(),
   lastName: z.string().trim().min(1).optional(),
@@ -15,22 +15,22 @@ export const createInvitationSchema = z.object({
 });
 
 export const validateInvitationSchema = z.object({
-  token: z.string().min(10, "Invalid invitation link"),
+  token: z.string().min(10, "El enlace de invitación no es válido"),
 });
 
 // Completes invite-based staff registration. Role/email come from the
 // invitation only — never from this input.
 export const acceptInvitationApiSchema = z
   .object({
-    token: z.string().min(10, "Invalid invitation link"),
-    firstName: z.string().trim().min(1, "Enter your first name"),
-    lastName: z.string().trim().min(1, "Enter your last name"),
+    token: z.string().min(10, "El enlace de invitación no es válido"),
+    firstName: z.string().trim().min(1, "Ingresá tu nombre"),
+    lastName: z.string().trim().min(1, "Ingresá tu apellido"),
     phone: z.string().trim().min(1).optional(),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(8, "Confirm your password"),
+    password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+    confirmPassword: z.string().min(8, "Confirmá tu contraseña"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Las contraseñas no coinciden",
     path: ["confirmPassword"],
   });
 

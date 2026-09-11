@@ -108,7 +108,9 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
       if (err instanceof TourConflictError) {
         setSuggestedSlots(err.suggestedSlots);
       }
-      setError((err as Error).message || t("tourModal.errors.generic"));
+      setError(err instanceof TourConflictError
+        ? "Ese horario no está disponible. Elegí otro horario para la visita."
+        : t("tourModal.errors.generic"));
     }
   }
 

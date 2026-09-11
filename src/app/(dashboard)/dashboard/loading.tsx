@@ -8,7 +8,7 @@ export default function DashboardLoading() {
         className="text-[14px]"
         style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
-        Loading…
+        Cargando…
       </span>
     </div>
   );

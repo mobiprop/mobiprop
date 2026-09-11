@@ -1,6 +1,7 @@
 "use client";
 
 import { Toaster } from "sonner";
+import { SpanishFormValidation } from "@/components/common/SpanishFormValidation";
 
 import { QueryProvider } from "@/providers/query-provider";
 import { GlobalLoadingBar } from "@/components/common/GlobalLoadingBar";
@@ -17,9 +18,10 @@ export function Providers({
   return (
     <I18nProvider initialLanguage={initialLanguage}>
       <QueryProvider>
+        <SpanishFormValidation />
         <GlobalLoadingBar />
         {children}
-        <Toaster richColors position="top-right" />
+        <Toaster containerAriaLabel="Notificaciones" richColors position="top-right" />
       </QueryProvider>
     </I18nProvider>
   );

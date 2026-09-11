@@ -27,7 +27,7 @@ export function I18nProvider({
   initialLanguage: SupportedLanguage;
 }) {
   const i18n = useMemo(
-    () => i18nextSingleton.cloneInstance({ lng: initialLanguage }),
+    () => i18nextSingleton.cloneInstance({ lng: initialLanguage, supportedLngs: ["es"], fallbackLng: "es" }),
     [initialLanguage],
   );
 

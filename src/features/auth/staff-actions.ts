@@ -23,6 +23,7 @@ import {
 import { acceptInvitationApiSchema, createInvitationSchema } from "@/schemas/invitation.schema";
 import type { InvitationStatus, UserRole } from "@/generated/prisma/enums";
 
+import { passwordAuthError } from "./password-policy";
 import { acceptInvitationSchema, loginWithPasswordSchema } from "./schemas";
 
 const INVITATION_TTL_DAYS = 7;
@@ -32,7 +33,7 @@ export type StaffAuthResult =
   | { ok: false; error: string; reason?: "credentials" | "not_staff" | "inactive" };
 
 function firstIssueMessage(error: ZodError) {
-  return error.issues[0]?.message ?? "Invalid input";
+  return error.issues[0]?.message ?? "Revisá los datos ingresados";
 }
 
 /**
@@ -50,7 +51,7 @@ export async function signInStaff(input: unknown): Promise<StaffAuthResult> {
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error || !data.user) {
-    return { ok: false, error: "Incorrect email or password", reason: "credentials" };
+    return { ok: false, error: "El correo electrónico o la contraseña son incorrectos", reason: "credentials" };
   }
 
   const profile = await prisma.profile.findUnique({ where: { id: data.user.id } });
@@ -59,7 +60,7 @@ export async function signInStaff(input: unknown): Promise<StaffAuthResult> {
     await supabase.auth.signOut();
     return {
       ok: false,
-      error: "This account doesn't have access to the dashboard.",
+      error: "Esta cuenta no tiene acceso al panel.",
       reason: "not_staff",
     };
   }
@@ -68,7 +69,7 @@ export async function signInStaff(input: unknown): Promise<StaffAuthResult> {
     await supabase.auth.signOut();
     return {
       ok: false,
-      error: "Your account is inactive. Please contact an administrator.",
+      error: "Tu cuenta está inactiva. Contactá a un administrador.",
       reason: "inactive",
     };
   }
@@ -107,12 +108,12 @@ async function releaseOrphanedAuthEmail(email: string): Promise<string | null> {
   if (!existing) return null;
 
   const profile = await prisma.profile.findUnique({ where: { id: existing.id } });
-  if (profile) return "An account with this email already exists.";
+  if (profile) return "Ya existe una cuenta con este correo electrónico.";
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(existing.id);
   if (deleteError && deleteError.status !== 404) {
     console.error(`Failed to clear orphaned auth user ${existing.id}:`, deleteError);
-    return "This email is still registered to a removed account. Please try again in a moment.";
+    return "Este correo sigue asociado a una cuenta eliminada. Volvé a intentar en unos instantes.";
   }
   return null;
 }
@@ -142,14 +143,14 @@ export async function createAgentInvitation(
   // Defense-in-depth for the optional future where MANAGER gets agents:invite:
   // a non-ADMIN inviter may only ever invite AGENTs, never MANAGERs or ADMINs.
   if (!isAdmin(inviter.role) && role !== "AGENT") {
-    return { ok: false, error: "You can only invite agents." };
+    return { ok: false, error: "Solo podés invitar agentes." };
   }
 
   // Inviting an ADMIN is a privilege-escalation path — gate it on top of
   // agents:invite with its own permission, checked against the inviter we
   // already loaded above (no extra DB round-trip).
   if (role === "ADMIN" && !hasPermission(inviter.role, "invitations:inviteAdmin")) {
-    return { ok: false, error: "You don't have permission to invite an Admin." };
+    return { ok: false, error: "No tenés permiso para invitar a un administrador." };
   }
 
   if (teamLeaderId) {
@@ -158,14 +159,14 @@ export async function createAgentInvitation(
       select: { role: true, status: true },
     });
     if (!leader || (leader.role !== "MANAGER" && leader.role !== "ADMIN") || leader.status !== "ACTIVE") {
-      return { ok: false, error: "Team leader must be an active Manager or Admin." };
+      return { ok: false, error: "El responsable del equipo debe ser un gerente o administrador activo." };
     }
   }
 
   // Reject if the email already belongs to an account.
   const existingProfile = await prisma.profile.findUnique({ where: { email } });
   if (existingProfile) {
-    return { ok: false, error: "An account with this email already exists." };
+    return { ok: false, error: "Ya existe una cuenta con este correo electrónico." };
   }
 
   // A profile check alone isn't enough: Supabase Auth can still hold the
@@ -249,14 +250,14 @@ export async function setInvitationAvatar(
 
   const invitation = await prisma.agentInvitation.findUnique({ where: { id: invitationId } });
   if (!invitation || invitation.status !== "PENDING") {
-    return { ok: false, error: "Invitation not found." };
+    return { ok: false, error: "No encontramos la invitación." };
   }
 
   if (file.size > MAX_INVITATION_AVATAR_BYTES) {
-    return { ok: false, error: "Image must be smaller than 5MB." };
+    return { ok: false, error: "La imagen debe pesar menos de 5 MB." };
   }
   if (!ALLOWED_INVITATION_AVATAR_TYPES.has(file.type)) {
-    return { ok: false, error: "Image must be a PNG, JPEG, WEBP or GIF." };
+    return { ok: false, error: "La imagen debe ser PNG, JPEG, WEBP o GIF." };
   }
 
   try {
@@ -264,7 +265,7 @@ export async function setInvitationAvatar(
     await prisma.agentInvitation.update({ where: { id: invitationId }, data: { avatarPath } });
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Failed to upload photo." };
+    return { ok: false, error: "No pudimos subir la foto. Volvé a intentar." };
   }
 }
 
@@ -346,15 +347,15 @@ export async function validateInvitationToken(token: string): Promise<Invitation
  * email and show the assigned role. Does not consume the invitation.
  */
 export async function getInvitationByToken(token: string): Promise<InvitationInfo> {
-  if (!token) return { ok: false, error: "Missing invitation token." };
+  if (!token) return { ok: false, error: "Falta el código de invitación." };
 
   const result = await validateInvitationToken(token);
   if (!result.valid) {
     const messages: Record<typeof result.reason, string> = {
-      INVALID: "This invitation link is invalid.",
-      EXPIRED: "This invitation link has expired.",
-      ACCEPTED: "This invitation has already been used or cancelled.",
-      REVOKED: "This invitation has already been used or cancelled.",
+      INVALID: "El enlace de invitación no es válido.",
+      EXPIRED: "El enlace de invitación venció.",
+      ACCEPTED: "Esta invitación ya se usó o fue cancelada.",
+      REVOKED: "Esta invitación ya se usó o fue cancelada.",
     };
     return { ok: false, error: messages[result.reason] };
   }
@@ -380,14 +381,14 @@ export async function acceptAgentInvitation(input: unknown): Promise<StaffAuthRe
   });
 
   if (!invitation || invitation.status !== "PENDING") {
-    return { ok: false, error: "This invitation is no longer valid." };
+    return { ok: false, error: "Esta invitación ya no es válida." };
   }
   if (invitation.expiresAt.getTime() < Date.now()) {
     await prisma.agentInvitation.update({
       where: { id: invitation.id },
       data: { status: "EXPIRED" },
     });
-    return { ok: false, error: "This invitation link has expired." };
+    return { ok: false, error: "El enlace de invitación venció." };
   }
 
   const admin = createAdminClient();
@@ -401,7 +402,7 @@ export async function acceptAgentInvitation(input: unknown): Promise<StaffAuthRe
   if (createError || !created.user) {
     return {
       ok: false,
-      error: createError?.message ?? "Could not create your account. Please try again.",
+      error: passwordAuthError(createError ?? {}),
     };
   }
 
@@ -499,14 +500,14 @@ export async function acceptInvitationApi(input: unknown): Promise<AcceptInvitat
   });
 
   if (!invitation || invitation.status !== "PENDING") {
-    return { ok: false, error: "This invitation is no longer valid." };
+    return { ok: false, error: "Esta invitación ya no es válida." };
   }
   if (invitation.expiresAt.getTime() < Date.now()) {
     await prisma.agentInvitation.update({
       where: { id: invitation.id },
       data: { status: "EXPIRED" },
     });
-    return { ok: false, error: "This invitation link has expired." };
+    return { ok: false, error: "El enlace de invitación venció." };
   }
 
   const fullName = `${firstName} ${lastName}`.trim();
@@ -522,7 +523,7 @@ export async function acceptInvitationApi(input: unknown): Promise<AcceptInvitat
   if (createError || !created.user) {
     return {
       ok: false,
-      error: createError?.message ?? "Could not create your account. Please try again.",
+      error: passwordAuthError(createError ?? {}),
     };
   }
 
@@ -643,16 +644,16 @@ export type ResendInvitationResult =
  */
 export async function resendInvitation(invitationId: string): Promise<ResendInvitationResult> {
   if (!invitationId || typeof invitationId !== "string") {
-    return { ok: false, error: "Invalid invitation." };
+    return { ok: false, error: "La invitación no es válida." };
   }
 
   const authz = await requirePermission("invitations:resend");
   if (!authz.ok) return { ok: false, error: authz.error };
 
   const invitation = await prisma.agentInvitation.findUnique({ where: { id: invitationId } });
-  if (!invitation) return { ok: false, error: "Invitation not found." };
+  if (!invitation) return { ok: false, error: "No encontramos la invitación." };
   if (invitation.status !== "PENDING" && invitation.status !== "EXPIRED") {
-    return { ok: false, error: "Only pending or expired invitations can be resent." };
+    return { ok: false, error: "Solo podés reenviar invitaciones pendientes o vencidas." };
   }
 
   // The email may have signed up through another path since the invite was sent.
@@ -660,7 +661,7 @@ export async function resendInvitation(invitationId: string): Promise<ResendInvi
     where: { email: invitation.email },
   });
   if (existingProfile) {
-    return { ok: false, error: "An account with this email already exists." };
+    return { ok: false, error: "Ya existe una cuenta con este correo electrónico." };
   }
 
   const rawToken = generateInviteToken();
@@ -699,16 +700,16 @@ export type RevokeInvitationResult = { ok: true } | { ok: false; error: string }
  */
 export async function revokeInvitation(invitationId: string): Promise<RevokeInvitationResult> {
   if (!invitationId || typeof invitationId !== "string") {
-    return { ok: false, error: "Invalid invitation." };
+    return { ok: false, error: "La invitación no es válida." };
   }
 
   const authz = await requirePermission("invitations:revoke");
   if (!authz.ok) return { ok: false, error: authz.error };
 
   const invitation = await prisma.agentInvitation.findUnique({ where: { id: invitationId } });
-  if (!invitation) return { ok: false, error: "Invitation not found." };
+  if (!invitation) return { ok: false, error: "No encontramos la invitación." };
   if (invitation.status !== "PENDING") {
-    return { ok: false, error: "Only pending invitations can be revoked." };
+    return { ok: false, error: "Solo podés revocar invitaciones pendientes." };
   }
 
   await prisma.agentInvitation.update({

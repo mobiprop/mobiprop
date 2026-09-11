@@ -135,7 +135,7 @@ export function StaffLoginPageContent() {
     if (!result.ok) {
       setIsSubmitting(false);
       setEmailError(result.reason === "credentials" || result.reason === "not_staff");
-      flashBanner({ type: "error", title: "Couldn't sign you in", message: result.error });
+      flashBanner({ type: "error", title: "No pudimos iniciar sesión", message: result.error });
       return;
     }
 

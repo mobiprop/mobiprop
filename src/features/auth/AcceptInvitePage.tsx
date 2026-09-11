@@ -121,7 +121,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
 
     if (!result.ok) {
       setIsSubmitting(false);
-      flashBanner({ type: "error", title: "Couldn't create your account", message: result.error });
+      flashBanner({ type: "error", title: "No pudimos crear la cuenta", message: result.error });
       return;
     }
 
@@ -215,7 +215,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
                   </div>
                 </div>
                 <span className="text-[12px] leading-[22px] text-[#232323]" style={{ ...poppins, fontWeight: 500 }}>
-                  Acepto los <Link href="/terms-conditions" className="text-[#1e4f86] hover:underline">Términos de servicio</Link> and <Link href="/privacy-policy" className="text-[#1e4f86] hover:underline">Política de privacidad</Link>
+                  Acepto los <Link href="/terms-conditions" className="text-[#1e4f86] hover:underline">Términos de servicio</Link> y la <Link href="/privacy-policy" className="text-[#1e4f86] hover:underline">Política de privacidad</Link>
                 </span>
               </label>
 

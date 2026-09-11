@@ -39,12 +39,12 @@ export const updatePasswordSchema = z
 
 export const acceptInvitationSchema = z
   .object({
-    token: z.string().min(10, "Invalid invitation link"),
+    token: z.string().min(10, "El enlace de invitación no es válido"),
     fullName: z.string().trim().min(2, "Ingresá tu nombre completo"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(8, "Confirm your password"),
+    password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+    confirmPassword: z.string().min(8, "Confirmá tu contraseña"),
     acceptedTerms: z.literal(true, {
-      message: "You must accept the Terms of Service and Privacy Policy",
+      message: "Aceptá los términos de servicio y la política de privacidad",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {

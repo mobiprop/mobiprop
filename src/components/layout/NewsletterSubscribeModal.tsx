@@ -76,7 +76,7 @@ export function NewsletterSubscribeModal({ initialEmail = "", onClose }: Props) 
             <h2 className="text-[18px] font-bold text-white" style={mont}>
               {t("subscribeModal.title")}
             </h2>
-            <button onClick={onClose} className="p-1.5 rounded-[8px] bg-white/10 hover:bg-white/20 transition-colors">
+            <button aria-label="Cerrar suscripción" onClick={onClose} className="p-1.5 rounded-[8px] bg-white/10 hover:bg-white/20 transition-colors">
               <X size={16} color="white" />
             </button>
           </div>

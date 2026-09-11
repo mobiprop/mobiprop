@@ -75,7 +75,6 @@ const TIMEZONE_VALUES = [
 ];
 
 const LANGUAGES = [
-  { value: "en", label: "Inglés" },
   { value: "es", label: "Español" },
 ];
 

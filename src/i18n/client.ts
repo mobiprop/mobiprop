@@ -133,6 +133,7 @@ if (!i18next.isInitialized) {
     resources,
     lng: DEFAULT_LANGUAGE,
     fallbackLng: "es",
+    supportedLngs: ["es"],
     ns: ["common", "navigation", "footer", "home", "faq", "listings", "listingDetail", "blog", "about", "contact", "terms", "privacy", "dashboard", "dashboardSettings", "accountProfile", "savedListings", "accountSettings", "auth", "agents", "contacts", "dashboardListings", "leads", "opportunities", "docusign", "sendgrid", "integrations", "locations", "dashboardBlog", "messages"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
