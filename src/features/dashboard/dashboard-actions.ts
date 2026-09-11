@@ -228,12 +228,13 @@ export async function getDashboardMetrics(
     (o) => o.status === OpportunityStatus.OPEN && inPrevWindow(o.createdAt),
   );
   // CLOSED_WON deals window on closedAt (the date the rate was locked), not
-  // updatedAt — a later unrelated edit shouldn't move a deal's reporting date.
+  // updatedAt. Legacy records without closedAt use updatedAt as a reporting
+  // fallback; this does not infer or overwrite the actual closing date.
   const wonInWindow = opportunityRows.filter(
-    (o) => o.status === OpportunityStatus.CLOSED_WON && o.closedAt && inWindow(o.closedAt),
+    (o) => o.status === OpportunityStatus.CLOSED_WON && inWindow(o.closedAt ?? o.updatedAt),
   );
   const wonInPrevWindow = opportunityRows.filter(
-    (o) => o.status === OpportunityStatus.CLOSED_WON && o.closedAt && inPrevWindow(o.closedAt),
+    (o) => o.status === OpportunityStatus.CLOSED_WON && inPrevWindow(o.closedAt ?? o.updatedAt),
   );
   const lostInWindow = opportunityRows.filter((o) => o.status === OpportunityStatus.CLOSED_LOST && inWindow(o.updatedAt));
   const lostInPrevWindow = opportunityRows.filter(
@@ -425,9 +426,8 @@ export async function getRevenueChart(
     const wonInBucket = rows.filter(
       (o) =>
         o.status === OpportunityStatus.CLOSED_WON &&
-        o.closedAt &&
-        o.closedAt >= bucketStart &&
-        o.closedAt <= bucketEnd,
+        (o.closedAt ?? o.updatedAt) >= bucketStart &&
+        (o.closedAt ?? o.updatedAt) <= bucketEnd,
     );
     const revenue = wonInBucket.reduce((s, o) => s + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0);
     const revenueNet = wonInBucket.reduce((s, o) => s + (resolveNetCompanyRevenueUsd(o, liveRate) ?? 0), 0);
@@ -436,6 +436,7 @@ export async function getRevenueChart(
       .reduce((s, o) => s + (resolveCompanyRevenueUsd(o, liveRate) ?? 0), 0);
     return {
       label,
+      legacyDateCount: wonInBucket.filter((o) => !o.closedAt).length,
       revenue: Math.round(revenue),
       revenueNet: Math.round(revenueNet),
       openOpportunities: Math.round(openOpportunities),
@@ -465,7 +466,7 @@ export async function getSalesByAgent(
   const [rows, liveRate] = await Promise.all([
     prisma.opportunity.findMany({
       where: {
-        AND: [scope, { status: OpportunityStatus.CLOSED_WON }, { closedAt: { gte: start, lte: end } }],
+        AND: [scope, { status: OpportunityStatus.CLOSED_WON }, { OR: [{ closedAt: { gte: start, lte: end } }, { closedAt: null, updatedAt: { gte: start, lte: end } }] }],
       },
       select: {
         opportunityId: true,

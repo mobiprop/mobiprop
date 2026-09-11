@@ -24,6 +24,8 @@ export type ChartPoint = {
   /** revenue minus the agent's cut — what the company actually keeps. */
   revenueNet: number;
   openOpportunities: number;
+  /** Legacy won deals reported by updatedAt because closedAt is missing. */
+  legacyDateCount?: number;
 };
 
 export type LocationRow = { name: string; count: number };

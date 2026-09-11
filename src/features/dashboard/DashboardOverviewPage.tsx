@@ -29,6 +29,7 @@ import {
   Search,
   TrendingDown,
   TrendingUp,
+  Target,
 } from "lucide-react";
 
 import type { Role } from "@/lib/permissions";
@@ -62,22 +63,22 @@ function MetricIcon({ card }: { card: MetricCard }) {
   const key = card.key;
 
   if (key === "listings" || key === "my-listings") {
-    return <Building2 size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
+    return <Building2 size={18} strokeWidth={1} style={{ color: card.iconColor }} />;
   }
 
   if (key === "lost") {
-    return <TrendingDown size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
+    return <TrendingDown size={18} strokeWidth={1.2} style={{ color: card.iconColor }} />;
   }
 
   if (key === "won" || key === "my-won" || key === "my-open") {
-    return <TrendingUp size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
+    return <TrendingUp size={18} strokeWidth={1.2} style={{ color: card.iconColor }} />;
   }
 
   if (key === "revenue" || key === "my-commission") {
-    return <DollarSign size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
+    return <DollarSign size={18} strokeWidth={1.2} style={{ color: card.iconColor }} />;
   }
 
-  return <Building2 size={18} strokeWidth={1.8} style={{ color: card.iconColor }} />;
+  return <Building2 size={18} strokeWidth={1.2} style={{ color: card.iconColor }} />;
 }
 
 const METRIC_LABEL_KEY: Record<string, string> = {
@@ -98,8 +99,8 @@ function MetricCardView({ card }: { card: MetricCard }) {
   const chartData = card.sparkline.map((value, index) => ({ index, value }));
 
   return (
-    <div className="min-w-0 flex-1 rounded-[12px] border border-[#e9e9e9] bg-white p-[18px]">
-      <div className="mb-2 flex items-start justify-between">
+    <div className="flex min-h-[188px] min-w-0 flex-1 flex-col rounded-[12px] border border-[#e9e9e9] bg-white p-[18px]">
+      <div className="mb-2 flex min-h-9 items-start justify-between gap-2">
         <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>
           {t(METRIC_LABEL_KEY[card.key] ?? card.label, { defaultValue: card.label })}
         </p>
@@ -111,55 +112,43 @@ function MetricCardView({ card }: { card: MetricCard }) {
         </span>
       </div>
 
-      {card.netValue ? (
-        <div className="mb-1 flex flex-col gap-1">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[20px] font-semibold text-[#0d2138]" style={poppins}>
-              {card.value}
-            </span>
-            <span className="text-[11px] font-medium text-[#99a1af]" style={mont}>
-              {t("overview.metrics.grossLabel")}
-            </span>
+      <div className="flex min-h-[48px] items-start">
+        {card.netValue ? (
+          <div className="grid w-full min-w-0 grid-cols-2 gap-3">
+            <div className="min-w-0">
+              <p className="break-words text-[18px] font-medium leading-6 text-[#002b49]" style={poppins}>{card.value}</p>
+              <p className="text-[11px] leading-4 text-[#6c6c6c]" style={mont}>{t("overview.metrics.grossLabel")}</p>
+            </div>
+            <div className="min-w-0">
+              <p className="break-words text-[18px] font-medium leading-6 text-[#5486b9]" style={poppins}>{card.netValue}</p>
+              <p className="text-[11px] leading-4 text-[#6c6c6c]" style={mont}>{t("overview.metrics.netLabel")}</p>
+            </div>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[20px] font-semibold text-[#059669]" style={poppins}>
-              {card.netValue}
-            </span>
-            <span className="text-[11px] font-medium text-[#99a1af]" style={mont}>
-              {t("overview.metrics.netLabel")}
-            </span>
+        ) : (
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[28px] font-medium leading-8 text-[#232323]" style={poppins}>{card.value}</span>
+            {card.sub && <span className="text-[12px] text-[#6c6c6c]" style={mont}>{card.sub}</span>}
           </div>
-        </div>
-      ) : (
-        <div className="mb-1 flex items-baseline gap-2">
-          <span className="text-[28px] font-medium text-[#0d2138]" style={poppins}>
-            {card.value}
-          </span>
+        )}
+      </div>
 
-          {card.sub && (
-            <span className="text-[14px] font-medium text-[#6a7282]" style={mont}>
-              {card.sub}
-            </span>
-          )}
-        </div>
-      )}
-
-      <div className="mb-4 flex flex-wrap items-center gap-1.5 text-[11px]" style={mont}>
+      <div className="mb-3 flex flex-wrap items-center gap-1.5 text-[11px]" style={mont}>
         <span className={`inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 font-medium ${isUp ? "bg-[#dcfce7] text-[#008236]" : "bg-[#fff1f2] text-[#e11d48]"}`}>
           {card.trendValue}
           {isUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
         </span>
-        <span className="text-[#6c6c6c]">{card.trendText}</span>
+        <span className="text-[#6c6c6c]">{t("overview.previousPeriod", { defaultValue: "vs. período anterior" })}</span>
       </div>
 
-      <div className="h-7 w-full">
+      <div className="mt-auto h-6 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 3, right: 0, bottom: 0, left: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 4, right: 0, bottom: 4, left: 0 }}>
+            <YAxis hide domain={[0, (max: number) => Math.max(max * 1.2, 1)]} />
             <Area
               type="monotone"
               dataKey="value"
               stroke={sparkColor}
-              strokeWidth={1.8}
+              strokeWidth={1.2}
               fill="transparent"
               dot={false}
               isAnimationActive={false}
@@ -362,31 +351,31 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
   return (
     <div
-      className="w-[237px] rounded-[24px] border border-[#f3f4f6] bg-white p-[18px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
+      className="w-[237px] rounded-[12px] border border-[#e9e9e9] bg-white p-[18px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
       style={mont}
     >
       {/* Header */}
-      <span className="text-[12px] font-bold text-[#6a7282] tracking-wider" style={mont}>
+      <span className="text-[12px] font-medium text-[#6a7282] tracking-wider" style={mont}>
         {String(label).toUpperCase()}
       </span>
 
-      <div className="my-3 border-b border-[#f3f4f6]" />
+      <div className="my-3 border-b border-[#e9e9e9]" />
 
       {/* Rows */}
       <div className="flex flex-col gap-3">
         {/* Revenue */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#fff1f2]">
-              <span className="text-[15px] font-bold text-[#005089]" style={poppins}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#f0f6fa]">
+              <span className="text-[15px] font-medium text-[#005089]" style={poppins}>
                 $
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
+              <span className="text-[13px] font-medium text-[#6c6c6c]" style={mont}>
                 {t("overview.tooltip.revenue")}
               </span>
-              <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
+              <span className="text-[15px] font-medium text-[#0d2138] leading-tight" style={poppins}>
                 US${revenue.toLocaleString("en-US", { maximumFractionDigits: 0 })}
               </span>
             </div>
@@ -397,48 +386,34 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         {/* Net Revenue */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#ecfdf5]">
-              <span className="text-[15px] font-bold text-[#059669]" style={poppins}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#f0f6fa]">
+              <span className="text-[15px] font-medium text-[#5486b9]" style={poppins}>
                 $
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
+              <span className="text-[13px] font-medium text-[#6c6c6c]" style={mont}>
                 {t("overview.tooltip.revenueNet")}
               </span>
-              <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
+              <span className="text-[15px] font-medium text-[#0d2138] leading-tight" style={poppins}>
                 US${revenueNet.toLocaleString("en-US", { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
-          <span className="h-2 w-2 rounded-full bg-[#059669] shrink-0" />
+          <span className="h-2 w-2 rounded-full bg-[#5486b9] shrink-0" />
         </div>
 
         {/* Open Opportunities */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#fff7ed]">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#5c93cb"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="shrink-0"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="6" />
-                <circle cx="12" cy="12" r="2" />
-              </svg>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#f0f6fa]">
+              <Target size={16} strokeWidth={1.5} className="shrink-0 text-[#5c93cb]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[13px] font-medium text-[#8f9cae]" style={mont}>
+              <span className="text-[13px] font-medium text-[#6c6c6c]" style={mont}>
                 {t("overview.tooltip.openOpportunities")}
               </span>
-              <span className="text-[15px] font-bold text-[#0d2138] leading-tight" style={poppins}>
+              <span className="text-[15px] font-medium text-[#0d2138] leading-tight" style={poppins}>
                 US${openOpportunities.toLocaleString("en-US", { maximumFractionDigits: 0 })}
               </span>
             </div>
@@ -718,9 +693,9 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
           </div>
 
           <div className="h-[210px] w-full min-w-0 sm:h-[230px] lg:h-[220px]">
-            {mounted && !chartQuery.isLoading && chartData.length > 0 && (
+            {mounted && !chartQuery.isLoading && !chartQuery.isError && chartData.length > 0 && (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 8, right: 0, left: -28, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
                   <defs>
                     <linearGradient id="grad-revenue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#005089" stopOpacity={0.18} />
@@ -749,7 +724,8 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     axisLine={false}
                     tickLine={false}
                     tickMargin={5}
-                    width={42}
+                    width={56}
+                    tickFormatter={(value: number) => new Intl.NumberFormat("es-AR", { notation: "compact", maximumFractionDigits: 1 }).format(value)}
                     tick={{ fontSize: 9, fill: "#99a1af" }}
                   />
 
@@ -759,7 +735,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     type="monotone"
                     dataKey="openOpportunities"
                     stroke="#5c93cb"
-                    strokeWidth={1.8}
+                    strokeWidth={1.2}
                     fill="url(#grad-opps)"
                     dot={false}
                     isAnimationActive={false}
@@ -769,7 +745,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     type="monotone"
                     dataKey="revenue"
                     stroke="#005089"
-                    strokeWidth={1.8}
+                    strokeWidth={1.2}
                     fill="url(#grad-revenue)"
                     dot={false}
                     isAnimationActive={false}
@@ -778,12 +754,22 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               </ResponsiveContainer>
             )}
 
-            {mounted && !chartQuery.isLoading && chartData.length === 0 && (
+            {mounted && chartQuery.isError && (
+              <div role="alert" className="flex h-full items-center justify-center text-sm text-[#005089]">
+                <button type="button" onClick={() => chartQuery.refetch()}>No se pudo cargar el gráfico. Reintentar</button>
+              </div>
+            )}
+            {mounted && !chartQuery.isLoading && !chartQuery.isError && chartData.length === 0 && (
               <div className="flex h-full items-center justify-center text-[12px] text-[#99a1af]" style={mont}>
                 {t("overview.noChartData")}
               </div>
             )}
           </div>
+          {chartData.some((point) => (point.legacyDateCount ?? 0) > 0) && (
+            <p className="mt-2 text-[10px] leading-4 text-[#6c6c6c]" style={mont}>
+              Los cierres anteriores sin fecha registrada se muestran según su última actualización.
+            </p>
+          )}
         </div>
 
         {/* Locations */}
