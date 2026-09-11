@@ -1,8 +1,8 @@
 import { APP_NAME, APP_URL } from "@/lib/constants";
 
 /**
- * Branded transactional-email templates (Figma m7m0HOXQCThkxwPegWpTIh, nodes
- * 61-998 / 61-1153 / 61-1380 / 61-1571).
+ * Branded transactional-email templates. Current Figma welcome, verification,
+ * reset and visit designs are implemented in transactional-email-design.ts.
  *
  * Everything is table-based with inline styles so it survives Gmail/Outlook.
  * Renderers are pure string builders — safe to call from scripts as well as
@@ -11,7 +11,7 @@ import { APP_NAME, APP_URL } from "@/lib/constants";
  */
 
 // Shared with the marketing/newsletter templates (email-marketing-templates.ts)
-// so campaign emails carry exactly the same brand shell as auth emails.
+// Campaign and legacy notification templates retain this shell.
 export const BRAND = {
   navy: "#0d2138",
   heroFrom: "#005ea4",
@@ -149,69 +149,6 @@ function layout(opts: {
 /* OTP verification code — Figma 61-998                                */
 /* ------------------------------------------------------------------ */
 
-export function renderOtpEmail(params: {
-  /** Verification code — real digits or a template var like `{{ .Token }}`. */
-  code: string;
-  confirmationUrl?: string;
-  /** Recipient email shown in the hero copy; omit for a generic line. */
-  email?: string;
-  expiresMinutes?: number;
-  requestedAt?: string;
-  device?: string;
-  location?: string;
-}): string {
-  const { code, email, confirmationUrl, expiresMinutes = 60, requestedAt, device, location } = params;
-
-  const digits = /^\d{4,8}$/.test(code)
-    ? code
-        .split("")
-        .map(
-          (d) => `<td align="center" style="width:56px;height:64px;background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;font-family:${FONT};font-size:28px;font-weight:700;color:${BRAND.heroFrom};">${d}</td><td style="width:10px;font-size:0;">&nbsp;</td>`,
-        )
-        .join("")
-    : `<td align="center" style="height:64px;background-color:${BRAND.cardBg};border:1px solid ${BRAND.cardBorder};border-radius:12px;font-family:${FONT};font-size:28px;font-weight:700;letter-spacing:10px;color:${BRAND.heroFrom};padding:0 24px;">${code}</td>`;
-
-  const metaEntries: Array<[string, string | undefined]> = [
-    ["Solicitado", requestedAt],
-    ["Dispositivo", device],
-    ["Ubicación", location],
-  ];
-  const presentMeta = metaEntries.filter((e): e is [string, string] => Boolean(e[1]));
-
-  const meta = presentMeta.length
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;border:1px solid #f0f0f0;border-radius:12px;background-color:#fcfcfd;"><tr>
-        ${presentMeta
-          .map(
-            ([k, v], i) =>
-              `<td style="padding:16px;${i < presentMeta.length - 1 ? "border-right:1px solid #f0f0f0;" : ""}"><div style="font-family:${FONT};font-size:11px;color:${BRAND.faint};">${k}</div><div style="font-family:${FONT};font-size:13px;font-weight:600;color:${BRAND.text};margin-top:4px;">${v}</div></td>`,
-          )
-          .join("")}
-      </tr></table>`
-    : "";
-
-  const body = `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;"><tr>${digits}</tr></table>
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;"><tr>
-      <td style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:8px 18px;font-family:${FONT};font-size:13px;font-weight:600;color:#f97316;">&bull;&nbsp; El código expira en ${expiresMinutes} minutos</td>
-    </tr></table>
-    ${confirmationUrl ? button("Confirmar mi cuenta", confirmationUrl) : ""}
-    ${securityNote(`Mobi Prop nunca te pedirá este código por teléfono o email. Nunca lo compartas con nadie.`)}
-    ${meta}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:24px;text-align:center;">Si no solicitaste este código, podés ignorar este email de forma segura.</div>`;
-
-  return layout({
-    preheader: `Tu código de verificación de ${APP_NAME}`,
-    hero: {
-      icon: "icon-shield.png",
-      eyebrow: "Verificación de cuenta",
-      title: "Verificá tu Identidad",
-      subtitle: email
-        ? `Te enviamos un código de 6 dígitos a <strong style="color:#ffffff;">${email}</strong>.<br />Ingresalo abajo para continuar.`
-        : "Usá el código de 6 dígitos de abajo para continuar.",
-    },
-    bodyHtml: body,
-  });
-}
 
 /* ------------------------------------------------------------------ */
 /* Magic link / login with link — Figma 61-1380                        */
@@ -257,107 +194,11 @@ export function renderMagicLinkEmail(params: {
 /* Forgot / reset password — Figma 61-1571                             */
 /* ------------------------------------------------------------------ */
 
-export function renderPasswordResetEmail(params: {
-  /** Reset URL — real link or `{{ .ConfirmationURL }}`. */
-  url: string;
-  expiresMinutes?: number;
-}): string {
-  const { url, expiresMinutes = 60 } = params;
-
-  const step = (n: string, label: string, state: "done" | "active" | "todo") => {
-    const circle =
-      state === "todo"
-        ? `background-color:#ffffff;border:2px solid #d1d5db;color:#9ca3af;`
-        : `background-color:${BRAND.heroFrom};border:2px solid ${BRAND.heroFrom};color:#ffffff;`;
-    const text = state === "todo" ? "#9ca3af" : BRAND.heroFrom;
-    return `<td align="center" style="width:33%;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
-        <td align="center" valign="middle" style="width:36px;height:36px;border-radius:18px;${circle}font-family:${FONT};font-size:14px;font-weight:700;">${state === "done" ? "&#10003;" : n}</td>
-      </tr></table>
-      <div style="font-family:${FONT};font-size:13px;font-weight:600;color:${text};margin-top:8px;">${label}</div>
-    </td>`;
-  };
-
-  const body = `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;"><tr>
-      ${step("1", "Solicitud", "done")}
-      ${step("2", "Verificación", "active")}
-      ${step("3", "Restablecer", "todo")}
-    </tr></table>
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">No te preocupes, le pasa a cualquiera. Hacé clic en el botón de abajo para elegir una nueva contraseña.</div>
-    ${button("Restablecer Mi Contraseña", url)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Este enlace expira en ${expiresMinutes} minutos y solo puede usarse una vez.</div>
-    ${fallbackLink(url)}
-    ${securityNote(`Si no solicitaste restablecer tu contraseña, ignorá este email — tu contraseña no cambiará.`)}`;
-
-  return layout({
-    preheader: `Restablecé tu contraseña de ${APP_NAME}`,
-    hero: {
-      icon: "icon-key.png",
-      eyebrow: "Restablecimiento de contraseña",
-      title: "¿Olvidaste tu Contraseña?",
-      subtitle: "Ingresá una nueva contraseña con un clic.<br />Te ayudamos a volver a tu cuenta de forma segura.",
-    },
-    bodyHtml: body,
-  });
-}
 
 /* ------------------------------------------------------------------ */
 /* Welcome / registration success — Figma 61-1153                      */
 /* ------------------------------------------------------------------ */
 
-export function renderWelcomeEmail(params: { name?: string; ctaUrl?: string }): string {
-  const { name, ctaUrl = APP_URL } = params;
-
-  const steps: Array<[string, string, string]> = [
-    ["1", "Completá tu Perfil", "Agregá tu foto y preferencias para propiedades personalizadas."],
-    ["2", "Explorá Propiedades", "Explorá miles de propiedades premium verificadas."],
-    ["3", "Agendá Visitas", "Reservá recorridos para hoy o una fecha futura desde cualquier propiedad."],
-  ];
-
-  const stepRows = steps
-    .map(
-      ([n, title, desc]) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;"><tr>
-        <td style="background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td valign="top" style="width:32px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td align="center" valign="middle" style="width:24px;height:24px;border-radius:12px;background-color:${BRAND.heroFrom};font-family:${FONT};font-size:12px;font-weight:700;color:#ffffff;">${n}</td>
-              </tr></table>
-            </td>
-            <td>
-              <div style="font-family:${FONT};font-size:15px;font-weight:600;color:${BRAND.text};">${title}</div>
-              <div style="font-family:${FONT};font-size:13px;color:${BRAND.muted};margin-top:4px;line-height:1.5;">${desc}</div>
-            </td>
-          </tr></table>
-        </td>
-      </tr></table>`,
-    )
-    .join("");
-
-  const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">${
-      name ? `Hola <strong>${name}</strong>, tu` : "Tu"
-    } cuenta está lista. Empezá a explorar propiedades premium hoy.</div>
-    ${button("Explorar Propiedades", ctaUrl)}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;"><tr>
-      <td style="background-color:${BRAND.cardBg};border-radius:16px;padding:24px;">
-        <div style="font-family:${FONT};font-size:16px;font-weight:600;color:${BRAND.heroFrom};text-align:center;">Qué sigue ahora</div>
-        ${stepRows}
-      </td>
-    </tr></table>`;
-
-  return layout({
-    preheader: `Bienvenido a ${APP_NAME} — tu cuenta está lista`,
-    hero: {
-      icon: "icon-check.png",
-      eyebrow: "Registro exitoso",
-      title: "Bienvenido a Ulrich",
-      subtitle: "Tu cuenta fue creada.<br />Empezá a explorar propiedades premium.",
-    },
-    bodyHtml: body,
-  });
-}
 
 /* ------------------------------------------------------------------ */
 /* Tour confirmed — same brand shell as the auth emails above           */
@@ -388,51 +229,6 @@ function agentNoteBox(label: string, note: string): string {
     </tr></table>`;
 }
 
-export function renderTourConfirmedEmail(params: {
-  submittedName: string;
-  tourNumber: string;
-  /** Pre-formatted, e.g. "Monday, July 20, 2026 at 6:00 PM". */
-  scheduledAtLabel: string;
-  /** Pre-formatted, e.g. "1 hour". */
-  durationLabel: string;
-  propertyTitle?: string | null;
-  propertyLocation?: string | null;
-  agentName?: string | null;
-  confirmationNote?: string | null;
-  /** "My Tours" (profile page) URL. */
-  ctaUrl: string;
-}): string {
-  const { submittedName, tourNumber, scheduledAtLabel, durationLabel, propertyTitle, propertyLocation, agentName, confirmationNote, ctaUrl } = params;
-
-  const rows: Array<[string, string]> = [
-    ...(propertyTitle ? [["Propiedad", propertyLocation ? `${propertyTitle} — ${propertyLocation}` : propertyTitle] as [string, string]] : []),
-    ["Fecha y Hora", scheduledAtLabel],
-    ["Duración", durationLabel],
-    ...(agentName ? [["Agente", agentName] as [string, string]] : []),
-    ["Referencia", tourNumber],
-  ];
-
-  const card = detailCard(rows);
-  const note = confirmationNote ? agentNoteBox("Nota de tu agente", confirmationNote) : "";
-
-  const body = `
-    <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hola <strong>${submittedName}</strong>, tu recorrido de la propiedad fue confirmado. Estos son los detalles:</div>
-    ${card}
-    ${note}
-    ${button("Ver Mis Recorridos", ctaUrl)}
-    <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">¿Necesitás reprogramar o cancelar? Podés gestionar este recorrido desde tu cuenta.</div>`;
-
-  return layout({
-    preheader: `Tu recorrido${propertyTitle ? ` para ${propertyTitle}` : ""} fue confirmado`,
-    hero: {
-      icon: "icon-check.png",
-      eyebrow: "Recorrido confirmado",
-      title: "¡Tu Recorrido está Confirmado!",
-      subtitle: `Nos vemos el <strong style="color:#ffffff;">${scheduledAtLabel}</strong>.`,
-    },
-    bodyHtml: body,
-  });
-}
 
 /* ------------------------------------------------------------------ */
 /* Tour rescheduled                                                     */
@@ -560,3 +356,5 @@ export function renderInvitationEmail(params: {
     bodyHtml: body,
   });
 }
+
+export { renderVerificationDesign as renderOtpEmail, renderResetDesign as renderPasswordResetEmail, renderWelcomeDesign as renderWelcomeEmail, renderVisitDesign as renderTourConfirmedEmail } from "./transactional-email-design";

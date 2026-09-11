@@ -18,7 +18,7 @@ In the mobi-prop Vercel project, set `NEXT_PUBLIC_APP_URL=https://mobi-prop.verc
 
 1. In SendGrid Settings → Sender Authentication, authenticate `mobiprop.com.ar`. Add the exact DNS records SendGrid gives you at the domain's DNS provider, then verify. Do not replace unrelated DNS or mail records. Disable Cloudflare proxying for the supplied authentication CNAMEs.
 2. Create a dedicated API key with Mail Send permission. Do not paste the key into source code or chat.
-3. Disable click tracking for authentication email so token links are not rewritten.
+3. Disable click tracking for authentication email in the dedicated Mobi SendGrid account so token links are not rewritten. Do not change Ulrich account-wide settings. App-generated emails disable click tracking per message.
 4. In the Mobi Prop Supabase project, Authentication → Emails → SMTP Settings, enable custom SMTP and save:
 
 | Setting | Value |
@@ -40,11 +40,11 @@ For app-generated emails, add `SENDGRID_API_KEY` as a secret in the **mobi-prop*
 | magic-link.html | Magic Link | Tu enlace para ingresar a Mobi Prop |
 | reset-password.html | Reset Password | Restablecé tu contraseña de Mobi Prop |
 
-Copy the complete HTML file into the corresponding editor. Keep the `{{ ... }}` variables intact. The signup template offers both the OTP and a direct token-hash confirmation link, so it also works when opened in another browser. Password recovery preserves the app's `/auth/callback?next=/new-password` redirect. Match the displayed expiration to your configured OTP lifetime (templates currently say 60 minutes).
+Copy the complete HTML file into the corresponding editor. Keep the `{{ ... }}` variables intact. The signup template delivers `{{ .Token }}` as a six-digit OTP. Its button opens `/verify-otp` with the email address; opening the button alone does not verify the account. Enable Confirm email in Authentication → Sign In / Providers → Email. Password recovery preserves the app's `/auth/callback?next=/new-password` redirect. The new verification and reset designs do not hardcode an expiration duration.
 
 ## Verify before calling email setup complete
 
-Request a fresh signup email using an address you control. Check From is `Mobi Prop <hola@mobiprop.com.ar>`, confirm the button opens the production domain and signs the user in, and verify the six-digit OTP alternative. Test password recovery with the same account. Check SendGrid Email Activity for delivery or bounce errors. Do not reuse an already-consumed token.
+Request a fresh signup email using an address you control. Check From is `Mobi Prop <hola@mobiprop.com.ar>`, confirm the button opens the production OTP page, enter the code, and verify the user can then sign in. Before verification, password login must fail. Test password recovery with the same account. Check SendGrid Email Activity for delivery or bounce errors. Do not reuse an already-consumed token.
 
 Regenerate after changing the shared renderer:
 
@@ -53,3 +53,15 @@ NEXT_PUBLIC_APP_URL=https://mobi-prop.vercel.app pnpm exec vitest run scripts/ge
 ```
 
 Sources: https://supabase.com/docs/guides/auth/redirect-urls · https://supabase.com/docs/guides/auth/auth-smtp · https://supabase.com/docs/guides/auth/auth-email-templates · https://www.twilio.com/docs/sendgrid/for-developers/sending-email/integrating-with-the-smtp-api
+
+## Figma implementation and dynamic content
+
+Design references: welcome 2771:2807, verification 2771:2740, reset 2769:2366, visit 2694:4127 in file 685I9vX5kdlHXAVRcraxvx.
+
+Welcome is sent after verified public login, OTP verification or callback, with a deterministic activity-log claim to prevent duplicate concurrent delivery. Failed provider sends release the claim for another login attempt. A process interruption can leave a pending claim; inspect WELCOME_EMAIL_PENDING before retrying manually. No marketing subscription is implied. Recommended listings are real published properties; the section is omitted when none exist. Sample counts, dates, Colombian contact details and nonfunctional newsletter links are replaced with actual transactional content.
+
+Visit-request receipt is sent after the public tour is saved. REQUESTED is not described as CONFIRMED. Agent confirmation retains its separate email. Dates in request emails explicitly use Buenos Aires time. SMTP delivery still needs end-to-end validation with a user-controlled account.
+
+## Node version warning
+
+The repository requires Node 22.x. Vercel mobi-prop currently has 24.x selected, so package.json overrides it. In mobi-prop → Settings → Build and Deployment → Node.js Version select 22.x and save. Keep Ulrich settings unchanged. This warning did not prevent the previous production deployment reaching Ready.

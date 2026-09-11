@@ -1,11 +1,13 @@
 import "server-only";
 
+import { after } from "next/server";
 import { format } from "date-fns";
 
+import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { sendTourCancelledEmail, sendTourConfirmedEmail, sendTourRescheduledEmail } from "@/lib/email";
+import { sendTourRequestedEmail, sendTourCancelledEmail, sendTourConfirmedEmail, sendTourRescheduledEmail } from "@/lib/email";
 import {
   notifyTourRequested,
   notifyTourAssigned,
@@ -777,16 +779,18 @@ export async function updateTourStatus(
   const agentName = row.assignedAgentId ? (agentMap.get(row.assignedAgentId)?.fullName ?? null) : null;
   try {
     if (newStatus === TourStatus.CONFIRMED && row.submittedEmail) {
+      const emailListing = row.propertyId ? await prisma.property.findUnique({where:{id:row.propertyId},include:{images:{orderBy:[{isCover:"desc"},{sortOrder:"asc"}],take:1}}}) : null;
       await sendTourConfirmedEmail({
         to: row.submittedEmail,
         submittedName: row.submittedName,
         tourNumber: row.tourNumber,
-        scheduledAtLabel: format(row.scheduledAt, "EEEE, MMMM d, yyyy 'at' h:mm a"),
+        scheduledAtLabel: new Intl.DateTimeFormat("en-US", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short"}).format(row.scheduledAt) + " (Buenos Aires)",
         durationLabel: formatTourDuration(row.durationMinutes),
         propertyTitle: row.property?.title ?? null,
         propertyLocation: row.property?.location ?? null,
         agentName,
         confirmationNote: row.confirmationNote,
+        property: emailListing ? {title:emailListing.title,location:emailListing.location,url:`${APP_URL}/listings/${emailListing.slug}`,image:emailListing.images[0]?.url,bedrooms:emailListing.bedrooms,bathrooms:emailListing.bathrooms,area:emailListing.totalAreaM2,price:emailListing.salePrice?`${emailListing.saleCurrency} ${Number(emailListing.salePrice).toLocaleString('en-US')}`:emailListing.rentPrice?`${emailListing.rentCurrency} ${Number(emailListing.rentPrice).toLocaleString('en-US')}`:undefined} : undefined,
       });
     } else if (newStatus === TourStatus.RESCHEDULED && newScheduledAt && row.submittedEmail) {
       await sendTourRescheduledEmail({
@@ -806,7 +810,7 @@ export async function updateTourStatus(
         to: row.submittedEmail,
         submittedName: row.submittedName,
         tourNumber: row.tourNumber,
-        scheduledAtLabel: format(row.scheduledAt, "EEEE, MMMM d, yyyy 'at' h:mm a"),
+        scheduledAtLabel: new Intl.DateTimeFormat("en-US", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short"}).format(row.scheduledAt) + " (Buenos Aires)",
         propertyTitle: row.property?.title ?? null,
         propertyLocation: row.property?.location ?? null,
         cancellationReason: row.cancellationReason,
@@ -890,13 +894,15 @@ export async function requestPublicTour(
   // Resolve the agent this tour/lead should belong to: the listing's assigned
   // agent, falling back to whoever created the listing, falling back to
   // unassigned (see resolveLeadAgent).
+  let emailProperty: import("@/lib/transactional-email-design").EmailProperty | undefined;
   let propertyTitle: string | null = null;
   let propertyLocation: string | null = null;
   if (d.propertyId) {
     const prop = await prisma.property.findUnique({
       where: { id: d.propertyId },
-      select: { title: true, location: true },
+      include: { images: { orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }], take: 1 } },
     });
+    if (prop) emailProperty = {title:prop.title,url:`${APP_URL}/listings/${prop.slug}`,image:prop.images[0]?.url,location:prop.location,bedrooms:prop.bedrooms,bathrooms:prop.bathrooms,area:prop.totalAreaM2,price:prop.salePrice?`${prop.saleCurrency} ${Number(prop.salePrice).toLocaleString('en-US')}`:prop.rentPrice?`${prop.rentCurrency} ${Number(prop.rentPrice).toLocaleString('en-US')}`:undefined};
     propertyTitle = prop?.title ?? null;
     propertyLocation = prop?.location ?? null;
   }
@@ -986,6 +992,18 @@ export async function requestPublicTour(
     start: scheduledAt,
     durationMinutes: d.durationMinutes,
   });
+
+  if (d.submittedEmail) {
+    const to = d.submittedEmail;
+    after(async () => {
+      const result = await sendTourRequestedEmail({
+        to, submittedName: d.submittedName, tourNumber: tour.tourNumber,
+        scheduledAtLabel: new Intl.DateTimeFormat('en-US', {timeZone:'America/Argentina/Buenos_Aires',dateStyle:'full',timeStyle:'short'}).format(scheduledAt) + ' (Buenos Aires)',
+        durationLabel: formatTourDuration(d.durationMinutes), propertyTitle, propertyLocation, property: emailProperty,
+      });
+      if (!result.sent) console.error('[tour] Request email failed', result.error);
+    });
+  }
 
   return { ok: true, tour: { id: tour.id, tourNumber: tour.tourNumber, scheduledAt: tour.scheduledAt.toISOString() } };
 }

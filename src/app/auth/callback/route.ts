@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
+import { sendVerifiedWelcome } from "@/lib/verified-welcome";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { canAccessDashboard } from "@/lib/permissions";
@@ -81,6 +82,8 @@ export async function GET(request: NextRequest) {
     await supabase.auth.signOut();
     return errorRedirect(origin, "staff_use_dashboard");
   }
+
+  if (profile.role === "USER" && !next) after(() => sendVerifiedWelcome(user));
 
   // 6. A safe `next` (e.g. password recovery → /new-password) wins over the
   //    default role landing page.

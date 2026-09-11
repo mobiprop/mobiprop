@@ -54,6 +54,7 @@ async function sendEmail(params: {
       to: params.to,
       subject: params.subject,
       html: params.html,
+      trackingSettings: { clickTracking: { enable: false, enableText: false } },
     });
     return { sent: true };
   } catch (err) {
@@ -133,11 +134,31 @@ export async function sendTourConfirmedEmail(params: {
   propertyLocation?: string | null;
   agentName?: string | null;
   confirmationNote?: string | null;
+  property?: import("./transactional-email-design").EmailProperty;
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
     subject: `Your tour is confirmed — ${APP_NAME}`,
     html: renderTourConfirmedEmail({ ...params, ctaUrl: `${APP_URL}/profile` }),
+  });
+}
+
+export async function sendTourRequestedEmail(params: {
+  to: string;
+  submittedName: string;
+  tourNumber: string;
+  scheduledAtLabel: string;
+  durationLabel: string;
+  propertyTitle?: string | null;
+  propertyLocation?: string | null;
+  agentName?: string | null;
+  confirmationNote?: string | null;
+  property?: import("./transactional-email-design").EmailProperty;
+}): Promise<SendResult> {
+  return sendEmail({
+    to: params.to,
+    subject: `Your visit request was received — ${APP_NAME}`,
+    html: renderTourConfirmedEmail({ ...params, requested: true, ctaUrl: `${APP_URL}/profile` }),
   });
 }
 
@@ -180,6 +201,7 @@ export async function sendWelcomeEmail(params: {
   to: string;
   name?: string;
   ctaUrl?: string;
+  properties?: import("./transactional-email-design").EmailProperty[];
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,

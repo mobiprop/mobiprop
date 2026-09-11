@@ -1,5 +1,7 @@
 "use server";
 
+import { after } from "next/server";
+import { sendVerifiedWelcome } from "@/lib/verified-welcome";
 import type { ZodError } from "zod";
 
 import { Prisma } from "@/generated/prisma/client";
@@ -121,11 +123,15 @@ export async function signInWithPassword(input: unknown): Promise<AuthActionResu
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
-  if (error) return { error: "Incorrect email or password" };
+  if (error) return { error: error.code === "email_not_confirmed" ? "Please verify your email before signing in." : "Incorrect email or password" };
+  if (!data.user?.email_confirmed_at) {
+    await supabase.auth.signOut();
+    return { error: "Please verify your email before signing in." };
+  }
 
   // Staff accounts must use the dashboard login page, not the public portal.
   const profile = data.user
-    ? await prisma.profile.findUnique({ where: { id: data.user.id }, select: { role: true } })
+    ? await prisma.profile.findUnique({ where: { id: data.user.id }, select: { role: true, status: true } })
     : null;
 
   if (profile && profile.role !== "USER") {
@@ -135,6 +141,11 @@ export async function signInWithPassword(input: unknown): Promise<AuthActionResu
     };
   }
 
+  if (profile?.status !== "ACTIVE") {
+    await supabase.auth.signOut();
+    return { error: "Your account is not active." };
+  }
+  after(() => sendVerifiedWelcome(data.user));
   return {};
 }
 
@@ -165,7 +176,11 @@ export async function verifyOtp(input: unknown): Promise<AuthActionResult> {
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type });
 
   if (error) return { error: "Invalid or expired code. Please try again." };
-  if (data.user) await upsertProfileForUser(data.user);
+  if (data.user) {
+    await upsertProfileForUser(data.user);
+    const user = data.user;
+    after(() => sendVerifiedWelcome(user));
+  }
 
   return {};
 }
