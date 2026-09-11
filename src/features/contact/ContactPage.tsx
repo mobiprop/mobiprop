@@ -10,9 +10,9 @@ import { PropertyLocationMap } from "@/components/maps/PropertyLocationMap";
 const address = "Las Amapolas 455, Manuel Alberti, Buenos Aires, Argentina";
 const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
 const cards = [
- {icon:"phone",title:"Teléfono",value:"+54 9 11 8030 6000",description:"Lun. a vie., de 9:00 a 19:00",action:"Llamanos",href:"tel:+5491180306000"},
+ {icon:"phone",title:"Teléfono",value:"+54 9 11 8030 6000",description:"Lunes a Viernes de 9:00 a 19:00",action:"Llamanos",href:"tel:+5491180306000"},
  {icon:"whatsapp",title:"WhatsApp",value:"+54 9 11 8030 6000",description:"Respuestas rápidas, generalmente en minutos",action:"Respuesta rápida",href:"https://wa.me/5491180306000"},
- {icon:"email",title:"Correo electrónico",value:"hola@mobiprop.com.ar",description:"Respondemos dentro de las 24hs",action:"",href:"mailto:hola@mobiprop.com.ar"},
+ {icon:"email",title:"Correo electrónico",value:"hola@mobiprop.com.ar",description:"Respondemos dentro de las 24hs",action:"24/7",href:"mailto:hola@mobiprop.com.ar"},
  {icon:"location",title:"Oficina",value:"Las Amapolas 455",description:"Buenos Aires, Argentina",action:"",href:directions},
 ];
 const inputClass = styles.field;
