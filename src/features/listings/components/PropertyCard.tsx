@@ -45,6 +45,7 @@ function ImageCarousel({ property }: { property: PropertyCardData }) {
   }, [property.images, property.coverImageUrl]);
   const [index, setIndex] = useState(0);
   const active = images[index] ?? images[0];
+  const dotStart = Math.max(0, Math.min(index - 2, images.length - 5));
 
   function go(e: React.MouseEvent, delta: 1 | -1) {
     e.preventDefault();
@@ -84,7 +85,7 @@ function ImageCarousel({ property }: { property: PropertyCardData }) {
             </button>
           </div>
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-            {images.map((img, i) => ({ img, i })).slice(Math.max(0, Math.min(index - 1, images.length - 3)), Math.max(0, Math.min(index - 1, images.length - 3)) + 3).map(({ img, i }) => (
+            {images.map((img, i) => ({ img, i })).slice(dotStart, dotStart + 5).map(({ img, i }) => (
               <span
                 key={img.id}
                 className={`h-1 rounded-full transition-all ${
