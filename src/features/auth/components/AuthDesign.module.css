@@ -1,9 +1,9 @@
-.shell { min-height: 100svh; position: relative; isolation: isolate; display: flex; flex-direction: column; background: #f9fafb url('/auth/bg.webp') center / cover no-repeat; color: #232323; font-family: Montserrat, sans-serif; color-scheme: light; }
+.shell { min-height: var(--public-viewport-height, 100svh); position: relative; isolation: isolate; display: flex; flex-direction: column; background: #f9fafb url('/auth/bg.webp') center / cover no-repeat; color: #232323; font-family: Montserrat, sans-serif; color-scheme: light; }
 .shell.centered::before { content: ''; position: absolute; inset: 0; background: url('/auth/overlay.webp') center / cover no-repeat; mix-blend-mode: overlay; z-index: -1; pointer-events: none; }
 .logo { position: absolute; top: 40px; left: 40px; display: flex; align-items: center; gap: 10px; font: 500 24px/22.5px Poppins, sans-serif; color: #232323; }
 .logo img { width: 30px; height: 30px; }
 .logo span { font-weight: 300; }
-.main { display: flex; align-items: center; justify-content: center; width: 50%; flex: 1; padding: 110px 32px; min-height: 100svh; }
+.main { display: flex; align-items: center; justify-content: center; width: 50%; flex: 1; padding: 110px 32px; min-height: var(--public-viewport-height, 100svh); }
 .centered .main { width: 100%; }
 .photo { position: absolute; top: 16px; right: 16px; bottom: 16px; width: calc(50% - 16px); border-radius: 20px; overflow: hidden; }
 .photo img { width: 100%; height: 100%; object-fit: cover; }

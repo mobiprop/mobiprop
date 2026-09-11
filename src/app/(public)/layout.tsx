@@ -8,7 +8,7 @@ export default async function PublicLayout({ children }: { children: React.React
   // in the navbar; the dashboard itself stays guarded by requireDashboardAccess().
   const navUser = await getNavUser();
   return (
-    <div className="flex min-h-screen flex-col bg-[#fafafa]">
+    <div data-public-site className="flex min-h-screen flex-col bg-[#fafafa]">
       <Navbar initialUser={navUser} />
       <main className="flex-1">{children}</main>
       <Footer />

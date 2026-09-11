@@ -20,7 +20,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   const navUser = await getNavUser();
   if (!navUser) redirect("/login");
   return (
-    <div className="flex min-h-screen flex-col bg-[#fafafa]">
+    <div data-public-site className="flex min-h-screen flex-col bg-[#fafafa]">
       <Navbar initialUser={navUser} />
       <main className="flex-1">{children}</main>
       <Footer />

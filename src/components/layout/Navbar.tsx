@@ -209,6 +209,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
 
   return (
     <header
+      data-home-nav={transparent ? "true" : undefined}
       className={
         isHome
           ? `fixed inset-x-0 z-50 flex flex-col items-center transition-colors duration-300 ${

@@ -215,7 +215,7 @@ export function HeroSection() {
   }
 
   return (
-    <section ref={heroRef} className="relative z-20 flex w-full justify-center px-4 pt-4">
+    <section data-home-banner ref={heroRef} className="relative z-20 flex w-full justify-center px-4 pt-4">
       {/* justify-center on a w-full parent centers this box — no mx-auto,
          no width-reducing calc() on the card itself, so there's no
          margin/width sub-pixel split to round asymmetrically left vs

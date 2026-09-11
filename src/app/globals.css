@@ -447,3 +447,23 @@ body {
 }
 
 .about-story-section { padding-bottom: 60px; }
+
+/* Desktop density follows the approved 90% reference. Scope it to the
+   customer-facing site; touch layouts and the CRM retain their own sizing.
+   Layout zoom lets text reflow and keeps pointer targets aligned. */
+@media (min-width: 1280px) and (pointer: fine) {
+  body:has([data-public-site]) {
+    --public-viewport-height: calc(100svh / .9);
+    --space-fluid-container-max: calc(max(1440px, min(100vw, 3840px)) / .9);
+    zoom: .9;
+    min-height: var(--public-viewport-height);
+  }
+  [data-public-site] {
+    min-height: var(--public-viewport-height);
+  }
+  /* Preserve the homepage banner and its overlaid navigation at full size. */
+  [data-home-banner], [data-home-nav="true"] {
+    zoom: calc(1 / .9);
+    --space-fluid-container-max: max(1440px, min(100vw, 3840px));
+  }
+}

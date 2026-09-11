@@ -9,7 +9,7 @@ export function AuthIcon({ name }: { name: string }) {
   return <img className={styles.icon} src={`/auth/${name}.svg`} alt="" width={20} height={20} />;
 }
 export function AuthShell({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
-  return <div className={`${styles.shell} ${centered ? styles.centered : ""}`}>
+  return <div data-public-site className={`${styles.shell} ${centered ? styles.centered : ""}`}>
     <Link className={styles.logo} href="/" aria-label="Inicio de Mobi Prop"><img src="/auth/logo.svg" alt="" width={30} height={30} /><div>Mobi <span>Prop</span></div></Link>
     <main className={styles.main}>{children}</main>
     {!centered && <div className={styles.photo}><img src="/auth/photo.webp" alt="Edificio mediterráneo blanco con persianas azules" width={704} height={948} fetchPriority="high" /></div>}
