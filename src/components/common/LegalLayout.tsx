@@ -7,7 +7,7 @@ export function LegalLayout({updated, sections, children}: {updated:string;secti
  const {t}=useTranslation('common');
  return <div className="bg-white px-4 pb-24 sm:px-8 lg:px-16 lg:pb-[150px]">
   <div className="mx-auto max-w-[1312px]">
-   <div className="flex flex-wrap justify-between gap-4 py-[14px] mb-[50px] text-sm text-[#4f4f4f]" style={{fontFamily:'Montserrat, sans-serif'}}><p>{updated}</p><nav className="flex gap-5"><Link href="/privacy-policy">{t('legal.privacy')}</Link><Link href="/terms-conditions">{t('legal.terms')}</Link><Link href="/faq">FAQ</Link></nav></div>
+   <div className="flex flex-wrap justify-between gap-4 py-[14px] mb-[50px] text-sm text-[#4f4f4f]" style={{fontFamily:'Montserrat, sans-serif'}}><p>{updated}</p><nav className="flex flex-wrap gap-x-5 gap-y-2"><Link href="/privacy-policy">{t('legal.privacy')}</Link><Link href="/terms-conditions">{t('legal.terms')}</Link><Link href="/faq">FAQ</Link></nav></div>
    <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-[60px]">
     <aside className="lg:sticky lg:top-28">
      <nav aria-label={t('legal.contents')} className="rounded-2xl border border-[#e9e9e9] p-6 text-sm" style={{fontFamily:'Montserrat, sans-serif'}}>

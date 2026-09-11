@@ -83,7 +83,9 @@
   "pagination": {
     "pageOf": "Página {{current}} de {{total}}",
     "goToPageAriaLabel": "Ir a la página",
-    "pageOption": "Página {{page}}"
+    "pageOption": "Página {{page}}",
+    "previous": "Página anterior",
+    "next": "Página siguiente"
   },
   "suggestions": {
     "badge": "Recomendado",
@@ -116,6 +118,7 @@
     },
     "resetButton": "Restablecer",
     "applyButton": "Aplicar Filtros",
-    "invalidRange": "Ingresá rangos válidos: el máximo debe ser mayor o igual al mínimo."
+    "invalidRange": "Ingresá rangos válidos: el máximo debe ser mayor o igual al mínimo.",
+    "close": "Cerrar filtros"
   }
 }

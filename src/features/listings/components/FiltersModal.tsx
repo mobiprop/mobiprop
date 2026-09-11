@@ -121,9 +121,10 @@ export function FiltersModal({ onClose, onApply, initialValues }: {
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
-        className="w-full max-w-[1100px] max-h-[94vh] overflow-y-auto rounded-[20px] border border-[#d1d5dc] bg-white sm:rounded-[24px]"
+        className="relative w-full max-w-[1100px] max-h-[94vh] overflow-y-auto rounded-[20px] border border-[#d1d5dc] bg-white sm:rounded-[24px]"
         style={{ boxShadow: "0px 1px 1.5px rgba(0,0,0,0.1), 0px 1px 1px rgba(0,0,0,0.1)" }}
       >
+        <button type="button" onClick={onClose} aria-label={t("filtersModal.close")} className="absolute right-4 top-3 z-10 flex size-9 items-center justify-center rounded-full text-2xl text-[#0d2138] hover:bg-[#f0f6fa] focus-visible:outline-2 focus-visible:outline-[#005089]">×</button>
         <div className="flex flex-col gap-6 p-4 sm:gap-7 sm:p-6 lg:gap-[26px] lg:p-8">
 
           {invalidRange && <p id="filter-range-error" role="alert" className="text-sm text-red-700">{t("filtersModal.invalidRange")}</p>}
@@ -280,6 +281,7 @@ export function FiltersModal({ onClose, onApply, initialValues }: {
                 return (
                   <button
                     key={label}
+                    aria-pressed={isActive}
                     onClick={() => toggleAmenity(label)}
                     className={`flex items-center gap-2 rounded-full px-3 py-2 transition-colors sm:px-[14px] sm:py-[9px] ${
                       isActive

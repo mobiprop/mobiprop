@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ConsultationBanner } from "@/features/home/ConsultationBanner";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -286,7 +287,7 @@ export function BlogPageContent({ posts, highlights, featured, currentPage, tota
     navigate({page: page <= 1 ? "" : String(page)});
   }
 
-  const hasContent = Boolean(featured) || posts.length > 0;
+
 
   return (
     <>
@@ -329,7 +330,7 @@ export function BlogPageContent({ posts, highlights, featured, currentPage, tota
 
       {/* ── Content ── */}
       <div className="w-[calc(100%-32px)] sm:w-[calc(100%-64px)] lg:w-[calc(100%-128px)] max-w-[1312px] mx-auto py-12 sm:py-16 lg:py-20 flex flex-col items-center gap-7 sm:gap-10 lg:gap-12">
-        {hasContent ? (
+        {(
           <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[70px] w-full">
             {featured && (
               <div className="grid gap-[30px] lg:grid-cols-[minmax(0,802fr)_minmax(0,480fr)]">
@@ -350,7 +351,7 @@ export function BlogPageContent({ posts, highlights, featured, currentPage, tota
               <h2 className="text-[28px] lg:text-[36px] font-medium leading-[44px] text-[#0a0d14]" style={{fontFamily:poppins}}>{t("latest.title")}</h2>
               <div className="flex flex-col xl:flex-row gap-6 justify-between">
                 <div className="flex flex-wrap gap-2">
-                  {["", "Buying Guide", "Selling Tips", "Market Trends", "Investment", "Interior Design", "Luxury Living"].map((value, index) => <button key={value} onClick={() => navigate({category:value,page:""})} className={`rounded-[10px] px-4 py-2 text-[14px] leading-5 border ${category === value ? "bg-[#005089] border-[#005089] text-white" : "bg-[#f0f6fa] border-[#ccdeef] text-[#4f4f4f]"}`}>{t(`latest.categories.${index}`)}</button>)}
+                  {["", "Buying Guide", "Selling Tips", "Market Trends", "Investment", "Interior Design", "Luxury Living"].map((value, index) => <button key={value} aria-pressed={category === value} onClick={() => navigate({category:value,page:""})} className={`rounded-[10px] px-4 py-2 text-[14px] leading-5 border ${category === value ? "bg-[#005089] border-[#005089] text-white" : "bg-[#f0f6fa] border-[#ccdeef] text-[#4f4f4f]"}`}>{t(`latest.categories.${index}`)}</button>)}
                 </div>
                 <form onSubmit={(event) => {event.preventDefault();navigate({q:query.trim(),page:""});}} className="flex h-11 shrink-0 items-center gap-2 rounded-xl border border-[#e9e9e9] px-4 xl:w-[280px]">
                   <input value={query} onChange={event => setQuery(event.target.value)} placeholder={t("latest.search")} aria-label={t("latest.search")} className="min-w-0 flex-1 bg-transparent text-[14px] outline-none" />
@@ -373,19 +374,14 @@ export function BlogPageContent({ posts, highlights, featured, currentPage, tota
               </Reveal>
             )}
 
+            {posts.length === 0 && <div className="py-16 text-center text-[#6a7282]"><p>{t("emptyState")}</p>{(category || params.get("q")) && <button type="button" className="mt-4 rounded-xl border border-[#ccdeef] px-5 py-3 text-[#005089]" onClick={() => { setQuery(""); navigate({ category: "", q: "", page: "" }); }}>{t("clearFilters")}</button>}</div>}
             {totalPages > 1 && (
               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
             )}
           </div>
-        ) : (
-          <p
-            className="py-16 text-[16px] text-[#6a7282] text-center"
-            style={{ fontFamily: montserrat }}
-          >
-            {t("emptyState")}
-          </p>
         )}
       </div>
+      <ConsultationBanner />
     </>
   );
 }

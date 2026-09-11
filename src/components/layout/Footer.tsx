@@ -142,7 +142,7 @@ export function Footer() {
       links: [
         { label: t("privacyPolicy", { ns: "navigation" }), href: "/privacy-policy" },
         { label: t("links.termsOfService"), href: "/terms-conditions" },
-        { label: t("links.cookiePolicy"), href: "/privacy-policy#legal-section-3" },
+        { label: t("links.cookiePolicy"), href: "/privacy-policy#legal-section-8" },
       ],
     },
   ];
@@ -188,21 +188,21 @@ export function Footer() {
                 <span className="mt-1">
                   <LocationIcon />
                 </span>
-                <p className="text-[16px] text-[#e4e4e4]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <a href="https://www.google.com/maps/search/?api=1&query=Las+Amapolas+455+Manuel+Alberti+Argentina" className="text-[16px] text-[#e4e4e4]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   {t("address", { ns: "footer" })}
-                </p>
+                </a>
               </div>
               <div className="flex items-center gap-3">
                 <PhoneIcon />
-                <p className="text-[16px] text-[#e4e4e4]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <a href="tel:+5491180306000" className="text-[16px] text-[#e4e4e4]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   {t("phone", { ns: "footer" })}
-                </p>
+                </a>
               </div>
               <div className="flex items-center gap-3">
                 <MailIcon />
-                <p className="text-[16px] text-[#e4e4e4]" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                <a href="mailto:hola@mobiprop.com.ar" className="text-[16px] text-[#e4e4e4]" style={{ fontFamily: "Montserrat, sans-serif" }}>
                   {t("email", { ns: "footer" })}
-                </p>
+                </a>
               </div>
             </div>
           </div>
@@ -225,8 +225,7 @@ export function Footer() {
             <Link href="/terms-conditions" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white transition-colors" style={{ fontFamily: "Montserrat, sans-serif" }}>
               {t("links.termsOfService")}
             </Link>
-            <Link href="/privacy-policy#legal-section-3" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.cookiePolicy")}</Link>
-            <Link href="/site-map" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.sitemap")}</Link>
+            <Link href="/privacy-policy#legal-section-8" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.cookiePolicy")}</Link>
           </div>
         </div>
       </div>

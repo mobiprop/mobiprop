@@ -60,6 +60,7 @@ return (
 
   <div className="flex items-center justify-center gap-1 flex-wrap">
     <button
+      aria-label={t("pagination.previous")}
       onClick={() => onChange(Math.max(1, current - 1))}
       className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-white hover:bg-[#f8fafc] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       disabled={current === 1}
@@ -79,6 +80,7 @@ return (
       ) : (
         <button
           key={p}
+          aria-current={p === current ? "page" : undefined}
           onClick={() => onChange(p)}
           className="w-8 h-8 sm:h-9 rounded-[6px] border border-[#d1d5dc] p-[6px] text-[14px] sm:text-[16px] transition-colors cursor-pointer flex items-center justify-center"
           style={{
@@ -97,6 +99,7 @@ return (
     )}
 
     <button
+      aria-label={t("pagination.next")}
       onClick={() => onChange(Math.min(total, current + 1))}
       className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-white hover:bg-[#f8fafc] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       disabled={current === total}
@@ -191,9 +194,10 @@ function SearchBarDropdown<T extends string>({
 
   const selected = options.find((o) => o.value === value);
   return (
-    <div ref={rootRef} className="relative w-full">
+    <div ref={rootRef} className="relative w-full" onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); rootRef.current?.querySelector("button")?.focus(); } }}>
       <button
         type="button"
+        aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3 cursor-pointer"
       >

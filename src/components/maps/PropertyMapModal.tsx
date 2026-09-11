@@ -351,6 +351,7 @@ export function PropertyMapModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation("listings");
+  const dialogRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapWrapperRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -374,14 +375,32 @@ export function PropertyMapModal({
 
   const geoListings = listings.filter((l) => l.latitude != null && l.longitude != null);
 
-  // Escape to close
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (loginOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key !== "Tab") return;
+      const items = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]') ?? []).filter(item => item.getClientRects().length > 0);
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, loginOpen]);
 
   // Initialize map once on mount
   useEffect(() => {
@@ -685,6 +704,8 @@ export function PropertyMapModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2138]/60 px-2 py-3 sm:px-4 sm:py-8 backdrop-blur-[1px]"
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-labelledby="property-map-title"

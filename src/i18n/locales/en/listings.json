@@ -83,7 +83,9 @@
   "pagination": {
     "pageOf": "Page {{current}} of {{total}}",
     "goToPageAriaLabel": "Go to page",
-    "pageOption": "Page {{page}}"
+    "pageOption": "Page {{page}}",
+    "previous": "Previous page",
+    "next": "Next page"
   },
   "suggestions": {
     "badge": "Recommended",
@@ -116,6 +118,7 @@
     },
     "resetButton": "Reset",
     "applyButton": "Apply Filters",
-    "invalidRange": "Enter valid ranges: maximum must be greater than or equal to minimum."
+    "invalidRange": "Enter valid ranges: maximum must be greater than or equal to minimum.",
+    "close": "Close filters"
   }
 }

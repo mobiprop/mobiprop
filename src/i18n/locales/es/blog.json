@@ -41,5 +41,6 @@
   "home": "Inicio",
   "readingMinutes": "{{count}} min de lectura",
   "latestInsights": "Últimas novedades y tendencias",
-  "viewAll": "Ver todos"
+  "viewAll": "Ver todos",
+  "clearFilters": "Limpiar filtros"
 }
