@@ -100,11 +100,11 @@ function ProfileMenu({ user }: { user: NavUser }) {
             )}
           </div>
           <Link href={user.canAccessDashboard ? "/dashboard/settings" : "/profile"} onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
-            My Profile
+            Mi perfil
           </Link>
           {user.canAccessDashboard && (
             <Link href="/dashboard" onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[14px] text-[#2b3038] hover:bg-[#f9fafb] transition-colors" style={poppins}>
-              Dashboard
+              Panel de gestión
             </Link>
           )}
           <button
@@ -113,7 +113,7 @@ function ProfileMenu({ user }: { user: NavUser }) {
             className="w-full text-left px-4 py-2.5 text-[14px] text-[#e7000b] hover:bg-[#fef2f2] transition-colors"
             style={poppins}
           >
-            Log Out
+            Cerrar sesión
           </button>
         </div>
       )}
@@ -123,7 +123,7 @@ function ProfileMenu({ user }: { user: NavUser }) {
 
 function Logo({ transparent }: { transparent?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5" aria-label="Mobi Prop home">
+    <Link href="/" className="flex items-center gap-2.5" aria-label="Inicio de Mobi Prop">
       <Image
         src={transparent ? "/mobi-prop-logo-white.svg" : "/mobi-prop-logo-color.svg"}
         alt=""
@@ -325,7 +325,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
     <motion.button
       className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
       onClick={() => setMenuOpen(!menuOpen)}
-      aria-label="Toggle menu"
+      aria-label="Abrir o cerrar menú"
       variants={headerItem}
     >
       <svg
@@ -389,11 +389,11 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             </div>
           </div>
           <Link href={user.canAccessDashboard ? "/dashboard/settings" : "/profile"} onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>
-            My Profile
+            Mi perfil
           </Link>
           {user.canAccessDashboard && (
             <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-[15px] font-medium text-[#5e5e5e] hover:bg-[#f9fafb] hover:text-[#232323] transition-colors" style={poppins}>
-              Dashboard
+              Panel de gestión
             </Link>
           )}
           <button
@@ -409,7 +409,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
             className="text-left rounded-xl px-4 py-3 text-[15px] font-medium text-[#e7000b] hover:bg-[#fef2f2] transition-colors"
             style={poppins}
           >
-            Log Out
+            Cerrar sesión
           </button>
         </div>
       ) : (

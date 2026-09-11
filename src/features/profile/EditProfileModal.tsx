@@ -75,7 +75,7 @@ const TIMEZONE_VALUES = [
 ];
 
 const LANGUAGES = [
-  { value: "en", label: "English" },
+  { value: "en", label: "Inglés" },
   { value: "es", label: "Español" },
 ];
 
@@ -441,7 +441,7 @@ function AccountTab({
         <div className="flex items-center gap-[16px]">
           <div className="border-2 border-[#e2e8f0] rounded-[14px] w-[96px] h-[96px] overflow-hidden shrink-0 p-[2px] flex items-center justify-center bg-[#f8fafc]">
             {avatarPreview ? (
-              <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover rounded-[10px]" />
+              <img src={avatarPreview} alt="Perfil" className="w-full h-full object-cover rounded-[10px]" />
             ) : (
               <span className="text-[24px] font-semibold text-[#1f5b97]" style={{ fontFamily: poppins }}>
                 {initialsOf(`${firstName} ${lastName}`.trim() || profile.email)}
@@ -655,7 +655,7 @@ function SecurityTab({
   // Current device label, detected client-side (we cannot enumerate other Supabase sessions).
   // The modal only mounts after a click, so navigator is always available here.
   const [device] = useState(() => {
-    if (typeof navigator === "undefined") return { name: "This device", isMobile: false };
+    if (typeof navigator === "undefined") return { name: "Este dispositivo", isMobile: false };
     const ua = navigator.userAgent;
     const browser = /edg\//i.test(ua)
       ? "Edge"
@@ -665,7 +665,7 @@ function SecurityTab({
           ? "Firefox"
           : /safari/i.test(ua)
             ? "Safari"
-            : "Browser";
+            : "Navegador";
     const os = /iphone|ipad/i.test(ua)
       ? "iPhone"
       : /android/i.test(ua)
@@ -674,7 +674,7 @@ function SecurityTab({
           ? "Mac"
           : /windows/i.test(ua)
             ? "Windows"
-            : "Device";
+            : "Dispositivo";
     return { name: `${os} - ${browser}`, isMobile: /iphone|ipad|android/i.test(ua) };
   });
 

@@ -10,7 +10,7 @@ const credentials={email:'test@example.com',password:'test-password'};
 beforeEach(()=>{vi.clearAllMocks();mocks.profile.mockResolvedValue({role:'USER',status:'ACTIVE'});});
 test('unverified users get no usable login session',async()=>{
  mocks.login.mockResolvedValue({data:{user:{id:'test',email_confirmed_at:null}},error:null});
- expect((await signInWithPassword(credentials)).error).toContain('verify');
+ expect((await signInWithPassword(credentials)).error).toContain('Verificá');
  expect(mocks.signOut).toHaveBeenCalled();expect(mocks.after).not.toHaveBeenCalled();
 });
 test('verified active users can sign in',async()=>{
@@ -20,7 +20,7 @@ test('verified active users can sign in',async()=>{
 test('inactive users are signed out',async()=>{
  mocks.login.mockResolvedValue({data:{user:{id:'test',email_confirmed_at:'2026-09-11'}},error:null});
  mocks.profile.mockResolvedValue({role:'USER',status:'SUSPENDED'});
- expect((await signInWithPassword(credentials)).error).toContain('not active');expect(mocks.signOut).toHaveBeenCalled();
+ expect((await signInWithPassword(credentials)).error).toContain('no está activa');expect(mocks.signOut).toHaveBeenCalled();
 });
 
 test('server rejects weak signup and reset passwords before calling the provider', async()=>{

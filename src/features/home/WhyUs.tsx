@@ -65,7 +65,7 @@ export function WhyUs() {
     <div className="relative bg-[#111112] rounded-[20px] overflow-hidden w-full lg:w-[591px] flex-shrink-0 min-h-[420px] sm:min-h-[520px] lg:min-h-[688px]">
       <img
         src={personImg}
-        alt="Agent"
+        alt="Agente"
         className="w-full h-full object-cover object-top absolute inset-0"
       />
 

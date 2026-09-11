@@ -18,7 +18,7 @@ export function loadGoogleMaps(apiKey: string): Promise<void> {
       reject(new Error("Google Maps could not load"));
     }
     globals[callback] = () => { cleanup(); resolve(); };
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&v=weekly&loading=async&callback=${callback}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&language=es&region=AR&v=weekly&loading=async&callback=${callback}`;
     script.async = true;
     script.onerror = fail;
     document.head.appendChild(script);

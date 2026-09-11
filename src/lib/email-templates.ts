@@ -77,8 +77,7 @@ export function hero(opts: { icon: string; eyebrow?: string; title: string; subt
 export function footer(): string {
   const year = new Date().getFullYear();
   return `<tr><td bgcolor="${BRAND.navy}" align="center" style="padding:32px 28px;">
-    ${logoTile(40)}
-    <div style="margin-top:8px;">${wordmark("#ffffff")}</div>
+    <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="line-height:0;">${logoTile(40)}</td><td valign="middle" style="padding-left:10px;">${wordmark("#ffffff")}</td></tr></table>
     <div style="font-family:${FONT};color:${BRAND.heroEyebrow};font-size:14px;margin-top:14px;">Bienes raíces premium, curados por expertos.</div>
     <div style="font-family:${FONT};color:${BRAND.footerText};font-size:13px;margin-top:18px;">
       <a href="mailto:hola@mobiprop.com.ar" style="color:${BRAND.footerText};text-decoration:none;">hola@mobiprop.com.ar</a>
@@ -172,7 +171,7 @@ export function renderMagicLinkEmail(params: {
 
   const body = `
     <div style="font-family:${FONT};font-size:15px;color:${BRAND.text};line-height:1.7;text-align:center;">Hacé clic en el botón de abajo para iniciar sesión de forma segura. No necesitás contraseña.</div>
-    ${button("Iniciar Sesión en Ulrich", url)}
+    ${button("Iniciar sesión en Mobi Prop", url)}
     <div style="font-family:${FONT};font-size:12px;color:${BRAND.muted};margin-top:16px;text-align:center;">Este enlace expira en ${expiresMinutes} minutos y solo puede usarse una vez.</div>
     ${codeBlock}
     ${fallbackLink(url)}
@@ -183,7 +182,7 @@ export function renderMagicLinkEmail(params: {
     hero: {
       icon: "icon-check.png",
       eyebrow: "Enlace seguro de inicio de sesión",
-      title: "Iniciar Sesión en Ulrich",
+      title: "Iniciar sesión en Mobi Prop",
       subtitle: "Tu enlace de inicio de sesión con un clic está listo.<br />Te lleva directo a tu cuenta.",
     },
     bodyHtml: body,

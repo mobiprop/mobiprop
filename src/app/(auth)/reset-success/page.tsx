@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { PasswordResetSuccessPageContent } from "@/features/auth/PasswordResetSuccessPage";
 
 export const metadata: Metadata = {
-  title: "Password Reset Successful — Mobi Prop",
-  description: "Your password has been successfully reset.",
+  title: "Contraseña restablecida — Mobi Prop",
+  description: "Tu contraseña se restableció correctamente.",
 };
 
 export default function ResetSuccessPage() {

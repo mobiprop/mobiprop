@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { ForgotPasswordPageContent } from "@/features/auth/ForgotPasswordPage";
 
 export const metadata: Metadata = {
-  title: "Reset Password — Mobi Prop",
-  description: "Enter your email to reset your password.",
+  title: "Restablecer contraseña — Mobi Prop",
+  description: "Ingresá tu correo para restablecer tu contraseña.",
 };
 
 export default function ResetPasswordPage() {

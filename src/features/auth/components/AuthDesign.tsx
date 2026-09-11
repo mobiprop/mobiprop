@@ -12,7 +12,7 @@ export function AuthShell({ children, centered = false }: { children: ReactNode;
   return <div className={`${styles.shell} ${centered ? styles.centered : ""}`}>
     <Link className={styles.logo} href="/" aria-label="Inicio de Mobi Prop"><img src="/auth/logo.svg" alt="" width={30} height={30} /><div>Mobi <span>Prop</span></div></Link>
     <main className={styles.main}>{children}</main>
-    {!centered && <div className={styles.photo}><img src="/auth/photo.webp" alt="White Mediterranean building with blue shutters" width={704} height={948} fetchPriority="high" /></div>}
+    {!centered && <div className={styles.photo}><img src="/auth/photo.webp" alt="Edificio mediterráneo blanco con persianas azules" width={704} height={948} fetchPriority="high" /></div>}
     <footer className={styles.footer}><span>© 2026 Mobi Prop. Todos los derechos reservados</span><Link href="/privacy-policy">Privacidad</Link><Link href="/terms-conditions">Términos</Link></footer>
   </div>;
 }
@@ -25,10 +25,10 @@ export function AuthField({ label, icon, reveal, onReveal, invalid, ...props }: 
     </div></div>;
 }
 export function AuthSocials({ onGoogle, disabled }: { onGoogle: () => void; disabled: boolean }) {
-  return <><div className={styles.divider}>OR</div><div className={styles.socials}>
-    <button type="button" disabled title="Apple sign-in is not available yet" aria-label="Apple sign-in is not available yet"><AuthIcon name="apple" /></button>
-    <button type="button" onClick={onGoogle} disabled={disabled} aria-label="Continue with Google"><AuthIcon name="google" /></button>
-    <button type="button" disabled title="Microsoft sign-in is not available yet" aria-label="Microsoft sign-in is not available yet"><AuthIcon name="microsoft" /></button>
+  return <><div className={styles.divider}>O</div><div className={styles.socials}>
+    <button type="button" disabled title="El acceso con Apple todavía no está disponible" aria-label="El acceso con Apple todavía no está disponible"><AuthIcon name="apple" /></button>
+    <button type="button" onClick={onGoogle} disabled={disabled} aria-label="Continuar con Google"><AuthIcon name="google" /></button>
+    <button type="button" disabled title="El acceso con Microsoft todavía no está disponible" aria-label="El acceso con Microsoft todavía no está disponible"><AuthIcon name="microsoft" /></button>
   </div></>;
 }
 export function AuthBack({ href = "/login" }: { href?: string }) { return <Link className={styles.back} href={href}><AuthIcon name="back" />Volver</Link>; }

@@ -12,6 +12,6 @@ export async function signInWithOAuth(provider: OAuthProvider): Promise<{ error?
     },
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: "No pudimos iniciar sesión. Volvé a intentar o ingresá con tu correo electrónico." };
   return {};
 }

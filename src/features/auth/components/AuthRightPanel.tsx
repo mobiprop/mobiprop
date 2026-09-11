@@ -15,7 +15,8 @@ type AuthRightPanelProps = {
 };
 
 export function AuthRightPanel({ variant = "client" }: AuthRightPanelProps) {
-  const { t } = useTranslation("auth");
+  const { i18n } = useTranslation("auth");
+  const t = i18n.getFixedT("es", "auth");
   const copy = {
     title: t(`rightPanel.${variant}.title`),
     body: t(`rightPanel.${variant}.body`),
@@ -28,7 +29,7 @@ export function AuthRightPanel({ variant = "client" }: AuthRightPanelProps) {
     >
       <Image
         src="/assets/figma-temp/SignUp/hero-bg.png"
-        alt="White Mediterranean architecture"
+        alt="Arquitectura mediterránea blanca"
         fill
         sizes="735px"
         className="object-cover"

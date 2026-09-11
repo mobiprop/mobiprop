@@ -10,7 +10,7 @@ export const signUpSchema = z.object({
 
 export const loginWithPasswordSchema = z.object({
   email: z.string().trim().email("Ingresá un correo electrónico válido"),
-  password: z.string().min(1, "Enter your password"),
+  password: z.string().min(1, "Ingresá tu contraseña"),
 });
 
 export const magicLinkSchema = z.object({

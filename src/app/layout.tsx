@@ -5,9 +5,9 @@ import { Providers } from "./providers";
 import { DEFAULT_LANGUAGE, LANGUAGE_COOKIE_NAME, isSupportedLanguage } from "@/i18n/config";
 
 export const metadata: Metadata = {
-  title: "Mobi Prop — Your Gateway to Exclusive Properties",
+  title: "Mobi Prop — Propiedades exclusivas",
   description:
-    "Discover exclusive homes for sale and rent. Mobi Prop helps you find your perfect property.",
+    "Descubrí propiedades exclusivas en venta y alquiler. Mobi Prop te ayuda a encontrar tu lugar ideal.",
   manifest: "/manifest.webmanifest",
 };
 

@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import { OtpPageContent } from "@/features/auth/OtpPage";
 
 export const metadata: Metadata = {
-  title: "OTP Verification — Mobi Prop",
-  description: "Enter your one-time verification code.",
+  title: "Verificación de correo — Mobi Prop",
+  description: "Ingresá tu código de verificación de un solo uso.",
 };
 
 export default function VerifyOtpPage() {

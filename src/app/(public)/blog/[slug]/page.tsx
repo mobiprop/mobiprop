@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
-    return { title: "Blog Post — Mobi Prop" };
+    return { title: "Artículo — Mobi Prop" };
   }
 
   const description =

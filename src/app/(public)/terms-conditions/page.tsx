@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { TermsPageContent } from "@/features/terms/TermsPage";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions — Mobi Prop",
-  description:
-    "Read the terms and conditions governing the use of Mobi Prop services and platform.",
+  title: "Términos y condiciones — Mobi Prop",
+  description: "Consultá los términos y condiciones de uso de los servicios y la plataforma de Mobi Prop.",
 };
 
 export default function TermsConditionsPage() {

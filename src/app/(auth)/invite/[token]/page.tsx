@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { InvitePageContent } from "@/features/auth/InvitePage";
 
 export const metadata: Metadata = {
-  title: "Accept Invitation — Mobi Prop",
-  description: "Complete your staff account setup.",
+  title: "Aceptar invitación — Mobi Prop",
+  description: "Completá la configuración de tu cuenta del equipo.",
 };
 
 export default async function InvitePage({

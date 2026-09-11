@@ -82,7 +82,7 @@ export function ImageLightbox({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close gallery"
+          aria-label="Cerrar galería"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -109,7 +109,7 @@ export function ImageLightbox({
           <button
             type="button"
             onClick={() => go(-1)}
-            aria-label="Previous image"
+            aria-label="Imagen anterior"
             className="absolute left-2 sm:left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -130,7 +130,7 @@ export function ImageLightbox({
           <button
             type="button"
             onClick={() => go(1)}
-            aria-label="Next image"
+            aria-label="Imagen siguiente"
             className="absolute right-2 sm:right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

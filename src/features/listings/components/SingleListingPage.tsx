@@ -858,20 +858,20 @@ function buildStats(listing: PublicListingDto, t: TFunction) {
   else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice, listing.rentCurrency, t));
   if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
   if (listing.bathrooms !== null) push("Baths", String(listing.bathrooms));
-  if (listing.totalAreaM2 !== null) push("Size", `${listing.totalAreaM2.toLocaleString("en-US")} m²`);
+  if (listing.totalAreaM2 !== null) push("Size", `${listing.totalAreaM2.toLocaleString("es-AR")} m²`);
   if (listing.parkingSpaces !== null) push("Parking", String(listing.parkingSpaces));
   if (listing.type === "LOT") {
     if (listing.lotFrontageM2 !== null)
-      push("Lot Frontage", `${listing.lotFrontageM2.toLocaleString("en-US")} m²`);
+      push("Lot Frontage", `${listing.lotFrontageM2.toLocaleString("es-AR")} m²`);
     if (listing.lotDepthM2 !== null)
-      push("Lot Depth", `${listing.lotDepthM2.toLocaleString("en-US")} m²`);
+      push("Lot Depth", `${listing.lotDepthM2.toLocaleString("es-AR")} m²`);
   } else {
     if (listing.coveredAreaM2 !== null)
-      push("Covered m²", `${listing.coveredAreaM2.toLocaleString("en-US")} m²`);
+      push("Covered m²", `${listing.coveredAreaM2.toLocaleString("es-AR")} m²`);
     if (listing.semiCoveredAreaM2 !== null)
-      push("Semi-covered m²", `${listing.semiCoveredAreaM2.toLocaleString("en-US")} m²`);
+      push("Semi-covered m²", `${listing.semiCoveredAreaM2.toLocaleString("es-AR")} m²`);
     if (listing.lotSizeM2 !== null)
-      push("Lot Size", `${listing.lotSizeM2.toLocaleString("en-US")} m²`);
+      push("Lot Size", `${listing.lotSizeM2.toLocaleString("es-AR")} m²`);
   }
   if (listing.yearBuilt !== null) push("Built in", String(listing.yearBuilt));
   if (listing.floors !== null)

@@ -6,8 +6,8 @@ import { getSavedListings } from "@/features/listings/saved-actions";
 import { SavedListingsPageContent } from "@/features/listings/components/SavedListingsPage";
 
 export const metadata: Metadata = {
-  title: "Saved Properties — Mobi Prop",
-  description: "Properties you have saved for later.",
+  title: "Propiedades guardadas — Mobi Prop",
+  description: "Propiedades que guardaste para consultar más adelante.",
 };
 
 export default async function SavedListingsPage() {

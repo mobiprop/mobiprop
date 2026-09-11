@@ -115,7 +115,8 @@ const inputBase =
 // ── Dead-end screen (invalid / expired / accepted / revoked / error) ───────────
 
 function DeadEndScreen({ title, message }: { title: string; message: string }) {
-  const { t } = useTranslation("auth");
+  const { i18n } = useTranslation("auth");
+  const t = i18n.getFixedT("es", "auth");
   return (
     <div className="min-h-screen bg-[#f9fafb] flex w-full">
       <div className="flex flex-col flex-1 min-h-screen pt-8 pb-7">

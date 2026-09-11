@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const result = await getPublicListingBySlug(slug);
   if (!result) {
-    return { title: "Property Not Found — Mobi Prop" };
+    return { title: "Propiedad no encontrada — Mobi Prop" };
   }
   const { listing } = result;
   return {

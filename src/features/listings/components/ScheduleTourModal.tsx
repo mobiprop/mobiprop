@@ -24,16 +24,16 @@ function timeString(d: Date) {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+const DATE_FMT = new Intl.DateTimeFormat("es-AR", {
   weekday: "short",
   month: "short",
   day: "numeric",
   year: "numeric",
 });
 
-const TIME_FMT = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+const TIME_FMT = new Intl.DateTimeFormat("es-AR", { hour: "numeric", minute: "2-digit" });
 
-const SLOT_FMT = new Intl.DateTimeFormat("en-US", {
+const SLOT_FMT = new Intl.DateTimeFormat("es-AR", {
   weekday: "short",
   month: "short",
   day: "numeric",

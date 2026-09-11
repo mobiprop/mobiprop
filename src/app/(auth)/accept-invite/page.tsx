@@ -4,8 +4,8 @@ import { AcceptInvitePageContent } from "@/features/auth/AcceptInvitePage";
 import { getInvitationByToken } from "@/features/auth/staff-actions";
 
 export const metadata: Metadata = {
-  title: "Accept Invitation — Mobi Prop",
-  description: "Complete your staff account setup.",
+  title: "Aceptar invitación — Mobi Prop",
+  description: "Completá la configuración de tu cuenta del equipo.",
 };
 
 export default async function AcceptInvitePage({
@@ -21,7 +21,7 @@ export default async function AcceptInvitePage({
         token=""
         email=""
         role=""
-        invalidReason="This invitation link is missing its token. Please use the link from your invitation email."
+        invalidReason="El enlace de invitación está incompleto. Usá el enlace del correo de invitación."
       />
     );
   }

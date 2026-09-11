@@ -18,7 +18,8 @@ import { AuthShell, AuthField, AuthSocials, styles } from "./components/AuthDesi
 export function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useTranslation("auth");
+  const { i18n } = useTranslation("auth");
+  const t = i18n.getFixedT("es", "auth");
 
   // Flags set by server-side flows (auth callback, layout guards) that land
   // the user back here with context about why.
@@ -146,20 +147,20 @@ export function LoginPageContent() {
     <AuthShell>
       {banner && <AuthBanner {...banner} />}
       <div className={`${styles.card} ${styles.login}`}>
-        <header className={styles.header}><h1>Welcome back</h1><p>Sign in to continue to your dashboard</p></header>
+        <header className={styles.header}><h1>Te damos la bienvenida</h1><p>Iniciá sesión para continuar</p></header>
         <form className={styles.form} onSubmit={e=>{e.preventDefault();void handleLogin();}}>
           <div className={styles.fields}>
-            <AuthField label="Email Address" icon="email" required type="email" autoComplete="email" value={email} onChange={e=>{setEmail(e.target.value);setHasError(false);}} placeholder="Enter your email address" invalid={hasError} />
-            {mode === "password" && <AuthField label="Password" icon="lock" required type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={e=>{setPassword(e.target.value);setHasError(false);}} placeholder="••••••••••" reveal={showPassword} onReveal={()=>setShowPassword(v=>!v)} invalid={hasError} />}
+            <AuthField label="Correo electrónico" icon="email" required type="email" autoComplete="email" value={email} onChange={e=>{setEmail(e.target.value);setHasError(false);}} placeholder="Ingresá tu correo electrónico" invalid={hasError} />
+            {mode === "password" && <AuthField label="Contraseña" icon="lock" required type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={e=>{setPassword(e.target.value);setHasError(false);}} placeholder="••••••••••" reveal={showPassword} onReveal={()=>setShowPassword(v=>!v)} invalid={hasError} />}
             {hasError && <p className={styles.error} role="alert">{errorMessage}</p>}
           </div>
           <div className={styles.actions}>
-            <button className={styles.primary} type="submit" disabled={isSubmitting || isOAuthSubmitting}>{isSubmitting ? "Please wait…" : mode === "password" ? "Login" : "Send sign-in code"}</button>
-            <div className={styles.support}><label><input type="checkbox" checked={keepLoggedIn} onChange={e=>setKeepLoggedIn(e.target.checked)} />Keep me logged in</label><Link href="/reset-password">Forgot password?</Link></div>
+            <button className={styles.primary} type="submit" disabled={isSubmitting || isOAuthSubmitting}>{isSubmitting ? "Esperá un momento…" : mode === "password" ? "Iniciar sesión" : "Enviar código de acceso"}</button>
+            <div className={styles.support}><label><input type="checkbox" checked={keepLoggedIn} onChange={e=>setKeepLoggedIn(e.target.checked)} />Mantener mi sesión iniciada</label><Link href="/reset-password">¿Olvidaste tu contraseña?</Link></div>
           </div>
           <AuthSocials onGoogle={()=>void handleOAuth("google")} disabled={isSubmitting || isOAuthSubmitting} />
-          <p className={styles.account}>Don’t have an account? <Link href="/register">Create one</Link></p>
-          <button type="button" className={styles.helper} onClick={()=>{setMode(mode === "password" ? "magic-link" : "password");setHasError(false);}}>{mode === "password" ? "Sign in with an email code" : "Sign in with a password"}</button>
+          <p className={styles.account}>¿No tenés una cuenta? <Link href="/register">Creá una</Link></p>
+          <button type="button" className={styles.helper} style={{textDecoration: "underline", textUnderlineOffset: "3px"}} onClick={()=>{setMode(mode === "password" ? "magic-link" : "password");setHasError(false);}}>{mode === "password" ? "Ingresar con un código por correo" : "Ingresar con contraseña"}</button>
         </form>
       </div>
     </AuthShell>

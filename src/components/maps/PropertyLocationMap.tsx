@@ -65,7 +65,7 @@ export function PropertyLocationMap({
           className="text-[14px] text-[#6a7282]"
           style={{ fontFamily: "Montserrat, sans-serif" }}
         >
-          Map unavailable
+          Mapa no disponible
         </p>
       </div>
     );

@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { StaffLoginPageContent } from "@/features/auth/StaffLoginPage";
 
 export const metadata: Metadata = {
-  title: "Staff Login — Mobi Prop",
-  description: "Sign in to the Mobi Prop CRM dashboard.",
+  title: "Acceso del equipo — Mobi Prop",
+  description: "Ingresá al panel de gestión de Mobi Prop.",
 };
 
 export default function DashboardLoginPage() {

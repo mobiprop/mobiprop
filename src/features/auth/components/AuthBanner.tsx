@@ -40,6 +40,7 @@ export function AuthBanner({ type, title, message }: AuthBannerProps) {
   const isError = type === "error";
   return (
     <div
+      role={isError ? "alert" : "status"}
       className="
     fixed left-1/2 top-3 z-50
     w-[calc(100%-24px)] max-w-[280px]

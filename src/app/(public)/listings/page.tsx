@@ -3,9 +3,8 @@ import type { Metadata } from "next";
 import { ListingPageContent } from "@/features/listings/components/ListingPage";
 
 export const metadata: Metadata = {
-  title: "Listings — Mobi Prop",
-  description:
-    "Browse featured luxury listings. Filter by location, property type, and transaction type.",
+  title: "Propiedades — Mobi Prop",
+  description: "Explorá nuestras propiedades y filtrá por ubicación, tipo de propiedad y operación.",
 };
 
 export default function ListingsPage() {

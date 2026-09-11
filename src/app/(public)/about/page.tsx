@@ -8,9 +8,8 @@ import { AboutIntro, AboutGallery } from "@/features/about/AboutUs";
 import { getPublicTeam } from "@/features/home/getPublicTeam";
 
 export const metadata: Metadata = {
-  title: "About Us — Mobi Prop",
-  description:
-    "Where global property meets local expertise. Learn about Mobi Prop's story, expertise, and the team behind every home.",
+  title: "Nosotros — Mobi Prop",
+  description: "Conocé la historia, experiencia y equipo de Mobi Prop.",
 };
 
 export default async function AboutPage() {

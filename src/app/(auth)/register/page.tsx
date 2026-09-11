@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { SignUpPageContent } from "@/features/auth/SignUpPage";
 
 export const metadata: Metadata = {
-  title: "Sign Up — Mobi Prop",
-  description: "Create your Mobi Prop account to start browsing properties.",
+  title: "Crear cuenta — Mobi Prop",
+  description: "Creá tu cuenta de Mobi Prop y descubrí nuestras propiedades.",
 };
 
 export default function RegisterPage() {

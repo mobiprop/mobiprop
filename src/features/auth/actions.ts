@@ -23,7 +23,7 @@ import {
 export type AuthActionResult = { error?: string };
 
 function firstIssueMessage(error: ZodError) {
-  return error.issues[0]?.message ?? "Invalid input";
+  return error.issues[0]?.message ?? "Revisá los datos ingresados.";
 }
 
 async function upsertProfileForUser(user: {
@@ -124,10 +124,10 @@ export async function signInWithPassword(input: unknown): Promise<AuthActionResu
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
-  if (error) return { error: error.code === "email_not_confirmed" ? "Please verify your email before signing in." : "Incorrect email or password" };
+  if (error) return { error: error.code === "email_not_confirmed" ? "Verificá tu correo electrónico antes de iniciar sesión." : "El correo o la contraseña no son correctos." };
   if (!data.user?.email_confirmed_at) {
     await supabase.auth.signOut();
-    return { error: "Please verify your email before signing in." };
+    return { error: "Verificá tu correo electrónico antes de iniciar sesión." };
   }
 
   // Staff accounts must use the dashboard login page, not the public portal.
@@ -138,13 +138,13 @@ export async function signInWithPassword(input: unknown): Promise<AuthActionResu
   if (profile && profile.role !== "USER") {
     await supabase.auth.signOut();
     return {
-      error: "Staff accounts must sign in at the dashboard login page.",
+      error: "Las cuentas del equipo deben ingresar desde el acceso al panel de gestión.",
     };
   }
 
   if (profile?.status !== "ACTIVE") {
     await supabase.auth.signOut();
-    return { error: "Your account is not active." };
+    return { error: "Tu cuenta no está activa. Comunicate con nuestro equipo." };
   }
   after(() => sendVerifiedWelcome(data.user));
   return {};
@@ -164,7 +164,7 @@ export async function sendMagicLink(input: unknown): Promise<AuthActionResult> {
     },
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: passwordAuthError(error) };
   return {};
 }
 
@@ -176,7 +176,7 @@ export async function verifyOtp(input: unknown): Promise<AuthActionResult> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type });
 
-  if (error) return { error: "Invalid or expired code. Please try again." };
+  if (error) return { error: "El código no es válido o venció. Solicitá uno nuevo y volvé a intentar." };
   if (data.user) {
     await upsertProfileForUser(data.user);
     const user = data.user;
@@ -193,7 +193,7 @@ export async function resendSignUpOtp(email: string): Promise<AuthActionResult> 
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({ type: "signup", email: parsed.data, options: { emailRedirectTo: `${APP_URL}/auth/callback` } });
 
-  if (error) return { error: error.message };
+  if (error) return { error: passwordAuthError(error) };
   return {};
 }
 
@@ -208,7 +208,7 @@ export async function requestPasswordReset(input: unknown): Promise<AuthActionRe
     redirectTo: `${APP_URL}/auth/callback?next=/new-password`,
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: passwordAuthError(error) };
   return {};
 }
 

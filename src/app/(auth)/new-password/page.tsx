@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { NewPasswordPageContent } from "@/features/auth/NewPasswordPage";
 
 export const metadata: Metadata = {
-  title: "Create New Password — Mobi Prop",
-  description: "Set your new account password.",
+  title: "Nueva contraseña — Mobi Prop",
+  description: "Configurá tu nueva contraseña.",
 };
 
 export default function NewPasswordPage() {

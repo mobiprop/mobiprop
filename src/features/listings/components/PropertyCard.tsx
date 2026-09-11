@@ -69,7 +69,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
             <button
               type="button"
               onClick={(e) => go(e, -1)}
-              aria-label="Previous photo"
+              aria-label="Foto anterior"
               className="size-8 rounded-full bg-white/50 flex items-center justify-center shadow-sm"
             >
               <ChevronIcon direction="left" />
@@ -77,7 +77,7 @@ function ImageCarousel({ property }: { property: PublicListingDto }) {
             <button
               type="button"
               onClick={(e) => go(e, 1)}
-              aria-label="Next photo"
+              aria-label="Foto siguiente"
               className="size-8 rounded-full bg-white/90 flex items-center justify-center shadow-md"
             >
               <ChevronIcon direction="right" />

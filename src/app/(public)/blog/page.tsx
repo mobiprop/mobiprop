@@ -5,8 +5,7 @@ import { getPublishedBlogPosts } from "@/services/blog.service";
 
 export const metadata: Metadata = {
   title: "Blog — Mobi Prop",
-  description:
-    "Insights for the modern property market: expert analysis, local market trends, and guides for buyers, sellers, and investors.",
+  description: "Análisis del mercado inmobiliario y guías para compradores, vendedores e inversores.",
 };
 
 // Always render fresh so newly published/edited posts appear immediately.

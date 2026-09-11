@@ -90,12 +90,12 @@ function FacebookLogo() {
 // back here with context about why.
 const URL_ERROR_BANNERS: Record<string, { title: string; message: string }> = {
   inactive: {
-    title: "Account inactive",
-    message: "Your account is inactive. Please contact an administrator.",
+    title: "Cuenta inactiva",
+    message: "Tu cuenta está inactiva. Comunicate con un administrador.",
   },
   no_profile: {
-    title: "Account not set up",
-    message: "Your account isn't fully set up yet. Please contact an administrator.",
+    title: "Cuenta pendiente de configuración",
+    message: "Tu cuenta todavía no está configurada. Comunicate con un administrador.",
   },
 };
 
@@ -125,7 +125,7 @@ export function StaffLoginPageContent() {
 
     if (!email || !password) {
       setEmailError(!email);
-      flashBanner({ type: "error", title: "Missing details", message: "Enter your email and password to continue." });
+      flashBanner({ type: "error", title: "Faltan datos", message: "Ingresá tu correo y contraseña para continuar." });
       return;
     }
 
@@ -158,10 +158,10 @@ export function StaffLoginPageContent() {
             {/* Heading */}
             <div className="mb-[30px]">
               <h1 className="text-[32px] leading-[44px] tracking-[-0.32px] text-[#0d0d12] mb-[2px]" style={{ ...poppins, fontWeight: 600 }}>
-                Welcome Back
+                Te damos la bienvenida
               </h1>
               <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#666d80]" style={{ ...poppins, fontWeight: 400 }}>
-                Glad to see you again. Log in to your account.
+                Iniciá sesión para acceder a tu cuenta.
               </p>
             </div>
 
@@ -170,7 +170,7 @@ export function StaffLoginPageContent() {
                 {/* Email */}
                 <div className="flex flex-col gap-[4px]">
                   <label className="flex items-center gap-px text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>
-                    Email Address<span className="text-[#df1c41]" style={{ fontFamily: "'Inter', sans-serif" }}>*</span>
+                    Correo electrónico<span className="text-[#df1c41]" style={{ fontFamily: "'Inter', sans-serif" }}>*</span>
                   </label>
                   <div className={`flex items-center gap-2 border rounded-[12px] pl-[12px] pr-[10px] py-4 shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] transition-colors ${emailError ? "bg-[#fff0f3] border-[#df1c41]" : "bg-white border-[#dfe1e7] focus-within:border-[#1e4f86]"}`}>
                     <IconEnvelope error={emailError} />
@@ -178,7 +178,7 @@ export function StaffLoginPageContent() {
                       type="email"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setEmailError(false); }}
-                      placeholder="Enter your email address"
+                      placeholder="Ingresá tu correo electrónico"
                       className={`flex-1 min-w-0 text-[16px] leading-[24px] tracking-[-0.16px] bg-transparent outline-none ${emailError ? "text-[#0d0d12]" : "text-[#818898] placeholder:text-[#818898]"}`}
                       style={{ ...mont, fontWeight: 400 }}
                     />
@@ -187,7 +187,7 @@ export function StaffLoginPageContent() {
                     <div className="flex items-center gap-2 mt-px">
                       <IconAlert />
                       <span className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#df1c41]" style={{ ...mont, fontWeight: 400 }}>
-                        The email address you entered is incorrect.
+                        El correo electrónico que ingresaste no es válido.
                       </span>
                     </div>
                   )}
@@ -196,7 +196,7 @@ export function StaffLoginPageContent() {
                 {/* Password */}
                 <div className="flex flex-col gap-[4px]">
                   <label className="flex items-center gap-px text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#6a7282]" style={mont}>
-                    Password<span className="text-[#df1c41]" style={{ fontFamily: "'Inter', sans-serif" }}>*</span>
+                    Contraseña<span className="text-[#df1c41]" style={{ fontFamily: "'Inter', sans-serif" }}>*</span>
                   </label>
                   <div className="flex items-center gap-2 bg-white border border-[#dfe1e7] rounded-[12px] pl-[12px] pr-[10px] py-4 shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus-within:border-[#1e4f86] transition-colors">
                     <IconLock />
@@ -204,7 +204,7 @@ export function StaffLoginPageContent() {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
+                      placeholder="Ingresá tu contraseña"
                       className="flex-1 min-w-0 text-[14px] leading-[20px] tracking-[-0.084px] text-[#818898] placeholder:text-[#818898] bg-transparent outline-none"
                       style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400 }}
                     />
@@ -224,10 +224,10 @@ export function StaffLoginPageContent() {
                       {keepLoggedIn && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.667 7 9 1" stroke="#1e4f86" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                   </div>
-                  <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#666d80] whitespace-nowrap" style={mont}>Keep me login</span>
+                  <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#666d80] whitespace-nowrap" style={mont}>Mantener mi sesión iniciada</span>
                 </label>
                 <Link href="/reset-password" className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#1e4f86] whitespace-nowrap hover:underline" style={mont}>
-                  Forgot Password?
+                  ¿Olvidaste tu contraseña?
                 </Link>
               </div>
 
@@ -239,19 +239,19 @@ export function StaffLoginPageContent() {
                 className="w-full bg-[#1e4f86] border border-[#1b487a] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] px-2 py-[14px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:bg-[#b9c8d9] disabled:border-[#b9c8d9]"
                 style={mont}
               >
-                {isSubmitting ? "Please wait…" : "Login"}
+                {isSubmitting ? "Esperá un momento…" : "Iniciar sesión"}
               </button>
 
               {/* OR + socials */}
               <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-[10px]">
                   <div className="flex-1 h-px bg-[#e6e6e6]" />
-                  <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#808284]" style={mont}>OR</span>
+                  <span className="text-[14px] leading-[20px] tracking-[-0.14px] font-medium text-[#808284]" style={mont}>O</span>
                   <div className="flex-1 h-px bg-[#e6e6e6]" />
                 </div>
                 <div className="flex gap-3 h-[54px]">
                   {[<AppleLogo key="apple" />, <GoogleLogo key="google" />, <FacebookLogo key="fb" />].map((logo, i) => (
-                    <button key={i} type="button" disabled title="Coming soon" className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center opacity-60 cursor-not-allowed">
+                    <button key={i} type="button" disabled title="Próximamente" className="flex-1 bg-white border border-[#d1d5dc] rounded-[10px] shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] flex items-center justify-center opacity-60 cursor-not-allowed">
                       {logo}
                     </button>
                   ))}
@@ -260,7 +260,7 @@ export function StaffLoginPageContent() {
 
               {/* Bottom note — staff cannot self-register */}
               <p className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] text-center" style={{ ...mont, fontWeight: 400 }}>
-                Need access? Ask an administrator to send you an invitation.
+                ¿Necesitás acceso? Pedile una invitación a un administrador.
               </p>
             </div>
           </div>
@@ -282,7 +282,7 @@ export function StaffLoginPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Privacy
+    Privacidad
   </Link>
 
   <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
@@ -292,7 +292,7 @@ export function StaffLoginPageContent() {
     className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
     style={{ ...mont, fontWeight: 400 }}
   >
-    Terms
+    Términos
   </Link>
 </div>
       </div>

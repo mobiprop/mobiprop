@@ -112,7 +112,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
     if (isSubmitting) return;
 
     if (!agreed) {
-      flashBanner({ type: "error", title: "Terms required", message: "Please accept the Terms of Service and Privacy Policy." });
+      flashBanner({ type: "error", title: "Aceptá los términos", message: "Aceptá los términos de servicio y la política de privacidad." });
       return;
     }
 
@@ -138,13 +138,13 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
           <div className="flex flex-1 items-center justify-center px-6">
             <div className="w-full max-w-[475px] text-center">
               <h1 className="text-[28px] leading-[36px] text-[#0d0d12] mb-3" style={{ ...poppins, fontWeight: 600 }}>
-                Invitation unavailable
+                Invitación no disponible
               </h1>
               <p className="text-[16px] leading-[24px] text-[#666d80] mb-6" style={{ ...mont, fontWeight: 400 }}>
                 {invalidReason}
               </p>
               <Link href="/dashboard-login" className="inline-flex items-center justify-center bg-[#1e4f86] text-white text-[16px] font-medium rounded-[12px] px-6 py-[12px] hover:bg-[#1b487a] transition-colors" style={mont}>
-                Go to staff login
+                Ir al acceso del equipo
               </Link>
             </div>
           </div>
@@ -166,41 +166,41 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
             {/* Heading */}
             <div className="mb-[24px]">
               <h1 className="text-[24px] leading-[28px] tracking-[-0.24px] text-[#0d0d12] mb-[2px]" style={{ ...poppins, fontWeight: 600 }}>
-                Create New Account
+                Crear una cuenta
               </h1>
               <p className="text-[16px] leading-[24px] tracking-[-0.16px] text-[#666d80]" style={{ ...poppins, fontWeight: 400 }}>
-                You&apos;ve been invited as {role.charAt(0) + role.slice(1).toLowerCase()}. Enter your details to sign up.
+                Recibiste una invitación como {role.charAt(0) + role.slice(1).toLowerCase()}. Completá tus datos para registrarte.
               </p>
             </div>
 
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-5">
-                <Field label="Full Name">
+                <Field label="Nombre completo">
                   <div className={inputWrap}>
                     <IconUser />
-                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your name" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ingresá tu nombre" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                   </div>
                 </Field>
 
-                <Field label="Email Address">
+                <Field label="Correo electrónico">
                   <div className={`${inputWrap} bg-[#f3f4f6] focus-within:border-[#dfe1e7]`}>
                     <IconEnvelope />
                     <input value={email} readOnly disabled className={`${inputBase} text-[#6a7282] cursor-not-allowed`} style={{ ...mont, fontWeight: 400 }} />
                   </div>
                 </Field>
 
-                <Field label="Password">
+                <Field label="Contraseña">
                   <div className={inputWrap}>
                     <IconLock />
-                    <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ingresá tu contraseña" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="shrink-0"><IconEye visible={showPassword} /></button>
                   </div>
                 </Field>
 
-                <Field label="Confirm Password">
+                <Field label="Confirmá tu contraseña">
                   <div className={inputWrap}>
                     <IconLock />
-                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Enter your password" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
+                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Ingresá tu contraseña" className={inputBase} style={{ ...mont, fontWeight: 400 }} />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="shrink-0"><IconEye visible={showConfirm} /></button>
                   </div>
                 </Field>
@@ -215,7 +215,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
                   </div>
                 </div>
                 <span className="text-[12px] leading-[22px] text-[#232323]" style={{ ...poppins, fontWeight: 500 }}>
-                  I agree to the <Link href="/terms-conditions" className="text-[#1e4f86] hover:underline">Terms of Service</Link> and <Link href="/privacy-policy" className="text-[#1e4f86] hover:underline">Privacy Policy</Link>
+                  Acepto los <Link href="/terms-conditions" className="text-[#1e4f86] hover:underline">Términos de servicio</Link> and <Link href="/privacy-policy" className="text-[#1e4f86] hover:underline">Política de privacidad</Link>
                 </span>
               </label>
 
@@ -227,13 +227,13 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
                 className="w-full bg-[#1e4f86] border border-[#1b487a] text-white text-[16px] leading-[24px] tracking-[-0.16px] font-medium rounded-[12px] px-2 py-[14px] flex items-center justify-center hover:bg-[#1b487a] transition-colors disabled:bg-[#b9c8d9] disabled:border-[#b9c8d9]"
                 style={mont}
               >
-                {isSubmitting ? "Please wait…" : "Create account"}
+                {isSubmitting ? "Esperá un momento…" : "Crear cuenta"}
               </button>
 
               {/* Bottom link */}
               <p className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] text-center" style={{ ...mont, fontWeight: 400 }}>
-                Already have an account?{" "}
-                <Link href="/dashboard-login" className="font-medium text-[#1e4f86] hover:underline" style={mont}>Sign In</Link>
+                ¿Ya tenés una cuenta?{" "}
+                <Link href="/dashboard-login" className="font-medium text-[#1e4f86] hover:underline" style={mont}>Iniciar sesión</Link>
               </p>
             </div>
           </div>
@@ -255,7 +255,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
       className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
       style={{ ...mont, fontWeight: 400 }}
     >
-      Privacy
+      Privacidad
     </Link>
 
     <div className="w-px h-[14px] bg-[#d1d5dc] max-sm:h-[12px]" />
@@ -265,7 +265,7 @@ export function AcceptInvitePageContent({ token, email, role, invalidReason }: A
       className="text-[14px] leading-[20px] tracking-[-0.14px] text-[#6a7282] whitespace-nowrap hover:text-[#0d2138] max-sm:text-[12px] max-sm:leading-[18px]"
       style={{ ...mont, fontWeight: 400 }}
     >
-      Terms
+      Términos
     </Link>
   </div>
 </div>
