@@ -142,7 +142,7 @@ export function Footer() {
       links: [
         { label: t("privacyPolicy", { ns: "navigation" }), href: "/privacy-policy" },
         { label: t("links.termsOfService"), href: "/terms-conditions" },
-        { label: t("links.cookiePolicy"), href: "/privacy-policy" },
+        { label: t("links.cookiePolicy"), href: "/privacy-policy#legal-section-3" },
       ],
     },
   ];
@@ -225,7 +225,7 @@ export function Footer() {
             <Link href="/terms-conditions" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white transition-colors" style={{ fontFamily: "Montserrat, sans-serif" }}>
               {t("links.termsOfService")}
             </Link>
-            <Link href="/privacy-policy" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.cookiePolicy")}</Link>
+            <Link href="/privacy-policy#legal-section-3" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.cookiePolicy")}</Link>
             <Link href="/site-map" className="text-[14px] sm:text-[16px] text-[#b2b2b2] hover:text-white">{t("links.sitemap")}</Link>
           </div>
         </div>

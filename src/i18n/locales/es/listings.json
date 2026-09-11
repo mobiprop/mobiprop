@@ -115,6 +115,7 @@
       "tennisCourt": "Cancha de Tenis"
     },
     "resetButton": "Restablecer",
-    "applyButton": "Aplicar Filtros"
+    "applyButton": "Aplicar Filtros",
+    "invalidRange": "Ingresá rangos válidos: el máximo debe ser mayor o igual al mínimo."
   }
 }

@@ -2,10 +2,11 @@
   "getInTouch": "Get in touch",
   "search": "Search",
   "notFound": {
-    "eyebrow": "OOPS! PAGE NOT FOUND",
-    "title": "We can't seem to find the page you're looking for.",
+    "eyebrow": "Page not found",
+    "title": "Oops! This Address Doesn’t Exist",
     "backHome": "Back to home",
-    "contactSupport": "Contact Support"
+    "contactSupport": "Contact Support",
+    "description": "The page you’re looking for has moved, been removed, or never existed. Let’s get you back to finding your perfect property."
   },
   "consultation": {
     "heading": "Schedule a free consultation",
@@ -25,5 +26,11 @@
     "logIn": "Log in",
     "createAccount": "Create account",
     "close": "Close"
+  },
+  "legal": {
+    "contents": "Contents",
+    "questions": "Have questions?",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   }
 }

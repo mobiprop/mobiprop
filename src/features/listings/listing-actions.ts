@@ -1225,7 +1225,9 @@ export async function listPublicListings(
       ...(filters.minPrice !== undefined ? { gte: filters.minPrice } : {}),
       ...(filters.maxPrice !== undefined ? { lte: filters.maxPrice } : {}),
     };
-    where.AND = [{ OR: [{ salePrice: range }, { rentPrice: range }] }];
+    if (filters.transactionType === "SALE") where.salePrice = range;
+    else if (filters.transactionType === "RENT") where.rentPrice = range;
+    else where.AND = [{ OR: [{ salePrice: range }, { rentPrice: range }] }];
   }
   if (filters.bedrooms !== undefined) where.bedrooms = { gte: filters.bedrooms };
   if (filters.bathrooms !== undefined) where.bathrooms = { gte: filters.bathrooms };
@@ -1236,7 +1238,8 @@ export async function listPublicListings(
     };
   }
   if (filters.amenities?.length) {
-    where.amenities = { some: { amenity: { key: { in: filters.amenities } } } };
+    const existing = Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : [];
+    where.AND = [...existing, ...filters.amenities.map(key => ({amenities: {some: {amenity: {key}}}}))];
   }
   if (filters.featured) where.isFeatured = true;
 

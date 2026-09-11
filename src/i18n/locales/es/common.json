@@ -2,10 +2,11 @@
   "getInTouch": "Contactanos",
   "search": "Buscar",
   "notFound": {
-    "eyebrow": "¡UPS! PÁGINA NO ENCONTRADA",
-    "title": "No podemos encontrar la página que estás buscando.",
+    "eyebrow": "Página no encontrada",
+    "title": "¡Ups! Esta dirección no existe",
     "backHome": "Volver al inicio",
-    "contactSupport": "Contactar Soporte"
+    "contactSupport": "Contactar Soporte",
+    "description": "La página que buscás cambió de dirección, fue eliminada o nunca existió. Volvamos a buscar tu propiedad ideal."
   },
   "consultation": {
     "heading": "Agendá una consulta gratuita",
@@ -25,5 +26,11 @@
     "logIn": "Iniciar sesión",
     "createAccount": "Crear cuenta",
     "close": "Cerrar"
+  },
+  "legal": {
+    "contents": "Contenido",
+    "questions": "¿Tenés preguntas?",
+    "privacy": "Privacidad",
+    "terms": "Términos de servicio"
   }
 }

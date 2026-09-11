@@ -220,5 +220,10 @@
       "question": "¿También asesoran a inversores?",
       "answer": "Sí. Analizamos oportunidades de inversión y te asesoramos para encontrar propiedades con el mayor potencial según tus objetivos."
     }
-  ]
+  ],
+  "support": "Ayuda",
+  "questionCount": "{{count}} preguntas respondidas",
+  "stillQuestions": "¿No encontraste lo que buscabas?",
+  "contact": "Envianos un mensaje",
+  "noResults": "No encontramos preguntas para tu búsqueda."
 }

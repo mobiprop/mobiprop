@@ -1,12 +1,14 @@
 {
   "hero": {
     "title": "Términos y Condiciones",
-    "lastUpdated": "Última actualización: 15 de octubre de 2023"
+    "lastUpdated": "Última actualización: 15 de octubre de 2023",
+    "tag": "Legal",
+    "subtitle": "Las reglas y condiciones de uso de la plataforma Mobi Prop"
   },
   "sections": [
     {
       "heading": "1. Aceptación de los términos",
-      "intro": "Al acceder al sitio web de Ulrich Propiedades, enviar información de una propiedad, contactar a nuestros agentes o usar cualquiera de nuestras herramientas (como tasaciones o guías de barrio), confirmás que:",
+      "intro": "Al acceder al sitio web de Mobi Prop, enviar información de una propiedad, contactar a nuestros agentes o usar cualquiera de nuestras herramientas (como tasaciones o guías de barrio), confirmás que:",
       "items": [
         "Tenés al menos 18 años.",
         "Aceptás cumplir con estos Términos y Condiciones.",
@@ -16,7 +18,7 @@
     },
     {
       "heading": "2. Servicios que ofrecemos",
-      "intro": "Ulrich Propiedades ofrece recursos relacionados con propiedades, entre ellos:",
+      "intro": "Mobi Prop ofrece recursos relacionados con propiedades, entre ellos:",
       "items": [
         "Publicaciones de propiedades residenciales y comerciales",
         "Herramientas de tasación",
@@ -40,7 +42,7 @@
     },
     {
       "heading": "4. Publicaciones de propiedades y exactitud",
-      "intro": "Ulrich Propiedades se esfuerza por brindar la información más precisa y actualizada posible, pero:",
+      "intro": "Mobi Prop se esfuerza por brindar la información más precisa y actualizada posible, pero:",
       "items": [
         "Los detalles de las propiedades pueden cambiar sin previo aviso",
         "Los precios, la disponibilidad y las características no están garantizados",
@@ -52,7 +54,7 @@
       "heading": "5. Contacto y comunicación con agentes",
       "intro": "Al contactar a un agente a través del sitio web, aceptás que:",
       "items": [
-        "Ulrich Propiedades puede reenviar tus datos al agente correspondiente.",
+        "Mobi Prop puede reenviar tus datos al agente correspondiente.",
         "Los agentes pueden contactarte por correo electrónico o teléfono.",
         "Estás solicitando asistencia relacionada con propiedades de forma voluntaria."
       ],
@@ -60,9 +62,9 @@
     },
     {
       "heading": "6. Enlaces y recursos de terceros",
-      "intro": "Ulrich Propiedades puede enlazar a recursos externos o plataformas de publicaciones. Estos sitios externos:",
+      "intro": "Mobi Prop puede enlazar a recursos externos o plataformas de publicaciones. Estos sitios externos:",
       "items": [
-        "No están controlados por Ulrich Propiedades",
+        "No están controlados por Mobi Prop",
         "Tienen sus propias políticas de privacidad y legales",
         "Se utilizan bajo tu propia responsabilidad"
       ],

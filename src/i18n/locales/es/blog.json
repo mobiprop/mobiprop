@@ -37,5 +37,9 @@
       "Vida de lujo"
     ],
     "search": "Buscar artículos"
-  }
+  },
+  "home": "Inicio",
+  "readingMinutes": "{{count}} min de lectura",
+  "latestInsights": "Últimas novedades y tendencias",
+  "viewAll": "Ver todos"
 }

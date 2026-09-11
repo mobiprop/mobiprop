@@ -40,7 +40,7 @@ export function PlaceAutocompleteInput({
   const [suggestions, setSuggestions] = useState<google.maps.places.PlacePrediction[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const readyRef = useRef(false);
+  const [ready, setReady] = useState(false);
   const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function PlaceAutocompleteInput({
     let cancelled = false;
     loadGoogleMaps(apiKey)
       .then(() => {
-        if (!cancelled) readyRef.current = true;
+        if (!cancelled) setReady(true);
       })
       .catch(() => undefined);
     return () => {
@@ -60,10 +60,8 @@ export function PlaceAutocompleteInput({
   // Debounced suggestion fetch as the user types.
   useEffect(() => {
     const query = value.trim();
-    if (!query || !readyRef.current) {
-      setSuggestions([]);
-      return;
-    }
+    if (!query || !ready) return;
+    let cancelled = false;
     const timer = setTimeout(() => {
       if (!sessionTokenRef.current) {
         sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
@@ -73,16 +71,17 @@ export function PlaceAutocompleteInput({
         sessionToken: sessionTokenRef.current,
       })
         .then(({ suggestions: results }) => {
+          if (cancelled) return;
           setSuggestions(
             results
               .map((s) => s.placePrediction)
               .filter((p): p is google.maps.places.PlacePrediction => p !== null),
           );
         })
-        .catch(() => setSuggestions([]));
+        .catch(() => { if (!cancelled) setSuggestions([]); });
     }, 300);
-    return () => clearTimeout(timer);
-  }, [value]);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [value, ready]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -115,6 +114,7 @@ export function PlaceAutocompleteInput({
         required={required}
         value={value}
         onChange={(event) => {
+          setSuggestions([]);
           onChange(event.target.value);
           setIsOpen(true);
         }}
@@ -128,7 +128,7 @@ export function PlaceAutocompleteInput({
         style={style}
       />
 
-      {isOpen && suggestions.length > 0 && (
+      {isOpen && ready && value.trim() && suggestions.length > 0 && (
         <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-[10px] border border-[#d7dde5] bg-white shadow-lg">
           {suggestions.map((prediction) => (
             <button

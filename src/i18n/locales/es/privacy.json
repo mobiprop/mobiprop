@@ -1,13 +1,14 @@
 {
   "hero": {
-    "tag": "Privacidad",
+    "tag": "Legal",
     "title": "Política de Privacidad",
-    "lastUpdated": "Última actualización: 15 de octubre de 2023"
+    "lastUpdated": "Última actualización: 15 de octubre de 2023",
+    "subtitle": "Cómo recopilamos, usamos y protegemos tu información personal"
   },
   "intro": {
     "breadcrumb": "Política de Privacidad",
     "heading": "Priorizamos tu privacidad y nos aseguramos de que tus datos estén protegidos en cada interacción.",
-    "body1": "Este aviso de privacidad de Ulrich Propiedades (“Ulrich Propiedades”, “la Empresa”, “nosotros” o “nuestro”) describe cómo y por qué podríamos recopilar, almacenar, usar y/o compartir (“procesar”) tu información cuando utilizás nuestros servicios (“Servicios”), por ejemplo cuando:",
+    "body1": "Este aviso de privacidad de Mobi Prop (“Mobi Prop”, “la Empresa”, “nosotros” o “nuestro”) describe cómo y por qué podríamos recopilar, almacenar, usar y/o compartir (“procesar”) tu información cuando utilizás nuestros servicios (“Servicios”), por ejemplo cuando:",
     "visitWebsitePre": "Visitás nuestro sitio web en",
     "visitWebsitePost": ", o cualquier sitio nuestro que enlace a este aviso de privacidad",
     "engageOtherWays": "Interactuás con nosotros de otras formas relacionadas, incluyendo ventas, marketing o eventos",
@@ -17,7 +18,7 @@
   "summary": {
     "heading": "Resumen de puntos clave",
     "p1": "Este resumen presenta los puntos clave de nuestro aviso de privacidad, pero podés conocer más detalles sobre cada tema haciendo clic en el enlace que sigue a cada punto, o usando nuestro índice a continuación para encontrar la sección que buscás. También podés hacer clic aquí para ir directamente al índice.",
-    "p2": "¿Qué información personal procesamos? Cuando visitás, usás o navegás nuestros Servicios, podemos procesar información personal según cómo interactúes con Ulrich Propiedades y los Servicios, las decisiones que tomes, y los productos y funciones que uses. Hacé clic aquí para saber más.",
+    "p2": "¿Qué información personal procesamos? Cuando visitás, usás o navegás nuestros Servicios, podemos procesar información personal según cómo interactúes con Mobi Prop y los Servicios, las decisiones que tomes, y los productos y funciones que uses. Hacé clic aquí para saber más.",
     "p3": "¿Procesamos información personal sensible? No procesamos información personal sensible.",
     "p4": "¿Recibimos información de terceros? No recibimos información de terceros.",
     "p5": "¿Cómo procesamos tu información? Procesamos tu información para brindar, mejorar y administrar nuestros Servicios, comunicarnos con vos, por motivos de seguridad y prevención de fraude, y para cumplir con la ley. También podemos procesar tu información para otros fines con tu consentimiento. Solo procesamos tu información cuando contamos con un motivo legal válido para hacerlo. Hacé clic aquí para saber más.",
@@ -28,7 +29,7 @@
     "p8Post": "para saber más.",
     "p9Pre": "¿Cómo ejercés tus derechos? La forma más sencilla de ejercer tus derechos es completando nuestro formulario de solicitud disponible aquí:",
     "p9Post": ", o contactándonos directamente. Consideraremos y actuaremos sobre cualquier solicitud de acuerdo con las leyes de protección de datos aplicables.",
-    "p10Pre": "¿Querés saber más sobre qué hace Ulrich Propiedades con la información que recopilamos?",
+    "p10Pre": "¿Querés saber más sobre qué hace Mobi Prop con la información que recopilamos?",
     "p10Post": "para revisar el aviso completo."
   },
   "section1": {

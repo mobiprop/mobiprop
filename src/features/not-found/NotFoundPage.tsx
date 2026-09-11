@@ -1,62 +1,24 @@
 "use client";
-
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
-const poppins = "Poppins, sans-serif";
-const montserrat = "Montserrat, sans-serif";
-
 export function NotFoundPage() {
   const { t } = useTranslation("common");
-  return (
-  <section className="relative flex min-h-[520px] items-center justify-center overflow-hidden lg:min-h-[720px]">
-    <p
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 select-none text-center text-[180px] font-bold leading-none text-[#f5f7fa] sm:text-[320px] lg:text-[720px]"
-      style={{
-        fontFamily: poppins,
-        letterSpacing: "-0.02em",
-        backdropFilter: "brightness(1.5)",
-      }}
-    >
-      404
-    </p>
-
-    <div className="relative mx-auto flex max-w-[1000px] flex-col items-center gap-6 px-5 py-10 text-center sm:gap-10 sm:px-6 sm:py-16">
-      <div className="flex flex-col items-center gap-3 sm:gap-4">
-        <p
-          className="text-[14px] font-medium tracking-[-0.14px] text-[#6a7282] sm:text-[18px] sm:tracking-[-0.18px]"
-          style={{ fontFamily: poppins }}
-        >
-          {t("notFound.eyebrow")}
-        </p>
-
-        <h1
-          className="text-[26px] font-semibold leading-[30px] tracking-[-0.28px] text-[#0d2138] sm:text-[48px] sm:leading-[1.15] sm:tracking-[-0.64px] lg:text-[64px] lg:leading-[76px]"
-          style={{ fontFamily: poppins }}
-        >
-          {t("notFound.title")}
-        </h1>
+  return <section className="flex min-h-[calc(100svh-80px)] items-center justify-center bg-white px-6 py-16" style={{fontFamily:"Poppins, sans-serif"}}>
+    <div className="flex w-full max-w-[700px] flex-col items-center gap-[30px] text-center">
+      <div aria-hidden="true" className="relative flex h-[200px] items-center justify-center">
+        <span className="text-[160px] font-semibold leading-[200px] text-[#005ea4]/[0.12] sm:text-[200px]">404</span>
+        <img src="/pages/not-found-house.svg" alt="" width={160} height={160} className="absolute h-40 w-40" />
       </div>
-
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <Link
-          href="/"
-          className="rounded-[40px] bg-[#4896b6] px-5 py-3 text-[14px] font-medium tracking-[-0.14px] text-white transition-colors hover:bg-[#3d7e9b] sm:px-[26px] sm:py-[13px] sm:text-[16px] sm:tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
-          {t("notFound.backHome")}
-        </Link>
-
-        <Link
-          href="/contact"
-          className="rounded-[32px] bg-[#1e4f86] px-5 py-3 text-[14px] font-medium tracking-[-0.14px] text-white transition-colors hover:bg-[#1b487a] sm:px-[26px] sm:py-[13px] sm:text-[16px] sm:tracking-[-0.16px]"
-          style={{ fontFamily: montserrat }}
-        >
-          {t("notFound.contactSupport")}
-        </Link>
+      <div className="flex flex-col items-center gap-4">
+        <span className="rounded-full border border-[#ccdeef] bg-[#f0f6fa] px-3 py-1.5 text-xs font-medium uppercase tracking-[1px] text-[#191919]">{t("notFound.eyebrow")}</span>
+        <h1 className="max-w-[650px] text-[34px] font-medium leading-[1.2] tracking-[-1.5px] text-[#101010] sm:text-[52px]">{t("notFound.title")}</h1>
+        <p className="text-base leading-[27px] text-[#4f4f4f] sm:text-lg" style={{fontFamily:"Montserrat, sans-serif"}}>{t("notFound.description")}</p>
+      </div>
+      <div className="flex flex-wrap justify-center gap-4">
+        <Link href="/" className="rounded-xl bg-gradient-to-br from-[#005ea4] to-[#006fc2] px-6 py-3.5 text-base font-medium text-white">{t("notFound.backHome")}</Link>
+        <Link href="/contact" className="rounded-xl border border-[#005089] px-6 py-3.5 text-base font-medium text-[#005089]">{t("notFound.contactSupport")}</Link>
       </div>
     </div>
-  </section>
-);
+  </section>;
 }

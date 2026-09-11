@@ -1,12 +1,14 @@
 {
   "hero": {
     "title": "Terms & Conditions",
-    "lastUpdated": "Last updated: October 15, 2023"
+    "lastUpdated": "Last updated: October 15, 2023",
+    "tag": "Legal",
+    "subtitle": "The rules and guidelines that govern your use of Mobi Prop’s platform"
   },
   "sections": [
     {
       "heading": "1. Acceptance of terms",
-      "intro": "By accessing the Ulrich Propiedades website, submitting property information, contacting our agents, or using any tools (such as home valuations or neighborhood guides), you confirm that:",
+      "intro": "By accessing the Mobi Prop website, submitting property information, contacting our agents, or using any tools (such as home valuations or neighborhood guides), you confirm that:",
       "items": [
         "You are at least 18 years old.",
         "You agree to comply with these Terms and Conditions.",
@@ -16,7 +18,7 @@
     },
     {
       "heading": "2. Services we provide",
-      "intro": "Ulrich Propiedades offers property-related resources including:",
+      "intro": "Mobi Prop offers property-related resources including:",
       "items": [
         "Residential and commercial property listings",
         "Home valuation tools",
@@ -40,7 +42,7 @@
     },
     {
       "heading": "4. Property listings and accuracy",
-      "intro": "Ulrich Propiedades strives to provide the most accurate and up-to-date information, but:",
+      "intro": "Mobi Prop strives to provide the most accurate and up-to-date information, but:",
       "items": [
         "Property details may change without notice",
         "Prices, availability, and features are not guaranteed",
@@ -52,7 +54,7 @@
       "heading": "5. Agent contact and communication",
       "intro": "By contacting an agent through the website, you agree that:",
       "items": [
-        "Ulrich Propiedades may forward your details to the appropriate agent.",
+        "Mobi Prop may forward your details to the appropriate agent.",
         "Agents may contact you via email or phone.",
         "You are requesting property-related assistance voluntarily."
       ],
@@ -60,9 +62,9 @@
     },
     {
       "heading": "6. Third-party links and resources",
-      "intro": "Ulrich Propiedades may link to outside resources or listing platforms. These external sites:",
+      "intro": "Mobi Prop may link to outside resources or listing platforms. These external sites:",
       "items": [
-        "Are not controlled by Ulrich Propiedades",
+        "Are not controlled by Mobi Prop",
         "Have their own privacy and legal policies",
         "Are used at your own discretion"
       ],

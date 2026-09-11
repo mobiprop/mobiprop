@@ -13,10 +13,12 @@ export function PropertyLocationMap({
   longitude,
   title,
   zoom = 15,
+  address,
 }: {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   title?: string;
+  address?: string;
   zoom?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,9 +35,12 @@ export function PropertyLocationMap({
 
     let cancelled = false;
     loadGoogleMaps(apiKey)
-      .then(() => {
+      .then(async () => {
         if (cancelled || !containerRef.current) return;
-        const position = { lat: latitude, lng: longitude };
+        const result = address ? await new google.maps.Geocoder().geocode({address}) : null;
+        if (cancelled || !containerRef.current) return;
+        const position = result?.results[0]?.geometry.location ?? (latitude != null && longitude != null ? {lat: latitude, lng: longitude} : null);
+        if (!position) throw new Error("Location not found");
         const map = new google.maps.Map(containerRef.current, {
           center: position,
           zoom,
@@ -51,7 +56,7 @@ export function PropertyLocationMap({
     return () => {
       cancelled = true;
     };
-  }, [latitude, longitude, title, zoom]);
+  }, [latitude, longitude, title, zoom, address]);
 
   if (failed) {
     return (

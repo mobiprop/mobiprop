@@ -738,6 +738,7 @@ return (
 ) : null}
 {isFiltersOpen ? (
 <FiltersModal
+   initialValues={{minPrice: String(filters.minPrice ?? ""), maxPrice: String(filters.maxPrice ?? ""), bedrooms: filters.bedrooms == null ? "Any" : `${filters.bedrooms}+`, bathrooms: filters.bathrooms == null ? "Any" : `${filters.bathrooms}+`, minArea: String(filters.minArea ?? ""), maxArea: String(filters.maxArea ?? ""), amenities: new Set(Object.keys(MODAL_AMENITY_KEYS).filter(label => filters.amenities.includes(MODAL_AMENITY_KEYS[label])))}}
    onClose={() => setIsFiltersOpen(false)}
    onApply={applyModalFilters}
 />

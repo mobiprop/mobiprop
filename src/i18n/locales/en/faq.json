@@ -220,5 +220,10 @@
       "question": "Do you advise real estate investors?",
       "answer": "Yes. We help identify investment opportunities and analyze each property’s potential based on your investment goals."
     }
-  ]
+  ],
+  "support": "Support",
+  "questionCount": "{{count}} questions answered",
+  "stillQuestions": "Didn’t find what you were looking for?",
+  "contact": "Send us a message",
+  "noResults": "No questions match your search."
 }
