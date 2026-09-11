@@ -1,6 +1,7 @@
 import "server-only";
 
 import sgMail from "@sendgrid/mail";
+import { renderContactReceipt, renderContactTeamNotification, type ContactEmailData } from "./contact-email-design";
 
 import { APP_NAME, APP_URL } from "@/lib/constants";
 import {
@@ -41,6 +42,7 @@ async function sendEmail(params: {
   subject: string;
   html: string;
   from?: string;
+  replyTo?: string;
 }): Promise<SendResult> {
   const sendgrid = getSendGrid();
   if (!sendgrid) {
@@ -54,6 +56,7 @@ async function sendEmail(params: {
       to: params.to,
       subject: params.subject,
       html: params.html,
+      ...(params.replyTo ? {replyTo: params.replyTo} : {}),
       trackingSettings: { clickTracking: { enable: false, enableText: false } },
     });
     return { sent: true };
@@ -209,4 +212,17 @@ export async function sendWelcomeEmail(params: {
     html: renderWelcomeEmail(params),
     from: FROM_WELCOME,
   });
+}
+
+/** Contact notifications are separate from Supabase authentication mail. */
+export async function sendContactEmails(data: ContactEmailData) {
+  const from = { email: "hola@mobiprop.com.ar", name: "Mobi Prop" };
+  const sender = `${from.name} <${from.email}>`;
+  const [team, receipt] = await Promise.all([
+    sendEmail({to:"hola@mobiprop.com.ar",from:sender,replyTo:data.email,
+      subject:`Nueva consulta ${data.leadNumber} — Mobi Prop`,html:renderContactTeamNotification(data)}),
+    sendEmail({to:data.email,from:sender,replyTo:from.email,
+      subject:"Recibimos tu consulta — Mobi Prop",html:renderContactReceipt(data)}),
+  ]);
+  return {teamSent:team.sent,receiptSent:receipt.sent};
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { BrandedNotification, type BrandedNotificationProps } from "@/components/common/BrandedNotification";
+import { contactSchema } from "./contact-schema";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -20,19 +22,38 @@ const cards = [
 const inputClass = styles.field;
 
 export function ContactPageContent() {
- const [status,setStatus]=useState<"idle"|"sending"|"sent"|"error">("idle");
+ const [status,setStatus]=useState<"idle"|"sending">("idle");
+ const [notification,setNotification]=useState<BrandedNotificationProps|null>(null);
+ const [invalidField,setInvalidField]=useState<string|null>(null);
  async function submit(event:FormEvent<HTMLFormElement>) {
   event.preventDefault();
   if(status==="sending") return;
   const form=event.currentTarget, values=new FormData(form);
-  setStatus("sending");
+  const parsed=contactSchema.safeParse({...Object.fromEntries(values),consent:values.get("consent")==="on"});
+  if(!parsed.success) {
+   const issue=parsed.error.issues[0], field=String(issue.path[0]);
+   setInvalidField(field);
+   setNotification({type:"error",title:"Revisá tu consulta",message:issue.message});
+   const control=form.elements.namedItem(field);
+   if(control instanceof HTMLElement) control.focus();
+   return;
+  }
+  setInvalidField(null);setNotification(null);setStatus("sending");
   try {
-   const response=await fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...Object.fromEntries(values),consent:values.get("consent")==="on"})});
-   if(!response.ok) throw new Error("Submission failed");
-   form.reset();setStatus("sent");
-  } catch {setStatus("error");}
+   const response=await fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(parsed.data)});
+   if(!response.ok) {
+    const message=response.status===429?"Ya recibimos varias consultas tuyas. Esperá unos minutos antes de enviar otra.":response.status===400?"Revisá los datos de la consulta e intentá nuevamente.":"No pudimos guardar tu consulta. Intentá nuevamente o escribinos por WhatsApp.";
+    setNotification({type:"error",title:"No se pudo enviar la consulta",message});
+    return;
+   }
+   form.reset();
+   setNotification({type:"success",title:"Recibimos tu consulta",message:"Gracias por contactarnos. Te responderemos dentro de las 24 horas."});
+  } catch {
+   setNotification({type:"error",title:"No se pudo conectar",message:"Revisá tu conexión e intentá nuevamente. Tus datos siguen en el formulario."});
+  } finally {setStatus("idle");}
  }
  return <div className={styles.page}>
+  {notification && <BrandedNotification {...notification} onClose={()=>setNotification(null)}/>}
   <section className={styles.hero}>
    <PageBackdrop />
    <div className={styles.heroContent}>
@@ -53,24 +74,23 @@ export function ContactPageContent() {
      {card.action && <span className={styles.badge}>{card.action}</span>}
     </a>)}
    </div>
-   <form id="contact-form" onSubmit={submit} className={styles.form}>
+   <form id="contact-form" noValidate onSubmit={submit} onInput={()=>setInvalidField(null)} className={styles.form}>
     <div className={styles.formHeading}>
      <h2>Envianos un mensaje</h2>
      <p>Te responderemos dentro de las 24 horas</p>
     </div>
     <div className={styles.fields}>
-     <label><span className="sr-only">Nombre completo</span><input className={inputClass} name="name" autoComplete="name" placeholder="Nombre completo*" required minLength={2} maxLength={150}/></label>
-     <label><span className="sr-only">Correo electrónico</span><input className={inputClass} name="email" type="email" autoComplete="email" placeholder="Correo electrónico*" required maxLength={254}/></label>
-     <label><span className="sr-only">Teléfono</span><input className={inputClass} name="phone" type="tel" autoComplete="tel" placeholder="Teléfono*" maxLength={50} required/></label>
+     <label><span className="sr-only">Nombre completo</span><input className={inputClass} name="name" aria-invalid={invalidField==="name" || undefined} autoComplete="name" placeholder="Nombre completo*" required minLength={2} maxLength={150}/></label>
+     <label><span className="sr-only">Correo electrónico</span><input className={inputClass} name="email" aria-invalid={invalidField==="email" || undefined} type="email" autoComplete="email" placeholder="Correo electrónico*" required maxLength={254}/></label>
+     <label><span className="sr-only">Teléfono</span><input className={inputClass} name="phone" aria-invalid={invalidField==="phone" || undefined} type="tel" autoComplete="tel" placeholder="Teléfono*" maxLength={50} required/></label>
      <label><span className="sr-only">¿Qué servicio te interesa?</span><CustomSelect className={inputClass} name="service" defaultValue=""><option value="" disabled>¿Qué servicio te interesa?</option><option>Comprar una propiedad</option><option>Vender una propiedad</option><option>Alquilar una propiedad</option><option>Tasación de una propiedad</option><option>Otro</option></CustomSelect></label>
-     <label className={styles.message}><span className="sr-only">Tu mensaje</span><textarea className={inputClass} name="message" placeholder="Tu mensaje" required minLength={10} maxLength={5000}/></label>
+     <label className={styles.message}><span className="sr-only">Tu mensaje</span><textarea className={inputClass} name="message" aria-invalid={invalidField==="message" || undefined} placeholder="Tu mensaje" required minLength={10} maxLength={5000}/></label>
     </div>
     <div hidden aria-hidden="true"><label>Sitio web<input name="website" tabIndex={-1} autoComplete="off"/></label></div>
     <div className={styles.formActions}>
-     <label className={styles.consent}><input type="checkbox" name="consent" required/><span>Acepto los <Link href="/terms-conditions">términos y condiciones</Link></span></label>
+     <label className={styles.consent}><input type="checkbox" name="consent" aria-invalid={invalidField==="consent" || undefined} required/><span>Acepto los <Link href="/terms-conditions">términos y condiciones</Link></span></label>
      <button disabled={status==="sending"} className={styles.submit}>{status==="sending"?"Enviando…":"Enviar mensaje"}</button>
     </div>
-    <p role="status" className={styles.status}>{status==="sent"?"Gracias. Recibimos tu mensaje.":status==="error"?"No pudimos enviar tu mensaje. Volvé a intentar o escribinos por WhatsApp.":""}</p>
    </form>
    <section className={styles.location}>
     <div className={styles.locationHeading}>

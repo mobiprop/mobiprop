@@ -1,0 +1,10 @@
+.banner { position:fixed; z-index:11000; top:max(24px,env(safe-area-inset-top)); left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:16px; width:calc(100% - 32px); max-width:460px; padding:18px 24px; box-sizing:border-box; border-radius:16px; background:#fff; box-shadow:0 12px 32px rgba(16,24,40,.16); }
+.icon { display:flex; flex:0 0 50px; height:50px; align-items:center; justify-content:center; border-radius:50%; }
+.error { color:#ff3535; background:#fff3f3; }
+.success { color:#00bd7a; background:#ecfdf5; }
+.copy { min-width:0; flex:1; overflow-wrap:anywhere; }
+.title { margin:0; color:#232323; font:500 16px/24px Poppins,sans-serif; }
+.message { margin:4px 0 0; color:#6a7282; font:400 14px/20px Montserrat,sans-serif; }
+.close { flex-shrink:0; display:flex; align-items:center; justify-content:center; border:0; background:transparent; color:#6a7282; cursor:pointer; padding:8px; margin-right:-12px; }
+.close:focus-visible { outline:2px solid #005089; border-radius:6px; }
+@media(max-width:480px) { .banner { top:max(16px,env(safe-area-inset-top)); gap:12px; padding:16px; }.icon { flex-basis:40px; height:40px; }.title { font-size:14px; line-height:20px; }.message { font-size:12px; line-height:18px; } }

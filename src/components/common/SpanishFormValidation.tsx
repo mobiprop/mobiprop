@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { BrandedNotification } from "./BrandedNotification";
+import { useEffect, useState } from "react";
 import { spanishValidationMessage } from "@/i18n/form-validation";
 
 export function SpanishFormValidation() {
+  const [message,setMessage]=useState<string|null>(null);
   useEffect(() => {
+    let reporting=false;
     type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
     const localized = new Set<Control>();
     const isControl = (target: EventTarget | null): target is Control =>
@@ -12,6 +15,13 @@ export function SpanishFormValidation() {
     const onInvalid = (event: Event) => {
       const control = event.target;
       if (!isControl(control)) return;
+      event.preventDefault();
+      if (!reporting) {
+        reporting=true;
+        setMessage(control.validity.customError ? control.validationMessage : spanishValidationMessage(control.validity, control.type));
+        control.focus();
+        queueMicrotask(()=>{reporting=false;});
+      }
       // Preserve messages supplied by a form's own business validation.
       if (control.validity.customError && !localized.has(control)) return;
       control.setCustomValidity("");
@@ -46,5 +56,5 @@ export function SpanishFormValidation() {
       for (const control of localized) control.setCustomValidity("");
     };
   }, []);
-  return null;
+  return message ? <BrandedNotification type="error" title="Revisá este campo" message={message} onClose={()=>setMessage(null)}/> : null;
 }

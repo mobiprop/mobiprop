@@ -1,17 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { contactSchema } from "@/features/contact/contact-schema";
+import { sendContactEmails } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { checkCooldown } from "@/features/notifications/server/rate-limit";
-
-const schema = z.object({
-  name: z.string().trim().min(2).max(150),
-  email: z.email().max(254),
-  phone: z.string().trim().max(50),
-  service: z.string().trim().max(100),
-  message: z.string().trim().min(10).max(5000),
-  consent: z.literal(true),
-  website: z.string().max(200).optional(),
-});
 
 export async function POST(request: Request) {
   if (Number(request.headers.get("content-length") ?? 0) > 16000) return NextResponse.json({ok:false}, {status:413});
@@ -21,7 +12,7 @@ export async function POST(request: Request) {
   if (raw.length > 16000) return NextResponse.json({ok:false}, {status:413});
   let body: unknown;
   try { body = JSON.parse(raw); } catch { return NextResponse.json({ok:false}, {status:400}); }
-  const parsed = schema.safeParse(body);
+  const parsed = contactSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ok:false}, {status:400});
   const data = parsed.data;
   if (data.website) return NextResponse.json({ok:true});
@@ -36,15 +27,29 @@ export async function POST(request: Request) {
       const recent = await tx.lead.count({where:{submittedEmail:email, source:"WEBSITE_CONTACT_FORM",createdAt:{gte:new Date(Date.now()-600000)}}});
       if (recent >= 3) return false;
       const [row] = await tx.$queryRaw<{max:number|null}[]>`SELECT MAX(CAST(SUBSTRING(lead_number FROM 5) AS INTEGER)) AS max FROM leads`;
-      await tx.lead.create({data:{
+      const lead = await tx.lead.create({data:{
         leadNumber:`LDR-${String((row?.max ?? 0)+1).padStart(4,"0")}`,
         submittedName:data.name,submittedEmail:email,submittedPhone:data.phone || null,
         source:"WEBSITE_CONTACT_FORM",sourceDetail:data.service || "Contact page",
         notes:data.message,sourceUrl:new URL("/contact",request.url).href,
       }});
-      return true;
+      return {id:lead.id,leadNumber:lead.leadNumber};
     });
-    return NextResponse.json({ok:result},{status:result?201:429});
+    if (!result) return NextResponse.json({ok:false},{status:429});
+    // Persist first: a mail provider failure must not lose the inquiry or ask
+    // the visitor to resubmit a lead that has already been saved.
+    let delivery={teamSent:false,receiptSent:false};
+    try { delivery=await sendContactEmails({...data,email,leadNumber:result.leadNumber}); }
+    catch { console.error("[contact] Email delivery failed", {leadNumber:result.leadNumber}); }
+    try {
+      await prisma.leadActivity.create({data:{leadId:result.id,type:"EMAIL",metadata:{
+        event:"CONTACT_FORM_EMAILS",teamRecipient:"hola@mobiprop.com.ar",...delivery,
+        // Provider acceptance is not proof of arrival in the recipient inbox.
+        status:delivery.teamSent && delivery.receiptSent ? "PROVIDER_ACCEPTED" : "DELIVERY_FAILED",
+      }}});
+    } catch { console.error("[contact] Could not record email result",{leadNumber:result.leadNumber}); }
+    if (!delivery.teamSent || !delivery.receiptSent) console.warn("[contact] Inquiry saved; email delivery incomplete",{leadNumber:result.leadNumber,...delivery});
+    return NextResponse.json({ok:true,confirmationEmailSent:delivery.receiptSent},{status:201});
   } catch {
     return NextResponse.json({ok:false},{status:503});
   }
