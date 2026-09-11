@@ -65,3 +65,5 @@ Visit-request receipt is sent after the public tour is saved. REQUESTED is not d
 ## Node version warning
 
 The repository requires Node 22.x. Vercel mobi-prop currently has 24.x selected, so package.json overrides it. In mobi-prop → Settings → Build and Deployment → Node.js Version select 22.x and save. Keep Ulrich settings unchanged. This warning did not prevent the previous production deployment reaching Ready.
+
+The Mobi Prop OTP form expects six numeric digits. Set Email OTP Length to 6 in Supabase Authentication → Sign In / Providers → Email before testing. This dashboard setting controls the generated token length; do not truncate tokens in the HTML.

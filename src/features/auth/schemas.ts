@@ -1,3 +1,4 @@
+import { OTP_LENGTH } from "./otp-config";
 import { z } from "zod";
 
 export const signUpSchema = z.object({
@@ -17,7 +18,7 @@ export const magicLinkSchema = z.object({
 
 export const otpSchema = z.object({
   email: z.string().trim().email("Enter a valid email address"),
-  token: z.string().length(6, "Enter the 6-digit code"),
+  token: z.string().regex(new RegExp(`^[0-9]{${OTP_LENGTH}}$`), `Ingresá el código de ${OTP_LENGTH} dígitos`),
   type: z.enum(["signup", "email", "recovery"]),
 });
 

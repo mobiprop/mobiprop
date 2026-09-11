@@ -11,7 +11,7 @@ type OtpPageProps = {
   backHref?: string;
 };
 
-const OTP_LENGTH = 6;
+import { OTP_LENGTH } from "./otp-config";
 const RESEND_SECONDS = 60;
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -21,7 +21,8 @@ import { AuthShell, AuthBack, AuthIcon, styles } from "./components/AuthDesign";
 
 export function OtpPageContent({ email: emailProp, backHref = "/register" }: OtpPageProps) {
   const searchParams = useSearchParams();
-  const { t } = useTranslation("auth");
+  const { i18n } = useTranslation("auth");
+  const t = i18n.getFixedT("es", "auth");
 
   const email = emailProp ?? searchParams.get("email") ?? "";
   const otpType = (searchParams.get("type") === "email" ? "email" : "signup") as "email" | "signup";
@@ -49,6 +50,10 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
   const fillFrom = (index: number, text: string) => {
     const digits = text.replace(/\D/g, "");
     if (!digits) return;
+    if (digits.length > OTP_LENGTH) {
+      flashBanner({type:"error",title:t("otp.incompleteCodeTitle"),message:t("otp.incompleteCodeMessage",{length:OTP_LENGTH})});
+      return;
+    }
     const next = [...otp];
     let i = index;
     for (const d of digits) {
@@ -64,7 +69,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     const digits = value.replace(/\D/g, "");
     // Multiple digits arrive when the code is pasted or autofilled into one box
     if (digits.length > 1) {
-      fillFrom(index, digits);
+      fillFrom(digits.length === OTP_LENGTH ? 0 : index, digits);
       return;
     }
     const char = digits.slice(-1);
@@ -78,7 +83,8 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
 
   const handlePaste = (index: number, e: React.ClipboardEvent) => {
     e.preventDefault();
-    fillFrom(index, e.clipboardData.getData("text"));
+    const pasted = e.clipboardData.getData("text");
+    fillFrom(pasted.replace(/\D/g, "").length === OTP_LENGTH ? 0 : index, pasted);
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -109,7 +115,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
 
     if (result.error) {
       setIsVerifying(false);
-      flashBanner({ type: "error", title: t("otp.verificationFailedTitle"), message: result.error });
+      flashBanner({ type: "error", title: t("otp.verificationFailedTitle"), message: t("otp.invalidCodeMessage") });
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
       inputRefs.current[0]?.focus();
       return;
@@ -130,7 +136,7 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     setIsResending(false);
 
     if (result.error) {
-      flashBanner({ type: "error", title: t("otp.couldntResendTitle"), message: result.error });
+      flashBanner({ type: "error", title: t("otp.couldntResendTitle"), message: t("otp.resendErrorMessage") });
       return;
     }
 
@@ -142,10 +148,10 @@ export function OtpPageContent({ email: emailProp, backHref = "/register" }: Otp
     <AuthShell centered>
       {banner && <AuthBanner {...banner} />}
       <form className={`${styles.card} ${styles.otp}`} onSubmit={e=>{e.preventDefault();void handleVerify();}}>
-        <header className={`${styles.header} ${styles.otpHeader}`}><div className={styles.otpIcon}><AuthIcon name="otp" /></div><div><h1>OTP Verification</h1><p>We have sent a verification code to email address <strong>{email}</strong></p></div></header>
-        <div className={styles.digits}>{otp.map((digit,i)=><input key={i} ref={el=>{inputRefs.current[i]=el;}} aria-label={`Digit ${i+1} of ${OTP_LENGTH}`} inputMode="numeric" autoComplete={i===0 ? "one-time-code" : "off"} value={digit} onChange={e=>handleInput(i,e.target.value)} onKeyDown={e=>handleKeyDown(i,e)} onPaste={e=>handlePaste(i,e)} disabled={isVerifying} />)}</div>
-        <button type="submit" className={styles.primary} disabled={isVerifying}>{isVerifying ? t("otp.verifying") : "Verify"}</button>
-        <div className={styles.resend}>Didn&apos;t receive the code? <button type="button" onClick={()=>void handleResend()} disabled={isResending || seconds>0 || !email}>{seconds>0 ? `Resend in ${formatTime(seconds)}` : isResending ? "Sending…" : "Resend"}</button></div>
+        <header className={`${styles.header} ${styles.otpHeader}`}><div className={styles.otpIcon}><AuthIcon name="otp" /></div><div><h1>{t("otp.title")}</h1><p>{t("otp.subtitlePrefix")} <strong>{email}</strong></p></div></header>
+        <div className={styles.digits}>{otp.map((digit,i)=><input key={i} ref={el=>{inputRefs.current[i]=el;}} aria-label={`Dígito ${i+1} de ${OTP_LENGTH}`} inputMode="numeric" autoComplete={i===0 ? "one-time-code" : "off"} value={digit} onChange={e=>handleInput(i,e.target.value)} onKeyDown={e=>handleKeyDown(i,e)} onPaste={e=>handlePaste(i,e)} disabled={isVerifying} />)}</div>
+        <button type="submit" className={styles.primary} disabled={isVerifying}>{isVerifying ? t("otp.verifying") : t("otp.verifyButton")}</button>
+        <div className={styles.resend}>{t("otp.didntReceive")} <button type="button" onClick={()=>void handleResend()} disabled={isResending || seconds>0 || !email}>{seconds>0 ? `${t("otp.resendPrefix")} ${formatTime(seconds)}` : isResending ? t("otp.sending") : t("otp.resendButton")}</button></div>
         {!email && <AuthBack href={backHref} />}
       </form>
     </AuthShell>

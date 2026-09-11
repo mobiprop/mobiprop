@@ -10,10 +10,10 @@ export function AuthIcon({ name }: { name: string }) {
 }
 export function AuthShell({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
   return <div className={`${styles.shell} ${centered ? styles.centered : ""}`}>
-    <Link className={styles.logo} href="/" aria-label="Mobi Prop home"><img src="/auth/logo.svg" alt="" width={30} height={30} /><div>Mobi <span>Prop</span></div></Link>
+    <Link className={styles.logo} href="/" aria-label="Inicio de Mobi Prop"><img src="/auth/logo.svg" alt="" width={30} height={30} /><div>Mobi <span>Prop</span></div></Link>
     <main className={styles.main}>{children}</main>
     {!centered && <div className={styles.photo}><img src="/auth/photo.webp" alt="White Mediterranean building with blue shutters" width={704} height={948} fetchPriority="high" /></div>}
-    <footer className={styles.footer}><span>© 2026 Mobi Prop. All rights reserved</span><Link href="/privacy-policy">Privacy</Link><Link href="/terms-conditions">Terms</Link></footer>
+    <footer className={styles.footer}><span>© 2026 Mobi Prop. Todos los derechos reservados</span><Link href="/privacy-policy">Privacidad</Link><Link href="/terms-conditions">Términos</Link></footer>
   </div>;
 }
 export function AuthField({ label, icon, reveal, onReveal, invalid, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; icon: string; reveal?: boolean; onReveal?: () => void; invalid?: boolean }) {
@@ -31,4 +31,4 @@ export function AuthSocials({ onGoogle, disabled }: { onGoogle: () => void; disa
     <button type="button" disabled title="Microsoft sign-in is not available yet" aria-label="Microsoft sign-in is not available yet"><AuthIcon name="microsoft" /></button>
   </div></>;
 }
-export function AuthBack({ href = "/login" }: { href?: string }) { return <Link className={styles.back} href={href}><AuthIcon name="back" />Back</Link>; }
+export function AuthBack({ href = "/login" }: { href?: string }) { return <Link className={styles.back} href={href}><AuthIcon name="back" />Volver</Link>; }
