@@ -6,6 +6,7 @@ type PinOverlayCtor = new (
   pos: google.maps.LatLngLiteral,
   label: string,
   onClick: () => void,
+  offsetY?: number,
 ) => PinOverlay;
 
 export function buildOverlayClass(): PinOverlayCtor {
@@ -17,6 +18,7 @@ export function buildOverlayClass(): PinOverlayCtor {
       private pos: google.maps.LatLngLiteral,
       private label: string,
       private handleClick: () => void,
+      private offsetY = 0,
     ) {
       super();
     }
@@ -67,7 +69,7 @@ export function buildOverlayClass(): PinOverlayCtor {
       const pt = proj?.fromLatLngToDivPixel(new google.maps.LatLng(this.pos));
       if (pt && this.el) {
         this.el.style.left = `${pt.x}px`;
-        this.el.style.top = `${pt.y}px`;
+        this.el.style.top = `${pt.y + this.offsetY}px`;
       }
     }
 

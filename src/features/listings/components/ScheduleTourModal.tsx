@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X, Calendar, Clock, Loader2, CheckCircle2 } from "lucide-react";
-import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
 import { useRequestTourMutation, TourConflictError } from "@/hooks/mutations/useTourMutations";
@@ -14,7 +13,7 @@ const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 const inputCls =
-  "h-11 px-4 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] placeholder:text-[#9ca3af] outline-none focus:border-[#1e4f86] transition-colors w-full bg-white";
+  "h-12 px-4 border border-[#ccdeef] rounded-xl text-sm text-[#232323] placeholder:text-[#6c6c6c] outline-none focus:border-[#005089] focus:ring-2 focus:ring-[#005089]/15 transition-colors w-full bg-white";
 
 function defaultSchedule() {
   return new Date(Date.now() + 60 * 60 * 1000);
@@ -56,6 +55,14 @@ type Props = {
 export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props) {
   const { t } = useTranslation("listingDetail");
   const mutation = useRequestTourMutation();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { dialog?.close(); document.body.style.overflow = previous; };
+  }, []);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -135,47 +142,46 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-[20px] shadow-2xl w-full max-w-md">
+    <dialog ref={dialogRef} onCancel={onClose} onClick={event => { if (event.target === event.currentTarget) onClose(); }} aria-labelledby="tour-title" className="fixed inset-0 m-auto max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-[560px] overflow-y-auto rounded-3xl border border-[#e9e9e9] bg-white p-0 text-[#232323] shadow-2xl backdrop:bg-[#00223a]/50 backdrop:backdrop-blur-sm">
+      <div className="relative w-full">
         {/* Header */}
         <div
-          className="px-6 pt-6 pb-4 rounded-t-[20px] overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #0d2138 0%, #1e4f86 100%)" }}
+          className="border-b border-[#e9e9e9] bg-[#f0f6fa] px-6 py-6 sm:px-8"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[18px] font-bold text-white" style={mont}>{t("tourModal.title")}</h2>
+              <span className="mb-4 inline-flex size-11 items-center justify-center rounded-xl border border-[#ccdeef] bg-white text-[#005089]"><Calendar size={22} strokeWidth={1.5} /></span>
+              <h2 id="tour-title" className="text-2xl font-medium text-[#00223a]" style={poppins}>{t("tourModal.title")}</h2>
               {propertyTitle && (
-                <p className="text-[12px] text-[#93c5fd] mt-0.5 truncate max-w-[300px]" style={mont}>{propertyTitle}</p>
+                <p className="text-sm text-[#4f4f4f] mt-2 max-w-[400px]" style={mont}>{propertyTitle}</p>
               )}
             </div>
-            <button onClick={onClose} className="p-1.5 rounded-[8px] bg-white/10 hover:bg-white/20 transition-colors">
-              <X size={16} color="white" />
+            <button type="button" aria-label="Cerrar" onClick={onClose} className="flex size-10 shrink-0 self-start items-center justify-center rounded-full border border-[#ccdeef] bg-white text-[#005089] hover:bg-[#e1edf5] transition-colors">
+              <X size={20} strokeWidth={1.5} />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5">
+        <div className="px-6 py-6 sm:px-8">
           {success ? (
             <div className="flex flex-col items-center gap-4 py-4 text-center">
-              <CheckCircle2 size={48} color="#059669" />
+              <span className="flex size-20 items-center justify-center rounded-full border border-[#ccdeef] bg-[#f0f6fa] text-[#005089]"><CheckCircle2 size={40} strokeWidth={1.5} /></span>
               <div>
-                <p className="text-[16px] font-bold text-[#0d2138]" style={mont}>{t("tourModal.success.heading")}</p>
-                <p className="text-[13px] text-[#6b7280] mt-1" style={mont}>
-                  {t("tourModal.success.reference")} <span className="font-semibold text-[#0d2138]">{success.tourNumber}</span>
+                <p className="text-[16px] font-bold text-[#00223a]" style={mont}>{t("tourModal.success.heading")}</p>
+                <p className="text-sm text-[#6b7280] mt-1" style={mont}>
+                  {t("tourModal.success.reference")} <span className="font-semibold text-[#00223a]">{success.tourNumber}</span>
                 </p>
-                <p className="text-[13px] text-[#6b7280] mt-0.5" style={mont}>
-                  {format(new Date(success.scheduledAt), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                <p className="text-sm text-[#6b7280] mt-0.5" style={mont}>
+                  {DATE_FMT.format(new Date(success.scheduledAt))} · {TIME_FMT.format(new Date(success.scheduledAt))}
                 </p>
               </div>
-              <p className="text-[12px] text-[#9ca3af]" style={mont}>
+              <p className="text-sm text-[#6c6c6c]" style={mont}>
                 {t("tourModal.success.confirmNote")}
               </p>
               <button
                 onClick={onClose}
-                className="mt-2 px-6 py-2.5 bg-[#0d2138] text-white rounded-[10px] text-[13px] font-semibold hover:bg-[#1a3a5c] transition-colors"
+                className="home-button mt-2 w-full"
                 style={mont}
               >
                 {t("tourModal.success.done")}
@@ -185,46 +191,46 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               {/* Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.fullNameLabel")}</label>
+                <label htmlFor="tour-name" className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.fullNameLabel")}</label>
                 <input
                   className={inputCls}
                   style={mont}
                   placeholder={t("tourModal.form.fullNamePlaceholder")}
-                  value={name}
+                  id="tour-name" autoComplete="name" value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
 
               {/* Email + Phone */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.emailLabel")}</label>
+                  <label htmlFor="tour-email" className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.emailLabel")}</label>
                   <input
                     className={inputCls}
                     style={mont}
                     type="email"
                     placeholder={t("tourModal.form.emailPlaceholder")}
-                    value={email}
+                    id="tour-email" autoComplete="email" value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.phoneLabel")}</label>
+                  <label htmlFor="tour-phone" className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.phoneLabel")}</label>
                   <input
                     className={inputCls}
                     style={mont}
                     placeholder={t("tourModal.form.phonePlaceholder")}
-                    value={phone}
+                    id="tour-phone" type="tel" autoComplete="tel" value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
               </div>
 
               {/* Preferred date + time */}
-              <div ref={calRef} className="grid grid-cols-2 gap-3">
+              <div ref={calRef} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="relative flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.preferredDateLabel")}</label>
+                  <label className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.preferredDateLabel")}</label>
                   <button
                     type="button"
                     onClick={() => setOpenPanel((p) => (p === "date" ? null : "date"))}
@@ -232,7 +238,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                     style={mont}
                   >
                     <span className="truncate">{DATE_FMT.format(scheduledDate)}</span>
-                    <Calendar size={15} color="#6a7282" className="shrink-0" />
+                    <Calendar size={15} color="#005089" strokeWidth={1.5} className="shrink-0" />
                   </button>
                   {openPanel === "date" && (
                     <CalendarPanel
@@ -245,7 +251,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                   )}
                 </div>
                 <div className="relative flex flex-col gap-1.5">
-                  <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.timeLabel")}</label>
+                  <label className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.timeLabel")}</label>
                   <button
                     type="button"
                     onClick={() => setOpenPanel((p) => (p === "time" ? null : "time"))}
@@ -253,7 +259,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                     style={mont}
                   >
                     <span className="truncate">{formatTimeLabel(scheduledTime)}</span>
-                    <Clock size={15} color="#6a7282" className="shrink-0" />
+                    <Clock size={15} color="#005089" strokeWidth={1.5} className="shrink-0" />
                   </button>
                   {openPanel === "time" && (
                     <TimePanel
@@ -268,7 +274,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
 
               {/* Duration */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.durationLabel")}</label>
+                <label className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.durationLabel")}</label>
                 <SearchableSelect
                   searchable={false}
                   value={String(duration)}
@@ -286,24 +292,24 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
 
               {/* Message */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-semibold text-[#374151]" style={mont}>{t("tourModal.form.messageLabel")}</label>
+                <label htmlFor="tour-message" className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.messageLabel")}</label>
                 <textarea
-                  className="px-4 py-2.5 border border-[#d1d5db] rounded-[10px] text-[13px] text-[#0d2138] placeholder:text-[#9ca3af] outline-none focus:border-[#1e4f86] resize-none"
+                  className={`${inputCls} h-auto py-3 resize-none`}
                   style={mont}
                   placeholder={t("tourModal.form.messagePlaceholder")}
-                  rows={2}
-                  value={message}
+                  rows={3}
+                  id="tour-message" value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
 
               {error && (
-                <p className="text-[12px] text-red-500" style={mont}>{error}</p>
+                <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" style={mont}>{error}</p>
               )}
 
               {suggestedSlots.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-[12px] font-semibold text-[#374151]" style={mont}>
+                  <p className="text-sm font-medium text-[#232323]" style={mont}>
                     {t("tourModal.form.availableTimesInstead")}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -313,7 +319,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                         type="button"
                         disabled={mutation.isPending}
                         onClick={() => handlePickSuggestedSlot(iso)}
-                        className="rounded-[8px] border border-[#1e4f86] px-3 py-1.5 text-[12px] font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:opacity-40"
+                        className="rounded-[8px] border border-[#1e4f86] px-3 py-1.5 text-sm font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:opacity-40"
                         style={mont}
                       >
                         {SLOT_FMT.format(new Date(iso))}
@@ -326,24 +332,24 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="w-full h-11 rounded-[10px] text-white text-[14px] font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-40 transition-opacity mt-1"
+                className="home-button w-full min-h-12 flex items-center justify-center gap-2 disabled:opacity-50 mt-1"
                 style={{
                   background: "linear-gradient(to bottom, #005ea4, #006fc2)",
                   border: "1px solid #0088ff",
                   fontFamily: poppins.fontFamily,
                 }}
               >
-                {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Calendar size={16} />}
+                {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Calendar size={18} strokeWidth={1.5} />}
                 {t("tourModal.form.submitButton")}
               </button>
 
-              <p className="text-[11px] text-[#9ca3af] text-center" style={mont}>
+              <p className="text-xs text-[#6c6c6c] text-center" style={mont}>
                 {t("tourModal.form.disclaimer")}
               </p>
             </form>
           )}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

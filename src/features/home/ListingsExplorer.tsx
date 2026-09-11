@@ -27,10 +27,8 @@ export function ListingsExplorer() {
   const [loginOpen, setLoginOpen] = useState(false);
   const { isSaved, toggleSave } = useSavedListings();
   const listings = useMemo(() => (query.data?.listings ?? []).filter((item) => !type || item.type === type), [query.data, type]);
-  const selected = listings.find((item) => item.id === selectedId) ?? listings[0];
-  // Show four cards as in Figma, bringing a selected map result into the list.
-  const visible = listings.slice(0, 4);
-  if (selected && !visible.some((item) => item.id === selected.id)) visible[3] = selected;
+  const selected = listings.find((item) => item.id === selectedId);
+  const visible = useMemo(() => listings.slice(0, 4), [listings]);
 
   return (
     <section className="home-section bg-white" aria-label={t("explorer.title")}>
@@ -59,20 +57,20 @@ export function ListingsExplorer() {
             <div className="flex min-w-0 flex-col gap-4" aria-live="polite">
               <p className="sr-only">{t("explorer.results", { count: listings.length })}</p>
               {visible.map((property) => (
-                <article key={property.id} className={`home-listing-row ${selected?.id === property.id ? "is-selected" : ""}`}>
-                  <Link className="home-listing-photo" href={`/listings/${property.slug}`}>
+                <article key={property.id} onClick={() => setSelectedId(property.id)} className={`home-listing-row ${selected?.id === property.id ? "is-selected" : ""}`}>
+                  <button type="button" className="home-listing-photo text-left" onClick={() => setSelectedId(property.id)} aria-label={t("explorer.showOnMap", { title: property.title })}>
                     {(property.coverImageUrl || property.images[0]?.url) ? <Image src={property.coverImageUrl || property.images[0].url} alt={property.title} fill sizes="(min-width: 1024px) 16vw, (min-width: 640px) 30vw, 100vw" className="object-cover" /> : <span className="flex h-full items-center justify-center p-4 text-sm text-[#4f4f4f]">{t("explorer.noPhoto")}</span>}
                     <span className="absolute left-3 top-3 rounded-full bg-[#005089] px-2.5 py-1 text-xs text-white">{operationBadge(property, listingT)}</span>
-                  </Link>
+                  </button>
                   <div className="home-listing-details">
                     <div className="flex items-start justify-between gap-2">
-                      <Link href={`/listings/${property.slug}`} className="min-w-0">
+                      <button type="button" onClick={() => setSelectedId(property.id)} className="min-w-0 text-left" aria-label={t("explorer.showOnMap", { title: property.title })}>
                         <p className="font-[Poppins] text-2xl font-semibold text-[#0064af]">{listingDisplayPrice(property, listingT)}</p>
                         <h3 className="mt-1 line-clamp-2 text-base text-[#4f4f4f]">{property.title}</h3>
-                      </Link>
+                      </button>
                       <button type="button" aria-pressed={isSaved(property.listingId)} aria-label={isSaved(property.listingId) ? listingT("card.removeSavedAriaLabel") : listingT("card.saveAriaLabel")}
                         className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[#e9e9e9]"
-                        onClick={() => toggleSave(property.listingId, () => setLoginOpen(true))}>
+                        onClick={(event) => { event.stopPropagation(); toggleSave(property.listingId, () => setLoginOpen(true)); }}>
                         <Heart size={16} strokeWidth={1.25} className={isSaved(property.listingId) ? "fill-red-500 text-red-500" : "text-[#9a9a9a]"} />
                       </button>
                     </div>
@@ -89,7 +87,7 @@ export function ListingsExplorer() {
                 </article>
               ))}
             </div>
-            <ListingsMap listings={listings} selectedId={selected?.id ?? null} onSelect={setSelectedId} />
+            <ListingsMap listings={visible} selectedId={selected?.id ?? null} onSelect={setSelectedId} onClose={() => setSelectedId(null)} />
           </div>
         )}
         <Link className="home-button" href={type ? `/listings?propertyType=${encodeURIComponent(type)}` : "/listings"}>{t("explorer.viewAll")}</Link>

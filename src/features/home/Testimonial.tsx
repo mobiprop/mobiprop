@@ -19,22 +19,34 @@ function Star() {
 
 export function Testimonial() {
   const { t } = useTranslation("home");
-  // Only one real client testimonial exists so far — shown as a single
-  // static card rather than padding out a carousel with placeholder ones.
-  const testimonial = {
+  const testimonials = [{
     quote: t("testimonial.quote"),
     name: t("testimonial.name"),
     role: t("testimonial.role"),
     image: testimonialPerson,
-  };
+    initials: "",
+  }, {
+    name: "Martín y Delfi",
+    quote: "Tuvimos una excelente experiencia. Desde el primer momento nos acompañaron con mucha atención y predisposición, entendiendo exactamente lo que estábamos buscando. Todo el proceso fue claro y ágil. Nos sentimos acompañados en cada etapa y estamos felices en nuestra nueva casa.",
+    role: "",
+    image: "/testimonials/martin-delfi.webp",
+    initials: "M&D",
+  }, {
+    name: "Belén y Gastón",
+    quote: "Estábamos buscando una casa que realmente se adaptara a lo que queríamos. Nos entendieron desde el principio. Nos mostraron opciones que tenían sentido para nosotros y nos acompañaron en cada visita. Terminamos encontrando nuestra casa y el proceso fue mucho más simple de lo que esperábamos.",
+    role: "",
+    image: "/testimonials/belen-gaston.webp",
+    initials: "B&G",
+  }];
 
   return (
     <section className="bg-[#fafcff] home-section">
       <div className="home-container flex flex-col items-center gap-12">
         <SectionHeading badge={t("testimonial.badge")} title={t("testimonial.title")} subtitle={t("testimonial.subtitle")} />
 
-        <div className="flex flex-col gap-8 rounded-2xl border border-[#e9e9e9] bg-white p-8 sm:p-10 max-w-[530px] w-full">
-          <div className="flex items-center gap-1">
+        <div className="grid w-full max-w-[1312px] grid-cols-1 gap-6 lg:grid-cols-3">
+        {testimonials.map(testimonial => <article key={testimonial.name} className="flex min-w-0 flex-col gap-8 rounded-2xl border border-[#e9e9e9] bg-white p-8 w-full">
+          <div className="flex items-center gap-1" role="img" aria-label="5 de 5 estrellas">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} />
             ))}
@@ -47,12 +59,12 @@ export function Testimonial() {
             &ldquo;{testimonial.quote}&rdquo;
           </blockquote>
 
-          <div className="flex items-center gap-3">
-            <img
+          <div className="mt-auto flex items-center gap-3">
+            {testimonial.image ? <img
               src={testimonial.image}
               alt={testimonial.name}
               className="size-12 rounded-full object-cover flex-shrink-0"
-            />
+            /> : <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#f0f6fa] text-sm font-medium text-[#005089]">{testimonial.initials}</span>}
             <div className="min-w-0">
               <p
                 className="text-[16px] sm:text-[18px] font-medium text-[#232323]"
@@ -60,14 +72,15 @@ export function Testimonial() {
               >
                 {testimonial.name}
               </p>
-              <p
+              {testimonial.role && <p
                 className="text-[14px] sm:text-[16px] text-[#4f4f4f]"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 {testimonial.role}
-              </p>
+              </p>}
             </div>
           </div>
+        </article>)}
         </div>
       </div>
     </section>

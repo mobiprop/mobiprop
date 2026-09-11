@@ -128,6 +128,7 @@ async function recordScope(profile: Profile): Promise<Prisma.PropertyWhereInput>
 // ── DTO mapping ───────────────────────────────────────────────────────────────
 
 const listingInclude = {
+  operationalLocation: { select: { name: true, latitude: true, longitude: true } },
   images: { orderBy: { sortOrder: "asc" } },
   amenities: { include: { amenity: true } },
   contacts: {
@@ -201,7 +202,20 @@ function toDashboardDto(property: PropertyWithRelations): DashboardListingDto {
   };
 }
 
-function toPublicDto(property: PropertyWithRelations): PublicListingDto {
+type PublicMapLocation = { name: string; latitude: { toString(): string } | number | null; longitude: { toString(): string } | number | null };
+const getMapLocations = cache(() => prisma.location.findMany({ select: { name: true, latitude: true, longitude: true } }));
+const normalizeLocationName = (name: string) => name.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es-AR");
+function toPublicDto(property: PropertyWithRelations, locations: PublicMapLocation[] = []): PublicListingDto {
+  const matches = property.locationId ? [] : locations.filter(location => normalizeLocationName(location.name) === normalizeLocationName(property.location));
+  const fallback = property.operationalLocation ?? (matches.length === 1 ? matches[0] : null);
+  const validPair = (value: { latitude: unknown; longitude: unknown } | null | undefined) =>
+    value?.latitude != null && value.longitude != null &&
+    Number.isFinite(Number(value.latitude)) && Math.abs(Number(value.latitude)) <= 90 &&
+    Number.isFinite(Number(value.longitude)) && Math.abs(Number(value.longitude)) <= 180;
+  const ownCoordinates = validPair(property);
+  const coordinates = ownCoordinates ? property : validPair(fallback) ? fallback : null;
+  const latitude = coordinates ? Number(coordinates.latitude) : null;
+  const longitude = coordinates ? Number(coordinates.longitude) : null;
   return {
     id: property.id,
     listingId: property.listingId,
@@ -220,8 +234,9 @@ function toPublicDto(property: PropertyWithRelations): PublicListingDto {
     city: property.city,
     province: property.province,
     country: property.country,
-    latitude: property.latitude === null ? null : Number(property.latitude),
-    longitude: property.longitude === null ? null : Number(property.longitude),
+    latitude,
+    longitude,
+    locationApproximate: !ownCoordinates && latitude != null && longitude != null,
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     toilets: property.toilets,
@@ -1258,7 +1273,8 @@ export async function listPublicListings(
     prisma.property.count({ where }),
   ]);
 
-  return { listings: properties.map(toPublicDto), total };
+  const locations = await getMapLocations();
+  return { listings: properties.map(property => toPublicDto(property, locations)), total };
 }
 
 /** Public-safe assigned agent info shown on the listing detail page. */
@@ -1313,9 +1329,10 @@ export const getPublicListingBySlug = cache(async function getPublicListingBySlu
       : Promise.resolve(null),
   ]);
 
+  const locations = await getMapLocations();
   return {
-    listing: toPublicDto(property),
-    similar: similar.map(toPublicDto),
+    listing: toPublicDto(property, locations),
+    similar: similar.map(item => toPublicDto(item, locations)),
     agent: agentProfile?.fullName
       ? { name: agentProfile.fullName, avatarUrl: agentProfile.avatarUrl }
       : null,

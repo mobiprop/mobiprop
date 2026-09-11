@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
 import type { PublicListingDto } from "@/features/listings/types/listing-dto";
@@ -8,10 +9,11 @@ import { PropertyCard } from "@/features/listings/components/PropertyCard";
 import { buildOverlayClass, type PinOverlay } from "@/components/maps/PricePinOverlay";
 import { listingDisplayPrice } from "@/features/listings/utils/format";
 
-export function ListingsMap({ listings, selectedId, onSelect }: {
+export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
   listings: PublicListingDto[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onClose: () => void;
 }) {
   const { t } = useTranslation("home");
   const { t: listingT } = useTranslation("listings");
@@ -22,7 +24,7 @@ export function ListingsMap({ listings, selectedId, onSelect }: {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const geo = useMemo(() => listings.filter((item) => item.latitude != null && item.longitude != null && Number.isFinite(item.latitude) && Number.isFinite(item.longitude) && Math.abs(item.latitude) <= 90 && Math.abs(item.longitude) <= 180), [listings]);
+  const geo = useMemo(() => listings.filter(item => item.latitude != null && item.longitude != null && Number.isFinite(item.latitude) && Number.isFinite(item.longitude) && Math.abs(item.latitude) <= 90 && Math.abs(item.longitude) <= 180), [listings]);
   const selected = listings.find((item) => item.id === selectedId);
   const selectedGeo = geo.find((item) => item.id === selectedId);
   const externalQuery = selectedGeo ? `${selectedGeo.latitude},${selectedGeo.longitude}` : [selected?.fullAddress || selected?.location, selected?.city, selected?.province, selected?.country].filter(Boolean).join(", ");
@@ -56,20 +58,24 @@ export function ListingsMap({ listings, selectedId, onSelect }: {
     const markers = geo.map((item) => {
       const position = { lat: item.latitude!, lng: item.longitude! };
       bounds.extend(position);
-      const marker = new Overlay(position, listingDisplayPrice(item, listingT), () => onSelect(item.id));
+      // Stack labels sharing a CRM location without changing their coordinates.
+      const colocated = geo.filter(other => other.latitude === item.latitude && other.longitude === item.longitude);
+      const offsetY = (colocated.findIndex(other => other.id === item.id) - (colocated.length - 1) / 2) * 34;
+      const marker = new Overlay(position, listingDisplayPrice(item, listingT), () => onSelect(item.id), offsetY);
       marker.setMap(map);
       currentPins.set(item.id,marker);
       return marker;
     });
-    if (geo.length === 1) { map.setCenter(bounds.getCenter()); map.setZoom(14); }
+    if (geo.every(item => item.latitude === geo[0].latitude && item.longitude === geo[0].longitude)) { map.setCenter(bounds.getCenter()); map.setZoom(14); }
     else map.fitBounds(bounds, 48);
     return () => { markers.forEach(marker => marker.setMap(null)); currentPins.clear(); };
   }, [geo, ready, onSelect, listingT]);
 
   useEffect(() => {
-    if (!ready || !selectedGeo || !mapRef.current) return;
-    const map = mapRef.current;
+    if (!ready || !mapRef.current) return;
     pins.current.forEach((pin,id) => pin.setSelected(id === selectedId));
+    if (!selectedGeo) return;
+    const map = mapRef.current;
     const update = () => {
       const bounds = container.current?.getBoundingClientRect();
       const anchor = pins.current.get(selectedGeo.id)?.getAnchorRect();
@@ -93,7 +99,10 @@ export function ListingsMap({ listings, selectedId, onSelect }: {
         {unavailable && <p className="max-w-sm text-sm leading-relaxed">{t("explorer.mapFallback")}</p>}
       </div>}
       {selected && <div className="absolute z-10 w-[318px] max-w-[calc(100%-32px)]" style={selectedGeo && popup ? {left:popup.x, top:popup.y,transform:popup.y>420 ? "translate(-50%,calc(-100% - 12px))" : "translate(-50%,16px)"} : {left:16,bottom:16}}>
+        <button type="button" onClick={onClose} aria-label="Cerrar propiedad en el mapa" className="absolute left-3 top-12 z-20 flex size-9 items-center justify-center rounded-full border border-[#e9e9e9] bg-white text-[#005089] shadow-sm hover:bg-[#f0f6fa]"><X size={18} strokeWidth={1.5} /></button>
         <PropertyCard key={selected.id} property={selected} compact />
+        {selected.locationApproximate && selectedGeo && <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-[#4f4f4f]">Ubicación aproximada de la zona</p>}
+        {!selectedGeo && <p role="status" className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-[#4f4f4f]">Ubicación aún no disponible</p>}
         {externalQuery && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(externalQuery)}`} target="_blank" rel="noopener noreferrer" className="mt-2 block rounded-lg bg-white px-3 py-2 text-center text-sm text-[#005089] underline shadow-sm">{t("explorer.openMap")}</a>}
       </div>}
     </div>

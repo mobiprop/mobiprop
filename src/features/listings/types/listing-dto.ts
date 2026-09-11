@@ -91,6 +91,7 @@ export type PublicListingDto = {
   city: string | null;
   province: string | null;
   country: string | null;
+  locationApproximate?: boolean;
   latitude: number | null;
   longitude: number | null;
   bedrooms: number | null;

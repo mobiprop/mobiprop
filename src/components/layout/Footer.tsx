@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Phone } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
@@ -52,17 +53,7 @@ function LocationIcon() {
 }
 
 function PhoneIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
-      <path
-        d="M12.8331 9.86978V11.6198C12.8337 11.7822 12.8004 11.943 12.7354 12.0919C12.6703 12.2408 12.5748 12.3744 12.4551 12.4842C12.3354 12.594 12.1941 12.6776 12.0402 12.7297C11.8863 12.7817 11.7232 12.8011 11.5614 12.7865C9.76637 12.5914 8.04214 11.978 6.52722 10.9956C4.95504 9.99444 3.65298 8.62226 2.73555 6.99978C1.74971 5.47799 1.1362 3.74536 0.94472 1.94228C0.916513 1.77377 0.925662 1.60112 0.971521 1.43653C1.01738 1.27194 1.09883 1.11944 1.21011 0.989792C1.3214 0.860146 1.4598 0.756525 1.61554 0.686253C1.77127 0.615981 1.94055 0.580773 2.11139 0.583118H3.86139C4.14448 0.580331 4.41893 0.68058 4.63358 0.865178C4.84823 1.04978 4.98843 1.30613 5.02805 1.58645C5.10214 2.14645 5.23864 2.69653 5.43639 3.22562C5.51487 3.43441 5.53186 3.66132 5.48533 3.87946C5.43881 4.09761 5.33072 4.29785 5.17389 4.45645L4.61389 5.01645C5.40226 6.33069 6.50215 7.43057 7.81639 8.21895L8.37639 7.65895C8.53499 7.50211 8.73523 7.39403 8.95337 7.34751C9.17152 7.30098 9.39843 7.31797 9.60722 7.39645C10.1363 7.5942 10.6864 7.7307 11.2464 7.80478C11.5096 7.73115 11.7903 7.75226 12.0395 7.86441C12.2887 7.97656 12.4906 8.17264 12.6101 8.41845C12.7295 8.66427 12.7588 8.9442 12.693 9.20944C12.6271 9.47468 12.4703 9.70838 12.2497 9.86978H12.8331Z"
-        stroke="#F0F6FA"
-        strokeWidth="1.05"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <Phone size={16} strokeWidth={1.5} className="shrink-0 text-[#f0f6fa]" aria-hidden="true" />;
 }
 
 function MailIcon() {
@@ -178,7 +169,7 @@ export function Footer() {
                   aria-label={social.name}
                   className="flex size-[38px] items-center justify-center rounded-[10px] border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
-                  {social.name === "WhatsApp" ? <span aria-hidden="true" className="size-[18px] bg-[#f0f6fa]" style={{ mask: "url(/icons/brand-whatsapp.svg) center / contain no-repeat", WebkitMask: "url(/icons/brand-whatsapp.svg) center / contain no-repeat" }} /> : <SocialIcon path={social.path} />}
+                  {social.name === "WhatsApp" ? <span aria-hidden="true" className="size-[18px] bg-[#f0f6fa]" style={{ mask: "url(/icons/brand-whatsapp.svg) center / contain no-repeat", WebkitMask: "url(/icons/brand-whatsapp.svg) center / contain no-repeat" }} /> : social.name === "LinkedIn" ? <span aria-hidden="true" className="size-[18px] bg-[#f0f6fa]" style={{ mask: "url(/icons/brand-linkedin.svg) center / contain no-repeat", WebkitMask: "url(/icons/brand-linkedin.svg) center / contain no-repeat" }} /> : <SocialIcon path={social.path} />}
                 </a>
               ))}
             </div>

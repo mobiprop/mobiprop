@@ -847,8 +847,8 @@ function buildStats(listing: PublicListingDto, t: TFunction) {
   push("Type", operationTypeLabel(t, listing.operationType));
   if (listing.salePrice !== null) push("Price", formatSalePrice(listing.salePrice, listing.saleCurrency));
   else if (listing.rentPrice !== null) push("Price", formatRentPrice(listing.rentPrice, listing.rentCurrency, t));
-  if (listing.bedrooms !== null) push("Beds", String(listing.bedrooms));
-  if (listing.bathrooms !== null) push("Baths", String(listing.bathrooms));
+  if (listing.bedrooms !== null && listing.type !== "LOT" && listing.type !== "COMMERCIAL_OFFICE") push("Beds", listing.bedrooms === 0 ? "Monoambiente" : String(listing.bedrooms));
+  if (listing.bathrooms !== null && listing.type !== "LOT") push("Baths", String(listing.bathrooms));
   if (listing.totalAreaM2 !== null) push("Size", `${listing.totalAreaM2.toLocaleString("es-AR")} m²`);
   if (listing.parkingSpaces !== null) push("Parking", String(listing.parkingSpaces));
   if (listing.type === "LOT") {
@@ -1005,13 +1005,11 @@ export function SingleListingPageContent({ listing }: { listing: PublicListingDt
   const cover = ordered.find(image => image.isCover) ?? ordered[0];
   const images = cover ? [cover, ...ordered.filter(image => image.id !== cover.id)] : [];
   const stats = buildStats(listing, t);
-  const address = [listing.fullAddress || listing.location, listing.city, listing.province, listing.country].filter(Boolean).join(", ");
   const hasCoordinates = listing.latitude != null && listing.longitude != null;
-  const mapQuery = hasCoordinates ? `${listing.latitude},${listing.longitude}` : address;
   const copyLink = async () => {
     try { await navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(() => setCopied(false),2000); } catch { setCopied(false); }
   };
-  return <div className="single-property bg-white">
+  return <div className="single-property bg-white text-[#232323]">
     <div className="property-section-container">
       <nav aria-label="Ruta de navegación" className="flex flex-wrap items-center gap-2 py-6 text-sm text-[#4f4f4f]">
         <Link href="/listings" className="hover:underline">Propiedades</Link><ChevronRight size={14} /><span className="text-[#005089]">Detalle de la propiedad</span>
@@ -1048,14 +1046,14 @@ export function SingleListingPageContent({ listing }: { listing: PublicListingDt
       </div>
       <section className="property-detail-section">
         <h2>{t("sections.description")}</h2>
-        <p className="whitespace-pre-line break-words text-base leading-[26px] text-[#4f4f4f]">{listing.description}</p>
+        <p className="whitespace-pre-line break-words text-base leading-[26px] text-[#232323]">{listing.description}</p>
       </section>
       <section className="property-detail-section">
         <h2>{t("propertyDetails")}</h2>
         <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-[#e9e9e9] bg-[#fafcfe] sm:grid-cols-3 lg:grid-cols-7">
           {stats.map(stat => <div key={stat.label} className="flex min-h-[117px] min-w-0 flex-col items-center justify-center gap-2 border-b border-r border-[#e9e9e9] px-3 py-6 text-center">
             <span className="text-[#005089] [&>svg]:size-5 [&_path]:stroke-[#005089]">{stat.icon}</span>
-            <span className="text-sm font-medium">{t(STAT_LABEL_KEYS[stat.label] ?? stat.label)}</span>
+            <span className="font-[Poppins] text-sm font-medium text-black">{t(STAT_LABEL_KEYS[stat.label] ?? stat.label)}</span>
             <span className="break-words text-xs text-[#6c6c6c]">{stat.value}</span>
           </div>)}
         </div>
@@ -1068,17 +1066,10 @@ export function SingleListingPageContent({ listing }: { listing: PublicListingDt
         </div>)}</div>
       </section>}
     </div>
-    <VideoPreviewSection videoUrl={listing.videoUrl} title={listing.title}/>
+    {listing.videoUrl?.trim() && <VideoPreviewSection videoUrl={listing.videoUrl.trim()} title={listing.title}/>}
     <section className="property-section-container property-detail-section pb-[70px]">
-      <h2>Qué hay cerca</h2>
-      <div className="relative h-[300px] overflow-hidden rounded-[20px] bg-[#f0f6fa] sm:h-[456px]">
-        <PropertyLocationMap latitude={listing.latitude ?? undefined} longitude={listing.longitude ?? undefined} address={hasCoordinates ? undefined : address || undefined} title={listing.title} zoom={hasCoordinates ? 15 : 13} />
-        {!hasCoordinates && <p className="absolute left-4 top-4 rounded-xl bg-white px-4 py-2 text-sm text-[#4f4f4f] shadow-sm">Ubicación aproximada de la zona</p>}
-        {mapQuery && <a className="absolute bottom-6 left-6 rounded-xl border border-[#e9e9e9] bg-white px-5 py-3 text-sm text-[#005089] shadow-sm" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`} target="_blank" rel="noopener noreferrer">Ver en Google Maps</a>}
-      </div>
-      <div className="mt-6 flex flex-wrap gap-3">
-        {[["Educación","escuelas"],["Compras","centros comerciales"],["Transporte","transporte público"],["Salud","centros de salud"],["Parques","parques"],["Restaurantes y cafés","restaurantes y cafés"]].map(([label,query]) => <a key={label} className="home-filter" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query+" cerca de "+address)}`} target="_blank" rel="noopener noreferrer">{label}</a>)}
-      </div>
+      <h2>Donde está?</h2>
+      <PropertyLocationMap key={listing.id} showNearby latitude={listing.latitude ?? undefined} longitude={listing.longitude ?? undefined} approximate={listing.locationApproximate} title={listing.title} zoom={hasCoordinates ? 15 : 13} />
     </section>
     <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)}/>
     <ImageLightbox images={images} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} title={listing.title}/>
