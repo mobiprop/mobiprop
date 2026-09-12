@@ -553,3 +553,6 @@ body {
   .home-map-popup .property-card-footer { padding-top: 0; }
   .home-map-popup .property-card-footer > span:first-child { font-size: 17px; line-height: 24px; }
 }
+
+/* Listing photos crossfade without a white hover wash. */
+.property-card .hover-shine::after { content: none; }

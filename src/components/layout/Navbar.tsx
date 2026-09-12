@@ -191,7 +191,6 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
   const mounted = useMounted();
   const isHome = mounted && pathname === "/";
   const isContact = pathname === "/contact";
-  const constrainedHeader = isContact || pathname.startsWith("/listings");
 
   // On the homepage the navbar floats transparently over the hero photo,
   // then solidifies once scrolled past it — fixed (not sticky) throughout so
@@ -230,7 +229,7 @@ export function Navbar({ initialUser = null }: { initialUser?: NavUser | null })
      gutter; nothing is subtracted from the width to make room for it. */}
   <motion.div
     className="home-nav-inner flex w-full max-w-[var(--space-fluid-container-max)] items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]"
-    style={{ height: "var(--space-fluid-nav-h)", paddingInline: constrainedHeader ? "clamp(20px, 4.444vw, 64px)" : "var(--space-fluid-section-px)", ...(constrainedHeader ? {maxWidth:1440} : {}) }}
+    style={{ height: "var(--space-fluid-nav-h)", paddingInline: "var(--space-fluid-section-px)" }}
     variants={headerContainer}
     initial="hidden"
     animate="visible"

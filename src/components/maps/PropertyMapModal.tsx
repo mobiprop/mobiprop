@@ -135,7 +135,7 @@ export function PropertyMapModal({
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose, loginOpen]);
 
-  // Initialize map once on mount
+  // Rebuild pins when the asynchronously fetched listing collection arrives.
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey || !mapContainerRef.current) {
@@ -144,6 +144,14 @@ export function PropertyMapModal({
     }
 
     let cancelled = false;
+    setMapReady(false);
+    setMapFailed(false);
+    setSidebarListings(listings);
+    setSelectedListing(null);
+    selectedSlugRef.current = null;
+    setCardPosition(null);
+    setHasShape(false);
+    setDrawType(null);
 
     loadGoogleMaps(apiKey)
       .then(() => {
@@ -216,7 +224,7 @@ export function PropertyMapModal({
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [listings]);
 
   /* ─── pin selection ─── */
 

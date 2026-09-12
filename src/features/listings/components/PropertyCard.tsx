@@ -46,28 +46,36 @@ function ImageCarousel({ property }: { property: PropertyCardData }) {
   }, [property.images, property.coverImageUrl]);
   const [index, setIndex] = useState(0);
   const active = images[index] ?? images[0];
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [previous, setPrevious] = useState<(typeof images)[number] | null>(null);
   const dotStart = Math.max(0, Math.min(index - 2, images.length - 5));
 
   function go(e: React.MouseEvent, delta: 1 | -1) {
     e.preventDefault();
     e.stopPropagation();
+    if (active && loadedUrl === active.url) setPrevious(active);
     setIndex((i) => (i + delta + images.length) % images.length);
   }
 
   return (
     <div className="hover-shine relative aspect-[421/280] w-full overflow-hidden">
+      {previous && <Image src={previous.url} alt="" fill
+        sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+        className="pointer-events-none object-cover" />}
       {active ? <Image
+        key={active.url}
         src={active.url}
         alt={active.altText ?? property.title}
         fill
         sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
         style={{ objectFit: "cover", objectPosition: "center" }}
-        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        onLoad={() => setLoadedUrl(active.url)}
+        className={`pointer-events-none object-cover transition-opacity duration-300 motion-reduce:transition-none ${loadedUrl === active.url ? "opacity-100" : "opacity-0"}`}
       /> : <div className="flex h-full items-center justify-center bg-[#f0f6fa] text-sm text-[#4f4f4f]">Sin foto disponible</div>}
 
       {images.length > 1 && (
         <>
-          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex items-center justify-between">
+          <div className="absolute z-20 inset-x-4 top-1/2 -translate-y-1/2 flex items-center justify-between">
             <button
               type="button"
               onClick={(e) => go(e, -1)}
@@ -121,12 +129,13 @@ export function PropertyCard({ property, savedOverride, onToggleSaved, compact =
   return (
     <>
       <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-      <Link
-        href={`/listings/${property.slug}`}
-        className={`property-card ${compact ? "property-card-compact" : ""} flex h-full w-full min-w-0 flex-col rounded-[16px] border border-[#e9e9e9] bg-white overflow-hidden group`}
+      <article
+        className={`relative property-card ${compact ? "property-card-compact" : ""} flex h-full w-full min-w-0 flex-col rounded-[16px] border border-[#e9e9e9] bg-white overflow-hidden group`}
       >
+        <Link href={`/listings/${property.slug}`} aria-label={`${t("card.viewProperty")}: ${property.title}`}
+          className="absolute inset-0 z-10 rounded-[16px] focus-visible:outline-2 focus-visible:outline-[#005089]" />
         <div className="relative">
-          <ImageCarousel property={property} />
+          <ImageCarousel key={property.listingId} property={property} />
 
           <div className="absolute top-[19px] left-[19px]">
             <span
@@ -146,7 +155,7 @@ export function PropertyCard({ property, savedOverride, onToggleSaved, compact =
               else toggleSave(property.listingId, () => setLoginOpen(true));
             }}
             aria-label={onClose ? "Cerrar propiedad en el mapa" : saved ? t("card.removeSavedAriaLabel") : t("card.saveAriaLabel")}
-            className="absolute top-[19px] right-[19px] bg-white rounded-full size-8 flex items-center justify-center shadow-sm"
+            className="absolute z-20 top-[19px] right-[19px] bg-white rounded-full size-8 flex items-center justify-center shadow-sm"
           >
             {onClose ? <X size={18} strokeWidth={1.5} className="text-[#005089]" /> : !saved ? <img src="/listings/heart.svg" alt="" width={18} height={18} /> : <svg width="18" height="18" viewBox="0 0 16 16" fill="#e74c3c">
               <path
@@ -221,7 +230,7 @@ export function PropertyCard({ property, savedOverride, onToggleSaved, compact =
             </span>
           </div>
         </div>
-      </Link>
+      </article>
     </>
   );
 }
