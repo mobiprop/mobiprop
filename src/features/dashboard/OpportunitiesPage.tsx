@@ -384,7 +384,7 @@ export function OpportunitiesPage({
       {/* Table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-            <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-full sm:w-[300px]">
+            <div className="mobi-toolbar-control w-full sm:w-[300px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />
               <input
                 value={search}
@@ -395,15 +395,15 @@ export function OpportunitiesPage({
               />
             </div>
           <div className="flex flex-wrap items-center gap-3">
-            <SearchableSelect ariaLabel={t("filterModal.stage")} placeholder={t("page.tabs.all")} className="w-[170px]" size="sm" searchable={false}
+            <SearchableSelect ariaLabel="Etapa de calificación" placeholder="Etapa de calificación" className="w-full sm:w-[230px]" triggerClassName="mobi-toolbar-control" size="sm" searchable={false}
               value={filters.stages[0] ?? "All"}
               onChange={value => setFilters(current => ({...current, stages:value === "All" ? [] : [value as Exclude<StageTab, "All">]}))}
-              options={STAGE_TABS.map(tab => ({value:tab,label:tab === "All" ? t("page.tabs.all") : t(`dashboard:status.${tab}`, {defaultValue:STAGE_LABEL[tab]})}))} />
+              options={STAGE_TABS.map(tab => ({value:tab,label:tab === "All" ? "Etapa de calificación" : t(`dashboard:status.${tab}`, {defaultValue:STAGE_LABEL[tab]})}))} />
             <button
               type="button"
               onClick={handleExport}
               disabled={filtered.length === 0}
-              className="flex items-center gap-2 h-9 px-4 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] text-[14px] font-medium text-[#4a5565] hover:bg-[#f3f4f6] transition-colors disabled:opacity-60"
+              className="mobi-toolbar-control"
               style={mont}
             >
               {t("page.exportCsv")} <Download size={16} />
@@ -411,11 +411,7 @@ export function OpportunitiesPage({
             <button
               type="button"
               onClick={() => setShowFilter(true)}
-              className={`relative flex items-center gap-2 h-9 px-4 rounded-[10px] border text-[14px] font-medium transition-colors ${
-                filtersActive
-                  ? "bg-[#eff6ff] border-[#1e4f86] text-[#1e4f86]"
-                  : "bg-[#f8fafc] border-[#e5e7eb] text-[#99a1af] hover:bg-[#f3f4f6]"
-              }`}
+              className={`mobi-toolbar-control relative ${filtersActive ? "is-active" : ""}`}
               style={mont}
             >
               {t("page.filterBy")} <Filter size={16} />

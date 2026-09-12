@@ -575,3 +575,21 @@ body {
   font-family: "Montserrat", sans-serif !important;
   font-weight: 500 !important;
 }
+
+/* Standard secondary controls: shared proportions for inputs, buttons and selects. */
+.mobi-toolbar-control {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 44px; min-height: 44px; padding: 0 14px;
+  border: 1px solid #e5e7eb; border-radius: 14px;
+  background: #f8fafc; color: #4a5565;
+  font: 500 14px/20px Montserrat, sans-serif;
+  white-space: nowrap; transition: background-color .15s, border-color .15s, box-shadow .15s;
+}
+.mobi-toolbar-control:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.mobi-toolbar-control:focus-visible, .mobi-toolbar-control:focus-within {
+  outline: none; border-color: #005089; box-shadow: 0 0 0 3px rgb(0 80 137 / .12);
+}
+.mobi-toolbar-control:disabled { opacity: .5; cursor: not-allowed; }
+.mobi-toolbar-control.is-active { background: #eff6ff; border-color: #005089; color: #005089; }
+.mobi-toolbar-control input { font: inherit; color: inherit; min-width: 0; }
+.mobi-toolbar-control svg { width: 18px; height: 18px; flex-shrink: 0; }
