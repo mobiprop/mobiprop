@@ -91,16 +91,6 @@ function StatCard({ label, value, sub, trend, iconBg, icon }: {
   );
 }
 
-function ProbabilityBar({ value }: { value: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-[72px] h-1.5 rounded-full bg-[#e5e7eb] overflow-hidden">
-        <div className="h-full rounded-full bg-[#1e4f86]" style={{ width: `${value}%` }} />
-      </div>
-      <span className="text-[12px] text-[#6a7282]" style={mont}>{value}%</span>
-    </div>
-  );
-}
 
 function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation("dashboard");
@@ -310,7 +300,7 @@ export function OpportunitiesPage({
       title: values.title || "Untitled Opportunity",
       participants: values.participants.map((row) =>
         row.role === "AGENCY"
-          ? { role: row.role, companyName: row.companyName.trim() }
+          ? { role: row.role, companyName: row.companyName.trim(), companyEmail: row.companyEmail?.trim() || undefined, commissionValue: Number(row.commissionValue || 0), commissionUnit: row.commissionUnit ?? "%" }
           : { role: row.role, contactId: row.contactId },
       ),
       propertyIds: values.propertyIds,
@@ -461,7 +451,7 @@ export function OpportunitiesPage({
                     t("page.columns.opportunity"),
                     t("page.columns.participants"),
                     t("page.columns.dealSize"),
-                    t("page.columns.probability"),
+                    "Fecha",
                     t("page.columns.stage"),
                     t("page.columns.expectedClose"),
                     t("page.columns.status"),
@@ -487,7 +477,7 @@ export function OpportunitiesPage({
                       <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{fmtWithCurrency(opp.dealSize, opp.currency)}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <ProbabilityBar value={opp.probability} />
+                      <time dateTime={opp.createdAt} className="whitespace-nowrap text-sm">{new Date(opp.createdAt).toLocaleDateString("es-AR", {timeZone:"America/Argentina/Buenos_Aires"})}</time>
                     </td>
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#f8fafc] border border-[#e5e7eb] text-[12px] font-medium text-[#2b3038] whitespace-nowrap" style={mont}>

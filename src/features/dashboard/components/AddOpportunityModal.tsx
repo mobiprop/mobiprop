@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { ContactType, OpportunityStage, OpportunityStatus, Currency, EnvelopeStatus, EnvelopeSource } from "@/generated/prisma/enums";
 import type { OpportunityDto, OpportunityParticipantRole } from "@/features/crm/types/crm-dto";
-import { computeCommissionAmount } from "@/lib/commission";
+import { computeCommissionAmount, calculateAgencyCommission } from "@/lib/commission";
 import { hasPermission, type Role } from "@/lib/permissions";
 import { useCreateContactMutation } from "@/hooks/mutations/useCrmMutations";
 import { useDocusignEnvelopesQuery, useDocusignTemplatesQuery } from "@/hooks/queries/useDocusignQuery";
@@ -43,6 +43,8 @@ export type ParticipantFormRow = {
   companyName: string;
   /** AGENCY rows only — lets the agency be picked as a DocuSign signer. */
   companyEmail: string;
+  commissionValue?: string;
+  commissionUnit?: "%" | "$";
 };
 
 type ListingFormRow = {
@@ -145,6 +147,8 @@ function participantsFromInitial(initial?: OpportunityDto): ParticipantFormRow[]
     contactEmail: p.role === "AGENCY" ? (p.companyEmail ?? "") : (p.contactEmail ?? ""),
     companyName: p.companyName ?? "",
     companyEmail: p.companyEmail ?? "",
+    commissionValue: p.commissionValue == null ? "" : String(p.commissionValue),
+    commissionUnit: p.commissionUnit === "$" ? "$" : "%",
   }));
 }
 
@@ -257,7 +261,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const [commission, setCommission] = useState(initial?.commission != null ? String(initial.commission) : "");
   const [commissionUnit, setCommissionUnit] = useState<"%" | "$">((initial?.commissionUnit as "%" | "$") ?? "%");
   const [paymentTerms, setPaymentTerms] = useState(initial?.paymentTerms ?? "");
-  const [probability, setProbability] = useState(initial?.probability ?? 50);
+  const [probability] = useState(initial?.probability ?? 50);
   const [stage, setStage] = useState<OpportunityStage>(initial?.stage ?? OpportunityStage.QUALIFICATION);
   const [expectedCloseAt, setExpectedCloseAt] = useState(initial?.expectedCloseAt?.slice(0, 10) ?? "");
   const [listingRows, setListingRows] = useState<ListingFormRow[]>(() => listingRowsFromInitial(initial, prefill));
@@ -397,13 +401,16 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     [dealSize, commission, commissionUnit],
   );
   const commissionPreview = useMemo(() => fmtPreview(commissionAmount, currency), [commissionAmount, currency]);
+  const partnerTotal = participants.filter(p => p.role === "AGENCY").reduce((sum, p) => sum + (computeCommissionAmount(commissionAmount ?? 0, Number(p.commissionValue || 0), p.commissionUnit ?? "%") ?? 0), 0);
+  const companyShare = Math.max(0, (commissionAmount ?? 0) - partnerTotal);
+  const agentShare = computeCommissionAmount(companyShare, Number(agentCommissionValue) || 0, agentCommissionUnit) ?? 0;
   const agentCommissionPreview = useMemo(
     () =>
       fmtPreview(
-        computeCommissionAmount(commissionAmount, Number(agentCommissionValue) || null, agentCommissionUnit),
+        computeCommissionAmount(companyShare, Number(agentCommissionValue) || null, agentCommissionUnit),
         currency,
       ),
-    [commissionAmount, agentCommissionValue, agentCommissionUnit, currency],
+    [companyShare, agentCommissionValue, agentCommissionUnit, currency],
   );
 
   function removeParticipant(key: string) {
@@ -589,6 +596,10 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
       }
     }
 
+    try {
+      calculateAgencyCommission(commissionAmount ?? 0, participants);
+      if (partnerTotal > 0 && agentShare > companyShare) throw new Error("La comisión del agente supera la comisión disponible.");
+    } catch (error) { toast.error((error as Error).message); return; }
     setSubmitting(true);
     try {
       const saved = await onSubmit({
@@ -801,7 +812,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
             {participants.length > 0 && (
               <div className="flex flex-col gap-2">
                 {participants.map((row) => (
-                  <div key={row.key} className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2.5">
+                  <div key={row.key} className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[#e5e7eb] bg-white px-3 py-2.5">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[12px] font-semibold text-white" style={mont}>
                         {row.role === "AGENCY" ? "RE" : initials(row.contactLabel)}
@@ -813,6 +824,19 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
                         <span className="truncate text-[11px] text-[#6a7282]" style={mont}>{ROLE_LABELS[row.role]}</span>
                       </div>
                     </div>
+                    {row.role === "AGENCY" && <div className="flex min-w-0 flex-col gap-1">
+                      <label className="text-xs text-[#005089]" htmlFor={`agency-share-${row.key}`}>Comisión de la inmobiliaria</label>
+                      <div className="flex gap-2">
+                        <input id={`agency-share-${row.key}`} type="number" min="0" step="0.01" max={row.commissionUnit === "$" ? undefined : 100}
+                          className={`${inputClass} w-24`} value={row.commissionValue ?? ""} placeholder="0"
+                          onChange={e => setParticipants(rows => rows.map(p => p.key === row.key ? {...p, commissionValue: e.target.value} : p))} />
+                        <select className={inputClass} aria-label={`Tipo de comisión de ${row.companyName}`} value={row.commissionUnit ?? "%"}
+                          onChange={e => setParticipants(rows => rows.map(p => p.key === row.key ? {...p, commissionUnit: e.target.value as "%" | "$"} : p))}>
+                          <option value="%">% de la comisión total</option><option value="$">Monto fijo ({currency})</option>
+                        </select>
+                      </div>
+                      <span className="text-xs text-[#6a7282]">{fmtPreview(computeCommissionAmount(commissionAmount ?? 0, Number(row.commissionValue || 0), row.commissionUnit ?? "%"), currency)}</span>
+                    </div>}
                     <button
                       type="button"
                       onClick={() => removeParticipant(row.key)}
@@ -1123,7 +1147,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
           {/* Commission amount / payment terms */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>{t("addModal.commissionAmount")}</label>
+              <label className={labelClass} style={mont}>{participants.some(p => p.role === "AGENCY") ? "Comisión total a repartir" : t("addModal.commissionAmount")}</label>
               <div className="flex items-center gap-2">
                 <input value={commission} onChange={(e) => setCommission(e.target.value)} placeholder={t("addModal.commissionPlaceholder")} className={`flex-1 ${inputClass}`} style={mont} />
                 <SearchableSelect
@@ -1146,24 +1170,12 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
             </div>
           </div>
 
-          {/* Probability slider */}
-          <div className="flex flex-col gap-2">
-            <label className={labelClass} style={mont}>{t("addModal.probability", { value: probability })}</label>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={probability}
-              onChange={(e) => setProbability(Number(e.target.value))}
-              className="w-full h-1.5 appearance-none rounded-full cursor-pointer accent-[#1e4f86]"
-              style={{ background: `linear-gradient(to right, #1e4f86 ${probability}%, #e5e7eb ${probability}%)` }}
-            />
-            <div className="flex items-center justify-between text-[12px] text-[#6a7282]" style={mont}>
-              <span>0%</span>
-              <span>100%</span>
-            </div>
-          </div>
 
+          {participants.some(p => p.role === "AGENCY") && <div className="rounded-xl border border-[#ccdeef] bg-[#f0f6fa] p-4 text-sm">
+            <h3 className="mb-3 font-semibold text-[#005089]">Distribución de comisión</h3>
+            <p className="mb-3 text-xs">Ingresá arriba la comisión total a repartir. Primero se descuentan las inmobiliarias; el porcentaje del agente se calcula sobre la parte de Mobi Prop.</p>
+            {[ ["Comisión total", commissionAmount ?? 0], ["Otras inmobiliarias", -partnerTotal], ["Comisión bruta Mobi Prop", companyShare], ["Comisión del agente", -agentShare], ["Ingresos netos Mobi Prop", companyShare - agentShare] ].map(([label, amount]) => <div key={String(label)} className="flex justify-between gap-3 py-1"><span>{label}</span><strong>{fmtPreview(Number(amount), currency)}</strong></div>)}
+          </div>}
           {/* Stage / expected close */}
           <div className="grid grid-cols-2 gap-5">
             <div className="flex flex-col gap-1.5">

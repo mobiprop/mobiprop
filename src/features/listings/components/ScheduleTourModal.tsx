@@ -107,7 +107,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
       const result = await mutation.mutateAsync({
         submittedName: name.trim(),
         submittedEmail: email.trim() || undefined,
-        submittedPhone: phone.trim() || undefined,
+        submittedPhone: phone.trim(),
         submittedMessage: message.trim() || undefined,
         propertyId,
         scheduledAt: scheduledAt.toISOString(),
@@ -136,7 +136,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
     setError("");
 
     if (!name.trim()) { setError(t("tourModal.errors.nameRequired")); return; }
-    if (!email.trim() && !phone.trim()) { setError(t("tourModal.errors.contactRequired")); return; }
+    if (phone.replace(/\D/g, "").length < 7) { setError("Ingresá un teléfono válido para coordinar la visita."); return; }
     if (!scheduledTime) { setError(t("tourModal.errors.timeRequired")); return; }
     const scheduledAt = buildScheduledAt();
     if (scheduledAt <= new Date()) { setError(t("tourModal.errors.futureDateRequired")); return; }
@@ -219,12 +219,12 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="tour-phone" className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.phoneLabel")}</label>
+                  <label htmlFor="tour-phone" className="text-sm font-medium text-[#232323]" style={mont}>{t("tourModal.form.phoneLabel")} *</label>
                   <input
                     className={inputCls}
                     style={mont}
                     placeholder={t("tourModal.form.phonePlaceholder")}
-                    id="tour-phone" type="tel" autoComplete="tel" value={phone}
+                    id="tour-phone" required type="tel" autoComplete="tel" value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>

@@ -142,7 +142,7 @@ export async function getDashboardMetrics(
     prisma.opportunity.findMany({
       where: opportunityWhere,
       select: {
-        status: true, dealSize: true, commission: true, commissionUnit: true,
+        status: true, dealSize: true, commission: true, commissionUnit: true, agencyCommissionTotal: true,
         agentCommissionValue: true, agentCommissionUnit: true, currency: true, exchangeRate: true,
         createdAt: true, updatedAt: true, closedAt: true,
       },
@@ -340,7 +340,7 @@ export async function getRevenueChart(
         status: true,
         dealSize: true,
         commission: true,
-        commissionUnit: true,
+        commissionUnit: true, agencyCommissionTotal: true,
         agentCommissionValue: true,
         agentCommissionUnit: true,
         currency: true,
@@ -405,7 +405,7 @@ export async function getSalesByAgent(
         opportunityId: true,
         dealSize: true,
         commission: true,
-        commissionUnit: true,
+        commissionUnit: true, agencyCommissionTotal: true,
         currency: true,
         exchangeRate: true,
         updatedAt: true,

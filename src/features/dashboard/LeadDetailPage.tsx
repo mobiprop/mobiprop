@@ -507,7 +507,7 @@ function ConvertToOpportunityModal({
       title: values.title || "Untitled Opportunity",
       participants: values.participants.map((row) =>
         row.role === "AGENCY"
-          ? { role: row.role, companyName: row.companyName.trim() }
+          ? { role: row.role, companyName: row.companyName.trim(), companyEmail: row.companyEmail?.trim() || undefined, commissionValue: Number(row.commissionValue || 0), commissionUnit: row.commissionUnit ?? "%" }
           : { role: row.role, contactId: row.contactId },
       ),
       propertyIds: values.propertyIds,

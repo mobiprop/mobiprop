@@ -240,7 +240,7 @@ export async function listLocationsWithStats(): Promise<
           select: {
             dealSize: true,
             commission: true,
-            commissionUnit: true,
+            commissionUnit: true, agencyCommissionTotal: true,
             currency: true,
             exchangeRate: true,
             listings: { select: { propertyId: true } },

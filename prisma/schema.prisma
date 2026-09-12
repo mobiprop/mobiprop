@@ -535,6 +535,7 @@ model Opportunity {
   probability          Int               @default(50)
   commission           Decimal?          @db.Decimal(14, 2)
   commissionUnit       String?           @map("commission_unit")
+  agencyCommissionTotal Decimal          @default(0) @map("agency_commission_total") @db.Decimal(14, 2)
   paymentTerms         String?           @map("payment_terms")
   contractStart        DateTime?         @map("contract_start")
   contractEnd          DateTime?         @map("contract_end")
@@ -590,6 +591,8 @@ model OpportunityParticipant {
   // AGENCY rows only — lets a co-broking company be picked as a DocuSign
   // signer, which a bare company name can't support on its own.
   companyEmail  String?                    @map("company_email")
+  commissionValue Decimal?                 @map("commission_value") @db.Decimal(14, 2)
+  commissionUnit String?                   @map("commission_unit")
   createdAt     DateTime                   @default(now()) @map("created_at")
 
   opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)

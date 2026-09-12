@@ -8,7 +8,7 @@ import { hasPermission } from "@/lib/permissions";
 import { resolveOwnerScopeIds } from "@/lib/team-scope";
 import { logActivity } from "@/lib/activity-log";
 import { buildAgentMap, agentDisplayName } from "@/lib/agent-map";
-import { computeCommissionAmount, resolveCompanyRevenueUsd } from "@/lib/commission";
+import { computeCommissionAmount, calculateAgencyCommission, resolveCompanyRevenue, resolveAgentEarnings, resolveCompanyRevenueUsd } from "@/lib/commission";
 import { getDolarBlueVenta } from "@/lib/exchange-rate";
 import { notifyOpportunityClosed, notifyOpportunityStageChanged } from "@/features/notifications/server/notify-events";
 import { createOpportunitySchema, updateOpportunitySchema } from "@/schemas/opportunity.schema";
@@ -72,6 +72,8 @@ type ParticipantWithRelations = {
   contactId: string | null;
   companyName: string | null;
   companyEmail: string | null;
+  commissionValue?: unknown;
+  commissionUnit?: string | null;
   contact: { firstName: string; lastName: string; email: string | null } | null;
 };
 
@@ -90,6 +92,7 @@ type OppWithRelations = {
   agentCommissionValue: unknown; agentCommissionUnit: string | null;
   notes: string | null;
   assignedAgentId: string | null; createdById: string | null;
+  agencyCommissionTotal?: unknown;
   createdAt: Date;
   participants: ParticipantWithRelations[];
   listings: OpportunityListingWithRelations[];
@@ -104,6 +107,8 @@ function toParticipantDto(p: ParticipantWithRelations): OpportunityParticipantDt
     contactEmail: p.contact?.email ?? null,
     companyName: p.companyName,
     companyEmail: p.companyEmail,
+    commissionValue: p.commissionValue == null ? null : Number(p.commissionValue),
+    commissionUnit: p.commissionUnit ?? null,
   };
 }
 
@@ -137,7 +142,8 @@ function toOpportunityDto(
     probability: o.probability,
     commission,
     commissionUnit: o.commissionUnit,
-    commissionAmount: computeCommissionAmount(dealSize, commission, o.commissionUnit),
+    commissionAmount: resolveCompanyRevenue(o),
+    agencyCommissionTotal: Number(o.agencyCommissionTotal ?? 0),
     paymentTerms: o.paymentTerms,
     contractStart: o.contractStart?.toISOString() ?? null,
     contractEnd: o.contractEnd?.toISOString() ?? null,
@@ -146,7 +152,7 @@ function toOpportunityDto(
     exchangeRate: o.exchangeRate !== null ? Number(o.exchangeRate) : null,
     agentCommissionValue,
     agentCommissionUnit: o.agentCommissionUnit,
-    agentCommissionAmount: computeCommissionAmount(dealSize, agentCommissionValue, o.agentCommissionUnit),
+    agentCommissionAmount: resolveAgentEarnings(o),
     notes: o.notes,
     assignedAgentId: o.assignedAgentId,
     assignedAgentName: agentDisplayName(o.assignedAgentId ? agentMap.get(o.assignedAgentId) : null),
@@ -243,6 +249,8 @@ function participantsCreateData(participants: ParticipantInput[]) {
     contactId: p.role === "AGENCY" ? null : (p.contactId ?? null),
     companyName: p.role === "AGENCY" ? (p.companyName ?? null) : null,
     companyEmail: p.role === "AGENCY" ? (p.companyEmail ?? null) : null,
+    commissionValue: p.role === "AGENCY" ? (p.commissionValue ?? 0) : null,
+    commissionUnit: p.role === "AGENCY" ? (p.commissionUnit ?? "%") : null,
   }));
 }
 
@@ -280,6 +288,12 @@ export async function createOpportunity(
 
   const { participants, propertyIds, contractStart, contractEnd, expectedCloseAt, ...fields } = parsed.data;
 
+  let agencyCommissionTotal: number;
+  try {
+    const total = computeCommissionAmount(fields.dealSize, fields.commission, fields.commissionUnit) ?? 0;
+    agencyCommissionTotal = calculateAgencyCommission(total, participants);
+    if (agencyCommissionTotal > 0 && (computeCommissionAmount(total - agencyCommissionTotal, fields.agentCommissionValue, fields.agentCommissionUnit) ?? 0) > total - agencyCommissionTotal) throw new Error("La comisión del agente supera la comisión disponible.");
+  } catch (error) { return { ok: false, error: (error as Error).message, status: 422 }; }
   const contactError = await validateParticipantContacts(participants);
   if (contactError) return { ok: false, error: contactError, status: 422 };
   const listingError = await validateListingProperties(propertyIds ?? []);
@@ -300,6 +314,7 @@ export async function createOpportunity(
   const opp = await prisma.opportunity.create({
     data: {
       ...fields,
+      agencyCommissionTotal,
       ...(closeFields ?? {}),
       opportunityId,
       // Agents can't see/choose other agents — force self-assignment so the deal
@@ -355,6 +370,7 @@ export async function updateOpportunity(
       stage: true,
       status: true,
       dealSize: true,
+      commission: true, commissionUnit: true, agentCommissionValue: true, agentCommissionUnit: true, participants: true,
       currency: true,
     },
   });
@@ -377,6 +393,13 @@ export async function updateOpportunity(
   const { participants, propertyIds, contractStart, contractEnd, expectedCloseAt, exchangeRateOverride, ...fields } =
     parsed.data;
 
+  let agencyCommissionTotal: number;
+  try {
+    const total = computeCommissionAmount(Number(fields.dealSize ?? existing.dealSize), Number(fields.commission ?? existing.commission), fields.commissionUnit ?? existing.commissionUnit) ?? 0;
+    agencyCommissionTotal = calculateAgencyCommission(total, participants ?? existing.participants);
+    const payout = computeCommissionAmount(total - agencyCommissionTotal, Number(fields.agentCommissionValue ?? existing.agentCommissionValue), fields.agentCommissionUnit ?? existing.agentCommissionUnit) ?? 0;
+    if (agencyCommissionTotal > 0 && payout > total - agencyCommissionTotal) throw new Error("La comisión del agente supera la comisión disponible.");
+  } catch (error) { return { ok: false, error: (error as Error).message, status: 422 }; }
   if (participants !== undefined) {
     const contactError = await validateParticipantContacts(participants);
     if (contactError) return { ok: false, error: contactError, status: 422 };
@@ -411,6 +434,7 @@ export async function updateOpportunity(
     where: { id },
     data: {
       ...fields,
+      agencyCommissionTotal,
       ...(closeFields ?? {}),
       ...(rateCorrection !== null ? { exchangeRate: rateCorrection } : {}),
       contractStart: contractStart !== undefined ? (contractStart ? new Date(contractStart) : null) : undefined,

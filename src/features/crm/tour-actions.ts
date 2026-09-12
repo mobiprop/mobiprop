@@ -7,7 +7,7 @@ import { APP_URL } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/require-permission";
 import { logActivity } from "@/lib/activity-log";
-import { sendTourRequestedEmail, sendTourCancelledEmail, sendTourConfirmedEmail, sendTourRescheduledEmail } from "@/lib/email";
+import { sendTourTeamEmail, sendTourRequestedEmail, sendTourCancelledEmail, sendTourConfirmedEmail, sendTourRescheduledEmail } from "@/lib/email";
 import {
   notifyTourRequested,
   notifyTourAssigned,
@@ -991,6 +991,13 @@ export async function requestPublicTour(
     location: propertyLocation,
     start: scheduledAt,
     durationMinutes: d.durationMinutes,
+  });
+
+  after(async () => {
+    const result = await sendTourTeamEmail({name:d.submittedName,email:d.submittedEmail || "",phone:d.submittedPhone,
+      message:d.submittedMessage || "",tourNumber:tour.tourNumber,propertyTitle:propertyTitle || "Sin propiedad seleccionada",
+      scheduledAtLabel:new Intl.DateTimeFormat("es-AR", {timeZone:"America/Argentina/Buenos_Aires",dateStyle:"full",timeStyle:"short",hourCycle:"h23"}).format(scheduledAt)});
+    if (!result.sent) console.error("[tour] Team notification failed", {tourNumber:tour.tourNumber});
   });
 
   if (d.submittedEmail) {

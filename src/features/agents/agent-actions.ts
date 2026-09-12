@@ -84,7 +84,7 @@ function fetchAgentEarningsRows() {
       assignedAgentId: true,
       dealSize: true,
       commission: true,
-      commissionUnit: true,
+      commissionUnit: true, agencyCommissionTotal: true,
       agentCommissionValue: true,
       agentCommissionUnit: true,
       currency: true,
@@ -197,7 +197,7 @@ export async function listAgents(): Promise<ListAgentsResult> {
       // rows, not a DB _sum of dealSize.
       prisma.opportunity.findMany({
         where: { status: OpportunityStatus.CLOSED_WON, isDeleted: false, ...opportunityOwnerScope },
-        select: { dealSize: true, commission: true, commissionUnit: true, currency: true, exchangeRate: true },
+        select: { dealSize: true, commission: true, commissionUnit: true, agencyCommissionTotal: true, currency: true, exchangeRate: true },
       }),
       prisma.property.count({ where: propertyOwnerScope }),
       prisma.property.count({ where: { createdAt: { gte: startOfMonth }, ...propertyOwnerScope } }),
@@ -637,7 +637,7 @@ export async function getAgentDetail(
         closedAt: { gte: start, lte: end },
       },
       select: {
-        dealSize: true, commission: true, commissionUnit: true,
+        dealSize: true, commission: true, commissionUnit: true, agencyCommissionTotal: true,
         agentCommissionValue: true, agentCommissionUnit: true,
         currency: true, exchangeRate: true,
       },

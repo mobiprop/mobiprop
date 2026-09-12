@@ -34,8 +34,9 @@ export function resolveCompanyRevenue(o: {
   dealSize: unknown;
   commission: unknown;
   commissionUnit: string | null;
+  agencyCommissionTotal?: unknown;
 }): number {
-  return computeCommissionAmount(toNum(o.dealSize), toNum(o.commission), o.commissionUnit) ?? 0;
+  return Math.max(0, (computeCommissionAmount(toNum(o.dealSize), toNum(o.commission), o.commissionUnit) ?? 0) - (toNum(o.agencyCommissionTotal) ?? 0));
 }
 
 /**
@@ -51,6 +52,7 @@ export function resolveAgentEarnings(o: {
   dealSize: unknown;
   commission: unknown;
   commissionUnit: string | null;
+  agencyCommissionTotal?: unknown;
   agentCommissionValue: unknown;
   agentCommissionUnit: string | null;
 }): number {
@@ -67,6 +69,7 @@ export function resolveNetCompanyRevenue(o: {
   dealSize: unknown;
   commission: unknown;
   commissionUnit: string | null;
+  agencyCommissionTotal?: unknown;
   agentCommissionValue: unknown;
   agentCommissionUnit: string | null;
 }): number {
@@ -97,6 +100,7 @@ export function resolveCompanyRevenueUsd(
     dealSize: unknown;
     commission: unknown;
     commissionUnit: string | null;
+    agencyCommissionTotal?: unknown;
     currency: Currency;
     exchangeRate: unknown;
   },
@@ -110,6 +114,7 @@ export function resolveAgentEarningsUsd(
     dealSize: unknown;
     commission: unknown;
     commissionUnit: string | null;
+    agencyCommissionTotal?: unknown;
     agentCommissionValue: unknown;
     agentCommissionUnit: string | null;
     currency: Currency;
@@ -125,6 +130,7 @@ export function resolveNetCompanyRevenueUsd(
     dealSize: unknown;
     commission: unknown;
     commissionUnit: string | null;
+    agencyCommissionTotal?: unknown;
     agentCommissionValue: unknown;
     agentCommissionUnit: string | null;
     currency: Currency;
@@ -133,4 +139,11 @@ export function resolveNetCompanyRevenueUsd(
   liveRate: number | null,
 ): number | null {
   return toUsd(resolveNetCompanyRevenue(o), o.currency, resolveRate(o, liveRate));
+}
+
+/** Each percentage is applied to the same total commission, never sequentially. */
+export function calculateAgencyCommission(total: number, participants: { role: string; commissionValue?: unknown; commissionUnit?: string | null }[]): number {
+  const amount = participants.filter(p => p.role === "AGENCY").reduce((sum, p) => sum + (computeCommissionAmount(total, Number(p.commissionValue ?? 0), p.commissionUnit ?? "%") ?? 0), 0);
+  if (!Number.isFinite(amount) || amount < 0 || amount > total + 0.005) throw new Error("La comisión de las inmobiliarias no puede superar la comisión total.");
+  return Math.round(amount * 100) / 100;
 }

@@ -12,10 +12,13 @@ const participantSchema = z
     companyName: z.string().trim().min(1).max(150).optional(),
     // AGENCY rows only — optional, but needed to pick the agency as a
     // DocuSign signer (they have no Contact record/email otherwise).
+    commissionValue: z.coerce.number().nonnegative().optional(),
+    commissionUnit: z.enum(["%", "$"]).optional(),
     companyEmail: z.string().trim().email().max(200).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.role === "AGENCY") {
+      if (data.commissionUnit !== "$" && (data.commissionValue ?? 0) > 100) ctx.addIssue({ code: "custom", path: ["commissionValue"], message: "El porcentaje no puede superar 100%." });
       if (!data.companyName) {
         ctx.addIssue({ code: "custom", path: ["companyName"], message: "Company name is required" });
       }

@@ -141,7 +141,7 @@ export async function sendTourConfirmedEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Tu visita está confirmada — ${APP_NAME}`,
+    subject: `Tu visita está confirmada`,
     html: renderTourConfirmedEmail({ ...params, ctaUrl: `${APP_URL}/profile` }),
   });
 }
@@ -179,7 +179,7 @@ export async function sendTourRescheduledEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Your tour has a new time — ${APP_NAME}`,
+    subject: `Your tour has a new time`,
     html: renderTourRescheduledEmail({ ...params, ctaUrl: `${APP_URL}/profile` }),
   });
 }
@@ -195,7 +195,7 @@ export async function sendTourCancelledEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Your tour has been cancelled — ${APP_NAME}`,
+    subject: `Your tour has been cancelled`,
     html: renderTourCancelledEmail({ ...params, ctaUrl: `${APP_URL}/listings` }),
   });
 }
@@ -220,9 +220,16 @@ export async function sendContactEmails(data: ContactEmailData) {
   const sender = `${from.name} <${from.email}>`;
   const [team, receipt] = await Promise.all([
     sendEmail({to:"hola@mobiprop.com.ar",from:sender,replyTo:data.email,
-      subject:`Nueva consulta ${data.leadNumber} — Mobi Prop`,html:renderContactTeamNotification(data)}),
+      subject:`Nueva consulta ${data.leadNumber}`,html:renderContactTeamNotification(data)}),
     sendEmail({to:data.email,from:sender,replyTo:from.email,
       subject:"Recibimos tu consulta",html:renderContactReceipt(data)}),
   ]);
   return {teamSent:team.sent,receiptSent:receipt.sent};
+}
+
+export async function sendTourTeamEmail(data: {name:string;email:string;phone:string;message:string;tourNumber:string;propertyTitle:string;scheduledAtLabel:string}) {
+ return sendEmail({to:"hola@mobiprop.com.ar",from:"Mobi Prop <hola@mobiprop.com.ar>",replyTo:data.email || undefined,
+   subject:`Nueva solicitud de visita ${data.tourNumber}`,
+   html:renderContactTeamNotification({name:data.name,email:data.email,phone:data.phone,service:"Solicitud de visita",leadNumber:data.tourNumber,
+     message:`Propiedad: ${data.propertyTitle}\nFecha: ${data.scheduledAtLabel}\n${data.message}`})});
 }

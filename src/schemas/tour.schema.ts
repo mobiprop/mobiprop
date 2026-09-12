@@ -12,7 +12,7 @@ export const requestTourSchema = z.object({
     .transform((v) => v.toLowerCase().trim())
     .optional()
     .or(z.literal("")),
-  submittedPhone: z.string().max(50).optional(),
+  submittedPhone: z.string().trim().min(1, "El teléfono es obligatorio").max(50).refine(value => value.replace(/\D/g, "").length >= 7, "Ingresá un teléfono válido"),
   submittedMessage: z.string().max(2000).optional(),
   propertyId: z.string().optional(),
   scheduledAt: z

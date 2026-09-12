@@ -64,6 +64,8 @@ export type OpportunityParticipantDto = {
   companyName: string | null;
   /** Set for AGENCY rows only — lets the agency be picked as a DocuSign signer. */
   companyEmail: string | null;
+  commissionValue?: number | null;
+  commissionUnit?: string | null;
 };
 
 export type OpportunityListingDto = {
@@ -89,6 +91,7 @@ export type OpportunityDto = {
   commissionUnit: string | null;
   /** Computed: commissionUnit === "%" ? dealSize * commission / 100 : commission. */
   commissionAmount: number | null;
+  agencyCommissionTotal?: number;
   paymentTerms: string | null;
   contractStart: string | null;
   contractEnd: string | null;
