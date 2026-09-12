@@ -1,7 +1,9 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Star, StarOff, Pause, Play, Archive, Trash2, UserPlus, X, Loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { PropertyStatus } from "@/generated/prisma/enums";
+import { SearchableSelect } from "./SearchableSelect";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 
@@ -13,6 +15,7 @@ type BulkActionsBarProps = {
   canDelete: boolean;
   canAssign: boolean;
   onClear: () => void;
+  onStatus: (status: PropertyStatus) => void;
   onFeature: () => void;
   onUnfeature: () => void;
   onPause: () => void;
@@ -22,37 +25,6 @@ type BulkActionsBarProps = {
   onAssign: () => void;
 };
 
-function BulkActionButton({
-  label,
-  icon,
-  onClick,
-  busy,
-  variant = "default",
-}: {
-  label: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-  busy: boolean;
-  variant?: "default" | "danger";
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={busy}
-      className={`flex h-9 items-center justify-center gap-1.5 rounded-[9px] border px-3 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-        variant === "danger"
-          ? "border-[#fecaca] bg-white text-[#e7000b] hover:bg-[#fef2f2]"
-          : "border-[#e5e7eb] bg-white text-[#374151] hover:bg-[#f8fafc]"
-      }`}
-      style={mont}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
 export function BulkActionsBar({
   selectedCount,
   busy,
@@ -61,15 +33,15 @@ export function BulkActionsBar({
   canDelete,
   canAssign,
   onClear,
+  onStatus,
   onFeature,
   onUnfeature,
-  onPause,
-  onActivate,
   onArchive,
   onDelete,
   onAssign,
 }: BulkActionsBarProps) {
   const { t } = useTranslation("dashboardListings");
+  const { t: td } = useTranslation("dashboard");
   if (selectedCount === 0) return null;
 
   return (
@@ -92,34 +64,15 @@ export function BulkActionsBar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {canFeature && (
-          <>
-            <BulkActionButton label={t("bulkActions.feature")} icon={<Star size={15} />} onClick={onFeature} busy={busy} />
-            <BulkActionButton label={t("bulkActions.unfeature")} icon={<StarOff size={15} />} onClick={onUnfeature} busy={busy} />
-          </>
-        )}
-
-        {canPause && (
-          <>
-            <BulkActionButton label={t("bulkActions.pause")} icon={<Pause size={15} />} onClick={onPause} busy={busy} />
-            <BulkActionButton label={t("bulkActions.activate")} icon={<Play size={15} />} onClick={onActivate} busy={busy} />
-            <BulkActionButton label={t("bulkActions.archive")} icon={<Archive size={15} />} onClick={onArchive} busy={busy} />
-          </>
-        )}
-
-        {canAssign && (
-          <BulkActionButton label={t("bulkActions.assignAgent")} icon={<UserPlus size={15} />} onClick={onAssign} busy={busy} />
-        )}
-
-        {canDelete && (
-          <BulkActionButton
-            label={t("bulkActions.delete")}
-            icon={<Trash2 size={15} />}
-            onClick={onDelete}
-            busy={busy}
-            variant="danger"
-          />
-        )}
+        {canPause && <SearchableSelect value="" placeholder="Cambiar estado" ariaLabel="Cambiar estado de seleccionadas" searchable={false} disabled={busy}
+          options={Object.values(PropertyStatus).map(value => ({ value, label: value === PropertyStatus.INACTIVE ? "Archivar" : td(`status.${value}`) }))}
+          onChange={value => value === PropertyStatus.INACTIVE ? onArchive() : onStatus(value as PropertyStatus)} />}
+        {canFeature && <SearchableSelect value="" placeholder="Destacadas" ariaLabel="Destacar propiedades seleccionadas" searchable={false} disabled={busy}
+          options={[{value:"feature",label:t("bulkActions.feature")},{value:"unfeature",label:t("bulkActions.unfeature")}]}
+          onChange={value => value === "feature" ? onFeature() : onUnfeature()} />}
+        {(canAssign || canDelete) && <SearchableSelect value="" placeholder="Más acciones" ariaLabel="Acciones para propiedades seleccionadas" searchable={false} disabled={busy}
+          options={[...(canAssign ? [{value:"assign",label:t("bulkActions.assignAgent")}] : []), ...(canDelete ? [{value:"delete",label:t("bulkActions.delete")}] : [])]}
+          onChange={value => value === "assign" ? onAssign() : onDelete()} />}
       </div>
     </section>
   );

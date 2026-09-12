@@ -6,19 +6,17 @@ import { MapPin, BedDouble, Bath, Maximize, Eye, Pencil, Trash2, Star, Pause, Pl
 
 import type { DashboardListingDto } from "@/features/listings/types/listing-dto";
 import {
-  STATUS_BADGE,
   FALLBACK_LISTING_IMAGE,
   formatListingPrice,
 } from "../listings-data";
-import type { ListingRowActions } from "./ListingListView";
+import { ListingStatusControl, type ListingRowActions } from "./ListingListView";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
 const poppins = { fontFamily: "'Poppins', sans-serif" };
 
 function ListingCard({ listing, actions }: { listing: DashboardListingDto; actions: ListingRowActions }) {
   const { t } = useTranslation("dashboardListings");
-  const { t: td } = useTranslation("dashboard");
-  const status = STATUS_BADGE[listing.status];
+
   return (
     <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden flex flex-col">
       {/* Image */}
@@ -36,12 +34,7 @@ function ListingCard({ listing, actions }: { listing: DashboardListingDto; actio
             {t("grid.featured")}
           </span>
         )}
-        <span
-          className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-[6px] text-[11px] font-medium"
-          style={{ backgroundColor: status.bg, color: status.text, ...mont }}
-        >
-          {td(`status.${listing.status}`)}
-        </span>
+        <div className="absolute top-3 right-3 w-[125px]"><ListingStatusControl listing={listing} actions={actions} /></div>
       </div>
 
       {/* Body */}

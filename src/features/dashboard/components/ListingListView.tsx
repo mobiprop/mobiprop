@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
+import { PropertyStatus } from "@/generated/prisma/enums";
+import { SearchableSelect } from "./SearchableSelect";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -81,11 +84,22 @@ export type ListingRowActions = {
   canPause: boolean;
   canFeature: boolean;
   canDelete: boolean;
+  onSetStatus: (listing: DashboardListingDto, status: PropertyStatus) => Promise<void>;
   onEdit: (listing: DashboardListingDto) => void;
   onToggleStatus: (listing: DashboardListingDto) => void;
   onToggleFeatured: (listing: DashboardListingDto) => void;
   onDelete: (listing: DashboardListingDto) => void;
 };
+
+export function ListingStatusControl({ listing, actions }: { listing: DashboardListingDto; actions: ListingRowActions }) {
+  const { t } = useTranslation("dashboard");
+  const [busy, setBusy] = useState(false);
+  if (!actions.canPause) return <Badge label={t(`status.${listing.status}`)} solid style={STATUS_BADGE[listing.status]} />;
+  return <SearchableSelect placeholder="Estado" value={listing.status} options={Object.values(PropertyStatus).map(value => ({ value, label: t(`status.${value}`) }))}
+    ariaLabel={`Cambiar estado: ${listing.title}`} searchable={false} disabled={busy}
+    triggerStyle={{ background: STATUS_BADGE[listing.status].bg, color: STATUS_BADGE[listing.status].text, borderRadius: 8, minHeight: 36, padding: "6px 8px", fontSize: 12 }}
+    onChange={async value => { setBusy(true); try { await actions.onSetStatus(listing, value as PropertyStatus); } finally { setBusy(false); } }} />;
+}
 
 export type ListingSelection = {
   selectedIds: Set<string>;
@@ -130,15 +144,15 @@ return (
       <table className="w-full min-w-[1280px] table-fixed">
         {/* Preserve bulk selection alongside the reference table's direct actions. */}
         <colgroup>
-          <col style={{ width: "4%" }} />
-          <col style={{ width: "9%" }} />
-          <col style={{ width: "18%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "12%" }} />
-          <col style={{ width: "8%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "9%" }} />
-          <col style={{ width: "20%" }} />
+          <col style={{ width: 44 }} />
+          <col style={{ width: 100 }} />
+          <col />
+          <col style={{ width: 110 }} />
+          <col style={{ width: 145 }} />
+          <col style={{ width: 105 }} />
+          <col style={{ width: 145 }} />
+          <col style={{ width: 125 }} />
+          <col style={{ width: 224 }} />
         </colgroup>
 
         <thead>
@@ -289,16 +303,12 @@ return (
 
               {/* Status */}
               <td className="px-3 py-4">
-                <Badge
-                  label={td(`status.${listing.status}`)}
-                  solid
-                  style={STATUS_BADGE[listing.status]}
-                />
+                <ListingStatusControl listing={listing} actions={actions} />
               </td>
 
               {/* Actions */}
               <td className="px-2 py-4">
-                <div className="flex flex-nowrap items-center justify-end gap-1">
+                <div className="flex flex-nowrap items-center justify-start gap-1">
                   <a href={`/listings/${listing.slug}`} target="_blank" rel="noopener noreferrer" title={t("listings:card.viewProperty")} aria-label={`${t("listings:card.viewProperty")}: ${listing.title}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]">
                     <Eye size={17} strokeWidth={1.6} />
                   </a>
@@ -397,11 +407,7 @@ return (
                     </h3>
                   </div>
 
-                  <Badge
-                    label={td(`status.${listing.status}`)}
-                    solid
-                  style={STATUS_BADGE[listing.status]}
-                  />
+                  <ListingStatusControl listing={listing} actions={actions} />
                 </div>
 
                 <p

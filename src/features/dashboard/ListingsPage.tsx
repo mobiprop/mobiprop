@@ -206,7 +206,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
         listing.listingId.toLowerCase().includes(query);
 
       const matchesStatus =
-        statusFilter === "All" || listing.status === statusFilter;
+        statusFilter === "All" ? listing.status !== PropertyStatus.INACTIVE : listing.status === statusFilter;
 
       const matchesType = typeFilter === "All" || listing.type === typeFilter;
 
@@ -325,6 +325,10 @@ export function ListingsPage({ role }: ListingsPageProps) {
     canPause,
     canFeature,
     canDelete,
+    onSetStatus: async (listing, status) => {
+      try { await statusMutation.mutateAsync({ id: listing.id, status }); toast.success("Estado actualizado"); }
+      catch { toast.error("No se pudo actualizar el estado"); }
+    },
     onEdit: (listing) => setEditListing(listing),
     onToggleStatus: handleToggleStatus,
     onToggleFeatured: handleToggleFeatured,
@@ -641,6 +645,14 @@ export function ListingsPage({ role }: ListingsPageProps) {
           </div>
         </section>
 
+        <div className="flex gap-2" aria-label="Vista de propiedades">
+          {[{ value: "All", label: "Propiedades" }, { value: PropertyStatus.INACTIVE, label: "Archivadas" }].map(tab =>
+            <button key={tab.value} type="button" aria-pressed={tab.value === "All" ? statusFilter !== PropertyStatus.INACTIVE : statusFilter === tab.value}
+              className="rounded-xl border border-[#ccdeef] px-4 py-2 text-sm aria-pressed:bg-[#005089] aria-pressed:text-white"
+              onClick={() => { setStatusFilter(tab.value as PropertyStatus | "All"); setSelectedIds(new Set()); setAdvancedFilters(DEFAULT_LISTING_FILTER_VALUES); }}>
+              {tab.label}{tab.value === PropertyStatus.INACTIVE ? ` (${listings.filter(item => item.status === PropertyStatus.INACTIVE).length})` : ""}
+            </button>)}
+        </div>
         <BulkActionsBar
           selectedCount={selectedIds.size}
           busy={bulkBusy}
@@ -654,6 +666,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
           onPause={() => handleBulkStatus(PropertyStatus.PAUSED, "toasts.bulkPaused")}
           onActivate={() => handleBulkStatus(PropertyStatus.ACTIVE, "toasts.bulkActivated")}
           onArchive={handleBulkArchive}
+          onStatus={status => handleBulkStatus(status, "Estado actualizado")}
           onDelete={handleBulkDelete}
           onAssign={() => setShowBulkAssign(true)}
         />

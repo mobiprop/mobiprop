@@ -556,3 +556,22 @@ body {
 
 /* Listing photos crossfade without a white hover wash. */
 .property-card .hover-shine::after { content: none; }
+
+/* Shared primary CTA appearance; retain each control's layout and dimensions. */
+:is(button, a):is(
+  .home-button,
+  [class~="bg-[#1e4f86]"], [class~="bg-[#005089]"],
+  [class~="bg-[#0068b5]"], [class~="bg-[#0d2138]"],
+  [class~="bg-[#285f9c]"], [class~="bg-[#235b96]"],
+  [class~="bg-[#245c98]"], [class~="bg-[#4896b6]"],
+  [class~="bg-gradient-to-br"], [class~="bg-gradient-to-r"],
+  [style*="linear-gradient"][class~="text-white"]
+):not([role="checkbox"]):not([role="option"]):not([aria-pressed]):not([aria-selected]) {
+  background-image: linear-gradient(110deg, #005ea4, #006fc2) !important;
+  background-color: #0066b0 !important;
+  border-color: transparent !important;
+  border-radius: 14px !important;
+  color: #fff !important;
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 500 !important;
+}
