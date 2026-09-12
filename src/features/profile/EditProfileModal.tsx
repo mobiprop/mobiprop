@@ -1,4 +1,5 @@
 "use client";
+import { optimizeAvatarForUpload } from "@/lib/client-image";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,7 +43,6 @@ import { syncSiteLanguageFromPreference } from "@/i18n/client";
 const poppins = "Poppins, sans-serif";
 const montserrat = "Montserrat, sans-serif";
 
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const MAX_DESCRIPTION_LENGTH = 250;
 
@@ -363,10 +363,6 @@ function AccountTab({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > MAX_AVATAR_SIZE) {
-      setError(t("account.errors.imageTooLarge"));
-      return;
-    }
     if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
       setError(t("account.errors.imageBadType"));
       return;
@@ -413,10 +409,11 @@ function AccountTab({
     formData.set("timezone", timezone);
     formData.set("address", address);
     formData.set("description", description);
-    if (avatarFile) formData.set("avatar", avatarFile);
+
     if (removeAvatar) formData.set("removeAvatar", "true");
 
     try {
+      if (avatarFile) formData.set("avatar", await optimizeAvatarForUpload(avatarFile));
       const result = await updateProfile(formData);
       if ("error" in result) {
         setError(translateProfileError(result.error, t));

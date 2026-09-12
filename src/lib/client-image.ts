@@ -24,7 +24,7 @@ export type OptimizedUpload = {
  * to WebP — entirely in the browser. If the browser can't decode/encode the
  * image, or the result isn't smaller, the original file is returned unchanged.
  */
-export async function optimizeImageForUpload(file: File, quality: number = WEBP_QUALITY): Promise<OptimizedUpload> {
+export async function optimizeImageForUpload(file: File, quality: number = WEBP_QUALITY, options: { maxDimension?: number; forceWebp?: boolean } = {}): Promise<OptimizedUpload> {
   if (typeof document === "undefined" || typeof createImageBitmap !== "function") {
     return { file, width: null, height: null };
   }
@@ -34,7 +34,7 @@ export async function optimizeImageForUpload(file: File, quality: number = WEBP_
     // `from-image` applies EXIF rotation so portrait phone photos aren't sideways.
     bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
 
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, (options.maxDimension ?? MAX_DIMENSION) / Math.max(bitmap.width, bitmap.height));
     const targetWidth = Math.max(1, Math.round(bitmap.width * scale));
     const targetHeight = Math.max(1, Math.round(bitmap.height * scale));
 
@@ -52,7 +52,7 @@ export async function optimizeImageForUpload(file: File, quality: number = WEBP_
 
     // toBlob can return null (no WebP encoder), or something larger than the
     // original (already-small WebP). Keep the original then.
-    if (!blob || blob.size >= file.size) {
+    if (!blob || blob.type !== "image/webp" || (!options.forceWebp && blob.size >= file.size)) {
       return { file, width: bitmap.width, height: bitmap.height };
     }
 
@@ -83,4 +83,13 @@ export async function optimizeImagesForUpload(files: File[], quality: number = W
 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
   return results;
+}
+
+/** Avatars are compressed before crossing the server-action request limit. */
+export async function optimizeAvatarForUpload(file: File): Promise<File> {
+  const result = await optimizeImageForUpload(file, 0.82, { maxDimension: 1024, forceWebp: true });
+  if (result.file.type !== "image/webp" || result.file.size > 4 * 1024 * 1024) {
+    throw new Error("No se pudo convertir la foto a WebP. Probá con otra imagen JPG o PNG.");
+  }
+  return result.file;
 }

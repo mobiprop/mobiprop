@@ -247,9 +247,9 @@
     "greetingNoName": "¡Bienvenido! Este es tu resumen de hoy.",
     "dateRanges": {
       "lastWeek": "Última Semana",
-      "last60Days": "Últimos 60 Días",
-      "last90Days": "Últimos 90 Días",
-      "custom": "Rango Personalizado"
+      "last60Days": "Últimos 60 días",
+      "custom": "Rango personalizado",
+      "last30Days": "Últimos 30 días"
     },
     "selectRange": "Seleccionar rango",
     "from": "Desde",

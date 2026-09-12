@@ -42,7 +42,7 @@ export type SaleRow = {
   revenue: number;
 };
 
-export type DashboardDateRangeKey = "LAST_WEEK" | "60_DAYS" | "90_DAYS" | "CUSTOM";
+export type DashboardDateRangeKey = "LAST_WEEK" | "60_DAYS" | "30_DAYS" | "CUSTOM";
 
 export type DashboardDateRangeInput = {
   dateRange: DashboardDateRangeKey;

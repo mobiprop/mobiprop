@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type DashboardDateRange = "LAST_WEEK" | "60_DAYS" | "90_DAYS" | "CUSTOM";
+export type DashboardDateRange = "LAST_WEEK" | "60_DAYS" | "30_DAYS" | "CUSTOM";
 
 type DashboardState = {
   isSidebarCollapsed: boolean;

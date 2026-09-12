@@ -160,7 +160,7 @@ export async function sendTourRequestedEmail(params: {
 }): Promise<SendResult> {
   return sendEmail({
     to: params.to,
-    subject: `Recibimos tu solicitud de visita — ${APP_NAME}`,
+    subject: "Recibimos tu solicitud de visita",
     html: renderTourConfirmedEmail({ ...params, requested: true, ctaUrl: `${APP_URL}/profile` }),
   });
 }

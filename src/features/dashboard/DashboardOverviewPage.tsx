@@ -48,12 +48,12 @@ const poppins = { fontFamily: "'Poppins', sans-serif" };
 const DATE_RANGE_LABEL_KEY: Record<DashboardDateRange, string> = {
   LAST_WEEK: "overview.dateRanges.lastWeek",
   "60_DAYS": "overview.dateRanges.last60Days",
-  "90_DAYS": "overview.dateRanges.last90Days",
+  "30_DAYS": "overview.dateRanges.last30Days",
   CUSTOM: "overview.dateRanges.custom",
 };
 
-const DATE_RANGE_VALUES = ["LAST_WEEK", "60_DAYS", "90_DAYS", "CUSTOM"] as const;
-const SALES_DATE_RANGE_VALUES = ["LAST_WEEK", "60_DAYS", "90_DAYS"] as const;
+const DATE_RANGE_VALUES = ["LAST_WEEK", "30_DAYS", "60_DAYS", "CUSTOM"] as const;
+const SALES_DATE_RANGE_VALUES = ["LAST_WEEK", "30_DAYS", "60_DAYS"] as const;
 
 const OPERATION_FILTER_VALUES = ["All", "Rent", "Sale", "Sale & Rent"] as const;
 
@@ -116,17 +116,17 @@ function MetricCardView({ card }: { card: MetricCard }) {
         {card.netValue ? (
           <div className="grid w-full min-w-0 grid-cols-2 gap-3">
             <div className="min-w-0">
-              <p className="break-words text-[18px] font-medium leading-6 text-[#002b49]" style={poppins}>{card.value}</p>
-              <p className="text-[11px] leading-4 text-[#6c6c6c]" style={mont}>{t("overview.metrics.grossLabel")}</p>
+              <p className="break-words text-[24px] font-medium leading-8 text-[#232323]" style={poppins}>{card.value.replace(/^USD\s*/, "")}</p>
+              <p className="text-[11px] leading-4 text-[#6c6c6c]" style={mont}>USD {t("overview.metrics.grossLabel")}</p>
             </div>
             <div className="min-w-0">
-              <p className="break-words text-[18px] font-medium leading-6 text-[#5486b9]" style={poppins}>{card.netValue}</p>
-              <p className="text-[11px] leading-4 text-[#6c6c6c]" style={mont}>{t("overview.metrics.netLabel")}</p>
+              <p className="break-words text-[24px] font-medium leading-8 text-[#059669]" style={poppins}>{card.netValue.replace(/^USD\s*/, "")}</p>
+              <p className="text-[11px] leading-4 text-[#059669]" style={mont}>USD {t("overview.metrics.netLabel")}</p>
             </div>
           </div>
         ) : (
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-[28px] font-medium leading-8 text-[#232323]" style={poppins}>{card.value}</span>
+            <span className="text-[24px] font-medium leading-8 text-[#232323]" style={poppins}>{card.value}</span>
             {card.sub && <span className="text-[12px] text-[#6c6c6c]" style={mont}>{card.sub}</span>}
           </div>
         )}
@@ -579,6 +579,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               } else {
                 setShowCustomInputs(false);
                 setDateRange(value);
+                setChartTab(value === "LAST_WEEK" ? "Daily" : value === "30_DAYS" ? "Weekly" : "Monthly");
               }
             }}
             options={dateRangeOptions}
@@ -859,7 +860,10 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
               size="sm"
               searchable={false}
               value={dateRange === "CUSTOM" ? "60_DAYS" : dateRange}
-              onChange={(next) => setDateRange(next as DashboardDateRange)}
+              onChange={(next) => {
+                setDateRange(next as DashboardDateRange);
+                setChartTab(next === "LAST_WEEK" ? "Daily" : next === "30_DAYS" ? "Weekly" : "Monthly");
+              }}
               options={salesDateRangeOptions}
               placeholder={t("overview.selectRange")}
               className="sm:w-[150px]"

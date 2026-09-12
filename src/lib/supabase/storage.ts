@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "crypto";
+import sharp from "sharp";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LISTING_IMAGE_MAX_BYTES } from "@/schemas/listing.schema";
@@ -40,18 +41,27 @@ function extensionForMime(mimeType: string): string {
 
 /**
  * Uploads a new avatar for the user, replacing any existing one so a user
- * never has more than one stored profile picture at a time.
+ * keeps the previous photo if upload or profile persistence fails.
  */
 export async function uploadAvatar(userId: string, file: File): Promise<string> {
   const supabase = createAdminClient();
 
-  await removeAvatar(userId);
+  const { data: bucket } = await supabase.storage.getBucket(AVATAR_BUCKET);
+  if (!bucket) {
+    const { error } = await supabase.storage.createBucket(AVATAR_BUCKET, {
+      public: true,
+      fileSizeLimit: 5 * 1024 * 1024,
+      allowedMimeTypes: ["image/webp", "image/jpeg", "image/png", "image/gif"],
+    });
+    if (error && !(await supabase.storage.getBucket(AVATAR_BUCKET)).data) throw error;
+  }
+  const bytes = await sharp(Buffer.from(await file.arrayBuffer()))
+    .rotate().resize({ width: 1024, height: 1024, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 82 }).toBuffer();
+  const path = `${userId}/avatar-${randomUUID()}.webp`;
 
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `${userId}/avatar.${ext}`;
-
-  const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
-    contentType: file.type,
+  const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, bytes, {
+    contentType: "image/webp",
     upsert: true,
   });
   if (error) throw new Error(`Failed to upload photo: ${error.message}`);

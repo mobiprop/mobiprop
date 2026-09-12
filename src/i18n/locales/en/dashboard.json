@@ -248,8 +248,8 @@
     "dateRanges": {
       "lastWeek": "Last Week",
       "last60Days": "Last 60 Days",
-      "last90Days": "Last 90 Days",
-      "custom": "Custom Range"
+      "custom": "Custom Range",
+      "last30Days": "Last 30 Days"
     },
     "selectRange": "Select range",
     "from": "From",

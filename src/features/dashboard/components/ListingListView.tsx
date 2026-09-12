@@ -127,18 +127,18 @@ return (
 
     {/* Desktop table - same design */}
     <div className="hidden overflow-x-auto lg:block">
-      <table className="w-full min-w-[1100px] table-fixed">
+      <table className="w-full min-w-[1280px] table-fixed">
         {/* Preserve bulk selection alongside the reference table's direct actions. */}
         <colgroup>
           <col style={{ width: "4%" }} />
           <col style={{ width: "9%" }} />
-          <col style={{ width: "22%" }} />
+          <col style={{ width: "18%" }} />
           <col style={{ width: "10%" }} />
           <col style={{ width: "12%" }} />
           <col style={{ width: "8%" }} />
           <col style={{ width: "10%" }} />
           <col style={{ width: "9%" }} />
-          <col style={{ width: "16%" }} />
+          <col style={{ width: "20%" }} />
         </colgroup>
 
         <thead>
@@ -298,7 +298,7 @@ return (
 
               {/* Actions */}
               <td className="px-2 py-4">
-                <div className="grid grid-cols-3 justify-items-center gap-0.5 min-[1800px]:flex min-[1800px]:justify-end">
+                <div className="flex flex-nowrap items-center justify-end gap-1">
                   <a href={`/listings/${listing.slug}`} target="_blank" rel="noopener noreferrer" title={t("listings:card.viewProperty")} aria-label={`${t("listings:card.viewProperty")}: ${listing.title}`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#6c6c6c] hover:bg-[#f0f6fa] hover:text-[#005089]">
                     <Eye size={17} strokeWidth={1.6} />
                   </a>

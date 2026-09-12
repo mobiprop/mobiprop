@@ -1,4 +1,5 @@
 "use client";
+import { optimizeAvatarForUpload } from "@/lib/client-image";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,7 +16,6 @@ const inputClass =
   "h-9 px-3.5 bg-white border border-[#d1d5dc] rounded-[10px] text-[12px] text-[#0a0a0a] outline-none focus:border-[#1e4f86] transition-colors";
 const labelClass = "text-[12px] font-medium text-[#1f2937]";
 
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 type ProfileTabProps = {
@@ -45,10 +45,6 @@ export function ProfileTab({ profile }: ProfileTabProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > MAX_AVATAR_SIZE) {
-      setError(t("profile.errors.imageTooLarge"));
-      return;
-    }
     if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
       setError(t("profile.errors.imageBadType"));
       return;
@@ -86,9 +82,10 @@ export function ProfileTab({ profile }: ProfileTabProps) {
     formData.set("timezone", profile.timezone ?? "");
     formData.set("address", profile.address ?? "");
     formData.set("description", bio.trim());
-    if (avatarFile) formData.set("avatar", avatarFile);
+
 
     try {
+      if (avatarFile) formData.set("avatar", await optimizeAvatarForUpload(avatarFile));
       const result = await updateProfile(formData);
       if ("error" in result) {
         setError(translateProfileError(result.error, t));
