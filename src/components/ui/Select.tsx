@@ -9,7 +9,7 @@ export type SearchableSelectProps = {
   id?: string; ariaLabel?: string; value: string; onChange: (value: string) => void;
   options: SearchableSelectOption[]; placeholder: string; searchPlaceholder?: string;
   emptyLabel?: string; loading?: boolean; loadingLabel?: string; searchable?: boolean;
-  visibleRows?: number; disabled?: boolean; hasError?: boolean; className?: string;
+  menuMinWidth?: number; visibleRows?: number; disabled?: boolean; hasError?: boolean; className?: string;
   size?: "default" | "sm"; bare?: boolean; icon?: ReactNode;
   triggerClassName?: string; triggerStyle?: CSSProperties; onBlur?: () => void;
 };
@@ -19,7 +19,7 @@ export function SearchableSelect({ id, ariaLabel, value, onChange, options, plac
   searchPlaceholder = "Buscar...", emptyLabel = "No se encontraron resultados",
   loading = false, loadingLabel = "Cargando...", searchable = true, visibleRows = 6,
   disabled = false, hasError = false, className = "", size = "default", bare = false,
-  icon, triggerClassName = "", triggerStyle, onBlur,
+  icon, triggerClassName = "", triggerStyle, onBlur, menuMinWidth = 0,
 }: SearchableSelectProps) {
   const uid = useId();
   const [open, setOpen] = useState(false);
@@ -64,10 +64,11 @@ export function SearchableSelect({ id, ariaLabel, value, onChange, options, plac
       const scale = rect.width / element.offsetWidth || 1;
       const bodyScale = Number.parseFloat(getComputedStyle(document.body).zoom) || 1;
       const gap = 8 * scale;
+      const menuWidth = Math.min(Math.max(rect.width, menuMinWidth * scale), innerWidth - 16);
       setPosition({ position: "fixed", zoom: scale / bodyScale,
         top: (rect.bottom + gap) / scale,
-        left: Math.max(8, Math.min(rect.left, innerWidth - rect.width - 8)) / scale,
-        width: rect.width / scale,
+        left: Math.max(8, Math.min(rect.left, innerWidth - menuWidth - 8)) / scale,
+        width: menuWidth / scale,
         maxHeight: Math.max(44, (innerHeight - rect.bottom - gap - 8) / scale),
       });
     }
@@ -84,7 +85,7 @@ export function SearchableSelect({ id, ariaLabel, value, onChange, options, plac
       window.removeEventListener("scroll", update, true);
       document.removeEventListener("pointerdown", outside);
     };
-  }, [open]);
+  }, [open, menuMinWidth]);
 
   useEffect(() => {
     if (!open || !positioned) return;

@@ -71,14 +71,14 @@ const STATUS_LABEL: Record<string, string> = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, trend, iconBg, icon }: {
-  label: string; value: string; sub?: string; trend: string; iconBg: string; icon: React.ReactNode;
+function StatCard({ label, value, sub, trend, icon }: {
+  label: string; value: string; sub?: string; trend: string; icon: React.ReactNode;
 }) {
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#f3f4f6] rounded-[12px] p-[18px] flex flex-col gap-6">
+    <div className="min-w-0 bg-white border border-[#e9e9e9] rounded-[12px] p-[18px] flex flex-col gap-4">
       <div className="flex items-start justify-between gap-7">
-        <p className="text-[14px] font-medium text-[#6a7282] max-w-[178px]" style={mont}>{label}</p>
-        <span className="size-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
+        <p className="text-[14px] font-normal text-[#6c6c6c]" style={mont}>{label}</p>
+        <span className="size-9 rounded-[8px] border border-[#e9e9e9] bg-[#fafafa] flex items-center justify-center shrink-0">
           {icon}
         </span>
       </div>
@@ -87,7 +87,7 @@ function StatCard({ label, value, sub, trend, iconBg, icon }: {
           <span className="text-[24px] font-semibold text-[#0d2138] leading-[28px]" style={poppins}>{value}</span>
           {sub && <span className="text-[14px] font-medium text-[#6a7282]" style={mont}>{sub}</span>}
         </p>
-        <p className="text-[12px] font-medium text-[#00a63e]" style={mont}>{trend}</p>
+        <p className="text-[12px] font-normal text-[#6c6c6c]" style={mont}>{trend}</p>
       </div>
     </div>
   );
@@ -374,16 +374,18 @@ export function OpportunitiesPage({
       </div>
 
       {/* Stat cards */}
-      <div className="flex flex-wrap gap-3.5">
-        <StatCard label={t("page.stats.totalCommission")} value={isLoading ? "—" : fmt(metrics?.totalCommission ?? null)} trend={t("page.stats.totalCommissionTrend")} iconBg="#fef3c7" icon={<DollarSign size={18} className="text-[#f59e0b]" />} />
-        <StatCard label={t("page.stats.open")} value={isLoading ? "—" : String(metrics?.open ?? 0)} trend={t("page.stats.openTrend")} iconBg="#e0e7ff" icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
-        <StatCard label={t("page.stats.won")} value={isLoading ? "—" : String(metrics?.closedWon ?? 0)} trend={t("page.stats.wonTrend")} iconBg="#d1fae5" icon={<Trophy size={18} className="text-[#10b981]" />} />
-        <StatCard label={t("page.stats.winRate")} value={isLoading ? "—" : `${winRate}%`} trend={t("page.stats.winRateTrend")} iconBg="#dbeafe" icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard label={t("page.stats.totalCommission")} value={isLoading ? "—" : fmt(metrics?.totalCommission ?? null)} trend={t("page.stats.totalCommissionTrend")} icon={<DollarSign size={18} className="text-[#fe623a]" />} />
+        <StatCard label={t("page.stats.open")} value={isLoading ? "—" : String(metrics?.open ?? 0)} trend={t("page.stats.openTrend")} icon={<FolderOpen size={18} className="text-[#6366f1]" />} />
+        <StatCard label={t("page.stats.won")} value={isLoading ? "—" : String(metrics?.closedWon ?? 0)} trend={t("page.stats.wonTrend")} icon={<Trophy size={18} className="text-[#10b981]" />} />
+        <StatCard label={t("page.stats.winRate")} value={isLoading ? "—" : `${winRate}%`} trend={t("page.stats.winRateTrend")} icon={<BarChart3 size={18} className="text-[#3b82f6]" />} />
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+      <div className="bg-white border border-[#e9e9e9] rounded-[14px] overflow-hidden">
+        <div className="mobi-opportunity-toolbar flex flex-wrap items-center justify-between gap-4 p-5">
+          <h2 className="text-[16px] font-medium text-[#0d2138]" style={poppins}>Todas las oportunidades</h2>
+          <div className="flex min-w-0 flex-wrap items-center gap-3 w-full xl:w-auto">
             <div className="mobi-toolbar-control w-full sm:w-[300px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />
               <input
@@ -394,7 +396,15 @@ export function OpportunitiesPage({
                 style={mont}
               />
             </div>
-          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowFilter(true)}
+              className={`mobi-toolbar-control relative ${filtersActive ? "is-active" : ""}`}
+              style={mont}
+            >
+              {t("page.filterBy")} <Filter size={16} />
+              {filtersActive && <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-[#1e4f86]" />}
+            </button>
             <SearchableSelect ariaLabel="Etapa de calificación" placeholder="Etapa de calificación" className="w-full sm:w-[230px]" triggerClassName="mobi-toolbar-control" size="sm" searchable={false}
               value={filters.stages[0] ?? "All"}
               onChange={value => setFilters(current => ({...current, stages:value === "All" ? [] : [value as Exclude<StageTab, "All">]}))}
@@ -407,15 +417,6 @@ export function OpportunitiesPage({
               style={mont}
             >
               {t("page.exportCsv")} <Download size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowFilter(true)}
-              className={`mobi-toolbar-control relative ${filtersActive ? "is-active" : ""}`}
-              style={mont}
-            >
-              {t("page.filterBy")} <Filter size={16} />
-              {filtersActive && <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-[#1e4f86]" />}
             </button>
           </div>
         </div>

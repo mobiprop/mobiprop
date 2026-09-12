@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
+  Archive,
   Search,
   Plus,
   Home,
@@ -441,6 +442,14 @@ export function ListingsPage({ role }: ListingsPageProps) {
             </p>
           </div>
 
+          <div className="flex flex-wrap items-center gap-3">
+              <button type="button" aria-pressed={statusFilter === PropertyStatus.INACTIVE}
+                className="flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-4 text-[14px] font-medium text-[#1e4f86] transition-colors hover:bg-[#f8fafc] aria-pressed:bg-[#f0f6fa] aria-pressed:border-[#b0c9da]"
+                style={mont}
+                onClick={() => { setStatusFilter(statusFilter === PropertyStatus.INACTIVE ? "All" : PropertyStatus.INACTIVE); setSelectedIds(new Set()); setAdvancedFilters(DEFAULT_LISTING_FILTER_VALUES); }}>
+                <Archive size={16} className="shrink-0" />
+                Archivadas ({listings.filter(item => item.status === PropertyStatus.INACTIVE).length})
+              </button>
           {canCreate && (
             <button
               type="button"
@@ -452,6 +461,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
               {t("page.uploadNewListing")}
             </button>
           )}
+          </div>
         </header>
 
         {/* Stat cards */}
@@ -607,11 +617,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
             {/* View toggle */}
             <div className="col-span-2 flex h-11 items-center justify-end gap-2 sm:col-span-1 lg:ml-auto">
-              <button type="button" aria-pressed={statusFilter === PropertyStatus.INACTIVE}
-                className="h-10 rounded-[9px] border border-[#ccdeef] px-3 text-sm text-[#005089] aria-pressed:bg-[#005089] aria-pressed:text-white"
-                onClick={() => { setStatusFilter(statusFilter === PropertyStatus.INACTIVE ? "All" : PropertyStatus.INACTIVE); setSelectedIds(new Set()); setAdvancedFilters(DEFAULT_LISTING_FILTER_VALUES); }}>
-                Archivadas ({listings.filter(item => item.status === PropertyStatus.INACTIVE).length})
-              </button>
+
               <button
                 type="button"
                 onClick={() => setView("grid")}

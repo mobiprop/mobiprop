@@ -96,7 +96,7 @@ export function ListingStatusControl({ listing, actions }: { listing: DashboardL
   const [busy, setBusy] = useState(false);
   if (!actions.canPause) return <Badge label={t(`status.${listing.status}`)} solid style={STATUS_BADGE[listing.status]} />;
   return <SearchableSelect placeholder="Estado" value={listing.status} options={Object.values(PropertyStatus).map(value => ({ value, label: t(`status.${value}`) }))}
-    ariaLabel={`Cambiar estado: ${listing.title}`} searchable={false} disabled={busy}
+    ariaLabel={`Cambiar estado: ${listing.title}`} searchable={false} menuMinWidth={180} disabled={busy}
     className="w-fit max-w-full" triggerClassName="mobi-status-control"
     triggerStyle={{ background: STATUS_BADGE[listing.status].bg, color: STATUS_BADGE[listing.status].text, borderRadius: 6, minHeight: 26, height: 26, border: "none", padding: "4px 12px", fontSize: 12, lineHeight: "18px", fontWeight: 500, gap: 6 }}
     onChange={async value => { setBusy(true); try { await actions.onSetStatus(listing, value as PropertyStatus); } finally { setBusy(false); } }} />;

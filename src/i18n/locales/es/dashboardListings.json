@@ -2,7 +2,7 @@
   "page": {
     "title": "Propiedades",
     "subtitle": "Gestiona y publica propiedades",
-    "uploadNewListing": "Subir Nueva Propiedad"
+    "uploadNewListing": "Agregar Propiedad"
   },
   "stats": {
     "totalListings": "Total de Propiedades",
@@ -182,7 +182,7 @@
   },
   "uploadModal": {
     "editTitle": "Editar Propiedad",
-    "uploadTitle": "Subir Nueva Propiedad",
+    "uploadTitle": "Agregar Propiedad",
     "closeAria": "Cerrar modal de propiedad",
     "stepOf": "Paso {{step}} de {{total}}",
     "steps": {
