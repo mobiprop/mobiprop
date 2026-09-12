@@ -28,7 +28,6 @@ export function ListingsExplorer() {
   const { isSaved, toggleSave } = useSavedListings();
   const listings = useMemo(() => (query.data?.listings ?? []).filter((item) => !type || item.type === type), [query.data, type]);
   const selected = listings.find((item) => item.id === selectedId);
-  const visible = useMemo(() => listings.slice(0, 4), [listings]);
 
   return (
     <section className="home-section bg-white" aria-label={t("explorer.title")}>
@@ -54,10 +53,10 @@ export function ListingsExplorer() {
           <div className="home-empty" role="status"><p>{t("explorer.empty")}</p>{type && <button type="button" className="home-button mt-5" onClick={() => setType("")}>{t("explorer.reset")}</button>}</div>
         ) : (
           <div className="home-explorer-grid w-full">
-            <div className="flex min-w-0 flex-col gap-4" aria-live="polite">
+            <div className="flex max-h-[760px] min-w-0 flex-col gap-4 overflow-y-auto overscroll-contain" aria-live="polite">
               <p className="sr-only">{t("explorer.results", { count: listings.length })}</p>
-              {visible.map((property) => (
-                <article key={property.id} onClick={() => setSelectedId(property.id)} className={`home-listing-row ${selected?.id === property.id ? "is-selected" : ""}`}>
+              {listings.map((property) => (
+                <article key={property.id} onClick={() => setSelectedId(property.id)} className={`home-listing-row shrink-0 ${selected?.id === property.id ? "is-selected" : ""}`}>
                   <button type="button" className="home-listing-photo text-left" onClick={() => setSelectedId(property.id)} aria-label={t("explorer.showOnMap", { title: property.title })}>
                     {(property.coverImageUrl || property.images[0]?.url) ? <Image src={property.coverImageUrl || property.images[0].url} alt={property.title} fill sizes="(min-width: 1024px) 16vw, (min-width: 640px) 30vw, 100vw" className="object-cover" /> : <span className="flex h-full items-center justify-center p-4 text-sm text-[#4f4f4f]">{t("explorer.noPhoto")}</span>}
                     <span className="absolute left-3 top-3 rounded-full bg-[#005089] px-2.5 py-1 text-xs text-white">{operationBadge(property, listingT)}</span>
@@ -87,7 +86,7 @@ export function ListingsExplorer() {
                 </article>
               ))}
             </div>
-            <ListingsMap listings={visible} selectedId={selected?.id ?? null} onSelect={setSelectedId} onClose={() => setSelectedId(null)} />
+            <ListingsMap listings={listings} selectedId={selected?.id ?? null} onSelect={setSelectedId} onClose={() => setSelectedId(null)} />
           </div>
         )}
         <Link className="home-button" href={type ? `/listings?propertyType=${encodeURIComponent(type)}` : "/listings"}>{t("explorer.viewAll")}</Link>
