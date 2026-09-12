@@ -37,7 +37,7 @@ return <img src={`/listings/${direction === "left" ? "previous" : "next"}.svg`} 
 
 export type PropertyCardData = Pick<PublicListingDto, "slug" | "title" | "location" | "operationType" | "salePrice" | "rentPrice" | "saleCurrency" | "rentCurrency" | "bedrooms" | "bathrooms" | "totalAreaM2" | "coverImageUrl"> & { listingId: string; images?: PublicListingDto["images"] };
 
-function ImageCarousel({ property }: { property: PropertyCardData }) {
+function ImageCarousel({ property, warmGallery }: { property: PropertyCardData; warmGallery: boolean }) {
   const images = useMemo(() => {
     const sorted = [...(property.images ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     return sorted.length > 0
@@ -60,15 +60,19 @@ function ImageCarousel({ property }: { property: PropertyCardData }) {
   return (
     <div className="hover-shine relative aspect-[421/280] w-full overflow-hidden">
       {active ? images.map((image, i) => {
-        // Warm the adjacent slides using the same optimized source and sizes.
-        // Keep visited slides mounted so rapid navigation never restarts a load.
-        const adjacent = i === (index + 1) % images.length || i === (index - 1 + images.length) % images.length;
-        if (i !== index && !adjacent && !loadedUrls.has(image.url)) return null;
+        // Keep a rolling buffer ahead of an engaged reader, rather than waiting
+        // for each click to start the following photo. Unengaged cards stay lazy.
+        const ahead = (i - index + images.length) % images.length;
+        const behindIndex = (index - i + images.length) % images.length;
+        const buffered = ahead <= (warmGallery ? 5 : 1) || behindIndex <= (warmGallery ? 2 : 1);
+        if (!buffered && !loadedUrls.has(image.url)) return null;
         const visible = image.url === active.url && loadedUrls.has(image.url);
         const behind = image.url === previous?.url;
         return <Image key={image.id} src={image.url}
           alt={i === index ? image.altText ?? property.title : ""}
           aria-hidden={i !== index} fill
+          loading={warmGallery ? "eager" : "lazy"}
+          fetchPriority={i === index ? "high" : "low"}
           sizes="(min-width: 1280px) 440px, (min-width: 640px) 50vw, 100vw"
           onLoad={() => setLoadedUrls(urls => new Set(urls).add(image.url))}
           style={{ zIndex: visible ? 2 : behind ? 1 : 0 }}
@@ -125,6 +129,7 @@ export function operationBadge(property: Pick<PublicListingDto, "operationType">
  * featured listings and the /listings grid so both stay visually identical. */
 export function PropertyCard({ property, savedOverride, onToggleSaved, compact = false, onClose }: { property: PropertyCardData; savedOverride?: boolean; onToggleSaved?: () => void; compact?: boolean; onClose?: () => void }) {
   const [loginOpen, setLoginOpen] = useState(false);
+  const [warmGallery, setWarmGallery] = useState(false);
   const { isSaved, toggleSave } = useSavedListings();
   const saved = savedOverride ?? isSaved(property.listingId);
   const { t } = useTranslation("listings");
@@ -133,12 +138,15 @@ export function PropertyCard({ property, savedOverride, onToggleSaved, compact =
     <>
       <LoginPromptModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       <article
+        onPointerEnter={() => setWarmGallery(true)}
+        onPointerDown={() => setWarmGallery(true)}
+        onFocusCapture={() => setWarmGallery(true)}
         className={`relative property-card ${compact ? "property-card-compact" : ""} flex h-full w-full min-w-0 flex-col rounded-[16px] border border-[#e9e9e9] bg-white overflow-hidden group`}
       >
         <Link href={`/listings/${property.slug}`} aria-label={`${t("card.viewProperty")}: ${property.title}`}
           className="absolute inset-0 z-10 rounded-[16px] focus-visible:outline-2 focus-visible:outline-[#005089]" />
         <div className="relative">
-          <ImageCarousel key={property.listingId} property={property} />
+          <ImageCarousel key={property.listingId} property={property} warmGallery={warmGallery} />
 
           <div className="absolute z-20 pointer-events-none top-[19px] left-[19px]">
             <span
