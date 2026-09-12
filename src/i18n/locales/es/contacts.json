@@ -148,8 +148,8 @@
   },
   "propertyListings": {
     "title": "Propiedades",
-    "addDescription": "Vincula propiedades existentes que este vendedor posee. Las nuevas propiedades también se pueden asignar a este contacto más tarde desde el formulario de propiedad.",
-    "editDescription": "Propiedades que este vendedor posee. Los cambios se guardan al hacer clic en Guardar Cambios.",
+    "addDescription": "Vincula propiedades existentes que este contacto posee. Las nuevas propiedades también se pueden asignar a este contacto más tarde desde el formulario de propiedad.",
+    "editDescription": "Propiedades que este contacto posee. Los cambios se guardan al hacer clic en Guardar Cambios.",
     "addProperty": "Agregar Propiedad",
     "removePropertyTitle": "Quitar propiedad",
     "removePropertyAria": "Quitar propiedad"

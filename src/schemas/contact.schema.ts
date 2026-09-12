@@ -30,7 +30,7 @@ export const createContactSchema = z.object({
   address: z.string().max(300).optional(),
   notes: z.string().max(2000).optional(),
   // IDs of Property records to link via ContactProperty join table.
-  propertyIds: z.array(z.string()).optional(),
+  propertyIds: z.array(z.string().trim().min(1)).transform(ids => [...new Set(ids)]).optional(),
 });
 
 export type CreateContactInput = z.infer<typeof createContactSchema>;

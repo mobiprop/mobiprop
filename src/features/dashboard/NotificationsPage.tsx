@@ -25,23 +25,23 @@ function relativeTime(iso: string): string {
   const diffMs = Math.max(0, Date.now() - timestamp);
   const minutes = Math.floor(diffMs / 60_000);
 
-  if (minutes < 1) return "Just now";
+  if (minutes < 1) return "Ahora";
   if (minutes < 60) {
-    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+    return `Hace ${minutes} minuto${minutes === 1 ? "" : "s"}`;
   }
 
   const hours = Math.floor(minutes / 60);
 
   if (hours < 24) {
-    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    return `Hace ${hours} hora${hours === 1 ? "" : "s"}`;
   }
 
   const days = Math.floor(hours / 24);
 
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
+  if (days === 1) return "Ayer";
+  if (days < 7) return `Hace ${days} días`;
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("es-AR", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -109,12 +109,12 @@ export function NotificationsPage() {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-lg font-semibold text-[#0d2138] sm:text-xl">
-                Notifications
+                Notificaciones
               </h1>
 
               {unreadCount > 0 && (
                 <span
-                  aria-label={`${unreadCount} unread notifications`}
+                  aria-label={`${unreadCount} notificaciones sin leer`}
                   className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] px-1.5 text-[11px] font-semibold leading-none text-white"
                 >
                   {unreadCount > 99 ? "99+" : unreadCount}
@@ -123,7 +123,7 @@ export function NotificationsPage() {
             </div>
 
             <p className="mt-0.5 text-xs text-[#667085] sm:text-[13px]">
-              Stay updated with your latest activity.
+              Consultá las novedades de tu actividad.
             </p>
           </div>
         </div>
@@ -135,14 +135,14 @@ export function NotificationsPage() {
             className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#cfd8e3] bg-white px-3.5 text-xs font-semibold text-[#1b487a] shadow-sm transition hover:border-[#1e4f86] hover:bg-[#f5f9fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 sm:w-auto sm:text-[13px]"
           >
             <Check size={16} aria-hidden="true" />
-            Mark all as read
+            Marcar todas como leídas
           </button>
         )}
       </header>
 
       {/* Notification card */}
       <section
-        aria-label="Notification list"
+        aria-label="Lista de notificaciones"
         className="overflow-hidden rounded-xl border border-[#dfe4ea] bg-white shadow-[0_4px_18px_rgba(15,35,55,0.05)] sm:rounded-2xl"
       >
         {isLoading ? (
@@ -154,18 +154,18 @@ export function NotificationsPage() {
             </div>
 
             <h2 className="text-sm font-semibold text-[#0d2138] sm:text-base">
-              You&apos;re all caught up
+              Estás al día
             </h2>
 
             <p className="mt-1 max-w-sm text-xs leading-5 text-[#667085] sm:text-sm">
-              There are no notifications to show right now.
+              No hay notificaciones para mostrar.
             </p>
 
             <Link
               href="/dashboard"
               className="mt-5 inline-flex min-h-10 items-center justify-center rounded-lg bg-[#1e4f86] px-4 text-xs font-semibold text-white transition hover:bg-[#183f6b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 focus-visible:ring-offset-2 sm:text-[13px]"
             >
-              Back to dashboard
+              Volver al panel
             </Link>
           </div>
         ) : (
@@ -186,7 +186,7 @@ export function NotificationsPage() {
                     <button
                       type="button"
                       onClick={() => handleOpen(notification)}
-                      aria-label={`Open notification: ${notification.title}`}
+                      aria-label={`Abrir notificación: ${notification.title}`}
                       className="flex min-w-0 flex-1 items-start gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 sm:gap-4"
                     >
                       <span
@@ -211,7 +211,7 @@ export function NotificationsPage() {
 
                           {isUnread && (
                             <span
-                              aria-label="Unread"
+                              aria-label="Sin leer"
                               className="mt-1.5 size-2 shrink-0 rounded-full bg-[#1e4f86]"
                             />
                           )}
@@ -230,7 +230,7 @@ export function NotificationsPage() {
                             <>
                               <span aria-hidden="true">•</span>
                               <span className="font-medium text-[#1b487a]">
-                                View details
+                                Ver detalles
                               </span>
                               <ChevronRight
                                 size={13}
@@ -244,7 +244,7 @@ export function NotificationsPage() {
 
                     <button
                       type="button"
-                      aria-label={`Dismiss notification: ${notification.title}`}
+                      aria-label={`Descartar notificación: ${notification.title}`}
                       onClick={() => dismiss.mutate(notification.id)}
                       className="flex size-9 shrink-0 items-center justify-center rounded-lg text-[#87909e] transition hover:bg-[#e9eef4] hover:text-[#344054] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/30 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
                     >

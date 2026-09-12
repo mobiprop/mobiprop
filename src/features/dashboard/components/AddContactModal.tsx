@@ -54,7 +54,7 @@ export function AddContactModal({
   const [notes, setNotes] = useState("");
   const [propertyRows, setPropertyRows] = useState<PropertyRow[]>([]);
 
-  const isSellerType = roles.includes(ContactType.SELLER);
+  const canLinkOwnedProperties = (roles.includes(ContactType.SELLER) || roles.includes(ContactType.OWNER));
 
   function updatePropertyRow(index: number, id: string, label: string) {
     setPropertyRows((prev) => prev.map((p, i) => (i === index ? { id, label } : p)));
@@ -79,7 +79,7 @@ export function AddContactModal({
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
-      propertyIds: isSellerType ? propertyRows.map((p) => p.id).filter(Boolean) : undefined,
+      propertyIds: canLinkOwnedProperties ? propertyRows.map((p) => p.id).filter(Boolean) : undefined,
     });
   }
 
@@ -216,8 +216,8 @@ export function AddContactModal({
             />
           </div>
 
-          {/* Property Listings — sellers only */}
-          {isSellerType && (
+          {/* Owned properties — sellers and owners */}
+          {canLinkOwnedProperties && (
             <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-3 sm:p-4">
               <div className="flex items-center gap-2">
                 <Home size={15} className="shrink-0 text-[#1a5ea8]" />

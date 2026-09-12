@@ -23,7 +23,7 @@ export type EditContactInput = {
   location: string;
   address: string;
   notes: string;
-  propertyIds: string[];
+  propertyIds?: string[];
   assignedAgentId: string | null;
 };
 
@@ -67,7 +67,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, lockedAge
   // the assigned agent — never let the placeholder round-trip as a real edit.
   const contactInfoLocked = contact.contactInfoMasked;
 
-  const isSellerType = roles.includes(ContactType.SELLER);
+  const canLinkOwnedProperties = (roles.includes(ContactType.SELLER) || roles.includes(ContactType.OWNER));
 
   function updatePropertyRow(index: number, id: string, label: string) {
     setPropertyRows((prev) => prev.map((p, i) => (i === index ? { id, label } : p)));
@@ -94,7 +94,7 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, lockedAge
       location: location.trim(),
       address: address.trim(),
       notes: notes.trim(),
-      propertyIds: isSellerType ? propertyRows.map((p) => p.id).filter(Boolean) : [],
+      propertyIds: canLinkOwnedProperties ? propertyRows.map((p) => p.id).filter(Boolean) : undefined,
       assignedAgentId: assignedAgentId || null,
     });
   }
@@ -234,8 +234,8 @@ export function EditContactModal({ contact, onClose, onSave, isSaving, lockedAge
             />
           </div>
 
-          {/* Property Listings — sellers only */}
-          {isSellerType && (
+          {/* Owned properties — sellers and owners */}
+          {canLinkOwnedProperties && (
             <div className="flex flex-col gap-3 rounded-[12px] border border-[#e5e7eb] bg-[#f8fafc] p-4">
               <div className="flex items-center gap-2">
                 <Home size={15} className="shrink-0 text-[#1a5ea8]" />

@@ -518,7 +518,9 @@ export function ListingsPage({ role }: ListingsPageProps) {
         </section>
 
         {/* Filters */}
-        <section className="rounded-[14px] border border-[#e5e7eb] bg-white p-3 sm:p-4">
+        <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
+        <h2 className="px-5 pt-5 pb-2 text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("list.title")}</h2>
+        <section className="p-3 sm:p-4">
           <div className="grid min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-4 lg:flex lg:items-center lg:gap-3">
             {/* Search */}
             <div className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 transition-all focus-within:border-[#1e4f86] focus-within:ring-2 focus-within:ring-[#1e4f86]/10 sm:col-span-4 lg:w-[300px] lg:flex-none">
@@ -570,6 +572,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
               ]}
               placeholder={t("filters.allStatus")}
               ariaLabel={t("filters.statusAria")}
+              triggerStyle={{color:"#005089"}}
               className="min-w-0 lg:min-w-[130px]"
             />
 
@@ -585,6 +588,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
               ]}
               placeholder={t("filters.allTypes")}
               ariaLabel={t("filters.typeAria")}
+              triggerStyle={{color:"#005089"}}
               className="min-w-0 lg:min-w-[135px]"
             />
 
@@ -727,6 +731,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
             <ListingGridView listings={filtered} actions={rowActions} />
           </div>
         )}
+
+        </div>
 
         {showUpload && (
           <UploadListingModal

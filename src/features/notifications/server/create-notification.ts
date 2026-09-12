@@ -8,6 +8,7 @@ import {
 } from "@/features/notifications/server/process-notification-deliveries";
 import type { NotificationType } from "@/features/notifications/types/notification-types";
 import { isInternalUrl } from "@/features/notifications/utils/is-internal-url";
+import { spanishNotification } from "@/features/notifications/utils/spanish-notification";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -81,8 +82,7 @@ export async function createNotification(
       data: {
         recipientId: recipient.id,
         type: input.type,
-        title: input.title,
-        body: input.body,
+        ...spanishNotification(input.title, input.body),
         entityType: input.entityType,
         entityId: input.entityId,
         actionUrl: input.actionUrl,

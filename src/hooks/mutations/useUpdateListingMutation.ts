@@ -31,6 +31,7 @@ function useListingInvalidation() {
   const queryClient = useQueryClient();
   return () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboardListings() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardContacts() });
     queryClient.invalidateQueries({ queryKey: queryKeys.listings() });
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboardMetrics() });
     queryClient.invalidateQueries({ queryKey: queryKeys.notifications() });

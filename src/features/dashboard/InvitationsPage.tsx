@@ -24,10 +24,10 @@ type InviteStatus = InvitationListItem["status"];
 // ── Status badge ──────────────────────────────────────────────────────────────
 
 const STATUS_STYLE: Record<InviteStatus, { bg: string; border: string; text: string; label: string }> = {
-  PENDING:  { bg: "#fffcf5", border: "#ffd384", text: "#ffa80a", label: "Pending"  },
-  ACCEPTED: { bg: "#f5fffa", border: "#89d8a9", text: "#00aa4f", label: "Accepted" },
-  EXPIRED:  { bg: "#f8fafc", border: "#d1d5dc", text: "#6a7282", label: "Expired"  },
-  REVOKED:  { bg: "#fff5f5", border: "#f49e9e", text: "#fb2c36", label: "Revoked"  },
+  PENDING:  { bg: "#fffcf5", border: "#ffd384", text: "#ffa80a", label: "Pendiente"  },
+  ACCEPTED: { bg: "#f5fffa", border: "#89d8a9", text: "#00aa4f", label: "Aceptada" },
+  EXPIRED:  { bg: "#f8fafc", border: "#d1d5dc", text: "#6a7282", label: "Vencida"  },
+  REVOKED:  { bg: "#fff5f5", border: "#f49e9e", text: "#fb2c36", label: "Revocada"  },
 };
 
 function StatusBadge({ status }: { status: InviteStatus }) {
@@ -44,11 +44,11 @@ function StatusBadge({ status }: { status: InviteStatus }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const ROLE_LABELS: Record<string, string> = { AGENT: "Agent", MANAGER: "Manager", ADMIN: "Administrator" };
+const ROLE_LABELS: Record<string, string> = { AGENT: "Agente", MANAGER: "Gerente", ADMIN: "Administrador" };
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString("es-AR", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -100,11 +100,11 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
         await navigator.clipboard.writeText(result.inviteUrl);
         toast.success(
           result.emailSent
-            ? `Invitation re-sent to ${inv.email}. New link copied to clipboard.`
-            : `New invite link copied to clipboard (email not sent — service not configured).`,
+            ? `Invitación reenviada a ${inv.email}. Nuevo enlace copiado.`
+            : `Nuevo enlace copiado. El correo no se envió porque el servicio no está configurado.`,
         );
       } catch {
-        toast.success(`Invitation re-issued for ${inv.email}.`);
+        toast.success(`Invitación renovada para ${inv.email}.`);
       }
       refresh();
     } finally {
@@ -120,7 +120,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
         toast.error(result.error);
         return;
       }
-      toast.success(`Invitation for ${inv.email} revoked.`);
+      toast.success(`Invitación de ${inv.email} revocada.`);
       setConfirmRevokeId(null);
       refresh();
     } finally {
@@ -137,14 +137,14 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
             <Link
               href="/dashboard/agents"
               className="text-[#6a7282] hover:text-[#0d2138] transition-colors"
-              title="Back to Agents"
+              title="Volver a Agentes"
             >
               <ArrowLeft size={18} />
             </Link>
-            <h1 className="text-[20px] font-medium text-[#0d2138]" style={poppins}>Invitations</h1>
+            <h1 className="text-[20px] font-medium text-[#0d2138]" style={poppins}>Invitaciones</h1>
           </div>
           <p className="text-[14px] font-medium text-[#6a7282]" style={mont}>
-            Track and manage staff invitations
+            Gestioná las invitaciones de tu equipo
           </p>
         </div>
         {canInvite && (
@@ -155,7 +155,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
             style={mont}
           >
             <Plus size={16} />
-            Add Agent
+            Agregar agente
           </button>
         )}
       </div>
@@ -164,7 +164,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
         {/* Table header / controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <h2 className="text-[16px] font-medium text-[#0d2138]" style={mont}>All Invitations</h2>
+          <h2 className="text-[16px] font-medium text-[#0d2138]" style={mont}>Todas las invitaciones</h2>
           <div className="flex items-center gap-3">
             {/* Search */}
             <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px]">
@@ -172,7 +172,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or email..."
+                placeholder="Buscar por nombre o correo..."
                 className="text-[12px] text-[#2b3038] placeholder:text-[#6a7282] bg-transparent outline-none w-[180px]"
                 style={mont}
               />
@@ -184,14 +184,14 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
               value={statusFilter}
               onChange={(next) => setStatusFilter(next as InviteStatus | "All")}
               options={[
-                { value: "All", label: "All" },
-                { value: "PENDING", label: "Pending" },
-                { value: "ACCEPTED", label: "Accepted" },
-                { value: "EXPIRED", label: "Expired" },
-                { value: "REVOKED", label: "Revoked" },
+                { value: "All", label: "Todas" },
+                { value: "PENDING", label: "Pendiente" },
+                { value: "ACCEPTED", label: "Aceptada" },
+                { value: "EXPIRED", label: "Vencida" },
+                { value: "REVOKED", label: "Revocada" },
               ]}
-              placeholder="All"
-              ariaLabel="Filter by status"
+              placeholder="Todas"
+              ariaLabel="Filtrar por estado"
             />
           </div>
         </div>
@@ -201,10 +201,10 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
           <table className="w-full min-w-[960px]">
             <thead>
               <tr className="bg-[#f9fafb] border-b border-[#e5e7eb]">
-                {["Name", "Email", "Role", "Invited By", "Created", "Expires", "Accepted", "Status", "Actions"].map((h) => (
+                {["Nombre", "Correo", "Rol", "Invitado por", "Creada", "Vencimiento", "Aceptada", "Estado", "Acciones"].map((h) => (
                   <th
                     key={h}
-                    className={`px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left ${h === "Status" || h === "Actions" ? "text-center" : ""}`}
+                    className={`px-4 py-[10px] text-[14px] font-medium text-[#6a7282] text-left ${h === "Estado" || h === "Acciones" ? "text-center" : ""}`}
                     style={mont}
                   >
                     {h}
@@ -254,7 +254,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
                           {resendable && (
                             <button
                               type="button"
-                              title="Resend invitation (issues a new link)"
+                              title="Reenviar invitación (genera un nuevo enlace)"
                               disabled={busy}
                               onClick={() => handleResend(inv)}
                               className="size-8 flex items-center justify-center border border-[#bedbff] rounded-[8px] bg-white hover:bg-[#f0f7ff] transition-colors disabled:opacity-50"
@@ -272,12 +272,12 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
                                 className="h-8 px-2 border border-[#f49e9e] rounded-[8px] bg-[#fff5f5] text-[12px] text-[#fb2c36] hover:bg-[#ffecec] transition-colors disabled:opacity-50"
                                 style={mont}
                               >
-                                Confirm?
+                                ¿Confirmar?
                               </button>
                             ) : (
                               <button
                                 type="button"
-                                title="Revoke invitation"
+                                title="Revocar invitación"
                                 disabled={busy}
                                 onClick={() => setConfirmRevokeId(inv.id)}
                                 className="size-8 flex items-center justify-center border border-[#ffa2a2] rounded-[8px] bg-white hover:bg-[#fff5f5] transition-colors disabled:opacity-50"
@@ -297,7 +297,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-4 py-10 text-center text-[14px] text-[#6a7282]" style={mont}>
-                    No invitations found.
+                    No se encontraron invitaciones.
                   </td>
                 </tr>
               )}
@@ -308,7 +308,7 @@ export function InvitationsPage({ role, invitations }: InvitationsPageProps) {
         {/* Footer */}
         <div className="px-5 py-3 border-t border-[#f3f4f6]">
           <span className="text-[12px] font-medium text-[#6a7282]" style={mont}>
-            Showing {filtered.length} of {invitations.length} invitations
+            Mostrando {filtered.length} de {invitations.length} invitaciones
           </span>
         </div>
       </div>

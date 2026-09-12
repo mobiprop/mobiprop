@@ -1,5 +1,6 @@
 "use server";
 
+import { spanishNotification } from "@/features/notifications/utils/spanish-notification";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { isInternalUrl } from "@/features/notifications/utils/is-internal-url";
@@ -39,8 +40,7 @@ export async function getMyNotifications(): Promise<GetNotificationsResult> {
     notifications: rows.map((n) => ({
       id: n.id,
       type: n.type,
-      title: n.title,
-      body: n.body,
+      ...spanishNotification(n.title, n.body),
       // Re-validate at the boundary so only safe internal links reach the client.
       actionUrl: n.actionUrl && isInternalUrl(n.actionUrl) ? n.actionUrl : null,
       entityType: n.entityType,

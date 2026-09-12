@@ -39,7 +39,7 @@ export function useCreateContactMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: postContact,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() }); qc.invalidateQueries({ queryKey: queryKeys.dashboardListings() }); },
   });
 }
 
@@ -59,6 +59,7 @@ export function useUpdateContactMutation() {
   return useMutation({
     mutationFn: patchContact,
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardListings() });
       qc.invalidateQueries({ queryKey: queryKeys.dashboardContacts() });
       // Lead list and detail pages embed contact name/email — refresh them too.
       qc.invalidateQueries({ queryKey: queryKeys.leads() });

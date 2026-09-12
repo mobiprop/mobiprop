@@ -97,7 +97,8 @@ export function ListingStatusControl({ listing, actions }: { listing: DashboardL
   if (!actions.canPause) return <Badge label={t(`status.${listing.status}`)} solid style={STATUS_BADGE[listing.status]} />;
   return <SearchableSelect placeholder="Estado" value={listing.status} options={Object.values(PropertyStatus).map(value => ({ value, label: t(`status.${value}`) }))}
     ariaLabel={`Cambiar estado: ${listing.title}`} searchable={false} disabled={busy}
-    triggerStyle={{ background: STATUS_BADGE[listing.status].bg, color: STATUS_BADGE[listing.status].text, borderRadius: 8, minHeight: 36, padding: "6px 8px", fontSize: 12 }}
+    className="w-fit max-w-full" triggerClassName="mobi-status-control"
+    triggerStyle={{ background: STATUS_BADGE[listing.status].bg, color: STATUS_BADGE[listing.status].text, borderRadius: 6, minHeight: 26, height: 26, border: "none", padding: "4px 12px", fontSize: 12, lineHeight: "18px", fontWeight: 500, gap: 6 }}
     onChange={async value => { setBusy(true); try { await actions.onSetStatus(listing, value as PropertyStatus); } finally { setBusy(false); } }} />;
 }
 
@@ -128,17 +129,7 @@ export function ListingListView({ listings, actions, selection }: ListingListVie
       .catch(() => toast.error(t("list.linkCopyFailed")));
   }
 return (
-  <div className="dashboard-listings-table overflow-hidden rounded-[14px] border border-[#e9e9e9] bg-white">
-    {/* Header */}
-    <div className="flex min-h-[76px] items-center px-5 py-5">
-      <h2
-        className="text-[16px] font-semibold text-[#0d2138]"
-        style={mont}
-      >
-        {t("list.title")}
-      </h2>
-    </div>
-
+  <div className="dashboard-listings-table overflow-hidden bg-white">
     {/* Desktop table - same design */}
     <div className="hidden overflow-x-auto lg:block">
       <table className="w-full min-w-[1280px] table-fixed">

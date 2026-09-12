@@ -593,3 +593,5 @@ body {
 .mobi-toolbar-control.is-active { background: #eff6ff; border-color: #005089; color: #005089; }
 .mobi-toolbar-control input { font: inherit; color: inherit; min-width: 0; }
 .mobi-toolbar-control svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.mobi-status-control svg { width: 12px; height: 12px; color: inherit; }

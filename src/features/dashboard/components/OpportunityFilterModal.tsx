@@ -15,7 +15,6 @@ export type OpportunityFilterValues = {
   statuses: OpportunityStatus[];
   minCommission: string;
   maxCommission: string;
-  expectedClose: string;
   agentId: string;
 };
 
@@ -24,7 +23,6 @@ export const EMPTY_OPPORTUNITY_FILTERS: OpportunityFilterValues = {
   statuses: [],
   minCommission: "",
   maxCommission: "",
-  expectedClose: "",
   agentId: "",
 };
 
@@ -34,39 +32,8 @@ export function hasActiveOpportunityFilters(f: OpportunityFilterValues): boolean
     f.statuses.length > 0 ||
     f.minCommission.trim() !== "" ||
     f.maxCommission.trim() !== "" ||
-    f.expectedClose !== "" ||
     f.agentId !== ""
   );
-}
-
-function matchesExpectedCloseBucket(dateIso: string | null, bucket: string): boolean {
-  if (!dateIso) return false;
-  const date = new Date(dateIso);
-  const now = new Date();
-  if (bucket === "Overdue") return date.getTime() < now.getTime();
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (date.getTime() < today.getTime()) return false;
-
-  if (bucket === "This week") {
-    const end = new Date(today);
-    end.setDate(end.getDate() + (6 - today.getDay()));
-    return date.getTime() <= end.getTime();
-  }
-  if (bucket === "This month") {
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return date.getTime() <= end.getTime();
-  }
-  if (bucket === "This quarter") {
-    const quarter = Math.floor(now.getMonth() / 3);
-    const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
-    return date.getTime() <= end.getTime();
-  }
-  if (bucket === "This year") {
-    const end = new Date(now.getFullYear(), 11, 31);
-    return date.getTime() <= end.getTime();
-  }
-  return false;
 }
 
 /** Single source of truth for filter matching — used both for the live
@@ -81,7 +48,6 @@ export function matchesOpportunityFilters(o: OpportunityDto, f: OpportunityFilte
   if (min !== null && commission < min) return false;
   if (max !== null && commission > max) return false;
 
-  if (f.expectedClose && !matchesExpectedCloseBucket(o.expectedCloseAt, f.expectedClose)) return false;
   if (f.agentId && o.assignedAgentId !== f.agentId) return false;
 
   return true;
@@ -115,18 +81,6 @@ const STATUS_DOTS: { value: OpportunityStatus; dot: string }[] = [
   { value: OpportunityStatus.CLOSED_LOST, dot: "#ef4444" },
 ];
 
-// Bucket values stay stable English — matchesExpectedCloseBucket compares against
-// them directly and they're stored in filter state. Display label comes from
-// EXPECTED_CLOSE_I18N_KEY below.
-const EXPECTED_CLOSE = ["This week", "This month", "This quarter", "This year", "Overdue"];
-const EXPECTED_CLOSE_I18N_KEY: Record<string, string> = {
-  "This week": "THIS_WEEK",
-  "This month": "THIS_MONTH",
-  "This quarter": "THIS_QUARTER",
-  "This year": "THIS_YEAR",
-  "Overdue": "OVERDUE",
-};
-
 type Agent = { id: string; name: string; status: string };
 
 type OpportunityFilterModalProps = {
@@ -144,7 +98,6 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
   const [statuses, setStatuses] = useState<OpportunityStatus[]>(initial.statuses);
   const [minCommission, setMinCommission] = useState(initial.minCommission);
   const [maxCommission, setMaxCommission] = useState(initial.maxCommission);
-  const [expectedClose, setExpectedClose] = useState(initial.expectedClose);
   const [agentSearch, setAgentSearch] = useState("");
   const [agentId, setAgentId] = useState(initial.agentId);
 
@@ -164,15 +117,14 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
     setStatuses([]);
     setMinCommission("");
     setMaxCommission("");
-    setExpectedClose("");
     setAgentId("");
   }
 
-  const draft: OpportunityFilterValues = { stages, statuses, minCommission, maxCommission, expectedClose, agentId };
+  const draft: OpportunityFilterValues = { stages, statuses, minCommission, maxCommission, agentId };
   const previewCount = useMemo(
     () => baseResults.filter((o) => matchesOpportunityFilters(o, draft)).length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [baseResults, stages, statuses, minCommission, maxCommission, expectedClose, agentId],
+    [baseResults, stages, statuses, minCommission, maxCommission, agentId],
   );
 
   const visibleAgents = agents.filter((a) => a.name.toLowerCase().includes(agentSearch.toLowerCase()));
@@ -218,26 +170,6 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
               <input value={minCommission} onChange={(e) => setMinCommission(e.target.value)} placeholder={t("filterModal.minCommissionPlaceholder")} inputMode="numeric" className="min-w-0 flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
               <span className="text-[#9a9a9a]">—</span>
               <input value={maxCommission} onChange={(e) => setMaxCommission(e.target.value)} placeholder={t("filterModal.maxCommissionPlaceholder")} inputMode="numeric" className="min-w-0 flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
-            </div>
-          </div>
-
-          {/* Expected close */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.expectedClose")}</p>
-            <div className="flex flex-wrap gap-2.5">
-              {EXPECTED_CLOSE.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => setExpectedClose(expectedClose === e ? "" : e)}
-                  className={`h-9 px-4 rounded-full border text-[12px] transition-colors ${
-                    expectedClose === e ? "bg-[#eff6ff] border-[#1e4f86] text-[#1e4f86] font-medium" : "bg-white border-[#d0d0d0] text-[#2a2a2a] hover:bg-[#f8fafc]"
-                  }`}
-                  style={mont}
-                >
-                  {t(`filterModal.expectedCloseOptions.${EXPECTED_CLOSE_I18N_KEY[e]}`, { defaultValue: e })}
-                </button>
-              ))}
             </div>
           </div>
 
