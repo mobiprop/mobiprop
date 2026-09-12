@@ -108,7 +108,7 @@ export function RevealItem({
   };
 
   return (
-    <motion.div className={cn(className)} variants={item}>
+    <motion.div className={cn(className)} variants={item} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} inherit={false}>
       {children}
     </motion.div>
   );

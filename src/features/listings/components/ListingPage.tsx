@@ -172,7 +172,7 @@ const MODAL_AMENITY_KEYS: Record<string, string> = {
 function SearchBarDropdown<T extends string>({icon, placeholder, options, value, onChange}: {
   icon: React.ReactNode; placeholder: string; options: {value: T; label: string}[]; value: T; onChange: (value: T) => void;
 }) {
-  return <SearchableSelect icon={icon} placeholder={placeholder} ariaLabel={placeholder}
+  return <SearchableSelect className="w-full" triggerStyle={{ height: 48, minHeight: 48, borderRadius: 12, fontSize: 14 }} icon={icon} placeholder={placeholder} ariaLabel={placeholder}
     searchable={false} options={options} value={value} onChange={next => onChange(next as T)} />;
 }
 
@@ -360,10 +360,10 @@ return (
   <Reveal
     delay={0.3}
     amount={0.6}
-    className="relative z-10 -mt-[70px] w-full max-w-[1091px] bg-white border border-[#e5e7eb] rounded-[16px] px-6 py-5 flex flex-col items-center justify-center min-h-[112px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
-  <div className="flex flex-wrap gap-3.5 items-end justify-center w-full max-xl:grid max-xl:grid-cols-2 max-md:grid-cols-1 max-xl:gap-4">
+    className="relative z-10 -mt-[70px] w-full max-w-[1312px] bg-white border border-[#e5e7eb] rounded-[16px] px-6 py-5 flex flex-col items-center justify-center min-h-[112px] max-xl:rounded-[18px] max-xl:px-4 max-xl:py-4 max-xl:min-h-0">
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_auto] gap-4 items-end w-full">
     {/* Location */}
-    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[200px] max-w-[291px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-0 max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
         className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -372,7 +372,7 @@ return (
       </p>
 
       <div ref={locationRef} className="relative w-full">
-        <div className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-11 flex items-center justify-between gap-3">
+        <div className="w-full bg-white border border-[#e5e7eb] rounded-xl px-4 py-2.5 h-12 flex items-center justify-between gap-3">
           <div className="flex items-center gap-[10px] min-w-0 flex-1">
             <img src="/listings/location.svg" alt="" width={18} height={18} className="size-[18px] shrink-0" />
 
@@ -429,7 +429,7 @@ return (
     </div>
 
     {/* Property Type */}
-    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[180px] max-w-[247px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-0 max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
         className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -449,7 +449,7 @@ return (
     </div>
 
     {/* Transaction Type */}
-    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-[180px] max-w-[232px] max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
+    <div className="flex flex-col gap-1.5 items-start flex-1 min-w-0 max-xl:max-w-none max-xl:w-full max-xl:min-w-0 max-xl:gap-2">
       <p
         className="text-[14px] text-[#232323] leading-[20px] tracking-[-0.16px] max-xl:text-[14px]"
         style={{ fontFamily: "Montserrat, sans-serif" }}
@@ -469,10 +469,10 @@ return (
     </div>
 
     {/* Buttons */}
-    <div className="flex items-center gap-2.5 flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row max-md:flex-col max-xl:items-stretch max-xl:gap-3">
+    <div className="flex items-center gap-2.5 flex-shrink-0 max-xl:col-span-full max-xl:w-full max-xl:flex-row  max-xl:items-stretch max-xl:gap-3">
       <button
         onClick={() => setIsFiltersOpen(true)}
-        className="flex items-center justify-center gap-2.5 h-11 bg-[#fcfcfc] border border-[#e9e9e9] rounded-xl px-4 py-2.5 text-[14px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
+        className="flex items-center justify-center gap-2.5 h-12 bg-[#fcfcfc] border border-[#e9e9e9] rounded-xl px-4 py-2.5 text-[14px] text-[#6a7282] leading-[24px] tracking-[-0.16px] whitespace-nowrap hover:border-[#6889ae] hover:text-[#1e4f86] transition-colors max-xl:w-full max-xl:text-[14px] cursor-pointer"
         style={{ fontFamily: "Montserrat, sans-serif" }}
       >
         <img src="/listings/filters.svg" alt="" width={16} height={16} className="size-4 shrink-0" />{t("searchBar.moreFiltersButton")}
@@ -480,7 +480,7 @@ return (
 
       <button
         onClick={() => commitLocation(locationInput)}
-        className="relative h-[44px] w-[120px] overflow-hidden whitespace-nowrap rounded-xl px-4 py-2.5 text-[14px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
+        className="relative h-12 w-[120px] overflow-hidden whitespace-nowrap rounded-xl px-4 py-2.5 text-[14px] text-white transition-opacity hover:opacity-90 max-xl:w-full max-xl:text-[14px] cursor-pointer flex items-center justify-center gap-1"
         style={{
           fontFamily: "Poppins, sans-serif",
           background: "linear-gradient(to bottom, #005ea4, #006fc2)",
@@ -541,8 +541,8 @@ return (
          {resultsHeading}
          </h2>
          <div className="flex items-center gap-3">
-           <div className="relative flex items-center h-10 rounded-xl border border-[#e9e9e9] bg-white">
-             <CustomSelect aria-label={t("results.sortLabel")} value={sort} onChange={(event) => { setSort(event.target.value as "recent" | "oldest"); setPage(1); }} className="h-full appearance-none rounded-xl bg-transparent pl-10 pr-10 text-[14px] text-[#00223a]" style={{fontFamily: "Montserrat, sans-serif"}}>
+           <div className="relative flex items-center min-h-12">
+             <CustomSelect aria-label={t("results.sortLabel")} value={sort} onChange={(event) => { setSort(event.target.value as "recent" | "oldest"); setPage(1); }} className="appearance-none text-[14px] text-[#00223a]" style={{fontFamily: "Montserrat, sans-serif", height: 48, minHeight: 48, borderRadius: 12}}>
                <option value="recent">{t("results.mostRecent")}</option>
                <option value="oldest">{t("results.oldest")}</option>
              </CustomSelect>
@@ -550,7 +550,7 @@ return (
          <button
             onClick={() =>
             setIsMapOpen(true)}
-            className="w-fit flex items-center gap-2 bg-gradient-to-br from-[#005ea4] to-[#006fc2] h-10 px-4 py-2.5 rounded-xl text-[14px] text-white font-medium hover:bg-[#17446f] transition-colors cursor-pointer"
+            className="w-fit flex items-center gap-2 bg-gradient-to-br from-[#005ea4] to-[#006fc2] h-12 px-4 py-2.5 rounded-xl text-[14px] text-white font-medium hover:bg-[#17446f] transition-colors cursor-pointer"
             style={{ fontFamily: "Montserrat, sans-serif" }}
             >
             <MapIcon />
@@ -572,18 +572,14 @@ return (
          ))}
       </div>
       ) : listings.length > 0 ? (
-      <Reveal
+      <div
         key={`${filterKey}-${safePage}`}
         className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 sm:gap-x-6 gap-y-8"
-        stagger={0.08}
-        amount={0.1}
       >
          {listings.map((item) => (
-         <RevealItem key={item.slug}>
-           <PropertyCard property={item} />
-         </RevealItem>
+         <PropertyCard key={item.slug} property={item} />
          ))}
-      </Reveal>
+      </div>
       ) : (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
          <p

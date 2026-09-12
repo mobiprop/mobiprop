@@ -46,32 +46,35 @@ function ImageCarousel({ property }: { property: PropertyCardData }) {
   }, [property.images, property.coverImageUrl]);
   const [index, setIndex] = useState(0);
   const active = images[index] ?? images[0];
-  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [loadedUrls, setLoadedUrls] = useState<Set<string>>(() => new Set());
   const [previous, setPrevious] = useState<(typeof images)[number] | null>(null);
   const dotStart = Math.max(0, Math.min(index - 2, images.length - 5));
 
   function go(e: React.MouseEvent, delta: 1 | -1) {
     e.preventDefault();
     e.stopPropagation();
-    if (active && loadedUrl === active.url) setPrevious(active);
+    if (active && loadedUrls.has(active.url)) setPrevious(active);
     setIndex((i) => (i + delta + images.length) % images.length);
   }
 
   return (
     <div className="hover-shine relative aspect-[421/280] w-full overflow-hidden">
-      {previous && <Image src={previous.url} alt="" fill
-        sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
-        className="pointer-events-none object-cover" />}
-      {active ? <Image
-        key={active.url}
-        src={active.url}
-        alt={active.altText ?? property.title}
-        fill
-        sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
-        style={{ objectFit: "cover", objectPosition: "center" }}
-        onLoad={() => setLoadedUrl(active.url)}
-        className={`pointer-events-none object-cover transition-opacity duration-300 motion-reduce:transition-none ${loadedUrl === active.url ? "opacity-100" : "opacity-0"}`}
-      /> : <div className="flex h-full items-center justify-center bg-[#f0f6fa] text-sm text-[#4f4f4f]">Sin foto disponible</div>}
+      {active ? images.map((image, i) => {
+        // Warm the adjacent slides using the same optimized source and sizes.
+        // Keep visited slides mounted so rapid navigation never restarts a load.
+        const adjacent = i === (index + 1) % images.length || i === (index - 1 + images.length) % images.length;
+        if (i !== index && !adjacent && !loadedUrls.has(image.url)) return null;
+        const visible = image.url === active.url && loadedUrls.has(image.url);
+        const behind = image.url === previous?.url;
+        return <Image key={image.id} src={image.url}
+          alt={i === index ? image.altText ?? property.title : ""}
+          aria-hidden={i !== index} fill
+          sizes="(min-width: 1280px) 440px, (min-width: 640px) 50vw, 100vw"
+          onLoad={() => setLoadedUrls(urls => new Set(urls).add(image.url))}
+          style={{ zIndex: visible ? 2 : behind ? 1 : 0 }}
+          className={`pointer-events-none object-cover transition-opacity duration-150 motion-reduce:transition-none ${visible || behind ? "opacity-100" : "opacity-0"}`} />;
+      }) : <div className="flex h-full items-center justify-center bg-[#f0f6fa] text-sm text-[#4f4f4f]">Sin foto disponible</div>}
+
 
       {images.length > 1 && (
         <>
@@ -93,7 +96,7 @@ function ImageCarousel({ property }: { property: PropertyCardData }) {
               <ChevronIcon direction="right" />
             </button>
           </div>
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+          <div className="absolute z-20 bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
             {images.map((img, i) => ({ img, i })).slice(dotStart, dotStart + 5).map(({ img, i }) => (
               <span
                 key={img.id}
@@ -137,7 +140,7 @@ export function PropertyCard({ property, savedOverride, onToggleSaved, compact =
         <div className="relative">
           <ImageCarousel key={property.listingId} property={property} />
 
-          <div className="absolute top-[19px] left-[19px]">
+          <div className="absolute z-20 pointer-events-none top-[19px] left-[19px]">
             <span
               className="bg-[#005089] px-3 py-1.5 rounded-full text-[13px] sm:text-[14px] text-white capitalize whitespace-nowrap"
               style={{ fontFamily: "Montserrat, sans-serif" }}
