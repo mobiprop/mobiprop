@@ -15,7 +15,7 @@ import { formatArea, formatBaths, formatBeds, listingDisplayPrice } from "@/feat
 
 const FILTERS = [
   ["", "all"], ["HOUSE", "house"], ["APARTMENT", "apartment"],
-  ["COMMERCIAL_OFFICE", "commercialOffice"], ["LOT", "lot"],
+  ["LOT", "lot"],
 ] as const;
 
 export function ListingsExplorer() {
