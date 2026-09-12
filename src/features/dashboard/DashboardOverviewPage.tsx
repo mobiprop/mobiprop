@@ -931,11 +931,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                           className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
                           style={mont}
                         >
-                          {row.agentName
-                            .split(" ")
-                            .map((name) => name[0])
-                            .join("")
-                            .slice(0, 2)}
+                          {row.agentAvatarUrl ? <img src={row.agentAvatarUrl} alt={row.agentName} className="size-full rounded-full object-cover" /> : row.agentName.split(" ").map(name => name[0]).join("").slice(0, 2)}
                         </span>
 
                         <span className="whitespace-nowrap text-[12px] text-[#2b3038] lg:text-[14px]" style={mont}>
@@ -1006,11 +1002,7 @@ export function DashboardOverviewPage({ role, firstName }: DashboardOverviewProp
                     className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1e4f86] text-[14px] font-semibold text-white"
                     style={mont}
                   >
-                    {row.agentName
-                      .split(" ")
-                      .map((name) => name[0])
-                      .join("")
-                      .slice(0, 2)}
+                    {row.agentAvatarUrl ? <img src={row.agentAvatarUrl} alt={row.agentName} className="size-full rounded-full object-cover" /> : row.agentName.split(" ").map(name => name[0]).join("").slice(0, 2)}
                   </span>
 
                   <div className="min-w-0">

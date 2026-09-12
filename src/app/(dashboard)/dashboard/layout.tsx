@@ -13,7 +13,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const profile = await requireDashboardAccess();
 
   return (
-    <DashboardShell role={profile.role} fullName={profile.fullName ?? ""} email={profile.email}>
+    <DashboardShell role={profile.role} fullName={profile.fullName ?? ""} email={profile.email} avatarUrl={profile.avatarUrl}>
       <ServiceWorkerRegistration />
       <NotificationRealtime userId={profile.id} />
       <MessagesRealtime userId={profile.id} />

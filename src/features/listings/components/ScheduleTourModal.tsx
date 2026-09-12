@@ -30,15 +30,18 @@ const DATE_FMT = new Intl.DateTimeFormat("es-AR", {
   year: "numeric",
 });
 
-const TIME_FMT = new Intl.DateTimeFormat("es-AR", { hour: "numeric", minute: "2-digit" });
+const TIME_FMT = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
 const SLOT_FMT = new Intl.DateTimeFormat("es-AR", {
   weekday: "short",
   month: "short",
   day: "numeric",
-  hour: "numeric",
+  hour: "2-digit",
+  hourCycle: "h23",
   minute: "2-digit",
 });
+
+const capitalizeFirst = (text: string) => text.charAt(0).toLocaleUpperCase("es-AR") + text.slice(1);
 
 function formatTimeLabel(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -173,7 +176,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                   {t("tourModal.success.reference")} <span className="font-semibold text-[#00223a]">{success.tourNumber}</span>
                 </p>
                 <p className="text-sm text-[#6b7280] mt-0.5" style={mont}>
-                  {DATE_FMT.format(new Date(success.scheduledAt))} · {TIME_FMT.format(new Date(success.scheduledAt))}
+                  {capitalizeFirst(DATE_FMT.format(new Date(success.scheduledAt)))} · {TIME_FMT.format(new Date(success.scheduledAt))}
                 </p>
               </div>
               <p className="text-sm text-[#6c6c6c]" style={mont}>
@@ -237,7 +240,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                     className={`${inputCls} flex items-center justify-between gap-2 text-left ${openPanel === "date" ? "border-[#1e4f86]" : ""}`}
                     style={mont}
                   >
-                    <span className="truncate">{DATE_FMT.format(scheduledDate)}</span>
+                    <span className="truncate">{capitalizeFirst(DATE_FMT.format(scheduledDate))}</span>
                     <Calendar size={15} color="#005089" strokeWidth={1.5} className="shrink-0" />
                   </button>
                   {openPanel === "date" && (
@@ -262,7 +265,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                     <Clock size={15} color="#005089" strokeWidth={1.5} className="shrink-0" />
                   </button>
                   {openPanel === "time" && (
-                    <TimePanel
+                    <TimePanel hour24
                       align="right"
                       value={scheduledTime}
                       onSelect={setScheduledTime}
@@ -322,7 +325,7 @@ export function ScheduleTourModal({ propertyId, propertyTitle, onClose }: Props)
                         className="rounded-[8px] border border-[#1e4f86] px-3 py-1.5 text-sm font-medium text-[#1e4f86] transition-colors hover:bg-[#eff6ff] disabled:opacity-40"
                         style={mont}
                       >
-                        {SLOT_FMT.format(new Date(iso))}
+                        {capitalizeFirst(SLOT_FMT.format(new Date(iso)))}
                       </button>
                     ))}
                   </div>

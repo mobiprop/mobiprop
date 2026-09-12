@@ -78,9 +78,10 @@ type TimePanelProps = {
   onClose: () => void;
   align?: "left" | "right";
   inline?: boolean;
+  hour24?: boolean;
 };
 
-export function TimePanel({ value, onSelect, onClose, align = "left", inline = false }: TimePanelProps) {
+export function TimePanel({ value, onSelect, onClose, align = "left", inline = false, hour24 = false }: TimePanelProps) {
   const { t } = useTranslation("dashboard");
   const { hour12, minute, period } = parseTime(value);
 
@@ -101,9 +102,9 @@ export function TimePanel({ value, onSelect, onClose, align = "left", inline = f
         <span className="text-[12px] font-medium text-[#0d2138]" style={mont}>{t("timePanel.selectTime")}</span>
       </div>
       <div className="flex gap-1 px-2 py-1.5">
-        <Column items={HOURS} selected={hour12} onPick={(h) => update({ hour12: h })} format={pad} />
+        {hour24 ? <Column items={Array.from({ length: 24 }, (_, i) => i)} selected={Number(value.split(":")[0]) || 0} onPick={h => onSelect(`${pad(h)}:${pad(minute)}`)} format={pad} /> : <Column items={HOURS} selected={hour12} onPick={(h) => update({ hour12: h })} format={pad} />}
         <Column items={MINUTES} selected={minute} onPick={(m) => update({ minute: m })} format={pad} />
-        <Column items={[...PERIODS]} selected={period} onPick={(p) => update({ period: p })} format={(p) => t(`timePanel.period.${p.toLowerCase()}`)} />
+        {!hour24 && <Column items={[...PERIODS]} selected={period} onPick={(p) => update({ period: p })} format={(p) => t(`timePanel.period.${p.toLowerCase()}`)} />}
       </div>
       <div className="flex justify-end px-3 py-2 border-t border-[#e6e6e6]">
         <button

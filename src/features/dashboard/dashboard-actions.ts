@@ -421,7 +421,7 @@ export async function getSalesByAgent(
 
   const agentIds = [...new Set(rows.map((r) => r.assignedAgentId).filter((id): id is string => Boolean(id)))];
   const agents = agentIds.length
-    ? await prisma.profile.findMany({ where: { id: { in: agentIds } }, select: { id: true, fullName: true, email: true } })
+    ? await prisma.profile.findMany({ where: { id: { in: agentIds } }, select: { id: true, fullName: true, email: true, avatarUrl: true } })
     : [];
   const agentById = new Map(agents.map((a) => [a.id, a]));
 
@@ -431,6 +431,7 @@ export async function getSalesByAgent(
     return {
       opportunityId: r.opportunityId,
       agentId: r.assignedAgentId,
+      agentAvatarUrl: agent?.avatarUrl ?? null,
       agentName: agent ? agent.fullName ?? agent.email.split("@")[0] : "Unassigned",
       listingId: property?.listingId ?? null,
       // The opportunity's own deal type (chosen at creation) is authoritative —

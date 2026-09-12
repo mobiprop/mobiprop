@@ -10,13 +10,14 @@ type DashboardShellProps = {
   role: Role;
   fullName: string;
   email: string;
+  avatarUrl?: string | null;
   children: ReactNode;
 };
 
-export function DashboardShell({ role, fullName, email, children }: DashboardShellProps) {
+export function DashboardShell({ role, fullName, email, avatarUrl, children }: DashboardShellProps) {
   return (
     <div className="dashboard-brand flex min-h-screen bg-[#f9fafb]">
-      <Sidebar role={role} fullName={fullName} email={email} />
+      <Sidebar role={role} fullName={fullName} email={email} avatarUrl={avatarUrl} />
       <div className="flex-1 min-w-0 flex flex-col">
         <Topbar />
         <main className="flex-1 min-w-0">{children}</main>

@@ -21,6 +21,7 @@ type SidebarProps = {
   role: Role;
   fullName: string;
   email: string;
+  avatarUrl?: string | null;
 };
 
 function isActive(pathname: string, href: string) {
@@ -31,7 +32,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar({ role, fullName, email }: SidebarProps) {
+export function Sidebar({ role, fullName, email, avatarUrl }: SidebarProps) {
   const { t } = useTranslation("dashboard");
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -270,7 +271,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
             "
             style={mont}
           >
-            {initials}
+            {avatarUrl ? <img src={avatarUrl} alt={fullName} className="size-full rounded-full object-cover" /> : initials}
           </div>
 
           <div className="min-w-0 flex-1">

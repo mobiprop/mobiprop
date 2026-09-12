@@ -36,6 +36,7 @@ export type SaleRow = {
   opportunityId: string;
   agentId: string | null;
   agentName: string;
+  agentAvatarUrl?: string | null;
   listingId: string | null;
   operation: SaleOperation;
   date: string;
