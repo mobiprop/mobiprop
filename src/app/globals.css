@@ -545,7 +545,7 @@ body {
 /* Keep the selected property and its price inside the mobile map viewport. */
 @media (max-width: 639px) {
   .home-map-popup .property-card { height: auto; }
-  .home-map-popup .property-card .hover-shine { height: 120px; aspect-ratio: auto; }
+  .home-map-popup .property-card .hover-shine { height: 160px; aspect-ratio: auto; }
   .home-map-popup .property-card-compact .property-card-body { padding: 12px; gap: 8px; }
   .home-map-popup .property-card-body > div { gap: 8px; }
   .home-map-popup .property-card-body > div:first-child > span { font-size: 16px; line-height: 22px; }

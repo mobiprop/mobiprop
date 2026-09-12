@@ -101,7 +101,7 @@ export function ContactPageContent() {
     <div className={styles.map}>
      <PropertyLocationMap address={address} title="Mobi Prop" />
      <div className={styles.mapCard}>
-      <h3>Mobi Prop</h3>
+      <h3 className="flex items-center gap-1.5"><img src="/mobi-prop-logo-color.svg" alt="" width={20} height={20} className="size-5 shrink-0" /><span>Mobi Prop</span></h3>
       <div className={styles.mapActions}>
        <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noopener noreferrer" aria-label="Ver la oficina en Google Maps"><img src="/pages/contact-map-open.svg" alt="" width={16} height={16}/></a>
        <a href={directions} target="_blank" rel="noopener noreferrer" aria-label="Cómo llegar a nuestra oficina"><img src="/pages/contact-map-directions.svg" alt="" width={16} height={16}/></a>

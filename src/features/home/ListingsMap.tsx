@@ -117,7 +117,6 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
       </div>}
       {selected && <div ref={popupCard} className="home-map-popup absolute z-10 w-[318px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)] overflow-y-auto overscroll-contain rounded-2xl" style={{...(selectedGeo && popup ? {left:popup.x, top:popup.y,transform:"translateX(-50%)"} : {left:16,bottom:16}), visibility: selectedGeo && moving ? "hidden" : "visible"}}>
         <PropertyCard key={selected.id} property={selected} compact onClose={onClose} />
-        {selected.locationApproximate && selectedGeo && <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-[#4f4f4f]">Ubicación aproximada de la zona</p>}
         {!selectedGeo && <p role="status" className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-[#4f4f4f]">Ubicación aún no disponible</p>}
         {externalQuery && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(externalQuery)}`} target="_blank" rel="noopener noreferrer" className="mt-2 block rounded-lg bg-white px-3 py-2 text-center text-sm text-[#005089] underline shadow-sm">{t("explorer.openMap")}</a>}
       </div>}
