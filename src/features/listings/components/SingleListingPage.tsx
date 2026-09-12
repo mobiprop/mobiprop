@@ -1014,19 +1014,19 @@ export function SingleListingPageContent({ listing }: { listing: PublicListingDt
       <nav aria-label="Ruta de navegación" className="flex flex-wrap items-center gap-2 py-6 text-sm text-[#4f4f4f]">
         <Link href="/listings" className="hover:underline">Propiedades</Link><ChevronRight size={14} /><span className="text-[#005089]">Detalle de la propiedad</span>
       </nav>
-      <div className="relative aspect-[1312/560] min-h-[260px] overflow-hidden rounded-2xl">
+      <div className="relative w-full min-w-0 aspect-[4/3] overflow-hidden rounded-2xl sm:aspect-[1312/560] sm:min-h-[260px]">
         {cover ? <button type="button" className="absolute inset-0 cursor-zoom-in" onClick={() => setLightboxIndex(0)} aria-label={t("gallery.openGalleryAria")}>
           <img src={cover.url} alt={cover.altText ?? listing.title} className="h-full w-full object-cover" style={{objectFit:"cover",objectPosition:"center"}} />
           <span className="absolute bottom-5 right-5 rounded-xl border border-[#e9e9e9] bg-white px-5 py-3 text-sm text-[#005089]">{t("gallery.viewPhotos")}</span>
         </button> : <div className="flex h-full min-h-[260px] items-center justify-center bg-[#f0f6fa] text-[#4f4f4f]">Fotos no disponibles</div>}
       </div>
       {images.length > 1 && <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-6">
-        {images.slice(1,5).map((image,index) => <button key={image.id} type="button" className="relative aspect-[310/206] overflow-hidden rounded-2xl" onClick={() => setLightboxIndex(index+1)} aria-label={t("gallery.openGalleryAtPhotoAria",{number:index+2})}>
-          <img src={image.url} alt={image.altText ?? listing.title} className="h-full w-full object-cover" style={{objectFit:"cover"}} />
+        {images.slice(1,5).map((image,index) => <button key={image.id} type="button" className="relative w-full min-w-0 aspect-[310/206] overflow-hidden rounded-2xl" onClick={() => setLightboxIndex(index+1)} aria-label={t("gallery.openGalleryAtPhotoAria",{number:index+2})}>
+          <img src={image.url} alt={image.altText ?? listing.title} className="absolute inset-0 h-full w-full object-cover" style={{objectFit:"cover"}} />
           {index === 3 && images.length > 5 && <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">+{images.length-5} fotos</span>}
         </button>)}
       </div>}
-      <div className="mt-10 flex flex-wrap items-start justify-between gap-6">
+      <div className="mt-6 flex flex-col items-stretch gap-4 sm:mt-10 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
         <div className="min-w-0 flex-1">
           <h1 className="text-[28px] font-medium leading-tight tracking-[-.4px] text-[#00223a] sm:text-[40px]">{listing.title}</h1>
           <p className="mt-2 flex items-start gap-2.5 text-base text-[#4f4f4f]"><MapPin size={18} className="mt-1 shrink-0" />{listing.fullAddress || listing.location}</p>
