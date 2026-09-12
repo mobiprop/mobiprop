@@ -9,6 +9,7 @@ import {
   Filter, Download, MoreVertical, Pencil, Trash2, Loader2,
 } from "lucide-react";
 
+import { SearchableSelect } from "./components/SearchableSelect";
 import { hasPermission } from "@/lib/permissions";
 import type { Role } from "@/lib/permissions";
 import type { Currency } from "@/generated/prisma/enums";
@@ -27,6 +28,7 @@ import {
   matchesOpportunityFilters,
   type OpportunityFilterValues,
 } from "./components/OpportunityFilterModal";
+import { resolveNetCompanyRevenue } from "@/lib/commission";
 import { toCsv, downloadCsv } from "@/lib/csv";
 
 const mont = { fontFamily: "'Montserrat', sans-serif" };
@@ -232,7 +234,6 @@ export function OpportunitiesPage({
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState<OpportunityFilterValues>(EMPTY_OPPORTUNITY_FILTERS);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<StageTab>("All");
 
   const { data, isLoading, isError } = useDashboardOpportunitiesQuery();
   const createMutation = useCreateOpportunityMutation();
@@ -250,32 +251,31 @@ export function OpportunitiesPage({
   const opportunities = useMemo(() => data?.opportunities ?? [], [data]);
   const metrics = data?.metrics;
 
-  // Narrowed by the tab + search box — this is what the Filter modal's live
+  // Narrowed by the search box — this is what the Filter modal's live
   // "N results" preview counts against, before its own filters are applied.
-  const searchTabFiltered = useMemo(() => {
+  const searchFiltered = useMemo(() => {
     const q = search.toLowerCase();
     return opportunities.filter((o) => {
-      const matchesTab = activeTab === "All" || o.stage === activeTab;
       const matchesSearch =
         !q ||
         o.title.toLowerCase().includes(q) ||
         participantsLabel(o).toLowerCase().includes(q) ||
         listingsLabel(o).toLowerCase().includes(q) ||
         o.opportunityId.toLowerCase().includes(q);
-      return matchesTab && matchesSearch;
+      return matchesSearch;
     });
-  }, [opportunities, search, activeTab]);
+  }, [opportunities, search]);
 
   const filtered = useMemo(
-    () => searchTabFiltered.filter((o) => matchesOpportunityFilters(o, filters)),
-    [searchTabFiltered, filters],
+    () => searchFiltered.filter((o) => matchesOpportunityFilters(o, filters)),
+    [searchFiltered, filters],
   );
   const filtersActive = hasActiveOpportunityFilters(filters);
 
   function handleExport() {
     const header = [
-      "Opportunity ID", "Title", "Participants", "Listings", "Deal Type", "Deal Size",
-      "Stage", "Status", "Probability", "Commission Amount", "Agent", "Expected Close", "Created At",
+      "Opportunity ID", "Title", "Participants", "Listings", "Deal Type", "Deal Size", "Net Commission", "Currency",
+      "Stage", "Status", "Gross Commission", "Agent", "Expected Close", "Created At",
     ];
     const rows = filtered.map((o) => [
       o.opportunityId,
@@ -284,9 +284,10 @@ export function OpportunitiesPage({
       listingsLabel(o),
       o.dealType ?? "",
       o.dealSize ?? "",
+      resolveNetCompanyRevenue(o),
+      o.currency,
       STAGE_LABEL[o.stage] ?? o.stage,
       o.status,
-      `${o.probability}%`,
       o.commissionAmount ?? "",
       o.assignedAgentName ?? "",
       o.expectedCloseAt ? new Date(o.expectedCloseAt).toLocaleDateString("en-US") : "",
@@ -310,7 +311,6 @@ export function OpportunitiesPage({
       exchangeRateOverride: values.exchangeRateOverride,
       stage: values.stage,
       status: values.status,
-      probability: values.probability,
       commission: values.commission ? Number(values.commission) : undefined,
       commissionUnit: values.commissionUnit,
       paymentTerms: values.paymentTerms || undefined,
@@ -384,23 +384,7 @@ export function OpportunitiesPage({
       {/* Table */}
       <div className="bg-white border border-[#f3f4f6] rounded-[14px] overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <div className="flex items-center gap-1.5 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] p-1">
-            {STAGE_TABS.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`h-7 px-3 rounded-[8px] text-[13px] font-medium transition-colors ${
-                  activeTab === tab ? "bg-[#1e4f86] text-white" : "text-[#6a7282] hover:text-[#0d2138]"
-                }`}
-                style={mont}
-              >
-                {tab === "All" ? t("page.tabs.all") : t(`dashboard:status.${tab}`, { defaultValue: STAGE_LABEL[tab] })}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-[204px]">
+            <div className="flex items-center gap-2 h-9 px-3 bg-[#f8fafc] border border-[#e5e7eb] rounded-[10px] w-full sm:w-[300px]">
               <Search size={16} className="text-[#99a1af] shrink-0" />
               <input
                 value={search}
@@ -410,6 +394,11 @@ export function OpportunitiesPage({
                 style={mont}
               />
             </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <SearchableSelect ariaLabel={t("filterModal.stage")} placeholder={t("page.tabs.all")} className="w-[170px]" size="sm" searchable={false}
+              value={filters.stages[0] ?? "All"}
+              onChange={value => setFilters(current => ({...current, stages:value === "All" ? [] : [value as Exclude<StageTab, "All">]}))}
+              options={STAGE_TABS.map(tab => ({value:tab,label:tab === "All" ? t("page.tabs.all") : t(`dashboard:status.${tab}`, {defaultValue:STAGE_LABEL[tab]})}))} />
             <button
               type="button"
               onClick={handleExport}
@@ -451,9 +440,9 @@ export function OpportunitiesPage({
                     t("page.columns.opportunity"),
                     t("page.columns.participants"),
                     t("page.columns.dealSize"),
+                    "Comisión",
                     "Fecha",
                     t("page.columns.stage"),
-                    t("page.columns.expectedClose"),
                     t("page.columns.status"),
                   ].map((h) => (
                     <th key={h} className="px-5 py-3 text-[14px] font-medium text-[#6a7282] text-left whitespace-nowrap" style={mont}>{h}</th>
@@ -477,16 +466,14 @@ export function OpportunitiesPage({
                       <span className="text-[14px] font-medium text-[#0d2138] whitespace-nowrap" style={mont}>{fmtWithCurrency(opp.dealSize, opp.currency)}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <time dateTime={opp.createdAt} className="whitespace-nowrap text-sm">{new Date(opp.createdAt).toLocaleDateString("es-AR", {timeZone:"America/Argentina/Buenos_Aires"})}</time>
+                      <span title="Comisión neta después de inmobiliarias y agente" className={resolveNetCompanyRevenue(opp) < 0 ? "text-[14px] font-medium whitespace-nowrap text-[#fb2c36]" : "text-[14px] font-medium whitespace-nowrap text-[#00a63e]"} style={mont}>{fmtWithCurrency(resolveNetCompanyRevenue(opp), opp.currency)}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <time dateTime={opp.createdAt} className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>{new Date(opp.createdAt).toLocaleDateString("es-AR", {timeZone:"America/Argentina/Buenos_Aires"})}</time>
                     </td>
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#f8fafc] border border-[#e5e7eb] text-[12px] font-medium text-[#2b3038] whitespace-nowrap" style={mont}>
                         {t(`dashboard:status.${opp.stage}`, { defaultValue: STAGE_LABEL[opp.stage] ?? opp.stage })}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="text-[14px] text-[#6a7282] whitespace-nowrap" style={mont}>
-                        {opp.expectedCloseAt ? new Date(opp.expectedCloseAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -532,7 +519,7 @@ export function OpportunitiesPage({
       {showFilter && (
         <OpportunityFilterModal
           initial={filters}
-          baseResults={searchTabFiltered}
+          baseResults={searchFiltered}
           onApply={(next) => { setFilters(next); setShowFilter(false); }}
           onClose={() => setShowFilter(false)}
         />

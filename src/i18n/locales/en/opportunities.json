@@ -25,7 +25,6 @@
       "opportunity": "Opportunity",
       "participants": "Participants",
       "dealSize": "Deal Size",
-      "probability": "Probability",
       "stage": "Stage",
       "expectedClose": "Expected Close",
       "status": "Status"
@@ -53,7 +52,6 @@
     "commissionRange": "Commission range",
     "minCommissionPlaceholder": "Min $",
     "maxCommissionPlaceholder": "Max $",
-    "minProbability": "Min probability",
     "expectedClose": "Expected close",
     "expectedCloseOptions": {
       "THIS_WEEK": "This week",
@@ -179,7 +177,6 @@
     "commissionPreview": "{{amount}} of deal size — company revenue",
     "paymentTerms": "Payment Terms",
     "paymentTermsPlaceholder": "e.g. Net 30, Installments, Cash",
-    "probability": "Probability: {{value}}%",
     "stage": "Stage *",
     "selectStage": "Select stage",
     "expectedCloseDate": "Expected Close Date *",

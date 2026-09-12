@@ -67,7 +67,6 @@ export type OpportunityFormValues = {
   commission: string;
   commissionUnit: "%" | "$";
   paymentTerms: string;
-  probability: number;
   stage: OpportunityStage;
   expectedCloseAt: string;
   propertyIds: string[];
@@ -261,7 +260,6 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
   const [commission, setCommission] = useState(initial?.commission != null ? String(initial.commission) : "");
   const [commissionUnit, setCommissionUnit] = useState<"%" | "$">((initial?.commissionUnit as "%" | "$") ?? "%");
   const [paymentTerms, setPaymentTerms] = useState(initial?.paymentTerms ?? "");
-  const [probability] = useState(initial?.probability ?? 50);
   const [stage, setStage] = useState<OpportunityStage>(initial?.stage ?? OpportunityStage.QUALIFICATION);
   const [expectedCloseAt, setExpectedCloseAt] = useState(initial?.expectedCloseAt?.slice(0, 10) ?? "");
   const [listingRows, setListingRows] = useState<ListingFormRow[]>(() => listingRowsFromInitial(initial, prefill));
@@ -367,7 +365,7 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
     setIsDirty(true);
   }, [
     title, participants, dealType, dealSize, currency, contractStart, contractEnd,
-    commission, commissionUnit, paymentTerms, probability, stage, expectedCloseAt,
+    commission, commissionUnit, paymentTerms, stage, expectedCloseAt,
     listingRows, status, assignedAgentId, agentCommissionValue, agentCommissionUnit, notes,
   ]);
 
@@ -614,7 +612,6 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
         commission,
         commissionUnit,
         paymentTerms,
-        probability,
         stage,
         expectedCloseAt,
         propertyIds: listingRows.map((r) => r.propertyId).filter(Boolean),
@@ -1171,10 +1168,36 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
           </div>
 
 
+          {/* Agent / agent commission */}
+          <div className="grid grid-cols-2 gap-5">
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass} style={mont}>{t("addModal.agent")}</label>
+              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder={t("addModal.selectAgentPlaceholder")} lockedAgent={lockedAgent} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass} style={mont}>{t("addModal.agentCommission")}</label>
+              <div className="flex items-center gap-2">
+                <input value={agentCommissionValue} onChange={(e) => setAgentCommissionValue(e.target.value)} placeholder={t("addModal.commissionPlaceholder")} className={`flex-1 ${inputClass}`} style={mont} />
+                <SearchableSelect
+                  className="w-[72px] shrink-0"
+                  size="sm"
+                  searchable={false}
+                  value={agentCommissionUnit}
+                  onChange={(next) => setAgentCommissionUnit(next as "%" | "$")}
+                  options={COMMISSION_UNIT_OPTIONS}
+                  placeholder="%"
+                />
+              </div>
+              {agentCommissionPreview && (
+                <p className="text-[11px] text-[#6a7282]" style={mont}>{t("addModal.agentCommissionPreview", { amount: agentCommissionPreview })}</p>
+              )}
+            </div>
+          </div>
+
           {participants.some(p => p.role === "AGENCY") && <div className="rounded-xl border border-[#ccdeef] bg-[#f0f6fa] p-4 text-sm">
             <h3 className="mb-3 font-semibold text-[#005089]">Distribución de comisión</h3>
             <p className="mb-3 text-xs">Ingresá arriba la comisión total a repartir. Primero se descuentan las inmobiliarias; el porcentaje del agente se calcula sobre la parte de Mobi Prop.</p>
-            {[ ["Comisión total", commissionAmount ?? 0], ["Otras inmobiliarias", -partnerTotal], ["Comisión bruta Mobi Prop", companyShare], ["Comisión del agente", -agentShare], ["Ingresos netos Mobi Prop", companyShare - agentShare] ].map(([label, amount]) => <div key={String(label)} className="flex justify-between gap-3 py-1"><span>{label}</span><strong>{fmtPreview(Number(amount), currency)}</strong></div>)}
+            {[ ["Comisión total", commissionAmount ?? 0], ["Otras inmobiliarias", -partnerTotal], ["Comisión bruta", companyShare], ["Comisión del agente", -agentShare], ["Ingresos netos", companyShare - agentShare] ].map(([label, amount]) => <div key={String(label)} className="flex justify-between gap-3 py-1"><span>{label}</span><strong className={Number(amount) < 0 ? "text-[#fb2c36]" : Number(amount) > 0 ? "text-[#00a63e]" : "text-[#6a7282]"}>{fmtPreview(Number(amount) === 0 ? 0 : Number(amount), currency)}</strong></div>)}
           </div>}
           {/* Stage / expected close */}
           <div className="grid grid-cols-2 gap-5">
@@ -1206,32 +1229,6 @@ export function AddOpportunityModal({ mode = "create", initial, prefill, onClose
               options={STATUS_OPTIONS}
               placeholder={t("addModal.selectStatus")}
             />
-          </div>
-
-          {/* Agent / agent commission */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>{t("addModal.agent")}</label>
-              <AgentSelect value={assignedAgentId} onChange={setAssignedAgentId} placeholder={t("addModal.selectAgentPlaceholder")} lockedAgent={lockedAgent} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className={labelClass} style={mont}>{t("addModal.agentCommission")}</label>
-              <div className="flex items-center gap-2">
-                <input value={agentCommissionValue} onChange={(e) => setAgentCommissionValue(e.target.value)} placeholder={t("addModal.commissionPlaceholder")} className={`flex-1 ${inputClass}`} style={mont} />
-                <SearchableSelect
-                  className="w-[72px] shrink-0"
-                  size="sm"
-                  searchable={false}
-                  value={agentCommissionUnit}
-                  onChange={(next) => setAgentCommissionUnit(next as "%" | "$")}
-                  options={COMMISSION_UNIT_OPTIONS}
-                  placeholder="%"
-                />
-              </div>
-              {agentCommissionPreview && (
-                <p className="text-[11px] text-[#6a7282]" style={mont}>{t("addModal.agentCommissionPreview", { amount: agentCommissionPreview })}</p>
-              )}
-            </div>
           </div>
 
           {/* Description */}

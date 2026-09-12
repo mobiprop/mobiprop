@@ -25,7 +25,6 @@
       "opportunity": "Oportunidad",
       "participants": "Participantes",
       "dealSize": "Tamaño del Trato",
-      "probability": "Probabilidad",
       "stage": "Etapa",
       "expectedClose": "Cierre Esperado",
       "status": "Estado"
@@ -53,7 +52,6 @@
     "commissionRange": "Rango de comisión",
     "minCommissionPlaceholder": "Mín $",
     "maxCommissionPlaceholder": "Máx $",
-    "minProbability": "Probabilidad mínima",
     "expectedClose": "Cierre esperado",
     "expectedCloseOptions": {
       "THIS_WEEK": "Esta semana",
@@ -179,7 +177,6 @@
     "commissionPreview": "{{amount}} del tamaño del trato — ingreso de la empresa",
     "paymentTerms": "Condiciones de Pago",
     "paymentTermsPlaceholder": "ej. Neto 30, Cuotas, Efectivo",
-    "probability": "Probabilidad: {{value}}%",
     "stage": "Etapa *",
     "selectStage": "Seleccionar etapa",
     "expectedCloseDate": "Fecha de Cierre Esperada *",

@@ -86,7 +86,7 @@ type OppWithRelations = {
   id: string; opportunityId: string; title: string;
   dealType: string | null; dealSize: unknown; currency: Currency;
   stage: OpportunityStage; status: OpportunityStatus;
-  probability: number; commission: unknown; commissionUnit: string | null;
+  commission: unknown; commissionUnit: string | null;
   paymentTerms: string | null; contractStart: Date | null; contractEnd: Date | null;
   expectedCloseAt: Date | null; closedAt: Date | null; exchangeRate: unknown;
   agentCommissionValue: unknown; agentCommissionUnit: string | null;
@@ -139,7 +139,6 @@ function toOpportunityDto(
     currency: o.currency,
     stage: o.stage,
     status: o.status,
-    probability: o.probability,
     commission,
     commissionUnit: o.commissionUnit,
     commissionAmount: resolveCompanyRevenue(o),

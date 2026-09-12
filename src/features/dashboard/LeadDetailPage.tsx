@@ -515,7 +515,6 @@ function ConvertToOpportunityModal({
       dealSize: values.dealSize ? Number(values.dealSize) : undefined,
       stage: values.stage,
       status: values.status,
-      probability: values.probability,
       commission: values.commission ? Number(values.commission) : undefined,
       commissionUnit: values.commissionUnit,
       paymentTerms: values.paymentTerms || undefined,

@@ -603,6 +603,11 @@ export function ListingsPage({ role }: ListingsPageProps) {
 
             {/* View toggle */}
             <div className="col-span-2 flex h-11 items-center justify-end gap-2 sm:col-span-1 lg:ml-auto">
+              <button type="button" aria-pressed={statusFilter === PropertyStatus.INACTIVE}
+                className="h-10 rounded-[9px] border border-[#ccdeef] px-3 text-sm text-[#005089] aria-pressed:bg-[#005089] aria-pressed:text-white"
+                onClick={() => { setStatusFilter(statusFilter === PropertyStatus.INACTIVE ? "All" : PropertyStatus.INACTIVE); setSelectedIds(new Set()); setAdvancedFilters(DEFAULT_LISTING_FILTER_VALUES); }}>
+                Archivadas ({listings.filter(item => item.status === PropertyStatus.INACTIVE).length})
+              </button>
               <button
                 type="button"
                 onClick={() => setView("grid")}
@@ -645,14 +650,6 @@ export function ListingsPage({ role }: ListingsPageProps) {
           </div>
         </section>
 
-        <div className="flex gap-2" aria-label="Vista de propiedades">
-          {[{ value: "All", label: "Propiedades" }, { value: PropertyStatus.INACTIVE, label: "Archivadas" }].map(tab =>
-            <button key={tab.value} type="button" aria-pressed={tab.value === "All" ? statusFilter !== PropertyStatus.INACTIVE : statusFilter === tab.value}
-              className="rounded-xl border border-[#ccdeef] px-4 py-2 text-sm aria-pressed:bg-[#005089] aria-pressed:text-white"
-              onClick={() => { setStatusFilter(tab.value as PropertyStatus | "All"); setSelectedIds(new Set()); setAdvancedFilters(DEFAULT_LISTING_FILTER_VALUES); }}>
-              {tab.label}{tab.value === PropertyStatus.INACTIVE ? ` (${listings.filter(item => item.status === PropertyStatus.INACTIVE).length})` : ""}
-            </button>)}
-        </div>
         <BulkActionsBar
           selectedCount={selectedIds.size}
           busy={bulkBusy}

@@ -49,7 +49,6 @@ export const createOpportunitySchema = z.object({
   currency: z.nativeEnum(Currency).default(Currency.USD),
   stage: z.nativeEnum(OpportunityStage).default(OpportunityStage.QUALIFICATION),
   status: z.nativeEnum(OpportunityStatus).default(OpportunityStatus.OPEN),
-  probability: z.coerce.number().int().min(0).max(100).default(50),
   commission: z.coerce.number().nonnegative().optional(),
   commissionUnit: z.enum(["%", "$"]).optional(),
   paymentTerms: z.string().max(500).optional(),
@@ -68,14 +67,13 @@ export const createOpportunitySchema = z.object({
 export type CreateOpportunityInput = z.infer<typeof createOpportunitySchema>;
 
 // `.partial()` only wraps each field in `.optional()`; it doesn't remove a
-// field's `.default(...)`, so an omitted stage/status/probability in a
+// field's `.default(...)`, so an omitted stage/status in a
 // partial PATCH body would otherwise be silently coerced to the create-time
-// default and overwrite the existing value. Re-declare all three as plain
+// default and overwrite the existing value. Re-declare both as plain
 // optionals.
 export const updateOpportunitySchema = createOpportunitySchema.partial().extend({
   stage: z.nativeEnum(OpportunityStage).optional(),
   status: z.nativeEnum(OpportunityStatus).optional(),
-  probability: z.coerce.number().int().min(0).max(100).optional(),
   currency: z.nativeEnum(Currency).optional(),
   // Only consumed when this update closes an ARS-currency deal (status
   // transitioning into CLOSED_WON) — lets the closer override the

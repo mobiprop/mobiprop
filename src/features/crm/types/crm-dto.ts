@@ -86,7 +86,6 @@ export type OpportunityDto = {
   currency: Currency;
   stage: OpportunityStage;
   status: OpportunityStatus;
-  probability: number;
   commission: number | null;
   commissionUnit: string | null;
   /** Computed: commissionUnit === "%" ? dealSize * commission / 100 : commission. */
@@ -102,7 +101,7 @@ export type OpportunityDto = {
   exchangeRate: number | null;
   agentCommissionValue: number | null;
   agentCommissionUnit: string | null;
-  /** Computed the same way as commissionAmount, against dealSize. */
+  /** Agent fee calculated on company commission after partner agency deductions. */
   agentCommissionAmount: number | null;
   notes: string | null;
   assignedAgentId: string | null;

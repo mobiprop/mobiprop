@@ -14,6 +14,7 @@
 import { describe, it, expect, vi, beforeEach, type MockInstance } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/exchange-rate", () => ({ getDolarBlueVenta: vi.fn().mockResolvedValue(1000) }));
 
 type MockFn = MockInstance;
 
@@ -131,7 +132,7 @@ describe("updateOpportunity — ownership guard", () => {
 
   it("allows AGENT to update their own assigned opportunity", async () => {
     grantAs("AGENT", AGENT_A_ID);
-    db.opportunity.findUnique.mockResolvedValue({ assignedAgentId: AGENT_A_ID, createdById: null });
+    db.opportunity.findUnique.mockResolvedValue({ assignedAgentId: AGENT_A_ID, createdById: null, participants: [], commission: null, commissionUnit: null });
     db.opportunity.update.mockResolvedValue({
       id: "opp-1", opportunityId: "OPP-0001", title: "Test",
       dealType: null, dealSize: null, stage: "QUALIFICATION", status: "OPEN", probability: 50,
@@ -150,7 +151,7 @@ describe("updateOpportunity — ownership guard", () => {
     // scoping (2026-07-02) means a Manager no longer bypasses ownership entirely.
     db.opportunity.findUnique.mockResolvedValue({
       isDeleted: false, assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID,
-      title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null,
+      title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null, participants: [], commission: null, commissionUnit: null,
     });
 
     const res = await updateOpportunity("opp-1", {});
@@ -166,7 +167,7 @@ describe("updateOpportunity — ownership guard", () => {
     );
     db.opportunity.findUnique.mockResolvedValue({
       isDeleted: false, assignedAgentId: AGENT_A_ID, createdById: AGENT_A_ID,
-      title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null,
+      title: "Test", stage: "QUALIFICATION", status: "OPEN", dealSize: null, participants: [], commission: null, commissionUnit: null,
     });
     db.opportunity.update.mockResolvedValue({
       id: "opp-1", opportunityId: "OPP-0001", title: "Test",

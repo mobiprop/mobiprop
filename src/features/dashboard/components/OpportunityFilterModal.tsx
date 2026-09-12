@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X, Search, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { SearchableSelect } from "./SearchableSelect";
 import { OpportunityStage, OpportunityStatus } from "@/generated/prisma/enums";
 import type { OpportunityDto } from "@/features/crm/types/crm-dto";
 
@@ -14,7 +15,6 @@ export type OpportunityFilterValues = {
   statuses: OpportunityStatus[];
   minCommission: string;
   maxCommission: string;
-  minProbability: number;
   expectedClose: string;
   agentId: string;
 };
@@ -24,7 +24,6 @@ export const EMPTY_OPPORTUNITY_FILTERS: OpportunityFilterValues = {
   statuses: [],
   minCommission: "",
   maxCommission: "",
-  minProbability: 0,
   expectedClose: "",
   agentId: "",
 };
@@ -35,7 +34,6 @@ export function hasActiveOpportunityFilters(f: OpportunityFilterValues): boolean
     f.statuses.length > 0 ||
     f.minCommission.trim() !== "" ||
     f.maxCommission.trim() !== "" ||
-    f.minProbability > 0 ||
     f.expectedClose !== "" ||
     f.agentId !== ""
   );
@@ -83,7 +81,6 @@ export function matchesOpportunityFilters(o: OpportunityDto, f: OpportunityFilte
   if (min !== null && commission < min) return false;
   if (max !== null && commission > max) return false;
 
-  if (f.minProbability > 0 && o.probability < f.minProbability) return false;
   if (f.expectedClose && !matchesExpectedCloseBucket(o.expectedCloseAt, f.expectedClose)) return false;
   if (f.agentId && o.assignedAgentId !== f.agentId) return false;
 
@@ -134,28 +131,12 @@ type Agent = { id: string; name: string; status: string };
 
 type OpportunityFilterModalProps = {
   initial: OpportunityFilterValues;
-  /** Opportunities already narrowed by search/tab — the live "N results" count
+  /** Opportunities already narrowed by search — the live "N results" count
    * previews these filters against this set, before Apply commits them. */
   baseResults: OpportunityDto[];
   onApply: (filters: OpportunityFilterValues) => void;
   onClose: () => void;
 };
-
-function DotPill({ label, dot, active, onClick }: { label: string; dot: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-2 h-8 px-3.5 rounded-full border text-[12px] transition-colors ${
-        active ? "bg-[#eff6ff] border-[#1e4f86] text-[#1e4f86] font-medium" : "bg-white border-[#d0d0d0] text-[#2a2a2a] hover:bg-[#f8fafc]"
-      }`}
-      style={mont}
-    >
-      <span className="size-2 rounded-full" style={{ backgroundColor: dot }} />
-      {label}
-    </button>
-  );
-}
 
 export function OpportunityFilterModal({ initial, baseResults, onApply, onClose }: OpportunityFilterModalProps) {
   const { t } = useTranslation("opportunities");
@@ -163,7 +144,6 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
   const [statuses, setStatuses] = useState<OpportunityStatus[]>(initial.statuses);
   const [minCommission, setMinCommission] = useState(initial.minCommission);
   const [maxCommission, setMaxCommission] = useState(initial.maxCommission);
-  const [minProbability, setMinProbability] = useState(initial.minProbability);
   const [expectedClose, setExpectedClose] = useState(initial.expectedClose);
   const [agentSearch, setAgentSearch] = useState("");
   const [agentId, setAgentId] = useState(initial.agentId);
@@ -179,25 +159,20 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
       .finally(() => setAgentsLoading(false));
   }, []);
 
-  function toggle<T>(list: T[], value: T, setter: (next: T[]) => void) {
-    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-  }
-
   function clearAll() {
     setStages([]);
     setStatuses([]);
     setMinCommission("");
     setMaxCommission("");
-    setMinProbability(0);
     setExpectedClose("");
     setAgentId("");
   }
 
-  const draft: OpportunityFilterValues = { stages, statuses, minCommission, maxCommission, minProbability, expectedClose, agentId };
+  const draft: OpportunityFilterValues = { stages, statuses, minCommission, maxCommission, expectedClose, agentId };
   const previewCount = useMemo(
     () => baseResults.filter((o) => matchesOpportunityFilters(o, draft)).length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [baseResults, stages, statuses, minCommission, maxCommission, minProbability, expectedClose, agentId],
+    [baseResults, stages, statuses, minCommission, maxCommission, expectedClose, agentId],
   );
 
   const visibleAgents = agents.filter((a) => a.name.toLowerCase().includes(agentSearch.toLowerCase()));
@@ -221,50 +196,28 @@ export function OpportunityFilterModal({ initial, baseResults, onApply, onClose 
         <div className="flex flex-1 flex-col overflow-y-auto">
           {/* Body */}
           <div className="px-6 py-5 flex flex-col gap-5">
-            {/* Stage */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.stage")}</p>
-            <div className="flex flex-wrap gap-2.5">
-              {STAGE_DOTS.map((s) => (
-                <DotPill key={s.value} label={t(`dashboard:status.${s.value}`, { defaultValue: STAGE_LABEL_EN[s.value] })} dot={s.dot} active={stages.includes(s.value)} onClick={() => toggle(stages, s.value, setStages)} />
-              ))}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex min-w-0 flex-col gap-2">
+                <label className="text-xs text-[#7a7a7a]">{t("filterModal.stage")}</label>
+                <SearchableSelect ariaLabel={t("filterModal.stage")} placeholder={t("page.tabs.all")} searchable={false} size="sm" value={stages[0] ?? ""}
+                  onChange={value => setStages(value ? [value as OpportunityStage] : [])}
+                  options={[{value:"",label:t("page.tabs.all")}, ...STAGE_DOTS.map(s => ({value:s.value,label:t(`dashboard:status.${s.value}`, {defaultValue:STAGE_LABEL_EN[s.value]})}))]} />
+              </div>
+              <div className="flex min-w-0 flex-col gap-2">
+                <label className="text-xs text-[#7a7a7a]">{t("filterModal.status")}</label>
+                <SearchableSelect ariaLabel={t("filterModal.status")} placeholder={t("page.tabs.all")} searchable={false} size="sm" value={statuses[0] ?? ""}
+                  onChange={value => setStatuses(value ? [value as OpportunityStatus] : [])}
+                  options={[{value:"",label:t("page.tabs.all")}, ...STATUS_DOTS.map(s => ({value:s.value,label:t(`dashboard:status.${s.value}`, {defaultValue:STATUS_LABEL_EN[s.value]})}))]} />
+              </div>
             </div>
-          </div>
-
-          {/* Status */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.status")}</p>
-            <div className="flex flex-wrap gap-2.5">
-              {STATUS_DOTS.map((s) => (
-                <DotPill key={s.value} label={t(`dashboard:status.${s.value}`, { defaultValue: STATUS_LABEL_EN[s.value] })} dot={s.dot} active={statuses.includes(s.value)} onClick={() => toggle(statuses, s.value, setStatuses)} />
-              ))}
-            </div>
-          </div>
 
           {/* Commission range */}
           <div className="flex flex-col gap-3">
             <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.commissionRange")}</p>
             <div className="flex items-center gap-3">
-              <input value={minCommission} onChange={(e) => setMinCommission(e.target.value)} placeholder={t("filterModal.minCommissionPlaceholder")} inputMode="numeric" className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
+              <input value={minCommission} onChange={(e) => setMinCommission(e.target.value)} placeholder={t("filterModal.minCommissionPlaceholder")} inputMode="numeric" className="min-w-0 flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
               <span className="text-[#9a9a9a]">—</span>
-              <input value={maxCommission} onChange={(e) => setMaxCommission(e.target.value)} placeholder={t("filterModal.maxCommissionPlaceholder")} inputMode="numeric" className="flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
-            </div>
-          </div>
-
-          {/* Min probability */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[12px] text-[#7a7a7a]" style={mont}>{t("filterModal.minProbability")}</p>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={minProbability}
-                onChange={(e) => setMinProbability(Number(e.target.value))}
-                className="flex-1 h-1.5 appearance-none rounded-full cursor-pointer accent-[#1e4f86]"
-                style={{ background: `linear-gradient(to right, #1e4f86 ${minProbability}%, #e5e7eb ${minProbability}%)` }}
-              />
-              <span className="text-[12px] font-medium text-[#2a2a2a] w-9 text-right" style={mont}>{minProbability}%</span>
+              <input value={maxCommission} onChange={(e) => setMaxCommission(e.target.value)} placeholder={t("filterModal.maxCommissionPlaceholder")} inputMode="numeric" className="min-w-0 flex-1 h-10 px-3 border border-[#d0d0d0] rounded-[10px] text-[12px] text-[#2a2a2a] placeholder:text-[#9a9a9a] outline-none focus:border-[#1e4f86] transition-colors" style={mont} />
             </div>
           </div>
 
