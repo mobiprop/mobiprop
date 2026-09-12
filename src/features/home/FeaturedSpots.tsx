@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
@@ -53,19 +52,6 @@ const FEATURED_SPOTS: FeaturedSpot[] = [
     searchLocation: "Vila Haus",
   },
 ];
-
-/** Purely presentational — the curated spot list above is fixed regardless of
- * category, matching the client's "exact 5 spots" requirement (see above).
- * Filtering by these labels would need a property-type/community-type field
- * these cards don't have, so this is a visual pill row, not a live filter. */
-const FILTER_KEYS = [
-  "all",
-  "gatedCommunities",
-  "apartments",
-  "lots",
-  "offices",
-  "retail",
-] as const;
 
 function ArrowUpRight({ color = "#0D2138" }: { color?: string }) {
   return (
@@ -138,41 +124,12 @@ function SpotCard({
 
 export function FeaturedSpots() {
   const { t } = useTranslation("home");
-  const [activeFilter, setActiveFilter] = useState<(typeof FILTER_KEYS)[number]>("all");
   const [spot1, spot2, spot3, spot4, spot5] = FEATURED_SPOTS;
 
   return (
     <section className="bg-white home-section">
       <div className="home-container flex flex-col items-center gap-10">
         <SectionHeading badge={t("featuredSpots.badge")} title={t("featuredSpots.title")} subtitle={t("featuredSpots.subtitle")} />
-
-        {/* Filter pills */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {FILTER_KEYS.map((key) => {
-            const active = key === activeFilter;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActiveFilter(key)}
-                className={`h-11 rounded-xl px-[18px] text-[15px] sm:text-[16px] transition-colors ${
-                  active
-                    ? "text-white"
-                    : "bg-[#f0f6fa] border border-[#ccdeef] text-[#4f4f4f] hover:bg-[#e5eff6]"
-                }`}
-                style={{
-                  fontFamily: active ? "Poppins, sans-serif" : "Montserrat, sans-serif",
-                  fontWeight: active ? 500 : 400,
-                  ...(active
-                    ? { background: "linear-gradient(151deg, #005ea4 0%, #006fc2 100%)" }
-                    : {}),
-                }}
-              >
-                {t(`featuredSpots.filters.${key}`)}
-              </button>
-            );
-          })}
-        </div>
 
         {/* Bento grid: two uneven rows, matching the Figma layout */}
         <div className="flex flex-col gap-7 w-full">

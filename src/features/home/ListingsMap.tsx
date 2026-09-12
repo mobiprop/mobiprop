@@ -100,8 +100,11 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
       onFinish: () => { window.clearTimeout(start); cameraMoving.current = false; setMoving(false); update(); },
     });
     const listener = map.addListener("idle",update);
+    const resizeObserver = new ResizeObserver(update);
+    if (container.current) resizeObserver.observe(container.current);
+    if (popupCard.current) resizeObserver.observe(popupCard.current);
     update();
-    return () => { window.clearTimeout(start); cancelTransition(); cameraMoving.current = false; listener.remove(); };
+    return () => { window.clearTimeout(start); cancelTransition(); cameraMoving.current = false; listener.remove(); resizeObserver.disconnect(); };
   }, [selectedGeo, selectedId, ready]);
 
   const unavailable = !apiKey || failed || geo.length === 0;
@@ -112,7 +115,7 @@ export function ListingsMap({ listings, selectedId, onSelect, onClose }: {
         <p className="text-xl font-medium text-[#00223a]">{t(unavailable ? "explorer.mapUnavailable" : "explorer.mapLoading")}</p>
         {unavailable && <p className="mx-auto max-w-sm text-center text-sm leading-relaxed">{t("explorer.mapFallback")}</p>}
       </div>}
-      {selected && <div ref={popupCard} className="absolute z-10 w-[318px] max-w-[calc(100%-32px)]" style={{...(selectedGeo && popup ? {left:popup.x, top:popup.y,transform:"translateX(-50%)"} : {left:16,bottom:16}), visibility: selectedGeo && moving ? "hidden" : "visible"}}>
+      {selected && <div ref={popupCard} className="home-map-popup absolute z-10 w-[318px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)] overflow-y-auto overscroll-contain rounded-2xl" style={{...(selectedGeo && popup ? {left:popup.x, top:popup.y,transform:"translateX(-50%)"} : {left:16,bottom:16}), visibility: selectedGeo && moving ? "hidden" : "visible"}}>
         <PropertyCard key={selected.id} property={selected} compact onClose={onClose} />
         {selected.locationApproximate && selectedGeo && <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-[#4f4f4f]">Ubicación aproximada de la zona</p>}
         {!selectedGeo && <p role="status" className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-[#4f4f4f]">Ubicación aún no disponible</p>}

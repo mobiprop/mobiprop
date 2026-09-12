@@ -541,3 +541,15 @@ body {
 .property-detail-section { padding-top:70px; }
 .property-detail-section h2 { margin-bottom:20px; color:#00223a; font:500 24px/32px "Poppins",sans-serif; letter-spacing:-.24px; }
 @media(max-width:639px) { .property-detail-section { padding-top:40px; } }
+
+/* Keep the selected property and its price inside the mobile map viewport. */
+@media (max-width: 639px) {
+  .home-map-popup .property-card { height: auto; }
+  .home-map-popup .property-card .hover-shine { height: 120px; aspect-ratio: auto; }
+  .home-map-popup .property-card-compact .property-card-body { padding: 12px; gap: 8px; }
+  .home-map-popup .property-card-body > div { gap: 8px; }
+  .home-map-popup .property-card-body > div:first-child > span { font-size: 16px; line-height: 22px; }
+  .home-map-popup .property-card-body > div:nth-child(2) > div:last-child { column-gap: 12px; row-gap: 4px; }
+  .home-map-popup .property-card-footer { padding-top: 0; }
+  .home-map-popup .property-card-footer > span:first-child { font-size: 17px; line-height: 24px; }
+}
