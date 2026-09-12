@@ -383,7 +383,7 @@ export function OpportunitiesPage({
 
       {/* Table */}
       <div className="bg-white border border-[#e9e9e9] rounded-[14px] overflow-hidden">
-        <div className="mobi-opportunity-toolbar flex flex-wrap items-center justify-between gap-4 p-5">
+        <div className="mobi-table-toolbar flex flex-wrap items-center justify-between gap-4 p-5">
           <h2 className="text-[16px] font-medium text-[#0d2138]" style={poppins}>Todas las oportunidades</h2>
           <div className="flex min-w-0 flex-wrap items-center gap-3 w-full xl:w-auto">
             <div className="mobi-toolbar-control w-full sm:w-[300px]">

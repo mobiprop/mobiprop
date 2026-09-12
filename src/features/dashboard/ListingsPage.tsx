@@ -528,12 +528,13 @@ export function ListingsPage({ role }: ListingsPageProps) {
         </section>
 
         {/* Filters */}
-        <div className="overflow-hidden rounded-[14px] border border-[#e5e7eb] bg-white">
-        <h2 className="px-5 pt-5 pb-2 text-[16px] font-semibold text-[#0d2138]" style={mont}>{t("list.title")}</h2>
-        <section className="p-3 sm:p-4">
-          <div className="grid min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-4 lg:flex lg:items-center lg:gap-3">
+        <div className="overflow-hidden rounded-[14px] border border-[#e9e9e9] bg-white">
+        <section className="mobi-table-toolbar p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-[16px] font-medium text-[#0d2138]" style={poppins}>{t("list.title")}</h2>
+            <div className="flex min-w-0 flex-wrap items-center gap-3 w-full xl:w-auto">
             {/* Search */}
-            <div className="col-span-2 flex h-11 min-w-0 items-center gap-2.5 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 transition-all focus-within:border-[#1e4f86] focus-within:ring-2 focus-within:ring-[#1e4f86]/10 sm:col-span-4 lg:w-[300px] lg:flex-none">
+            <div className="mobi-toolbar-control w-full sm:w-[300px]">
               <Search size={16} className="shrink-0 text-[#99a1af]" />
 
               <input
@@ -562,12 +563,12 @@ export function ListingsPage({ role }: ListingsPageProps) {
             <button
               type="button"
               onClick={() => setShowFilter(true)}
-              className="flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#f8fafc] px-3 text-[14px] font-medium text-[#6a7282] transition-colors hover:bg-[#f3f4f6] lg:w-11 lg:px-0"
+              className="mobi-toolbar-control"
               title={t("filters.moreFiltersTitle")}
               style={mont}
             >
+              {t("opportunities:page.filterBy")}
               <Filter size={16} className="shrink-0" />
-              <span className="lg:hidden">{t("filters.filtersLabel")}</span>
             </button>
 
             {/* Status filter */}
@@ -582,8 +583,10 @@ export function ListingsPage({ role }: ListingsPageProps) {
               ]}
               placeholder={t("filters.allStatus")}
               ariaLabel={t("filters.statusAria")}
+              triggerClassName="mobi-toolbar-control"
               triggerStyle={{color:"#005089"}}
-              className="min-w-0 lg:min-w-[130px]"
+              className="w-full sm:w-[195px]"
+              menuMinWidth={195}
             />
 
             {/* Type filter */}
@@ -598,8 +601,10 @@ export function ListingsPage({ role }: ListingsPageProps) {
               ]}
               placeholder={t("filters.allTypes")}
               ariaLabel={t("filters.typeAria")}
+              triggerClassName="mobi-toolbar-control"
               triggerStyle={{color:"#005089"}}
-              className="min-w-0 lg:min-w-[135px]"
+              className="w-full sm:w-[190px]"
+              menuMinWidth={220}
             />
 
             {/* Clear filters */}
@@ -607,7 +612,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="col-span-2 flex h-11 items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-white px-3 text-[14px] font-medium text-[#6a7282] transition-colors hover:bg-[#f8fafc] hover:text-[#0d2138] sm:col-span-1 lg:w-auto"
+                className="mobi-toolbar-control"
                 style={mont}
               >
                 <X size={15} />
@@ -616,7 +621,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
             )}
 
             {/* View toggle */}
-            <div className="col-span-2 flex h-11 items-center justify-end gap-2 sm:col-span-1 lg:ml-auto">
+            <div className="flex h-10 items-center gap-3">
 
               <button
                 type="button"
@@ -624,7 +629,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
                 title={t("toolbar.gridViewTitle")}
                 aria-label={t("toolbar.gridViewAria")}
                 aria-pressed={view === "grid"}
-                className={`flex size-10 items-center justify-center rounded-[9px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
+                className={`flex size-10 items-center justify-center rounded-[10px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
                   view === "grid"
                     ? "border-[#1e4f86] bg-[#1e4f86] text-white"
                     : "border-[#e5e7eb] bg-white text-[#6a7282] hover:bg-[#f9fafb]"
@@ -639,7 +644,7 @@ export function ListingsPage({ role }: ListingsPageProps) {
                 title={t("toolbar.listViewTitle")}
                 aria-label={t("toolbar.listViewAria")}
                 aria-pressed={view === "list"}
-                className={`flex size-10 items-center justify-center rounded-[9px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
+                className={`flex size-10 items-center justify-center rounded-[10px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e4f86]/25 ${
                   view === "list"
                     ? "border-[#1e4f86] bg-[#1e4f86] text-white"
                     : "border-[#e5e7eb] bg-white text-[#6a7282] hover:bg-[#f9fafb]"
@@ -650,7 +655,8 @@ export function ListingsPage({ role }: ListingsPageProps) {
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#f3f4f6] pt-3">
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#e9e9e9] pt-3">
             <p
               className="text-[14px] font-medium text-[#6a7282]"
               style={mont}
